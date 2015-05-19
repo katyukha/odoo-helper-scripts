@@ -470,32 +470,6 @@ EOF
 chmod a+x $BIN_DIR/new_module.bash;
 
 #---------------------------------------------
- 
-# Generate odoo script
-cat > $BIN_DIR/odoo <<EOF
-#!/bin/bash
-
-# This script runs odoo.py inside virtual env, and should be used to
-# run odoo.py outside virtualenv
-
-# Guess directory script is placed in
-F=\`readlink -f \$0\`
-source $BASE_DIR/$CONF_FILE_NAME;
-BASEDIR=\$PROJECT_ROOT_DIR;
-
-SCRIPTPATH=\$BASEDIR/venv/bin/odoo.py;
-ADDONS_PATH=$ADDONS_PATH;
-
-(cd \$BASEDIR && \
-source ./venv/bin/activate && \
-exec \$SCRIPTPATH \$@ && \
-deactivate);
-
-EOF
- 
-chmod a+x $BIN_DIR/odoo;
-#---------------------------------------------------------------
 
 echo "Edit configuration at $ODOO_CONF_FILE.conf";
 echo "To create skeleton for new module use $BIN_DIR/new_module.bash script";
-echo "$BIN_DIR/odoo script could be used to run odoo.py outside virtual environment";

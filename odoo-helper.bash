@@ -45,6 +45,7 @@ function search_file_up {
 function load_conf {
     for conf_file in $@; do
         if [ -f $conf_file ]; then
+            echo "Loading config file: $conf_file";
             source $conf_file;
         fi
     done
@@ -77,11 +78,17 @@ function print_usage {
         - $HOME/$CONF_FILE_NAME         - User specific oconf  (overwrites previous conf)
         - Project specific conf         - File $CONF_FILE_NAME will be searched in $WORKDIR and all parent
                                           directories. First one found will be used
-    Available env options:
+
+    Configuration files are simple bash scripts that sets environment variables
+
+    Available environment variables:
         DOWNLOADS_DIR                   - Directory where all downloads hould be placed
         ADDONS_DIR                      - directory to place addons fetched (thats one in odoo's addons_path)
         VENV_DIR                        - Directory of virtual environment, if virtualenv is used
+                                        - Note, that if VENV_DIR not set, than system will think that odoo is installed system-wide.
         USE_COPY                        - If set, then addons will be coppied in addons dir, instead of standard symlinking
+        ODOO_BRANCH                     - used in run_server command to decide how to run it
+        ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
 "
 }
 
@@ -296,18 +303,28 @@ function get_server_script {
 # all arguments will be passed to odoo server
 function run_server {
     local SERVER=`get_server_script`;
-    (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate);
+    if [ -z $VENV_DIR ]; then
+        exec $SERVER $@;
+    else
+        (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate);
+    fi
 }
 
 
 # test_module <module_name>
 function test_module {
     local SERVER=`get_server_script`;
-    (source $VENV_DIR/bin/activate && \
-     exec $SERVER -c $ODOO_TEST_CONF_FILE --init=$1 --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs && \
-     deactivate)
+    if [ -z $VENV_DIR ]; then
+        exec $SERVER -c $ODOO_TEST_CONF_FILE --init=$1 --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
+    else
+        (source $VENV_DIR/bin/activate && \
+         exec $SERVER -c $ODOO_TEST_CONF_FILE --init=$1 --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs && \
+         deactivate)
+    fi
 }
 
+
+# Parse command line options and run commands
 if [[ $# -lt 1 ]]; then
     echo "No options/commands supplied $#: $@";
     print_usage;
@@ -361,11 +378,6 @@ do
             test_module $@;
             exit;
         ;;
-#        test_module)
-#            shift;
-#            test_module $@;
-#            exit;
-#        ;;
         *)
             echo "Unknown option global option /command $key";
             exit 1;
