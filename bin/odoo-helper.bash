@@ -45,14 +45,14 @@ function search_file_up {
 function load_conf {
     for conf_file in $@; do
         if [ -f $conf_file ]; then
-            echo "Loading config file: $conf_file";
+            echo "Loading conf: $conf_file";
             source $conf_file;
         fi
     done
 }
 
-load_conf "/etc/default/$CONF_FILE_NAME"\
-          "$HOME/$CONF_FILE_NAME"\
+load_conf "/etc/default/$CONF_FILE_NAME" \
+          "$HOME/$CONF_FILE_NAME" \
           `search_file_up $WORKDIR $CONF_FILE_NAME`;
 
 function print_usage {
@@ -287,40 +287,42 @@ function fetch_module {
 # Prints server script name
 # (depends on ODOO_BRANCH environment variable,
 #  which should be placed in project config)
+# Now it simply returns openerp-server
 function get_server_script {
-    case $ODOO_BRANCH in
-        8.0|7.0|6.0)
-            echo "openerp-server";
-        ;;
-        *)
-            echo "unknown server version";
-            exit -1;
-        ;;
-    esac;
+    echo "openerp-server";
+    #case $ODOO_BRANCH in
+        #8.0|7.0|6.0)
+            #echo "openerp-server";
+        #;;
+        #*)
+            #echo "unknown server version";
+            #exit 1;
+        #;;
+    #esac;
+}
+
+# Internal function to run odoo server
+function run_server_impl {
+    local SERVER=`get_server_script`;
+    if [ -z $VENV_DIR ]; then
+        echo "Running server: $SERVER $@";
+        exec $SERVER $@;
+    else
+        echo "Running server: (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate)";
+        (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate);
+    fi
 }
 
 # run_server <arg1> .. <argN>
 # all arguments will be passed to odoo server
 function run_server {
-    local SERVER=`get_server_script`;
-    if [ -z $VENV_DIR ]; then
-        exec $SERVER $@;
-    else
-        (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate);
-    fi
+    run_server_impl -c $ODOO_CONF_FILE $@;
 }
 
 
 # test_module <module_name>
 function test_module {
-    local SERVER=`get_server_script`;
-    if [ -z $VENV_DIR ]; then
-        exec $SERVER -c $ODOO_TEST_CONF_FILE --init=$1 --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
-    else
-        (source $VENV_DIR/bin/activate && \
-         exec $SERVER -c $ODOO_TEST_CONF_FILE --init=$1 --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs && \
-         deactivate)
-    fi
+    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$1 --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
 }
 
 

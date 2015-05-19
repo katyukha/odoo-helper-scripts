@@ -76,11 +76,6 @@ function print_usage {
 
     After instalation configs will be generated in 'conf' dir
     Also 'log' directory will contain Odoo logs
-    Two more scripts will be generated:
-         run_server.bash  - will run openerp server. It is able to be executed outside virtual env
-         test_module.bash - will run tests for specified module. Should have specific config
-                            ('conf/openerp-server-test.conf')
-
     ";
 }
 
@@ -149,7 +144,7 @@ function config_dirs {
     DATA_DIR=$BASE_DIR/data_dir;
     BIN_DIR=$BASE_DIR/bin;
     VENV_DIR=$BASE_DIR/venv;
-    PID_FILE=$BASE_DIR/openerp.pid;
+    PID_FILE=$BASE_DIR/odoo.pid;
     ODOO_PATH=$BASE_DIR/odoo;
     ADDONS_PATH="$ODOO_PATH/openerp/addons,$ODOO_PATH/addons,$CUSTOM_ADDONS_DIR";
 }
@@ -176,7 +171,7 @@ function clone_odoo {
 
 function install_odoo {
     cd "$INSTALL_DIR";
-    # if not installed odoo, install it via git (takes a long, very long time)
+    # if not installed odoo, install it
     if [ ! -d $BASE_DIR/odoo ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
             download_odoo;
@@ -185,7 +180,6 @@ function install_odoo {
         fi
 
     fi
-
 
     # install into virtualenv odoo and its dependencies
     if [ ! -d $VENV_DIR ]; then
@@ -263,7 +257,7 @@ list_db = True
 log_db = False
 log_handler = [':INFO']
 log_level = info
-logfile = $LOG_DIR/openerp.log
+logfile = $LOG_DIR/odoo.log
 logrotate = False
 longpolling_port = 8072
 max_cron_threads = 2
@@ -336,7 +330,7 @@ max_cron_threads = 2
 osv_memory_age_limit = 1.0
 osv_memory_count_limit = False
 pg_path = None
-pidfile = $BASE_DIR/openerp-test.pid
+pidfile = $BASE_DIR/odoo-test.pid
 proxy_mode = False
 reportgz = False
 ;secure_cert_file = server.cert
