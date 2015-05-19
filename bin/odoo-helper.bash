@@ -60,7 +60,7 @@ function print_usage {
         $SCRIPT_NAME [global options] command [command options]
     Available commands:
         fetch_module [--help]
-        link_module <repo_path> <addons_dir> [<module_name>]
+        link_module <repo_path> [<module_name>]
         fetch_requirements <file name>
         run_server [args passed to server]
         test_module [--help]
@@ -153,30 +153,29 @@ function link_module_impl {
     fi
 }
 
-# link_module <repo_path> <addons_dir> [<module_name>]
+# link_module <repo_path> [<module_name>]
 function link_module {
     local REPO_PATH=$1;
-    local ADDONS_PATH=$2
-    local MODULE_NAME=$3;
+    local MODULE_NAME=$2;
     
 
     # Guess repository type
     if is_odoo_module $REPO_PATH; then
         # single module repo
-        link_module_impl $REPO_PATH $ADDONS_PATH/${MODULE_NAME:-`basename $REPO_PATH`} 
+        link_module_impl $REPO_PATH $ADDONS_DIR/${MODULE_NAME:-`basename $REPO_PATH`} 
     else
         # multi module repo
         if [ -z $MODULE_NAME ]; then
             # No module name specified, then all modules in repository should be linked
             for file in "$REPO_PATH"/*; do
                 if is_odoo_module $file; then
-                    link_module_impl $file $ADDONS_PATH/`basename $file`
+                    link_module_impl $file $ADDONS_DIR/`basename $file`
                     # recursivly link module
                 fi
             done
         else
             # Module name specified, then only single module should be linked
-            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_PATH/$MODULE_NAME;
+            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_DIR/$MODULE_NAME;
         fi
     fi
 }
@@ -281,7 +280,7 @@ function fetch_module {
         (cd $REPO_PATH && git pull -q);
     fi
 
-    link_module $REPO_PATH $ADDONS_DIR $MODULE
+    link_module $REPO_PATH $MODULE
 }
 
 # Prints server script name
