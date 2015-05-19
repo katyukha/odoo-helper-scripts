@@ -357,10 +357,11 @@ function odoo_drop_db {
 # test_module [--create-test-db] -m <module_name>
 function test_module {
     local module;
+    local test_log_file="${LOG_DIR:-.}/odoo.test.log";
     local usage="
     Usage 
 
-        $SCRIPT_NAME test_module [--create-test-db] -m <module_name>
+        $SCRIPT_NAME test_module [--create-test-db] [--remove-log-file] -m <module_name>
 
     ";
 
@@ -382,6 +383,9 @@ function test_module {
             --create-test-db)
                 local create_test_db=1;
             ;;
+            --remove-log-file)
+                local remove_log_file=1;
+            ;;
             -m|--module)
                 module=$2
                 shift;
@@ -395,18 +399,19 @@ function test_module {
     done;
 
     if [ ! -z $create_test_db ]; then
-        local test_db_name=`< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32}`;
+        local test_db_name=`< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-24}`;
         local res=;
+        test_log_file="${LOG_DIR:-.}/odoo.test.$test_db_name.log";
         echo "Creating test database: $test_db_name";
         odoo_create_db $ODOO_TEST_CONF_FILE $test_db_name;
 
         set +e; # do not fail on errors
         # Install module
-        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --init=$module --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs;
-        #res=$?;
+        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --init=$module --log-level=warn --stop-after-init \
+            --no-xmlrpc --no-xmlrpcs | tee $test_log_file;
         # Test module
-        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --update=$module --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
-        #res=$res && $?;
+        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --update=$module --log-level=test --test-enable --stop-after-init \
+            --no-xmlrpc --no-xmlrpcs | tee -a $test_log_file;
         set -e; # Faile on any error
 
         echo "Droping test database: $test_db_name";
@@ -414,15 +419,31 @@ function test_module {
     else
         set +e; # do not fail on errors
         # Install module
-        run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs;
-        #res=$?;
+        run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
+            --no-xmlrpc --no-xmlrpcs | tee $test_log_file;
         # Test module
-        run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
-        #res=$res && $?;
+        run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
+            --no-xmlrpc --no-xmlrpcs | tee -a $test_log_file;
         set -e; # Faile on any error
     fi
-    #echo "Test result: $res";
-    #return $res;
+
+    if grep -q -e "CRITICAL" \
+               -e "At least one test failed" \
+               -e "no access rules, consider adding one" \
+               -e "invalid module names, ignored" \
+               "$test_log_file"; then
+        echo "Test result: FAIL";
+        local $res=1;
+    else
+        echo "Test result: OK";
+        local $res=0;
+    fi
+
+    if [ ! -z $remove_log_file ]; then
+        rm $test_log_file;
+    fi
+
+    return $res;
 }
 
 
