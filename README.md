@@ -6,7 +6,7 @@ git clone https://github.com/katyukha/odoo-helper-scripts.git $HOME/odoo-helper-
 
 # And add path to it to the system PATH
 echo "
-PATH=\$PATH:\$HOME/odoo-helper-scripts/
+PATH=\$PATH:\$HOME/odoo-helper-scripts/bin/
 " >> $HOME/.bashrc
 ```
 
