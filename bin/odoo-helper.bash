@@ -137,8 +137,8 @@ function get_repo_name {
 
 # link_module_impl <source_path> <dest_path>
 function link_module_impl {
-    local SOURCE=$1;
-    local DEST=$2;
+    local SOURCE=`readlink -f $1`;
+    local DEST=`readlink -f $2`;
 
     if [ ! -d $DEST ]; then
         if [ -z $USE_COPY ]; then
