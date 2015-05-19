@@ -16,7 +16,6 @@ set -e;
 BRANCH=${ODOO_BRANCH:-8.0};
 SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
 DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
-INSTALL_DIR=$WORKDIR/odoo-$BRANCH;
 DB_USER=${ODOO_DBUSER:-odoo};
 DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
 DB_HOST=${ODOO_DBHOST:-localhost};
@@ -133,6 +132,7 @@ function parse_options {
 
 function config_dirs {
     # Directory and file paths
+    INSTALL_DIR=${INSTALL_DIR:-$WORKDIR/odoo-$BRANCH};
     BASE_DIR=$INSTALL_DIR;
     CONF_DIR=$BASE_DIR/conf;
     ODOO_CONF_FILE=$CONF_DIR/odoo.conf;
