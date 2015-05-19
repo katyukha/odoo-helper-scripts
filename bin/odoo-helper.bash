@@ -63,7 +63,7 @@ function print_usage {
         link_module <repo_path> <addons_dir> [<module_name>]
         fetch_requirements <file name>
         run_server [args passed to server]
-        test_module <module_name>
+        test_module [--help]
     
     Global options:
         --addons_dir <addons_directory>
@@ -89,7 +89,7 @@ function print_usage {
         USE_COPY                        - If set, then addons will be coppied in addons dir, instead of standard symlinking
         ODOO_BRANCH                     - used in run_server command to decide how to run it
         ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
-"
+";
 }
 
 # fetch_requirements <file_name>
@@ -99,8 +99,8 @@ function fetch_requirements {
     if [ -d "$REQUIREMENTS_FILE" ]; then
         REQUIREMENTS_FILE=$REQUIREMENTS_FILE/$REQUIREMENTS_FILE_NAME;
     fi
-    if [ -f "$REQUIREMENTS_FILE" ]; then
-        echo "Processing requirements file $1";
+    if [ -f "$REQUIREMENTS_FILE" ] && [ ! -d "$REQUIREMENTS_FILE" ]; then
+        echo "Processing requirements file $REQUIREMENTS_FILE";
         while read -r line; do
             if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
                 if fetch_module $line; then
@@ -109,7 +109,7 @@ function fetch_requirements {
                     echo "Line FAIL: $line";
                 fi
             fi
-        done < $1;
+        done < $REQUIREMENTS_FILE;
     else
         echo "Requirements file '$REQUIREMENTS_FILE' not found!"
     fi
@@ -161,7 +161,7 @@ function link_module {
     
 
     # Guess repository type
-    if is_odoo_module; then
+    if is_odoo_module $REPO_PATH; then
         # single module repo
         link_module_impl $REPO_PATH $ADDONS_PATH/${MODULE_NAME:-`basename $REPO_PATH`} 
     else
@@ -319,10 +319,110 @@ function run_server {
     run_server_impl -c $ODOO_CONF_FILE $@;
 }
 
+# odoo_create_db <odoo_conf_file> <name>
+function odoo_create_db {
+    local conf_file=$1;
+    local db_name=$2;
+    local python_cmd="import openerp;";
+    python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
+    python_cmd="$python_cmd openerp.service.start_internal();"
+    python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
+    python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'create_database', (openerp.tools.config['admin_passwd'], '$db_name', True, 'en_US'));"
 
-# test_module <module_name>
+    if [ -z $VENV_DIR ]; then
+        exec python -c "$python_cmd";
+    else
+        (source $VENV_DIR/bin/activate && exec python -c "$python_cmd" && deactivate);
+    fi
+
+}
+
+# odoo_drop_db <name>
+function odoo_drop_db {
+    local conf_file=$1;
+    local db_name=$2;
+    local python_cmd="import openerp;";
+    python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
+    python_cmd="$python_cmd openerp.service.start_internal();"
+    python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
+    python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'drop', (openerp.tools.config['admin_passwd'], '$db_name'));"
+
+    if [ -z $VENV_DIR ]; then
+        exec python -c "$python_cmd";
+    else
+        (source $VENV_DIR/bin/activate && exec python -c "$python_cmd" && deactivate);
+    fi
+}
+
+# test_module [--create-test-db] -m <module_name>
 function test_module {
-    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$1 --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
+    local module;
+    local usage="
+    Usage 
+
+        $SCRIPT_NAME test_module [--create-test-db] -m <module_name>
+
+    ";
+
+    # Parse command line options and run commands
+    if [[ $# -lt 1 ]]; then
+        echo "No options/commands supplied $#: $@";
+        echo "$usage";
+        exit 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            --create-test-db)
+                local create_test_db=1;
+            ;;
+            -m|--module)
+                module=$2
+                shift;
+            ;;
+            *)
+                echo "Unknown option global option /command $key";
+                exit 1;
+            ;;
+        esac;
+        shift;
+    done;
+
+    if [ ! -z $create_test_db ]; then
+        local test_db_name=`< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32}`;
+        local res=;
+        echo "Creating test database: $test_db_name";
+        odoo_create_db $ODOO_TEST_CONF_FILE $test_db_name;
+
+        set +e; # do not fail on errors
+        # Install module
+        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --init=$module --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs;
+        #res=$?;
+        # Test module
+        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --update=$module --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
+        #res=$res && $?;
+        set -e; # Faile on any error
+
+        echo "Droping test database: $test_db_name";
+        odoo_drop_db $ODOO_TEST_CONF_FILE $test_db_name
+    else
+        set +e; # do not fail on errors
+        # Install module
+        run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs;
+        #res=$?;
+        # Test module
+        run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init --no-xmlrpc --no-xmlrpcs;
+        #res=$res && $?;
+        set -e; # Faile on any error
+    fi
+    #echo "Test result: $res";
+    #return $res;
 }
 
 
