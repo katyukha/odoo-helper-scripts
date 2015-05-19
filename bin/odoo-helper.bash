@@ -432,10 +432,10 @@ function test_module {
                -e "invalid module names, ignored" \
                "$test_log_file"; then
         echo "Test result: FAIL";
-        local $res=1;
+        local res=1;
     else
         echo "Test result: OK";
-        local $res=0;
+        local res=0;
     fi
 
     if [ ! -z $remove_log_file ]; then
