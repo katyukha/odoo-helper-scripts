@@ -369,7 +369,7 @@ function test_module_impl {
         --no-xmlrpc --no-xmlrpcs $@;
     # Test module
     run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs;
+        --no-xmlrpc --no-xmlrpcs $@;
     set -e; # Fail on any error
 }
 
