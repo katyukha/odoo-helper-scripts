@@ -59,15 +59,19 @@ function print_usage {
         fetch_requirements <file name>
         run_server [args passed to server]
         test_module [--help]
+        env                                         - export environment variables
         help
     
     Global options:
         --addons_dir <addons_directory>
-        --downloads_dir <downloads_directory
-        --virtual_env <virtual_env_dir>  - optional, if specified, python dependencies
-                                           will be installed in that virtual env
-        --use_copy                       - if set, then downloaded modules, repositories will
-                                           be copied instead of being symlinked
+        --tmp-addons-dir                      - Use temporary addons dir.
+        --downloads_dir <downloads_directory>
+        --virtual_env <virtual_env_dir>       - optional, if specified, python dependencies
+                                                will be installed in that virtual env
+        --use_copy                            - if set, then downloaded modules, repositories will
+                                                be copied instead of being symlinked
+        --no-clean-up                         - disable cleanup. usualy used if joining few calls to this script
+                                                this option disables cleanup actions such as remove temporary file and so.
 
     Also global options may be set up using configuration files.
     Folowing wile paths will be searched for file $CONF_FILE_NAME:
@@ -86,6 +90,7 @@ function print_usage {
         USE_COPY                        - If set, then addons will be coppied in addons dir, instead of standard symlinking
         ODOO_BRANCH                     - used in run_server command to decide how to run it
         ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
+        TMP_ADDONS_DIR                  - temporary addons dir. usualy will be removed after this script finishes.
 ";
 }
 
@@ -386,8 +391,7 @@ function test_module {
     Options:
         --create-test-db    - Creates temporary database to run tests in
         --remove-log-file   - If set, then log file will be removed after tests finished
-        --tmp-addons-dir    - Use temporary addons dir.
-
+        --link
     ";
 
     # Parse command line options and run commands
@@ -411,9 +415,6 @@ function test_module {
             --remove-log-file)
                 local remove_log_file=1;
             ;;
-            --tmp-addons-dir)
-                local tmp_addons_dir=1;
-            ;;
             -m|--module)
                 module=$2
                 shift;
@@ -434,10 +435,8 @@ function test_module {
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
-    if [ ! -z $tmp_addons_dir ]; then
-        tmp_addons_dir=`create_tmp_addons_dir`;
-        echo "Temporary addons dir created: $tmp_addons_dir";
-        odoo_extra_options="$odoo_extra_options --addons-path=$tmp_addons_dir";
+    if [ ! -z $TMP_ADDONS_DIR ]; then
+        odoo_extra_options="$odoo_extra_options --addons-path=$TMP_ADDONS_DIR";
     fi
 
     test_module_impl $module $odoo_extra_options | tee $test_log_file;
@@ -448,12 +447,9 @@ function test_module {
         odoo_drop_db $ODOO_TEST_CONF_FILE $test_db_name
     fi
 
-    if [ ! -z $tmp_addons_dir ]; then
-        echo "Removing temporary addons dir: $tmp_addons_dir";
-        rm -rf $tmp_addons_dir;
-    fi
 
     if grep -q -e "CRITICAL" \
+               -e "ERROR $test_db_name" \
                -e "At least one test failed" \
                -e "no access rules, consider adding one" \
                -e "invalid module names, ignored" \
@@ -473,6 +469,29 @@ function test_module {
     return $res;
 }
 
+# do_export_vars
+# exports global env vars got from config
+function do_export_vars {
+    export DOWNLOADS_DIR;
+    export ADDONS_DIR;
+    export VENV_DIR;
+    export USE_COPY;
+    export ODOO_BRANCH;
+    export ODOO_TEST_CONF_FILE;
+    export TMP_ADDONS_DIR;
+}
+
+# Do some cleanup on exit
+function cleanup {
+    if [ ! -z $NO_CLEAN_UP ]; then
+        return 0;
+    fi
+    if [ ! -z $TMP_ADDONS_DIR ]; then
+        echo "Removing temporary addons dir: $TMP_ADDONS_DIR";
+        rm -rf $TMP_ADDONS_DIR;
+    fi
+}
+trap cleanup EXIT
 
 # Parse command line options and run commands
 if [[ $# -lt 1 ]]; then
@@ -497,12 +516,24 @@ do
             ADDONS_DIR=$2;
             shift;
         ;;
+        --tmp-addons-dir)
+            TMP_ADDONS_DIR=`create_tmp_addons_dir`;
+            echo "Temporary addons dir created: $TMP_ADDONS_DIR";
+            shift
+        ;;
         --virtual_env)
             VENV_DIR=$2;
             shift;
         ;;
         --use_copy)
             USE_COPY=1;
+        ;;
+        --no-clean-up)
+            NO_CLEAN_UP=1;
+        ;;
+        env)
+            do_export_vars;
+            exit;
         ;;
         fetch_module)
             shift;
