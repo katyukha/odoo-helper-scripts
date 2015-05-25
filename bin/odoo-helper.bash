@@ -65,6 +65,7 @@ function print_usage {
     Global options:
         --addons_dir <addons_directory>
         --tmp-addons-dir                      - Use temporary addons dir.
+        --tmp-downloads-dir                   - Use temporary downloads dir.
         --downloads_dir <downloads_directory>
         --virtual_env <virtual_env_dir>       - optional, if specified, python dependencies
                                                 will be installed in that virtual env
@@ -91,6 +92,7 @@ function print_usage {
         ODOO_BRANCH                     - used in run_server command to decide how to run it
         ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
         TMP_ADDONS_DIR                  - temporary addons dir. usualy will be removed after this script finishes.
+        TMP_DOWNLOADS_DIR               - temporary downloads dir. usualy will be removed after this script finishes
 ";
 }
 
@@ -357,9 +359,24 @@ function odoo_drop_db {
 
 # create_tmp_addons_dir
 function create_tmp_addons_dir {
-    TMP_ADDONS_DIR="$BASE_DIR/tmp/`random_string 16`";
+    if [ -z $PROJECT_ROOT_DIR ]; then
+        exit -1;  # no Project root specified
+    fi
+
+    TMP_ADDONS_DIR="$PROJECT_ROOT_DIR/tmp/add_`random_string 16`";
     mkdir -p $TMP_ADDONS_DIR;
     echo $TMP_ADDONS_DIR;
+}
+
+# create_tmp_downloads_dir
+function create_tmp_downloads_dir {
+    if [ -z $PROJECT_ROOT_DIR ]; then
+        exit -1;  # no Project root specified
+    fi
+
+    TMP_DOWNLOADS_DIR="$PROJECT_ROOT_DIR/tmp/dl_`random_string 16`";
+    mkdir -p $TMP_DOWNLOADS_DIR;
+    echo $TMP_DOWNLOADS_DIR;
 }
 
 # test_module_impl <module> [extra_options]
@@ -479,16 +496,21 @@ function do_export_vars {
     export ODOO_BRANCH;
     export ODOO_TEST_CONF_FILE;
     export TMP_ADDONS_DIR;
+    export TMP_DOWNLOADS_DIR;
 }
 
 # Do some cleanup on exit
 function cleanup {
     if [ ! -z $NO_CLEAN_UP ]; then
-        return 0;
+        exit 0;
     fi
     if [ ! -z $TMP_ADDONS_DIR ]; then
         echo "Removing temporary addons dir: $TMP_ADDONS_DIR";
         rm -rf $TMP_ADDONS_DIR;
+    fi
+    if [ ! -z $TMP_DOWNLOADS_DIR ]; then
+        echo "Removing temporary downloads dir: $TMP_DOWNLOADS_DIR";
+        rm -rf $TMP_DOWNLOADS_DIR;
     fi
 }
 trap cleanup EXIT
@@ -519,7 +541,10 @@ do
         --tmp-addons-dir)
             TMP_ADDONS_DIR=`create_tmp_addons_dir`;
             echo "Temporary addons dir created: $TMP_ADDONS_DIR";
-            shift
+        ;;
+        --tmp-downloads-dir)
+            TMP_DOWNLOADS_DIR=`create_tmp_downloads_dir`;
+            echo "Temporary downloads dir created: $TMP_DOWNLOADS_DIR";
         ;;
         --virtual_env)
             VENV_DIR=$2;
