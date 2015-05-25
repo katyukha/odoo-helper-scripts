@@ -457,6 +457,7 @@ function test_module {
                -e "At least one test failed" \
                -e "no access rules, consider adding one" \
                -e "invalid module names, ignored" \
+               -e "OperationalError: FATAL" \
                "$test_log_file"; then
         echo "Test result: FAIL";
         local res=1;
