@@ -1,22 +1,6 @@
 #!/bin/bash
 
-# Simple helper script to fetch addons from git repository and
-# place them in right directories.
-# 
-# Also this script provides ability to automaticaly fetch module dependencies
-# if they are specified in 'odoo_requirements.txt' file placed in
-# root directory of module.
-# Requirements file is a text file where each line is just set of options
-# to this script
-#      -r repository_url -b repository_branch -n repository_name -m module_name
-#   or
-#      -p python_module
-#
-#   For example:
-#   -r https://github.com/katyukha/base_tags -n base_tags -m base_tags
-#   -p requests
-
-
+# Use odoo-helper --help for a documentation
 
 SCRIPT=$0;
 SCRIPT_NAME=`basename $SCRIPT`;
@@ -27,6 +11,12 @@ REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 CONF_FILE_NAME="odoo-helper.conf";
 
 set -e;
+
+# random_string [length]
+# default length = 8
+function random_string {
+    < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-8};
+}
 
 # search_file_up <start path> <file name>
 function search_file_up {
@@ -56,14 +46,20 @@ load_conf "/etc/default/$CONF_FILE_NAME" \
           `search_file_up $WORKDIR $CONF_FILE_NAME`;
 
 function print_usage {
-    echo "Usage:
+    echo "
+    Usage:
         $SCRIPT_NAME [global options] command [command options]
+
+    Current project directory:
+        ${PROJECT_ROOT_DIR:-'No project found'};
+
     Available commands:
         fetch_module [--help]
         link_module <repo_path> [<module_name>]
         fetch_requirements <file name>
         run_server [args passed to server]
         test_module [--help]
+        help
     
     Global options:
         --addons_dir <addons_directory>
@@ -72,6 +68,7 @@ function print_usage {
                                            will be installed in that virtual env
         --use_copy                       - if set, then downloaded modules, repositories will
                                            be copied instead of being symlinked
+
     Also global options may be set up using configuration files.
     Folowing wile paths will be searched for file $CONF_FILE_NAME:
         - /etc/default/$CONF_FILE_NAME  - Default conf. there may be some general settings placed
@@ -353,14 +350,43 @@ function odoo_drop_db {
     fi
 }
 
+# create_tmp_addons_dir
+function create_tmp_addons_dir {
+    TMP_ADDONS_DIR="$BASE_DIR/tmp/`random_string 16`";
+    mkdir -p $TMP_ADDONS_DIR;
+    echo $TMP_ADDONS_DIR;
+}
+
+# test_module_impl <module> [extra_options]
+# example: test_module_impl base -d test1
+function test_module_impl {
+    local module=$1
+    shift;  # all next arguments will be passed to server
+
+    set +e; # do not fail on errors
+    # Install module
+    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
+        --no-xmlrpc --no-xmlrpcs $@;
+    # Test module
+    run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
+        --no-xmlrpc --no-xmlrpcs;
+    set -e; # Fail on any error
+}
+
 # test_module [--create-test-db] -m <module_name>
 function test_module {
     local module;
     local test_log_file="${LOG_DIR:-.}/odoo.test.log";
+    local odoo_extra_options="";
     local usage="
     Usage 
 
-        $SCRIPT_NAME test_module [--create-test-db] [--remove-log-file] -m <module_name>
+        $SCRIPT_NAME test_module [options] -m <module_name>
+
+    Options:
+        --create-test-db    - Creates temporary database to run tests in
+        --remove-log-file   - If set, then log file will be removed after tests finished
+        --tmp-addons-dir    - Use temporary addons dir.
 
     ";
 
@@ -385,6 +411,9 @@ function test_module {
             --remove-log-file)
                 local remove_log_file=1;
             ;;
+            --tmp-addons-dir)
+                local tmp_addons_dir=1;
+            ;;
             -m|--module)
                 module=$2
                 shift;
@@ -398,32 +427,30 @@ function test_module {
     done;
 
     if [ ! -z $create_test_db ]; then
-        local test_db_name=`< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-24}`;
-        local res=;
+        local test_db_name=`random_string 24`;
         test_log_file="${LOG_DIR:-.}/odoo.test.$test_db_name.log";
         echo "Creating test database: $test_db_name";
         odoo_create_db $ODOO_TEST_CONF_FILE $test_db_name;
+        odoo_extra_options="$odoo_extra_options -d $test_db_name";
+    fi
 
-        set +e; # do not fail on errors
-        # Install module
-        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --init=$module --log-level=warn --stop-after-init \
-            --no-xmlrpc --no-xmlrpcs | tee $test_log_file;
-        # Test module
-        run_server_impl -c $ODOO_TEST_CONF_FILE -d $test_db_name --update=$module --log-level=test --test-enable --stop-after-init \
-            --no-xmlrpc --no-xmlrpcs | tee -a $test_log_file;
-        set -e; # Faile on any error
+    if [ ! -z $tmp_addons_dir ]; then
+        tmp_addons_dir=`create_tmp_addons_dir`;
+        echo "Temporary addons dir created: $tmp_addons_dir";
+        odoo_extra_options="$odoo_extra_options --addons-path=$tmp_addons_dir";
+    fi
 
+    test_module_impl $module $odoo_extra_options | tee $test_log_file;
+
+
+    if [ ! -z $create_test_db ]; then
         echo "Droping test database: $test_db_name";
         odoo_drop_db $ODOO_TEST_CONF_FILE $test_db_name
-    else
-        set +e; # do not fail on errors
-        # Install module
-        run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
-            --no-xmlrpc --no-xmlrpcs | tee $test_log_file;
-        # Test module
-        run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
-            --no-xmlrpc --no-xmlrpcs | tee -a $test_log_file;
-        set -e; # Faile on any error
+    fi
+
+    if [ ! -z $tmp_addons_dir ]; then
+        echo "Removing temporary addons dir: $tmp_addons_dir";
+        rm -rf $tmp_addons_dir;
     fi
 
     if grep -q -e "CRITICAL" \
