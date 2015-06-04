@@ -64,8 +64,6 @@ function print_usage {
     
     Global options:
         --addons_dir <addons_directory>
-        --tmp-addons-dir                      - Use temporary addons dir.
-        --tmp-downloads-dir                   - Use temporary downloads dir.
         --downloads_dir <downloads_directory>
         --virtual_env <virtual_env_dir>       - optional, if specified, python dependencies
                                                 will be installed in that virtual env
@@ -91,8 +89,6 @@ function print_usage {
         USE_COPY                        - If set, then addons will be coppied in addons dir, instead of standard symlinking
         ODOO_BRANCH                     - used in run_server command to decide how to run it
         ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
-        TMP_ADDONS_DIR                  - temporary addons dir. usualy will be removed after this script finishes.
-        TMP_DOWNLOADS_DIR               - temporary downloads dir. usualy will be removed after this script finishes
 ";
 }
 
@@ -153,7 +149,7 @@ function link_module_impl {
         fi
         fetch_requirements $DEST;
     else
-        echo "Module already linked to $DEST";
+        echo "Module $SOURCE already linked to $DEST";
     fi
 }
 
@@ -161,7 +157,8 @@ function link_module_impl {
 function link_module {
     local REPO_PATH=$1;
     local MODULE_NAME=$2;
-    
+
+    echo "Linking module $1 [$2] ...";
 
     # Guess repository type
     if is_odoo_module $REPO_PATH; then
@@ -322,11 +319,12 @@ function run_server {
     run_server_impl -c $ODOO_CONF_FILE $@;
 }
 
-# odoo_create_db <odoo_conf_file> <name>
+# odoo_create_db <odoo_conf_file> <name> [extra_addons_path]
 function odoo_create_db {
     local conf_file=$1;
     local db_name=$2;
     local python_cmd="import openerp;";
+    
     python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
     python_cmd="$python_cmd openerp.service.start_internal();"
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
@@ -357,26 +355,39 @@ function odoo_drop_db {
     fi
 }
 
-# create_tmp_addons_dir
-function create_tmp_addons_dir {
-    if [ -z $PROJECT_ROOT_DIR ]; then
-        exit -1;  # no Project root specified
-    fi
+# create_tmp_dirs
+function create_tmp_dirs {
+    TMP_ROOT_DIR="/tmp/odoo-tmp-`random_string 16`";
+    echo "Temporary dir created: $TMP_ROOT_DIR";
 
-    TMP_ADDONS_DIR="$PROJECT_ROOT_DIR/tmp/add_`random_string 16`";
-    mkdir -p $TMP_ADDONS_DIR;
-    echo $TMP_ADDONS_DIR;
+    OLD_ADDONS_DIR=$ADDONS_DIR;
+    OLD_DOWNLOADS_DIR=$DOWNLOADS_DIR;
+    OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
+    ADDONS_DIR=$TMP_ROOT_DIR/addons;
+    DOWNLOADS_DIR=$TMP_ROOT_DIR/downloads;
+    ODOO_TEST_CONF_FILE=$TMP_ROOT_DIR/odoo.test.conf;
+    
+    mkdir -p $ADDONS_DIR;
+    mkdir -p $DOWNLOADS_DIR;
+    sed -r "s@addons_path(.*)@addons_path\1,$ADDONS_DIR@" $OLD_ODOO_TEST_CONF_FILE > $ODOO_TEST_CONF_FILE
 }
 
-# create_tmp_downloads_dir
-function create_tmp_downloads_dir {
-    if [ -z $PROJECT_ROOT_DIR ]; then
-        exit -1;  # no Project root specified
+# remove_tmp_dirs
+function remove_tmp_dirs {
+    if [ -z $TMP_ROOT_DIR ]; then
+        exit -1;  # no tmp root was created
     fi
 
-    TMP_DOWNLOADS_DIR="$PROJECT_ROOT_DIR/tmp/dl_`random_string 16`";
-    mkdir -p $TMP_DOWNLOADS_DIR;
-    echo $TMP_DOWNLOADS_DIR;
+    ADDONS_DIR=$OLD_ADDONS_DIR;
+    DOWNLOADS_DIR=$OLD_DOWNLOADS_DIR;
+    ODOO_TEST_CONF_FILE=$OLD_ODOO_TEST_CONF_FILE;
+    rm -r $TMP_ROOT_DIR;
+
+    echo "Temporary dir removed: $TMP_ROOT_DIR";
+    TMP_ROOT_DIR=;
+    OLD_ADDONS_DIR=;
+    OLD_DOWNLOADS_DIR=;
+    OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
 }
 
 # test_module_impl <module> [extra_options]
@@ -396,19 +407,22 @@ function test_module_impl {
 }
 
 # test_module [--create-test-db] -m <module_name>
+# test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
 function test_module {
-    local module;
+    local modules="";
+    local link_module_args="";
     local test_log_file="${LOG_DIR:-.}/odoo.test.log";
     local odoo_extra_options="";
     local usage="
     Usage 
 
-        $SCRIPT_NAME test_module [options] -m <module_name>
+        $SCRIPT_NAME test_module [options] [-m <module_name>] [-m <module name>] ...
 
     Options:
         --create-test-db    - Creates temporary database to run tests in
         --remove-log-file   - If set, then log file will be removed after tests finished
-        --link
+        --link <repo>:[module_name]
+        --tmp-dirs          - use temporary dirs for test related downloads and addons
     ";
 
     # Parse command line options and run commands
@@ -433,16 +447,34 @@ function test_module {
                 local remove_log_file=1;
             ;;
             -m|--module)
-                module=$2
+                modules=$modules$'\n'$2;  # add module to module list
                 shift;
             ;;
+            --link)
+                link_module_args=$link_module_args$'\n'$2;
+                shift;
+            ;;
+            --tmp-dirs)
+                local tmp_dirs=1
+            ;;
             *)
-                echo "Unknown option global option /command $key";
+                echo "Unknown option: $key";
                 exit 1;
             ;;
         esac;
         shift;
     done;
+
+    if [ ! -z $tmp_dirs ]; then
+        create_tmp_dirs;
+    fi
+
+    if [ ! -z "$link_module_args" ]; then
+        for lm_arg in $link_module_args; do
+            local lm_arg_x=`echo $lm_arg | tr ':' ' '`;
+            link_module $lm_arg_x;
+        done
+    fi
 
     if [ ! -z $create_test_db ]; then
         local test_db_name=`random_string 24`;
@@ -452,11 +484,11 @@ function test_module {
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
-    if [ ! -z $TMP_ADDONS_DIR ]; then
-        odoo_extra_options="$odoo_extra_options --addons-path=$TMP_ADDONS_DIR";
-    fi
 
-    test_module_impl $module $odoo_extra_options | tee $test_log_file;
+    for module in $modules; do
+        echo "Testing module $module...";
+        test_module_impl $module $odoo_extra_options | tee -a $test_log_file;
+    done
 
 
     if [ ! -z $create_test_db ]; then
@@ -483,6 +515,10 @@ function test_module {
         rm $test_log_file;
     fi
 
+    if [ ! -z tmp_dirs ]; then
+        remove_tmp_dirs;
+    fi
+
     return $res;
 }
 
@@ -495,25 +531,7 @@ function do_export_vars {
     export USE_COPY;
     export ODOO_BRANCH;
     export ODOO_TEST_CONF_FILE;
-    export TMP_ADDONS_DIR;
-    export TMP_DOWNLOADS_DIR;
 }
-
-# Do some cleanup on exit
-function cleanup {
-    if [ ! -z $NO_CLEAN_UP ]; then
-        exit 0;
-    fi
-    if [ ! -z $TMP_ADDONS_DIR ]; then
-        echo "Removing temporary addons dir: $TMP_ADDONS_DIR";
-        rm -rf $TMP_ADDONS_DIR;
-    fi
-    if [ ! -z $TMP_DOWNLOADS_DIR ]; then
-        echo "Removing temporary downloads dir: $TMP_DOWNLOADS_DIR";
-        rm -rf $TMP_DOWNLOADS_DIR;
-    fi
-}
-trap cleanup EXIT
 
 # Parse command line options and run commands
 if [[ $# -lt 1 ]]; then
@@ -538,23 +556,12 @@ do
             ADDONS_DIR=$2;
             shift;
         ;;
-        --tmp-addons-dir)
-            TMP_ADDONS_DIR=`create_tmp_addons_dir`;
-            echo "Temporary addons dir created: $TMP_ADDONS_DIR";
-        ;;
-        --tmp-downloads-dir)
-            TMP_DOWNLOADS_DIR=`create_tmp_downloads_dir`;
-            echo "Temporary downloads dir created: $TMP_DOWNLOADS_DIR";
-        ;;
         --virtual_env)
             VENV_DIR=$2;
             shift;
         ;;
         --use_copy)
             USE_COPY=1;
-        ;;
-        --no-clean-up)
-            NO_CLEAN_UP=1;
         ;;
         env)
             do_export_vars;
