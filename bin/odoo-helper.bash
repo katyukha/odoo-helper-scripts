@@ -149,7 +149,7 @@ function link_module_impl {
         fi
         fetch_requirements $DEST;
     else
-        echo "Module already linked to $DEST";
+        echo "Module $SOURCE already linked to $DEST";
     fi
 }
 
@@ -157,7 +157,8 @@ function link_module_impl {
 function link_module {
     local REPO_PATH=$1;
     local MODULE_NAME=$2;
-    
+
+    echo "Linking module $1 [$2] ...";
 
     # Guess repository type
     if is_odoo_module $REPO_PATH; then
@@ -318,11 +319,12 @@ function run_server {
     run_server_impl -c $ODOO_CONF_FILE $@;
 }
 
-# odoo_create_db <odoo_conf_file> <name>
+# odoo_create_db <odoo_conf_file> <name> [extra_addons_path]
 function odoo_create_db {
     local conf_file=$1;
     local db_name=$2;
     local python_cmd="import openerp;";
+    
     python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
     python_cmd="$python_cmd openerp.service.start_internal();"
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
@@ -354,26 +356,38 @@ function odoo_drop_db {
 }
 
 # create_tmp_dirs
-function create_tmp_addons_dir {
-    TMP_ROOT_DIR="odoo-tmp-`random_string 16`";
+function create_tmp_dirs {
+    TMP_ROOT_DIR="/tmp/odoo-tmp-`random_string 16`";
+    echo "Temporary dir created: $TMP_ROOT_DIR";
+
     OLD_ADDONS_DIR=$ADDONS_DIR;
     OLD_DOWNLOADS_DIR=$DOWNLOADS_DIR;
+    OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
     ADDONS_DIR=$TMP_ROOT_DIR/addons;
     DOWNLOADS_DIR=$TMP_ROOT_DIR/downloads;
+    ODOO_TEST_CONF_FILE=$TMP_ROOT_DIR/odoo.test.conf;
     
     mkdir -p $ADDONS_DIR;
     mkdir -p $DOWNLOADS_DIR;
+    sed -r "s@addons_path(.*)@addons_path\1,$ADDONS_DIR@" $OLD_ODOO_TEST_CONF_FILE > $ODOO_TEST_CONF_FILE
 }
 
 # remove_tmp_dirs
-function remove_tmp_downloads_dir {
+function remove_tmp_dirs {
     if [ -z $TMP_ROOT_DIR ]; then
         exit -1;  # no tmp root was created
     fi
 
     ADDONS_DIR=$OLD_ADDONS_DIR;
     DOWNLOADS_DIR=$OLD_DOWNLOADS_DIR;
+    ODOO_TEST_CONF_FILE=$OLD_ODOO_TEST_CONF_FILE;
     rm -r $TMP_ROOT_DIR;
+
+    echo "Temporary dir removed: $TMP_ROOT_DIR";
+    TMP_ROOT_DIR=;
+    OLD_ADDONS_DIR=;
+    OLD_DOWNLOADS_DIR=;
+    OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
 }
 
 # test_module_impl <module> [extra_options]
@@ -396,6 +410,7 @@ function test_module_impl {
 # test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
 function test_module {
     local modules="";
+    local link_module_args="";
     local test_log_file="${LOG_DIR:-.}/odoo.test.log";
     local odoo_extra_options="";
     local usage="
@@ -406,7 +421,7 @@ function test_module {
     Options:
         --create-test-db    - Creates temporary database to run tests in
         --remove-log-file   - If set, then log file will be removed after tests finished
-        --link \"<repo> <module_name>\"
+        --link <repo>:[module_name]
         --tmp-dirs          - use temporary dirs for test related downloads and addons
     ";
 
@@ -436,19 +451,30 @@ function test_module {
                 shift;
             ;;
             --link)
-                link_module $2;  # remember that $2 must contain argments suitable for link_module function
+                link_module_args=$link_module_args$'\n'$2;
                 shift;
             ;;
             --tmp-dirs)
                 local tmp_dirs=1
             ;;
             *)
-                echo "Unknown option global option /command $key";
+                echo "Unknown option: $key";
                 exit 1;
             ;;
         esac;
         shift;
     done;
+
+    if [ ! -z $tmp_dirs ]; then
+        create_tmp_dirs;
+    fi
+
+    if [ ! -z "$link_module_args" ]; then
+        for lm_arg in $link_module_args; do
+            local lm_arg_x=`echo $lm_arg | tr ':' ' '`;
+            link_module $lm_arg_x;
+        done
+    fi
 
     if [ ! -z $create_test_db ]; then
         local test_db_name=`random_string 24`;
@@ -458,9 +484,6 @@ function test_module {
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
-    if [ ! -z $tmp_dirs ]; then
-        create_tmp_dirs;
-    fi
 
     for module in $modules; do
         echo "Testing module $module...";
