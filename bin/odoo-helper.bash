@@ -60,6 +60,8 @@ function print_usage {
         run_server [args passed to server]
         test_module [--help]
         env                                         - export environment variables
+        create_db <db_name> [cofig file to use]
+        drop_db <db_name> [cofig file to use]
         help
     
     Global options:
@@ -278,7 +280,20 @@ function fetch_module {
     if [ ! -d $REPO_PATH ]; then
         git clone -q $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH;
     else
-        (cd $REPO_PATH && git pull -q);
+        (
+            cd $REPO_PATH;
+            local branch_name=$(git symbolic-ref -q HEAD);
+            branch_name=${branch_name##refs/heads/};
+            branch_name=${branch_name:-HEAD};
+
+            if [ "$branch_name" = "$REPO_BRANCH" ]; then
+                git pull;
+            else
+                git fetch;
+                git stash;  # TODO: seems to be not correct behavior. think about workaround
+                git checkout $REPO_BRANCH;
+            fi
+        )
     fi
 
     link_module $REPO_PATH $MODULE
@@ -319,10 +334,10 @@ function run_server {
     run_server_impl -c $ODOO_CONF_FILE $@;
 }
 
-# odoo_create_db <odoo_conf_file> <name> [extra_addons_path]
+# odoo_create_db <name> [odoo_conf_file]
 function odoo_create_db {
-    local conf_file=$1;
-    local db_name=$2;
+    local db_name=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
     local python_cmd="import openerp;";
     
     python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
@@ -338,10 +353,10 @@ function odoo_create_db {
 
 }
 
-# odoo_drop_db <name>
+# odoo_drop_db <name> [odoo_conf_file]
 function odoo_drop_db {
-    local conf_file=$1;
-    local db_name=$2;
+    local db_name=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
     local python_cmd="import openerp;";
     python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
     python_cmd="$python_cmd openerp.service.start_internal();"
@@ -423,6 +438,7 @@ function test_module {
         --remove-log-file   - If set, then log file will be removed after tests finished
         --link <repo>:[module_name]
         --tmp-dirs          - use temporary dirs for test related downloads and addons
+        --no-tee            - disable duplication test odutput to log file. this options anables colored test output
     ";
 
     # Parse command line options and run commands
@@ -457,6 +473,9 @@ function test_module {
             --tmp-dirs)
                 local tmp_dirs=1
             ;;
+            --no-tee)
+                local no_tee=1;
+            ;;
             *)
                 echo "Unknown option: $key";
                 exit 1;
@@ -480,20 +499,25 @@ function test_module {
         local test_db_name=`random_string 24`;
         test_log_file="${LOG_DIR:-.}/odoo.test.$test_db_name.log";
         echo "Creating test database: $test_db_name";
-        odoo_create_db $ODOO_TEST_CONF_FILE $test_db_name;
+        odoo_create_db $test_db_name $ODOO_TEST_CONF_FILE;
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
 
     for module in $modules; do
         echo "Testing module $module...";
-        test_module_impl $module $odoo_extra_options | tee -a $test_log_file;
+        if [ -z $no_tee ]; then
+            test_module_impl $module $odoo_extra_options | tee -a $test_log_file;
+        else
+            test_module_impl $module $odoo_extra_options;
+        fi
+
     done
 
 
     if [ ! -z $create_test_db ]; then
         echo "Droping test database: $test_db_name";
-        odoo_drop_db $ODOO_TEST_CONF_FILE $test_db_name
+        odoo_drop_db $test_db_name $ODOO_TEST_CONF_FILE
     fi
 
 
@@ -589,6 +613,16 @@ do
         test_module)
             shift;
             test_module $@;
+            exit;
+        ;;
+        create_db)
+            shift;
+            odoo_create_db $@;
+            exit;
+        ;;
+        drop_db)
+            shift;
+            odoo_drop_db $@;
             exit;
         ;;
         *)
