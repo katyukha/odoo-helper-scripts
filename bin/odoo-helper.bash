@@ -75,7 +75,7 @@ function print_usage {
                                                 this option disables cleanup actions such as remove temporary file and so.
 
     Also global options may be set up using configuration files.
-    Folowing wile paths will be searched for file $CONF_FILE_NAME:
+    Folowing file paths will be searched for file $CONF_FILE_NAME:
         - /etc/default/$CONF_FILE_NAME  - Default conf. there may be some general settings placed
         - $HOME/$CONF_FILE_NAME         - User specific oconf  (overwrites previous conf)
         - Project specific conf         - File $CONF_FILE_NAME will be searched in $WORKDIR and all parent
@@ -205,7 +205,7 @@ function fetch_module {
             -n|--name       - repository name. this name is used for directory to clone repository in
             -b|--branch     - name fo repository branch to clone
             --requirements  - path to requirements file to fetch required modules
-            -p|--pyhton     - fetch python dependency
+            -p|--python     - fetch python dependency
     ";
 
     if [[ $# -lt 2 ]]; then
