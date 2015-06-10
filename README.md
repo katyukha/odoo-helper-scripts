@@ -1,3 +1,7 @@
+# Odoo helper scripts collection
+
+## Install
+
 To install just do folowing:
 
 ```bash
@@ -10,11 +14,62 @@ PATH=\$PATH:\$HOME/odoo-helper-scripts/bin/
 " >> $HOME/.bashrc
 ```
 
-And after this You will have available folowing scripts in Your path:
+## Usage
+
+And after nstall you will have available folowing scripts in your path:
 
     - odoo-install.bash
     - odoo-helper.bash
 
-For details run each script with *--help*
+Each script have -h or --help option which display most relevant information about script
 
+### odoo-install.bash
 
+Install Odoo in specified directory in (using virtualenv)
+
+```bash
+odoo-install.bash --install-dir MyOdoo --branch 8.0
+```
+
+After this You wil have odoo and it's dependencies installed into *MyOdoo* directory.
+Note that installation is done only with PIP, with out need of super-user rights, but thus
+system dependencies, such as libraries, compilers, \*-dev packages, etc cannot be installed.
+You should install them manualy.
+
+This installation also creates *odoo-helper.conf* file inside project, which allows to use
+*odoo-helper.bash* script to simplify interaction with this odoo installation.
+
+Also, in case that this is source installation, you may install more than one odoo installation
+on machine, thus you can use it for development of multiple addon sets, which may not work good on same odoo installation.
+
+### odoo-helper.bash
+
+This script simlify interaction with odoo installs (mostly done by *odoo-install.bash* script)
+
+Core functionality is:
+
+    - *fetch_module* - which makes available to fetch module from git repository and install it in this installation.
+      Also it may automatically fetch dependencise of module been fetched, if it heve *odoo_requirements.txt* file inside.
+    - *fetch_requirements* - which can process *odoo_requirements.txt* files
+    - *run_server*
+    - *test_module*
+    - *create_db*
+    - *drop_db*
+    - *list_db*
+
+The main advantage of using this scripts is that it looks for config file in working
+directory and up to get information about odoo-installation, and thus you do not need to worry
+about path, your odoo installed in.
+
+### odoo\_requirements.txt
+
+*odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper.bash fetch_module``` command:
+
+```
+-r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+--requirements <requirements file>
+-p|--python <python module>
+
+```
+
+For details run ```odoo-helper.bash fetch_module --help```

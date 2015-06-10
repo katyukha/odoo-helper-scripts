@@ -62,6 +62,7 @@ function print_usage {
         env                                         - export environment variables
         create_db <db_name> [cofig file to use]
         drop_db <db_name> [cofig file to use]
+        list_db [config file to use]
         help
     
     Global options:
@@ -370,6 +371,22 @@ function odoo_drop_db {
     fi
 }
 
+# odoo_list_db [odoo_conf_file]
+function odoo_list_db {
+    local conf_file=${2:-$ODOO_CONF_FILE};
+    local python_cmd="import openerp;";
+    python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
+    python_cmd="$python_cmd openerp.service.start_internal();"
+    python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
+    python_cmd="$python_cmd print '\n'.join(['%s'%d for d in openerp.netsvc.dispatch_rpc('db', 'list', tuple())]);"
+
+    if [ -z $VENV_DIR ]; then
+        exec python -c "$python_cmd";
+    else
+        (source $VENV_DIR/bin/activate && exec python -c "$python_cmd" && deactivate);
+    fi
+}
+
 # create_tmp_dirs
 function create_tmp_dirs {
     TMP_ROOT_DIR="/tmp/odoo-tmp-`random_string 16`";
@@ -623,6 +640,11 @@ do
         drop_db)
             shift;
             odoo_drop_db $@;
+            exit;
+        ;;
+        list_db)
+            shift;
+            odoo_list_db $@;
             exit;
         ;;
         *)
