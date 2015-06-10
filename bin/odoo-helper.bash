@@ -150,10 +150,10 @@ function link_module_impl {
             rm -rf $DEST;
             cp -r $SOURCE $DEST;
         fi
-        fetch_requirements $DEST;
     else
         echo "Module $SOURCE already linked to $DEST";
     fi
+    fetch_requirements $DEST;
 }
 
 # link_module <repo_path> [<module_name>]
@@ -186,10 +186,16 @@ function link_module {
 
 # fetch_python_dep <python module>
 function fetch_python_dep {
-    if [ -z $VENV_DIR ]; then
-        pip install --user $1;
+    if [[ $1 =~ .*\+.* ]]; then
+        local install_opt="-e $1";
     else
-        source $VENV_DIR/bin/activate && pip install $1 && deactivate;
+        local install_opt="$1";
+    fi
+
+    if [ -z $VENV_DIR ]; then
+        pip install --user $install_opt;
+    else
+        source $VENV_DIR/bin/activate && pip install $install_opt && deactivate;
     fi
 }
 
@@ -520,6 +526,8 @@ function test_module {
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
+    # install base module (required to update module list)
+    run_server_impl -c $ODOO_TEST_CONF_FILE --init=base --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs $@;
 
     for module in $modules; do
         echo "Testing module $module...";
