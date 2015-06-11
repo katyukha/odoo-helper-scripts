@@ -72,8 +72,6 @@ function print_usage {
                                                 will be installed in that virtual env
         --use_copy                            - if set, then downloaded modules, repositories will
                                                 be copied instead of being symlinked
-        --no-clean-up                         - disable cleanup. usualy used if joining few calls to this script
-                                                this option disables cleanup actions such as remove temporary file and so.
         --verbose                             - show extra output
 
     Also global options may be set up using configuration files.
@@ -541,6 +539,7 @@ function test_module {
         --remove-log-file   - If set, then log file will be removed after tests finished
         --link <repo>:[module_name]
         --tmp-dirs          - use temporary dirs for test related downloads and addons
+        --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
         --no-tee            - disable duplication test odutput to log file. this options anables colored test output
         --reinit-base       - this option adds 'base' module to init list. this is way to reload module list in existing database
     ";
@@ -588,6 +587,9 @@ function test_module {
             ;;
             --tmp-dirs)
                 local tmp_dirs=1
+            ;;
+            --no-rm-tmp-dirs)
+                local not_remove_tmp_dirs=1;
             ;;
             --no-tee)
                 local no_tee=1;
@@ -658,7 +660,7 @@ function test_module {
         rm $test_log_file;
     fi
 
-    if [ ! -z tmp_dirs ]; then
+    if [ ! -z $tmp_dirs ] && [ -z $not_remove_tmp_dirs ]; then
         remove_tmp_dirs;
     fi
 
