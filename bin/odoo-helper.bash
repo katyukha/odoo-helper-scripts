@@ -74,6 +74,7 @@ function print_usage {
                                                 be copied instead of being symlinked
         --no-clean-up                         - disable cleanup. usualy used if joining few calls to this script
                                                 this option disables cleanup actions such as remove temporary file and so.
+        --verbose                             - show extra output
 
     Also global options may be set up using configuration files.
     Folowing file paths will be searched for file $CONF_FILE_NAME:
@@ -97,8 +98,22 @@ function print_usage {
 
 # fetch_requirements <file_name>
 function fetch_requirements {
-    # Process requirements file and run fetch_module subcomand for each line
     local REQUIREMENTS_FILE=$1;
+
+    # Store here all requirements files processed to deal with circle dependencies
+    if [ -z $REQ_FILES_PROCESSED ]; then
+        REQ_FILES_PROCESSED[0]=$REQUIREMENTS_FILE;
+    else
+        for processed_file in ${REQ_FILES_PROCESSED[*]}; do
+            if [ "$processed_file" == "$REQUIREMENTS_FILE" ]; then
+                echo "WARN: File $REQUIREMENTS_FILE already had been processed. skipping...";
+                return 0;
+            fi
+        done;
+        REQ_FILES_PROCESSED[${#REQ_FILES_PROCESSED[*]}]=$REQUIREMENTS_FILE;
+    fi
+
+    # Process requirements file and run fetch_module subcomand for each line
     if [ -d "$REQUIREMENTS_FILE" ]; then
         REQUIREMENTS_FILE=$REQUIREMENTS_FILE/$REQUIREMENTS_FILE_NAME;
     fi
@@ -114,7 +129,9 @@ function fetch_requirements {
             fi
         done < $REQUIREMENTS_FILE;
     else
-        echo "Requirements file '$REQUIREMENTS_FILE' not found!"
+        if [ ! -z $VERBOSE ]; then
+            echo "Requirements file '$REQUIREMENTS_FILE' not found!";
+        fi
     fi
 }
 
@@ -151,7 +168,9 @@ function link_module_impl {
             cp -r $SOURCE $DEST;
         fi
     else
-        echo "Module $SOURCE already linked to $DEST";
+        if [ ! -z $VERBOSE ]; then
+            echo "Module $SOURCE already linked to $DEST";
+        fi
     fi
     fetch_requirements $DEST;
 }
@@ -161,7 +180,9 @@ function link_module {
     local REPO_PATH=$1;
     local MODULE_NAME=$2;
 
-    echo "Linking module $1 [$2] ...";
+    if [ ! -z $VERBOSE ]; then
+        echo "Linking module $1 [$2] ...";
+    fi
 
     # Guess repository type
     if is_odoo_module $REPO_PATH; then
@@ -309,7 +330,7 @@ function fetch_module {
 
     if [ -z $REPOSITORY ]; then
         if [ ! -z $PYTHON_INSTALL ]; then
-            exit 0;
+            return 0;
         fi
 
         echo "No git repository supplied to fetch module from!";
@@ -321,9 +342,25 @@ function fetch_module {
     REPO_NAME=${REPO_NAME:-`get_repo_name $REPOSITORY`};
     local REPO_PATH=$DOWNLOADS_DIR/$REPO_NAME;
 
+    # Conditions:
+    # - repo dir not exists and no module name specified
+    #    - clone
+    # - repo dir not exists and module name specified
+    #    - module present in addons
+    #        - warn and return
+    #    - module absent in addons
+    #        - clone and link
+    # - repo dir
+    #    - pull 
+
     # Clone or pull repository
     if [ ! -d $REPO_PATH ]; then
-        git clone -q $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH;
+        if [ ! -z $MODULE ] && [ -d "$ADDONS_DIR/$MODULE" ]; then
+            echo "The module $MODULE already present in addons dir";
+            return 0;
+        else
+            git clone -q $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH;
+        fi
     else
         (
             cd $REPO_PATH;
@@ -383,8 +420,12 @@ function run_server {
 function odoo_create_db {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
+
+    if [ ! -z $VERBOSE ]; then
+        echo "Creating odoo database $db_name using conf file $conf_file";
+    fi
+
     local python_cmd="import openerp;";
-    
     python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
     python_cmd="$python_cmd openerp.service.start_internal();"
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
@@ -579,7 +620,8 @@ function test_module {
     fi
 
     echo "Installing modules: $cs_modules...";
-    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$cs_modules --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs $@;
+    run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=$cs_modules --log-level=warn \
+        --stop-after-init --no-xmlrpc --no-xmlrpcs $@;
 
     for module in $modules; do
         echo "Testing module $module...";
@@ -663,6 +705,9 @@ do
         ;;
         --use_copy)
             USE_COPY=1;
+        ;;
+        --verbose)
+            VERBOSE=1;
         ;;
         env)
             do_export_vars;
