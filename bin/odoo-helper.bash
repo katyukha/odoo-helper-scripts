@@ -202,17 +202,43 @@ function fetch_python_dep {
 # fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>] [--requirements <requirements file>]
 # fetch_module -p <python module> [-p <python module>] ...
 function fetch_module {
+    # TODO: simplify this function. remove unneccessary options
     local usage="Usage:
         $SCRIPT_NAME fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+        $SCRIPT_NAME fetch_module --github <github username/reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+        $SCRIPT_NAME fetch_module --oca <OCA reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch_module --requirements <requirements file>
         $SCRIPT_NAME fetch_module -p|--python <python module>
+
         Options:
-            -r|--repo       - git repository to get module from
-            -m|--module     - module name to be fetched from repository
-            -n|--name       - repository name. this name is used for directory to clone repository in
-            -b|--branch     - name fo repository branch to clone
-            --requirements  - path to requirements file to fetch required modules
-            -p|--python     - fetch python dependency
+            -r|--repo <repo>         - git repository to get module from
+            --github <user/repo>     - allows to specify repository located on github in short format
+            --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
+
+            -m|--module <module>     - module name to be fetched from repository
+            -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
+                                       Usualy not required
+            -b|--branch <branch>     - name fo repository branch to clone
+            --requirements <file>    - path to requirements file to fetch required modules
+            -p|--python <package>    - fetch python dependency. (it use pip to install package)
+            -p|--python <vcs>+<repository>  - install python dependency directly from VCS
+
+        Note that in one call only one option of (-r, --github, --oca) must be present in one line.
+
+        Examples:
+           # fetch default branch of base_tags repository, link all modules placed in repository
+           $SCRIPT_NAME fetch_module -r https://github.com/katyukha/base_tags 
+
+           # same as previous but via --github option
+           $SCRIPT_NAME fetch_module --github katyukha/base_tags
+
+           # fetch project_sla module from project-service repository of OCA using branch 7.0
+           $SCRIPT_NAME fetch_module --oca project-service -m project_sla -b 7.0
+
+        Also note that if using -p or --python option, You may install packages directly from vcs
+        using syntax like
+
+           $SCRIPT_NAME fetch_module -p <vcs>
     ";
 
     if [[ $# -lt 2 ]]; then
@@ -235,6 +261,15 @@ function fetch_module {
                 REPOSITORY="$2";
                 shift;
             ;;
+            --github)
+                REPOSITORY="https://github.com/$2";
+                shift;
+            ;;
+            --oca)
+                REPOSITORY="https://github.com/OCA/$2";
+                REPO_BRANCH=$ODOO_BRANCH;  # Here we could use same branch as branch of odoo installed
+                shift;
+            ;;
             -m|--module)
                 MODULE="$2";
                 shift;
@@ -245,7 +280,6 @@ function fetch_module {
             ;;
             -b|--branch)
                 REPO_BRANCH="$2";
-                REPO_BRANCH_OPT="-b $REPO_BRANCH";
                 shift;
             ;;
             -p|--python)
@@ -268,6 +302,10 @@ function fetch_module {
         esac
         shift
     done
+
+    if [ ! -z $REPO_BRANCH ]; then
+        REPO_BRANCH_OPT="-b $REPO_BRANCH";
+    fi
 
     if [ -z $REPOSITORY ]; then
         if [ ! -z $PYTHON_INSTALL ]; then
@@ -436,8 +474,8 @@ function test_module_impl {
 
     set +e; # do not fail on errors
     # Install module
-    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs $@;
+    #run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
+        #--no-xmlrpc --no-xmlrpcs $@;
     # Test module
     run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
         --no-xmlrpc --no-xmlrpcs $@;
@@ -448,6 +486,7 @@ function test_module_impl {
 # test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
 function test_module {
     local modules="";
+    local cs_modules="";
     local link_module_args="";
     local test_log_file="${LOG_DIR:-.}/odoo.test.log";
     local odoo_extra_options="";
@@ -462,6 +501,7 @@ function test_module {
         --link <repo>:[module_name]
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-tee            - disable duplication test odutput to log file. this options anables colored test output
+        --reinit-base       - this option adds 'base' module to init list. this is way to reload module list in existing database
     ";
 
     # Parse command line options and run commands
@@ -485,8 +525,20 @@ function test_module {
             --remove-log-file)
                 local remove_log_file=1;
             ;;
+            --reinit-base)
+                if [ -z $cs_modules ]; then
+                    cs_modules="base";
+                else
+                    cs_modules="base,$cs_modules";
+                fi
+            ;;
             -m|--module)
                 modules=$modules$'\n'$2;  # add module to module list
+                if [ -z $cs_modules ]; then
+                    cs_modules="$2";
+                else
+                    cs_modules="$cs_modules,$2";
+                fi
                 shift;
             ;;
             --link)
@@ -526,8 +578,8 @@ function test_module {
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
-    # install base module (required to update module list)
-    run_server_impl -c $ODOO_TEST_CONF_FILE --init=base --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs $@;
+    echo "Installing modules: $cs_modules...";
+    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$cs_modules --log-level=warn --stop-after-init --no-xmlrpc --no-xmlrpcs $@;
 
     for module in $modules; do
         echo "Testing module $module...";
