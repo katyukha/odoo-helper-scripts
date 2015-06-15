@@ -10,6 +10,15 @@ WORKDIR=`pwd`;
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 CONF_FILE_NAME="odoo-helper.conf";
 
+# Color related vars
+NC='\033[0m';
+REDC='\033[0;31m';
+GREENC='\033[0;32m';
+YELLOWC='\033[1;33m';
+BLUEC='\033[0;34m';
+# end
+
+
 set -e;
 
 # random_string [length]
@@ -617,19 +626,19 @@ function test_module {
     if [ ! -z $create_test_db ]; then
         local test_db_name=`random_string 24`;
         test_log_file="${LOG_DIR:-.}/odoo.test.$test_db_name.log";
-        echo "Creating test database: $test_db_name";
+        printf "Creating test database: ${YELLOWC}$test_db_name${NC}";
         odoo_create_db $test_db_name $ODOO_TEST_CONF_FILE;
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
     if [ ! -z $reinit_base ]; then
-        echo "Reinitializing base module...";
+        printf "${BLUEC}Reinitializing base module...${NC}\n";
         run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=base --log-level=warn \
             --stop-after-init --no-xmlrpc --no-xmlrpcs;
     fi
 
     for module in $modules; do
-        echo "Testing module $module...";
+        printf "${BLUEC}Testing module $module...${NC}\n";
         if [ -z $no_tee ]; then
             test_module_impl $module $odoo_extra_options | tee -a $test_log_file;
         else
@@ -640,13 +649,20 @@ function test_module {
 
 
     if [ ! -z $create_test_db ]; then
-        echo "Droping test database: $test_db_name";
+        printf  "${BLUEC}Droping test database: $test_db_name${NC}\n";
         odoo_drop_db $test_db_name $ODOO_TEST_CONF_FILE
     fi
 
     # Check log for warnings
-    grep -q -e "no access rules, consider adding one" "$test_log_file";
+    grep -q -e "no access rules, consider adding one" \
+            -e "WARNING"
+            "$test_log_file";
     local warnings=$?;
+
+    # Print test result
+    if [ $warnings -ne 0 ]; then
+        printf "${YELLOWC}Warings found while testing${NC}\n";
+    fi
 
 
     # Standard log processing
@@ -664,15 +680,10 @@ function test_module {
         $res=1
     fi
 
-    # Print test result
-    if [ $warnings -ne 0 ]; then
-        echo "RESULT: Warings found";
-    fi
-
     if [ $res -eq 0 ]; then
-        echo "RESULT: Test OK";
+        printf "TEST RESULT: ${GREENC}OK${NC}\n";
     else
-        echo "RESULT: Test fail";
+        printf "TEST RESULT: ${REDC}FAIL${NC}\n";
     fi
 
     if [ ! -z $remove_log_file ]; then
