@@ -105,7 +105,7 @@ function print_usage {
 
 # fetch_requirements <file_name>
 function fetch_requirements {
-    local REQUIREMENTS_FILE=$1;
+    local REQUIREMENTS_FILE=${1:-$WORKDIR};
 
     # Store here all requirements files processed to deal with circle dependencies
     if [ -z $REQ_FILES_PROCESSED ]; then
@@ -644,7 +644,6 @@ function test_module {
         else
             test_module_impl $module $odoo_extra_options;
         fi
-
     done
 
 
