@@ -654,30 +654,29 @@ function test_module {
     fi
 
     # Check log for warnings
-    grep -q -e "no access rules, consider adding one" \
-            -e "WARNING"
-            "$test_log_file";
-    local warnings=$?;
-
-    # Print test result
-    if [ $warnings -ne 0 ]; then
+    local warnings=0;
+    if grep -q -e "no access rules, consider adding one" \
+               -e "WARNING" \
+               "$test_log_file"; then
+        warnings=1;
         printf "${YELLOWC}Warings found while testing${NC}\n";
     fi
 
 
     # Standard log processing
-    grep -q -e "CRITICAL" \
-            -e "ERROR $test_db_name" \
-            -e "At least one test failed" \
-            -e "invalid module names, ignored" \
-            -e "OperationalError: FATAL" \
-            "$test_log_file";
-    local res=$?;
-
+    local res=0;
+    if grep -q -e "CRITICAL" \
+               -e "ERROR $test_db_name" \
+               -e "At least one test failed" \
+               -e "invalid module names, ignored" \
+               -e "OperationalError: FATAL" \
+               "$test_log_file"; then
+        res=1;
+    fi
 
     # If Test is ok but there are warnings and set option 'fail-on-warn', fail this test
     if [ $res -eq 0 ] && [ $warnings -ne 0 ] && [ ! -z $fail_on_warn ]; then
-        $res=1
+        res=1
     fi
 
     if [ $res -eq 0 ]; then
