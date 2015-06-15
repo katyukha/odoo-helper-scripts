@@ -513,13 +513,14 @@ function test_module_impl {
 
     set +e; # do not fail on errors
     # Install module
-    #run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
-        #--no-xmlrpc --no-xmlrpcs $@;
+    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
+        --no-xmlrpc --no-xmlrpcs $@;
     # Test module
     run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
         --no-xmlrpc --no-xmlrpcs $@;
     set -e; # Fail on any error
 }
+
 
 # test_module [--create-test-db] -m <module_name>
 # test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
@@ -542,6 +543,7 @@ function test_module {
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
         --no-tee            - disable duplication test odutput to log file. this options anables colored test output
         --reinit-base       - this option adds 'base' module to init list. this is way to reload module list in existing database
+        --fail-on-warn      - if this option passed, then tests will fail even on warnings
     ";
 
     # Parse command line options and run commands
@@ -566,11 +568,10 @@ function test_module {
                 local remove_log_file=1;
             ;;
             --reinit-base)
-                if [ -z $cs_modules ]; then
-                    cs_modules="base";
-                else
-                    cs_modules="base,$cs_modules";
-                fi
+                local reinit_base=1;
+            ;;
+            --fail-on-warn)
+                local fail_on_warn=1;
             ;;
             -m|--module)
                 modules=$modules$'\n'$2;  # add module to module list
@@ -621,9 +622,11 @@ function test_module {
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
-    echo "Installing modules: $cs_modules...";
-    run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=$cs_modules --log-level=warn \
-        --stop-after-init --no-xmlrpc --no-xmlrpcs $@;
+    if [ ! -z $reinit_base ]; then
+        echo "Reinitializing base module...";
+        run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=base --log-level=warn \
+            --stop-after-init --no-xmlrpc --no-xmlrpcs;
+    fi
 
     for module in $modules; do
         echo "Testing module $module...";
@@ -641,19 +644,35 @@ function test_module {
         odoo_drop_db $test_db_name $ODOO_TEST_CONF_FILE
     fi
 
+    # Check log for warnings
+    grep -q -e "no access rules, consider adding one" "$test_log_file";
+    local warnings=$?;
 
-    if grep -q -e "CRITICAL" \
-               -e "ERROR $test_db_name" \
-               -e "At least one test failed" \
-               -e "no access rules, consider adding one" \
-               -e "invalid module names, ignored" \
-               -e "OperationalError: FATAL" \
-               "$test_log_file"; then
-        echo "Test result: FAIL";
-        local res=1;
+
+    # Standard log processing
+    grep -q -e "CRITICAL" \
+            -e "ERROR $test_db_name" \
+            -e "At least one test failed" \
+            -e "invalid module names, ignored" \
+            -e "OperationalError: FATAL" \
+            "$test_log_file";
+    local res=$?;
+
+
+    # If Test is ok but there are warnings and set option 'fail-on-warn', fail this test
+    if [ $res -eq 0 ] && [ $warnings -ne 0 ] && [ ! -z $fail_on_warn ]; then
+        $res=1
+    fi
+
+    # Print test result
+    if [ $warnings -ne 0 ]; then
+        echo "RESULT: Warings found";
+    fi
+
+    if [ $res -eq 0 ]; then
+        echo "RESULT: Test OK";
     else
-        echo "Test result: OK";
-        local res=0;
+        echo "RESULT: Test fail";
     fi
 
     if [ ! -z $remove_log_file ]; then
