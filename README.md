@@ -18,17 +18,17 @@ PATH=\$PATH:\$HOME/odoo-helper-scripts/bin/
 
 And after nstall you will have available folowing scripts in your path:
 
-    - odoo-install.bash
-    - odoo-helper.bash
+    - odoo-install
+    - odoo-helper
 
 Each script have -h or --help option which display most relevant information about script
 
-### odoo-install.bash
+### odoo-install
 
 Install Odoo in specified directory in (using virtualenv)
 
 ```bash
-odoo-install.bash --install-dir MyOdoo --branch 8.0
+odoo-install
 ```
 
 After this You wil have odoo and it's dependencies installed into *MyOdoo* directory.
@@ -37,14 +37,14 @@ system dependencies, such as libraries, compilers, \*-dev packages, etc cannot b
 You should install them manualy.
 
 This installation also creates *odoo-helper.conf* file inside project, which allows to use
-*odoo-helper.bash* script to simplify interaction with this odoo installation.
+*odoo-helper* script to simplify interaction with this odoo installation.
 
 Also, in case that this is source installation, you may install more than one odoo installation
 on machine, thus you can use it for development of multiple addon sets, which may not work good on same odoo installation.
 
-### odoo-helper.bash
+### odoo-helper
 
-This script simlify interaction with odoo installs (mostly done by *odoo-install.bash* script)
+This script simlify interaction with odoo installs (mostly done by *odoo-install* script)
 
 Core functionality is:
 
@@ -63,7 +63,7 @@ about path, your odoo installed in.
 
 ### odoo\_requirements.txt
 
-*odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper.bash fetch_module``` command:
+*odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper fetch_module``` command:
 
 ```
 -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
@@ -72,4 +72,16 @@ about path, your odoo installed in.
 
 ```
 
-For details run ```odoo-helper.bash fetch_module --help```
+Also there are shorter syntax for specific repository sources:
+
+- ```--github user/repository``` for github repositories
+- ```--oca repository``` of odoo comunity repositories
+
+Fore example:
+
+```
+--github katyukha/base_tags --module base_tags -b master
+--oca project-service -m project_sla -b 7.0
+```
+
+For details run ```odoo-helper fetch_module --help```
