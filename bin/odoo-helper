@@ -25,9 +25,9 @@ set -e;
 # depending on 'USE_UNBUFFER variable
 function execu {
     if [ -z $USE_UNBUFFER ]; then
-        exec $@;
+        exec "$@";
     else
-        unbuffer $@;
+        unbuffer "$@";
     fi
 }
 # random_string [length]
@@ -424,17 +424,17 @@ function run_server_impl {
     local SERVER=`get_server_script`;
     if [ -z $VENV_DIR ]; then
         echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
-        execu $SERVER $@;
+        execu $SERVER "$@";
     else
         echo -e "${LBLUEC}Running server${NC}: (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate)";
-        (source $VENV_DIR/bin/activate && execu $SERVER $@ && deactivate);
+        (source $VENV_DIR/bin/activate && execu $SERVER "$@" && deactivate);
     fi
 }
 
 # run_server <arg1> .. <argN>
 # all arguments will be passed to odoo server
 function run_server {
-    run_server_impl -c $ODOO_CONF_FILE $@;
+    run_server_impl -c $ODOO_CONF_FILE "$@";
 }
 
 # odoo_create_db <name> [odoo_conf_file]
@@ -537,10 +537,10 @@ function test_module_impl {
     set +e; # do not fail on errors
     # Install module
     run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs $@;
+        --no-xmlrpc --no-xmlrpcs "$@";
     # Test module
     run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs $@;
+        --no-xmlrpc --no-xmlrpcs "$@";
     set -e; # Fail on any error
 }
 
@@ -770,7 +770,7 @@ do
         ;;
         fetch_module)
             shift;
-            fetch_module $@;
+            fetch_module "$@";
             exit
         ;;
         fetch_requirements)
@@ -779,32 +779,32 @@ do
         ;;
         link_module)
             shift;
-            link_module $@
+            link_module "$@"
             exit;
         ;;
         run_server)
             shift;
-            run_server $@;
+            run_server "$@";
             exit;
         ;;
         test_module)
             shift;
-            test_module $@;
+            test_module "$@";
             exit;
         ;;
         create_db)
             shift;
-            odoo_create_db $@;
+            odoo_create_db "$@";
             exit;
         ;;
         drop_db)
             shift;
-            odoo_drop_db $@;
+            odoo_drop_db "$@";
             exit;
         ;;
         list_db)
             shift;
-            odoo_list_db $@;
+            odoo_list_db "$@";
             exit;
         ;;
         *)
