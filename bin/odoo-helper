@@ -19,9 +19,17 @@ BLUEC='\e[34m';
 LBLUEC='\e[94m';
 # end
 
-
 set -e;
 
+# simply pass all args to exec or unbuffer
+# depending on 'USE_UNBUFFER variable
+function execu {
+    if [ -z $USE_UNBUFFER ]; then
+        exec $@;
+    else
+        unbuffer $@;
+    fi
+}
 # random_string [length]
 # default length = 8
 function random_string {
@@ -76,12 +84,16 @@ function print_usage {
         help
     
     Global options:
-        --addons_dir <addons_directory>
-        --downloads_dir <downloads_directory>
-        --virtual_env <virtual_env_dir>       - optional, if specified, python dependencies
+        --addons-dir <addons_directory>
+        --downloads-dir <downloads_directory>
+        --virtual-env <virtual_env_dir>       - optional, if specified, python dependencies
                                                 will be installed in that virtual env
-        --use_copy                            - if set, then downloaded modules, repositories will
+        --use-copy                            - if set, then downloaded modules, repositories will
                                                 be copied instead of being symlinked
+        --use-unbuffer                        - if set, then 'unbuffer' command from 'expect' package will be used
+                                                otherwise standard 'exec' will be used to run odoo server
+                                                this helps to make odoo server think that it runs in terminal thus
+                                                it provides colored output.
         --verbose                             - show extra output
 
     Also global options may be set up using configuration files.
@@ -412,10 +424,10 @@ function run_server_impl {
     local SERVER=`get_server_script`;
     if [ -z $VENV_DIR ]; then
         echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
-        exec $SERVER $@;
+        execu $SERVER $@;
     else
         echo -e "${LBLUEC}Running server${NC}: (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate)";
-        (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate);
+        (source $VENV_DIR/bin/activate && execu $SERVER $@ && deactivate);
     fi
 }
 
@@ -441,9 +453,9 @@ function odoo_create_db {
     python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'create_database', (openerp.tools.config['admin_passwd'], '$db_name', True, 'en_US'));"
 
     if [ -z $VENV_DIR ]; then
-        exec python -c "$python_cmd";
+        execu python -c "$python_cmd";
     else
-        (source $VENV_DIR/bin/activate && exec python -c "$python_cmd" && deactivate);
+        (source $VENV_DIR/bin/activate && execu python -c "$python_cmd" && deactivate);
     fi
 
 }
@@ -459,9 +471,9 @@ function odoo_drop_db {
     python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'drop', (openerp.tools.config['admin_passwd'], '$db_name'));"
 
     if [ -z $VENV_DIR ]; then
-        exec python -c "$python_cmd";
+        execu python -c "$python_cmd";
     else
-        (source $VENV_DIR/bin/activate && exec python -c "$python_cmd" && deactivate);
+        (source $VENV_DIR/bin/activate && execu python -c "$python_cmd" && deactivate);
     fi
 }
 
@@ -475,9 +487,9 @@ function odoo_list_db {
     python_cmd="$python_cmd print '\n'.join(['%s'%d for d in openerp.netsvc.dispatch_rpc('db', 'list', tuple())]);"
 
     if [ -z $VENV_DIR ]; then
-        exec python -c "$python_cmd";
+        execu python -c "$python_cmd";
     else
-        (source $VENV_DIR/bin/activate && exec python -c "$python_cmd" && deactivate);
+        (source $VENV_DIR/bin/activate && execu python -c "$python_cmd" && deactivate);
     fi
 }
 
@@ -629,10 +641,12 @@ function test_module {
 
     if [ ! -z $create_test_db ]; then
         local test_db_name=`random_string 24`;
-        test_log_file="${LOG_DIR:-.}/odoo.test.$test_db_name.log";
+        test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
         echo -e "Creating test database: ${YELLOWC}$test_db_name${NC}";
         odoo_create_db $test_db_name $ODOO_TEST_CONF_FILE;
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
+    else
+        local test_log_file="${LOG_DIR:-.}/odoo.test.`random_string 24`.log";
     fi
 
     if [ ! -z $reinit_base ]; then
@@ -656,6 +670,9 @@ function test_module {
         echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
         odoo_drop_db $test_db_name $ODOO_TEST_CONF_FILE
     fi
+
+    # remove color codes from log file
+    sed -ri "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" $test_log_file;
 
     # Check log for warnings
     local warnings=0;
@@ -726,20 +743,23 @@ do
             print_usage;
             exit 0;
         ;;
-        --downloads_dir)
+        --downloads-dir)
             DOWNLOADS_DIR=$2;
             shift;
         ;;
-        --addons_dir)
+        --addons-dir)
             ADDONS_DIR=$2;
             shift;
         ;;
-        --virtual_env)
+        --virtual-env)
             VENV_DIR=$2;
             shift;
         ;;
-        --use_copy)
+        --use-copy)
             USE_COPY=1;
+        ;;
+        --use-unbuffer)
+            USE_UNBUFFER=1;
         ;;
         --verbose)
             VERBOSE=1;
