@@ -23,12 +23,24 @@ set -e;
 
 # simply pass all args to exec or unbuffer
 # depending on 'USE_UNBUFFER variable
+# Also take in account virtualenv
 function execu {
+    if [ ! -z $VENV_DIR ]; then
+        source $VENV_DIR/bin/activate;
+    fi
+
     if [ -z $USE_UNBUFFER ]; then
         exec "$@";
+        local res=$?;
     else
         unbuffer "$@";
+        local res=$?;
     fi
+
+    if [ ! -z $VENV_DIR ]; then
+        deactivate;
+    fi
+    return $res
 }
 # random_string [length]
 # default length = 8
@@ -422,13 +434,8 @@ function get_server_script {
 # Internal function to run odoo server
 function run_server_impl {
     local SERVER=`get_server_script`;
-    if [ -z $VENV_DIR ]; then
-        echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
-        execu $SERVER "$@";
-    else
-        echo -e "${LBLUEC}Running server${NC}: (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate)";
-        (source $VENV_DIR/bin/activate && execu $SERVER "$@" && deactivate);
-    fi
+    echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
+    execu $SERVER "$@";
 }
 
 # run_server <arg1> .. <argN>
@@ -436,6 +443,7 @@ function run_server_impl {
 function run_server {
     run_server_impl -c $ODOO_CONF_FILE "$@";
 }
+
 
 # odoo_create_db <name> [odoo_conf_file]
 function odoo_create_db {
@@ -452,12 +460,7 @@ function odoo_create_db {
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
     python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'create_database', (openerp.tools.config['admin_passwd'], '$db_name', True, 'en_US'));"
 
-    if [ -z $VENV_DIR ]; then
-        execu python -c "$python_cmd";
-    else
-        (source $VENV_DIR/bin/activate && execu python -c "$python_cmd" && deactivate);
-    fi
-
+    execu python -c "$python_cmd";
 }
 
 # odoo_drop_db <name> [odoo_conf_file]
@@ -470,11 +473,7 @@ function odoo_drop_db {
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
     python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'drop', (openerp.tools.config['admin_passwd'], '$db_name'));"
 
-    if [ -z $VENV_DIR ]; then
-        execu python -c "$python_cmd";
-    else
-        (source $VENV_DIR/bin/activate && execu python -c "$python_cmd" && deactivate);
-    fi
+    execu python -c "$python_cmd";
 }
 
 # odoo_list_db [odoo_conf_file]
@@ -486,11 +485,7 @@ function odoo_list_db {
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
     python_cmd="$python_cmd print '\n'.join(['%s'%d for d in openerp.netsvc.dispatch_rpc('db', 'list', tuple())]);"
 
-    if [ -z $VENV_DIR ]; then
-        execu python -c "$python_cmd";
-    else
-        (source $VENV_DIR/bin/activate && execu python -c "$python_cmd" && deactivate);
-    fi
+    execu python -c "$python_cmd";
 }
 
 # create_tmp_dirs
