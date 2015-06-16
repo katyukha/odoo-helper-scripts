@@ -11,11 +11,12 @@ REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 CONF_FILE_NAME="odoo-helper.conf";
 
 # Color related vars
-NC='\033[0m';
-REDC='\033[0;31m';
-GREENC='\033[0;32m';
-YELLOWC='\033[1;33m';
-BLUEC='\033[0;34m';
+NC='\e[0m';
+REDC='\e[31m';
+GREENC='\e[32m';
+YELLOWC='\e[33m';
+BLUEC='\e[34m';
+LBLUEC='\e[94m';
 # end
 
 
@@ -106,6 +107,7 @@ function print_usage {
 # fetch_requirements <file_name>
 function fetch_requirements {
     local REQUIREMENTS_FILE=${1:-$WORKDIR};
+    local line=;
 
     # Store here all requirements files processed to deal with circle dependencies
     if [ -z $REQ_FILES_PROCESSED ]; then
@@ -113,7 +115,7 @@ function fetch_requirements {
     else
         for processed_file in ${REQ_FILES_PROCESSED[*]}; do
             if [ "$processed_file" == "$REQUIREMENTS_FILE" ]; then
-                echo "WARN: File $REQUIREMENTS_FILE already had been processed. skipping...";
+                echo -e "${YELLOWC}WARN${NC}: File $REQUIREMENTS_FILE already had been processed. skipping...";
                 return 0;
             fi
         done;
@@ -129,9 +131,9 @@ function fetch_requirements {
         while read -r line; do
             if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
                 if fetch_module $line; then
-                    echo "Line OK: $line";
+                    echo -e "Line ${GREENC}OK${NC}: $line";
                 else
-                    echo "Line FAIL: $line";
+                    echo -e "Line ${GREENC}FAIL${NC}: $line";
                 fi
             fi
         done < $REQUIREMENTS_FILE;
@@ -409,10 +411,10 @@ function get_server_script {
 function run_server_impl {
     local SERVER=`get_server_script`;
     if [ -z $VENV_DIR ]; then
-        echo "Running server: $SERVER $@";
+        echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
         exec $SERVER $@;
     else
-        echo "Running server: (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate)";
+        echo -e "${LBLUEC}Running server${NC}: (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate)";
         (source $VENV_DIR/bin/activate && exec $SERVER $@ && deactivate);
     fi
 }
@@ -550,7 +552,9 @@ function test_module {
         --link <repo>:[module_name]
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
-        --no-tee            - disable duplication test odutput to log file. this options anables colored test output
+        --no-tee            - this option disable duplication of output to log file.
+                              it is implemented as workaroud of bug, when chaining 'tee' command
+                              to openerp-server removes all colors of output.
         --reinit-base       - this option adds 'base' module to init list. this is way to reload module list in existing database
         --fail-on-warn      - if this option passed, then tests will fail even on warnings
     ";
@@ -626,20 +630,21 @@ function test_module {
     if [ ! -z $create_test_db ]; then
         local test_db_name=`random_string 24`;
         test_log_file="${LOG_DIR:-.}/odoo.test.$test_db_name.log";
-        printf "Creating test database: ${YELLOWC}$test_db_name${NC}";
+        echo -e "Creating test database: ${YELLOWC}$test_db_name${NC}";
         odoo_create_db $test_db_name $ODOO_TEST_CONF_FILE;
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
     if [ ! -z $reinit_base ]; then
-        printf "${BLUEC}Reinitializing base module...${NC}\n";
+        echo -e "${BLUEC}Reinitializing base module...${NC}";
         run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=base --log-level=warn \
             --stop-after-init --no-xmlrpc --no-xmlrpcs;
     fi
 
     for module in $modules; do
-        printf "${BLUEC}Testing module $module...${NC}\n";
+        echo -e "${BLUEC}Testing module $module...${NC}";
         if [ -z $no_tee ]; then
+            # TODO: applyion tee in this way makes output not colored
             test_module_impl $module $odoo_extra_options | tee -a $test_log_file;
         else
             test_module_impl $module $odoo_extra_options;
@@ -648,7 +653,7 @@ function test_module {
 
 
     if [ ! -z $create_test_db ]; then
-        printf  "${BLUEC}Droping test database: $test_db_name${NC}\n";
+        echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
         odoo_drop_db $test_db_name $ODOO_TEST_CONF_FILE
     fi
 
@@ -658,7 +663,7 @@ function test_module {
                -e "WARNING" \
                "$test_log_file"; then
         warnings=1;
-        printf "${YELLOWC}Warings found while testing${NC}\n";
+        echo -e "${YELLOWC}Warings found while testing${NC}";
     fi
 
 
@@ -679,9 +684,9 @@ function test_module {
     fi
 
     if [ $res -eq 0 ]; then
-        printf "TEST RESULT: ${GREENC}OK${NC}\n";
+        echo -e "TEST RESULT: ${GREENC}OK${NC}";
     else
-        printf "TEST RESULT: ${REDC}FAIL${NC}\n";
+        echo -e "TEST RESULT: ${REDC}FAIL${NC}";
     fi
 
     if [ ! -z $remove_log_file ]; then
