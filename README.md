@@ -46,20 +46,36 @@ on machine, thus you can use it for development of multiple addon sets, which ma
 
 This script simlify interaction with odoo installs (mostly done by *odoo-install* script)
 
+Note, that this script becomes useful when there is *odoo-helper.conf* config file could be found.
+Config will be searched in folowing paths:
+
+- */etc/default/odoo-helper.conf*  - System wide config file. May be usefule if
+                                     You have only one Odoo instalation in system
+- *<user home dir>/odoo-helper.conf*   - User specific config.
+- *Project specific* - this config is searched in working directory and up. first one found will be used.
+                     This feature allows to use *odoo-helper* with multiple odoo instances in one system
+
 Core functionality is:
 
-    - *fetch_module* - which makes available to fetch module from git repository and install it in this installation.
-      Also it may automatically fetch dependencise of module been fetched, if it heve *odoo_requirements.txt* file inside.
-    - *fetch_requirements* - which can process *odoo_requirements.txt* files
-    - *run_server*
-    - *test_module*
-    - *create_db*
-    - *drop_db*
-    - *list_db*
+- *fetch_module* - which makes available to fetch module from git repository and
+                   install it in this installation.
+                   Also it may automatically fetch dependencise of module been fetched,
+                   if it have *odoo_requirements.txt* file inside.
+- *fetch_requirements* - which can process *odoo_requirements.txt* files
+- *generate_requirements* - Generates *odoo_requirements.txt* file, with list of modules
+                            installed from git repositories. It checks all modules placed in
+                            addons directory, which is passed as argument to this command or
+                            got from odoo-helper.conf. Resulting file is suitable for *fetch_requirements command
+- *run_server* - Just runs current odoo install. all arguments passed directly to *openerp-server* executable
+- *test_module* - Test set of modules (```-m <module>``` option, which could be passed multiple times)
+                  Depending on options, may create new clean test daatabase.
+                  For depatis run this command with --help option$A
+- *link_module* - link specified module directory to current addons dir. mostly used internaly
+- *create_db* - allows to create database from command line
+- *drop_db* - allows to drop database from commandline
+- *list_db* - lists databases, available for this odoo instance
 
-The main advantage of using this scripts is that it looks for config file in working
-directory and up to get information about odoo-installation, and thus you do not need to worry
-about path, your odoo installed in.
+For details use *--help* option
 
 ### odoo\_requirements.txt
 
@@ -85,3 +101,36 @@ Fore example:
 ```
 
 For details run ```odoo-helper fetch_module --help```
+
+
+## Complete example
+
+```bash
+odoo-install --install-dir odoo-7.0 --branch 7.0
+cd odoo-7.0
+
+# Now You will have odoo-7.0 installed in this directory.
+# Note, thant Odoo this odoo install uses virtual env (venv dir)
+# Also You will find there odoo-helper.conf config file
+
+# So now You may run local odoo server:
+odoo-helper run_server   # This will automaticaly use config file: conf/odoo.conf
+
+# Let's install base_tags addon into this odoo installation
+odoo-helper fetch_module --github katyukha/base_tags
+
+# Now look at custom_addons/ dir, there will be placed links to addons
+# from https://github.com/katyukha/base_tags repository
+# But repository itself is placed in downloads/ directory
+# By default no branch specified when You fetch module,
+# but there are -b or --branch option which can be used to specify which branch to fetch
+
+# Not let's run tests for this just installed modules
+odoo-helper test_module --create-test-db -m base_tags -m product_tags
+
+# this will create test database (it will be dropt after test finishes) and 
+# run tests for modules 'base_tags' and 'product_tags'
+# If You need color output from Odoo, you may use '--use-unbuffer' option,
+# but it depends on 'expect-dev' package
+odoo-helper --use-unbuffer test_module --create-test-db -m base_tags -m product_tags
+```
