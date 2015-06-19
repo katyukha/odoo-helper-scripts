@@ -30,10 +30,10 @@ function execu {
     fi
 
     if [ -z $USE_UNBUFFER ]; then
-        exec "$@";
+        eval "$@";
         local res=$?;
     else
-        unbuffer "$@";
+        eval unbuffer "$@";
         local res=$?;
     fi
 
@@ -503,7 +503,7 @@ function odoo_create_db {
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
     python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'create_database', (openerp.tools.config['admin_passwd'], '$db_name', True, 'en_US'));"
 
-    execu python -c "$python_cmd";
+    execu python -c "\"$python_cmd\"";
 }
 
 # odoo_drop_db <name> [odoo_conf_file]
@@ -516,7 +516,7 @@ function odoo_drop_db {
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
     python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'drop', (openerp.tools.config['admin_passwd'], '$db_name'));"
 
-    execu python -c "$python_cmd";
+    execu python -c "\"$python_cmd\"";
 }
 
 # odoo_list_db [odoo_conf_file]
@@ -528,7 +528,7 @@ function odoo_list_db {
     python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
     python_cmd="$python_cmd print '\n'.join(['%s'%d for d in openerp.netsvc.dispatch_rpc('db', 'list', tuple())]);"
 
-    execu python -c "$python_cmd";
+    execu python -c "\"$python_cmd\"";
 }
 
 # create_tmp_dirs
@@ -637,12 +637,7 @@ function test_module {
                 local fail_on_warn=1;
             ;;
             -m|--module)
-                modules=$modules$'\n'$2;  # add module to module list
-                if [ -z $cs_modules ]; then
-                    cs_modules="$2";
-                else
-                    cs_modules="$cs_modules,$2";
-                fi
+                modules="$modules $2";  # add module to module list
                 shift;
             ;;
             --link)
@@ -682,6 +677,7 @@ function test_module {
         test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
         echo -e "Creating test database: ${YELLOWC}$test_db_name${NC}";
         odoo_create_db $test_db_name $ODOO_TEST_CONF_FILE;
+        echov "Test database created successfully";
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     else
         local test_log_file="${LOG_DIR:-.}/odoo.test.`random_string 24`.log";
