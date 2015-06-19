@@ -125,7 +125,7 @@ odoo-helper fetch_module --github katyukha/base_tags
 # By default no branch specified when You fetch module,
 # but there are -b or --branch option which can be used to specify which branch to fetch
 
-# Not let's run tests for this just installed modules
+# Now let's run tests for these just installed modules
 odoo-helper test_module --create-test-db -m base_tags -m product_tags
 
 # this will create test database (it will be dropt after test finishes) and 
