@@ -91,7 +91,7 @@ For details use *--help* option
 Also there are shorter syntax for specific repository sources:
 
 - ```--github user/repository``` for github repositories
-- ```--oca repository``` of odoo comunity repositories
+- ```--oca repository``` of Odoo Comunity Assiciation repositories
 
 Fore example:
 
@@ -117,7 +117,7 @@ cd odoo-7.0
 odoo-helper run_server   # This will automaticaly use config file: conf/odoo.conf
 
 # Let's install base_tags addon into this odoo installation
-odoo-helper fetch_module --github katyukha/base_tags
+odoo-helper fetch --github katyukha/base_tags
 
 # Now look at custom_addons/ dir, there will be placed links to addons
 # from https://github.com/katyukha/base_tags repository
@@ -126,11 +126,12 @@ odoo-helper fetch_module --github katyukha/base_tags
 # but there are -b or --branch option which can be used to specify which branch to fetch
 
 # Now let's run tests for these just installed modules
-odoo-helper test_module --create-test-db -m base_tags -m product_tags
+odoo-helper test --create-test-db -m base_tags -m product_tags
 
 # this will create test database (it will be dropt after test finishes) and 
 # run tests for modules 'base_tags' and 'product_tags'
+
 # If You need color output from Odoo, you may use '--use-unbuffer' option,
 # but it depends on 'expect-dev' package
-odoo-helper --use-unbuffer test_module --create-test-db -m base_tags -m product_tags
+odoo-helper --use-unbuffer test --create-test-db -m base_tags -m product_tags
 ```
