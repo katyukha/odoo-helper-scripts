@@ -132,12 +132,15 @@ function print_usage {
         ${PROJECT_ROOT_DIR:-'No project found'};
 
     Available commands:
-        fetch_module [--help]
-        link_module <repo_path> [<module_name>]
+        fetch | fetch_module [--help]
+        link | link_module <repo_path> [<module_name>]
         fetch_requirements <file name>
         generate_requirements [addons dir]
-        run_server [args passed to server]
-        test_module [--help]
+        run | run_server [args passed to server]
+        start_server [args passed to server]
+        stop_server [args passed to server]
+        restart_server [args passed to server]
+        test | test_module [--help]
         env                                         - export environment variables
         create_db <db_name> [cofig file to use]
         drop_db <db_name> [cofig file to use]
@@ -489,6 +492,30 @@ function run_server {
     run_server_impl -c $ODOO_CONF_FILE "$@";
 }
 
+function start_server {
+    run_server --pidfile=$ODOO_PID_FILE "$@" &
+    sleep 2;
+    echo "Odoo started using PID File $ODOO_PID_FILE. Process ID: $!";
+}
+
+function stop_server {
+    if [ -f "$ODOO_PID_FILE" ]; then
+        local pid=`cat $ODOO_PID_FILE`;
+        if kill $pid; then
+            sleep 2;
+            echo "Server stopped.";
+            rm -f $PID_FILE;
+        else
+            echo "Cannot kill process.";
+        fi
+    fi
+}
+
+function restart_server {
+    stop_server;
+    start_server "$@";
+}
+
 
 # odoo_create_db <name> [odoo_conf_file]
 function odoo_create_db {
@@ -832,7 +859,7 @@ do
             do_export_vars;
             exit;
         ;;
-        fetch_module)
+        fetch|fetch_module)
             shift;
             fetch_module "$@";
             exit
@@ -846,17 +873,32 @@ do
             generate_requirements "$@"
             exit;
         ;;
-        link_module)
+        link|link_module)
             shift;
             link_module "$@"
             exit;
         ;;
-        run_server)
+        run|run_server)
             shift;
             run_server "$@";
             exit;
         ;;
-        test_module)
+        start_server)
+            shift;
+            start_server "$@";
+            exit;
+        ;;
+        stop_server)
+            shift;
+            stop_server "$@";
+            exit;
+        ;;
+        restart_server)
+            shift;
+            restart_server "$@";
+            exit;
+        ;;
+        test|test_module)
             shift;
             test_module "$@";
             exit;

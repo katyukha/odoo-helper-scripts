@@ -183,7 +183,7 @@ function install_odoo {
 
     # install into virtualenv odoo and its dependencies
     if [ ! -d $VENV_DIR ]; then
-        virtualenv  $VENV_DIR;
+        virtualenv --system-site-packages $VENV_DIR;
     fi
     source $VENV_DIR/bin/activate;
     pip install --upgrade pip setuptools;  # required to make odoo.py work correctly
@@ -210,6 +210,7 @@ function print_helper_config {
     echo "ODOO_PATH=$ODOO_PATH;";
     echo "ODOO_CONF_FILE=$ODOO_CONF_FILE;";
     echo "ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;";
+    echo "ODOO_PID_FILE=$PID_FILE;";
 }
 
 # Install process
