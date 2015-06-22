@@ -584,7 +584,7 @@ function remove_tmp_dirs {
     ADDONS_DIR=$OLD_ADDONS_DIR;
     DOWNLOADS_DIR=$OLD_DOWNLOADS_DIR;
     ODOO_TEST_CONF_FILE=$OLD_ODOO_TEST_CONF_FILE;
-    rm -r $TMP_ROOT_DIR;
+    rm -rf $TMP_ROOT_DIR;
 
     echov "Temporary dir removed: $TMP_ROOT_DIR";
     TMP_ROOT_DIR=;
