@@ -29,6 +29,14 @@ function execu {
         source $VENV_DIR/bin/activate;
     fi
 
+    # Check unbuffer option
+    if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
+        echo -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
+        echo -e "It could be installed by installing package expect-dev";
+        echo -e "Using standard behavior${NC}";
+        USE_UNBUFFER=;
+    fi
+
     if [ -z $USE_UNBUFFER ]; then
         eval "$@";
         local res=$?;
@@ -132,20 +140,17 @@ function print_usage {
         ${PROJECT_ROOT_DIR:-'No project found'};
 
     Available commands:
-        fetch | fetch_module [--help]
-        link | link_module <repo_path> [<module_name>]
-        fetch_requirements <file name>
+        fetch [--help]
+        link <repo_path> [<module_name>]
         generate_requirements [addons dir]
-        run | run_server [args passed to server]
-        start_server [args passed to server]
-        stop_server [args passed to server]
-        restart_server [args passed to server]
-        test | test_module [--help]
+        server [--help]
+        odoo-py [args]                              - run project-specific odoo.py script
+        test [--help]
         env                                         - export environment variables
         create_db <db_name> [cofig file to use]
         drop_db <db_name> [cofig file to use]
         list_db [config file to use]
-        help
+        help | --help | -h
     
     Global options:
         --addons-dir <addons_directory>
@@ -158,7 +163,8 @@ function print_usage {
                                                 otherwise standard 'exec' will be used to run odoo server
                                                 this helps to make odoo server think that it runs in terminal thus
                                                 it provides colored output.
-        --verbose                             - show extra output
+        --use-test-conf                       - Use test configuration file for commands
+        --verbose|--vv                        - show extra output
 
     Also global options may be set up using configuration files.
     Folowing file paths will be searched for file $CONF_FILE_NAME:
@@ -299,7 +305,8 @@ function fetch_python_dep {
     fi
 }
 
-# fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>] [--requirements <requirements file>]
+# fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+# fetch_module --requirements <requirements file>
 # fetch_module -p <python module> [-p <python module>] ...
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
@@ -367,7 +374,7 @@ function fetch_module {
             ;;
             --oca)
                 REPOSITORY="https://github.com/OCA/$2";
-                REPO_BRANCH=$ODOO_BRANCH;  # Here we could use same branch as branch of odoo installed
+                REPO_BRANCH=${REPO_BRANCH:-$ODOO_BRANCH};  # Here we could use same branch as branch of odoo installed
                 shift;
             ;;
             -m|--module)
@@ -387,7 +394,7 @@ function fetch_module {
                 fetch_python_dep $2
                 shift;
             ;;
-            -h|--help)
+            -h|--help|help)
                 echo "$usage";
                 exit 0;
             ;;
@@ -469,8 +476,11 @@ function fetch_module {
 function get_server_script {
     echo "openerp-server";
     #case $ODOO_BRANCH in
-        #8.0|7.0|6.0)
+        #7.0|6.1|6.0)
             #echo "openerp-server";
+        #;;
+        #8.0|9.0|master)
+            #echo "odoo.py";
         #;;
         #*)
             #echo "unknown server version";
@@ -483,22 +493,33 @@ function get_server_script {
 function run_server_impl {
     local SERVER=`get_server_script`;
     echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
+    export OPENERP_SERVER=$ODOO_CONF_FILE;
     execu $SERVER "$@";
+    unset OPENERP_SERVER;
 }
 
-# run_server <arg1> .. <argN>
+# server_run <arg1> .. <argN>
 # all arguments will be passed to odoo server
-function run_server {
-    run_server_impl -c $ODOO_CONF_FILE "$@";
+function server_run {
+    run_server_impl "$@";
 }
 
-function start_server {
-    run_server --pidfile=$ODOO_PID_FILE "$@" &
+function server_start {
+    # Check if server process is already running
+    if [ -f "$ODOO_PID_FILE" ]; then
+        local pid=`cat $ODOO_PID_FILE`;
+        if kill -0 $pid >/dev/null 2>&1; then
+            echo -e "${REDC}Server process already running. PID=${pid}.${NC}";
+            exit 1;
+        fi
+    fi
+
+    run_server_impl --pidfile=$ODOO_PID_FILE "$@" &
     sleep 2;
     echo "Odoo started using PID File $ODOO_PID_FILE. Process ID: $!";
 }
 
-function stop_server {
+function server_stop {
     if [ -f "$ODOO_PID_FILE" ]; then
         local pid=`cat $ODOO_PID_FILE`;
         if kill $pid; then
@@ -511,11 +532,110 @@ function stop_server {
     fi
 }
 
-function restart_server {
-    stop_server;
-    start_server "$@";
+function server_status {
+    if [ -f "$ODOO_PID_FILE" ]; then
+        local pid=`cat $ODOO_PID_FILE`;
+        if kill -0 $pid >/dev/null 2>&1; then
+            echo -e "${GREENC}Server process already running. PID=${pid}.${NC}";
+        else
+            echo -e "${YELLOWC}Pid file points to unexistent process.${NC}";
+        fi
+    else
+        echo "Server stopped";
+    fi
 }
 
+# server [options] <command> <args>
+# server [options] start <args>
+# server [options] stop <args>
+function server {
+    local usage="
+    Usage 
+
+        $SCRIPT_NAME server [options] [command] [args]
+
+    args - arguments that usualy will be passed forward to openerp-server script
+
+    Commands:
+        run             - run the server. if no command supply, this one will be used
+        start           - start server in background
+        stop            - stop background running server
+        restart         - restart background server
+        status          - status of background server
+        log             - open server log
+        -h|--help|help  - display this message
+
+    Options:
+        --use-test-conf     - Use test configuration file for server
+    ";
+
+    ## Parse command line options and run commands
+    #if [[ $# -lt 1 ]]; then
+        #echo "No commands supplied $#: $@";
+        #echo "$usage";
+        #exit 0;
+    #fi
+
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            --use-test-conf)
+                echo "Not implemented option --user-test-conf!";
+            ;;
+            run)
+                shift;
+                server_run "$@";
+                exit;
+            ;;
+            start)
+                shift;
+                server_start "$@";
+                exit;
+            ;;
+            stop)
+                shift;
+                server_stop "$@";
+                exit;
+            ;;
+            restart)
+                shift;
+                server_stop;
+                server_start "$@";
+                exit;
+            ;;
+            status)
+                shift;
+                server_status "$@";
+                exit
+            ;;
+            log)
+                shift;
+                less $LOG_DIR/odoo.log;
+                exit;
+            ;;
+            *)
+                # all nex options have to be passed to the server
+                break;
+            ;;
+        esac;
+        shift;
+    done;
+    server_run "$@";
+    exit;
+}
+
+# odoo_py <args>
+function odoo_py {
+    echov -e "${LBLUEC}Running odoo.py with arguments${NC}:  $@";
+    export OPENERP_SERVER=$ODOO_CONF_FILE;
+    execu odoo.py "$@";
+    unset OPENERP_SERVER;
+}
 
 # odoo_create_db <name> [odoo_conf_file]
 function odoo_create_db {
@@ -524,37 +644,34 @@ function odoo_create_db {
 
     echov "Creating odoo database $db_name using conf file $conf_file";
 
-    local python_cmd="import openerp;";
-    python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
-    python_cmd="$python_cmd openerp.service.start_internal();"
-    python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
-    python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'create_database', (openerp.tools.config['admin_passwd'], '$db_name', True, 'en_US'));"
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', True, 'en_US');"
 
     execu python -c "\"$python_cmd\"";
+    
+    echo -e "${GREENC}Database $db_name created successfuly!${NC}";
 }
 
 # odoo_drop_db <name> [odoo_conf_file]
 function odoo_drop_db {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
-    local python_cmd="import openerp;";
-    python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
-    python_cmd="$python_cmd openerp.service.start_internal();"
-    python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
-    python_cmd="$python_cmd openerp.netsvc.dispatch_rpc('db', 'drop', (openerp.tools.config['admin_passwd'], '$db_name'));"
 
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd cl.db.drop(cl._server.tools.config['admin_passwd'], '$db_name');"
+    
     execu python -c "\"$python_cmd\"";
+    
+    echo -e "${GREENC}Database $db_name dropt successfuly!${NC}";
 }
 
 # odoo_list_db [odoo_conf_file]
 function odoo_list_db {
     local conf_file=${2:-$ODOO_CONF_FILE};
-    local python_cmd="import openerp;";
-    python_cmd="$python_cmd openerp.tools.config.parse_config(['-c', '$conf_file']);";
-    python_cmd="$python_cmd openerp.service.start_internal();"
-    python_cmd="$python_cmd openerp.cli.server.setup_signal_handlers();"
-    python_cmd="$python_cmd print '\n'.join(['%s'%d for d in openerp.netsvc.dispatch_rpc('db', 'list', tuple())]);"
 
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd print '\n'.join(['%s'%d for d in cl.db.list()]);";
+    
     execu python -c "\"$python_cmd\"";
 }
 
@@ -605,7 +722,7 @@ function test_module_impl {
         --no-xmlrpc --no-xmlrpcs "$@";
     # Test module
     run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs "$@";
+        --no-xmlrpc --no-xmlrpcs --workers=0 "$@";
     set -e; # Fail on any error
 }
 
@@ -852,21 +969,17 @@ do
         --use-unbuffer)
             USE_UNBUFFER=1;
         ;;
-        --verbose)
+        --verbose|-vv)
             VERBOSE=1;
         ;;
         env)
             do_export_vars;
             exit;
         ;;
-        fetch|fetch_module)
+        fetch)
             shift;
             fetch_module "$@";
             exit
-        ;;
-        fetch_requirements)
-            fetch_requirements $2;
-            exit;
         ;;
         generate_requirements)
             shift;
@@ -878,27 +991,17 @@ do
             link_module "$@"
             exit;
         ;;
-        run|run_server)
+        server)
             shift;
-            run_server "$@";
+            server "$@";
             exit;
         ;;
-        start_server)
+        odoo-py)
             shift;
-            start_server "$@";
+            odoo_py "$@";
             exit;
         ;;
-        stop_server)
-            shift;
-            stop_server "$@";
-            exit;
-        ;;
-        restart_server)
-            shift;
-            restart_server "$@";
-            exit;
-        ;;
-        test|test_module)
+        test)
             shift;
             test_module "$@";
             exit;

@@ -55,6 +55,9 @@ function print_usage {
     Available options:
          --install-dir <dir>         - directory to install odoo in. default: $INSTALL_DIR
          --branch <branch>           - specify odoo branch to clone. default: $BRANCH
+         --extra-utils               - install extra python packages. (for example 'erppeek', which
+                                       is used by odoo-helper script to manage databases)
+         --use-system-packages       - allow virtualenv use system packages. (default: disabled)
          --download-archive on|off   - if on, then odoo will be downloaded as archive. it is faster
                                        Default: $DOWNLOAD_ARCHIVE
          --use-shallow-clone on|off  - if not set 'download-archive' then, this option may increase
@@ -96,6 +99,12 @@ function parse_options {
             --branch|-b)
                 BRANCH=$2;
                 shift;
+            ;;
+            --extra-utils)
+                INSTALL_EXTRA_UTILS=1;
+            ;;
+            --use-system-packages)
+                USE_SYSTEM_SITE_PACKAGES=1;
             ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
@@ -183,16 +192,26 @@ function install_odoo {
 
     # install into virtualenv odoo and its dependencies
     if [ ! -d $VENV_DIR ]; then
-        virtualenv --system-site-packages $VENV_DIR;
+        if [ ! -z $USE_SYSTEM_SITE_PACKAGES ]; then
+            local venv_opts=" --system-site-packages ";
+        else
+            local venv_opts="";
+        fi
+        virtualenv $venv_opts $VENV_DIR;
     fi
     source $VENV_DIR/bin/activate;
     pip install --upgrade pip setuptools;  # required to make odoo.py work correctly
+
     if ! python -c "import pychart"; then
         pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
     fi
-    pip install --allow-external=PIL \
-                --allow-unverified=PIL \
-                -e $ODOO_PATH;
+
+    if [ ! -z $INSTALL_EXTRA_UTILS ]; then
+        pip install --upgrade erppeek;
+    fi
+
+    pip install --upgrade --allow-external=PIL --allow-unverified=PIL PIL
+    pip install -e $ODOO_PATH;
     deactivate;
 }
 
@@ -466,5 +485,5 @@ chmod a+x $BIN_DIR/new_module.bash;
 
 #---------------------------------------------
 
-echo "Edit configuration at $ODOO_CONF_FILE.conf";
+echo "Edit configuration at $ODOO_CONF_FILE";
 echo "To create skeleton for new module use $BIN_DIR/new_module.bash script";
