@@ -163,7 +163,6 @@ function print_usage {
                                                 otherwise standard 'exec' will be used to run odoo server
                                                 this helps to make odoo server think that it runs in terminal thus
                                                 it provides colored output.
-        --use-test-conf                       - Use test configuration file for commands
         --verbose|--vv                        - show extra output
 
     Also global options may be set up using configuration files.
@@ -585,7 +584,8 @@ function server {
                 exit 0;
             ;;
             --use-test-conf)
-                echo "Not implemented option --user-test-conf!";
+                ODOO_CONF_FILE=$ODOO_TEST_CONF_FILE;
+                echo -e "${YELLOWC}NOTE${NC}: Using test configuration file: $ODOO_TEST_CONF_FILE";
             ;;
             run)
                 shift;
