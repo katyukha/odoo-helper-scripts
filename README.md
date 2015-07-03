@@ -57,20 +57,19 @@ Config will be searched in folowing paths:
 
 Core functionality is:
 
-- *fetch_module* - which makes available to fetch module from git repository and
-                   install it in this installation.
-                   Also it may automatically fetch dependencise of module been fetched,
-                   if it have *odoo_requirements.txt* file inside.
-- *fetch_requirements* - which can process *odoo_requirements.txt* files
+- *fetch* - which makes available to fetch module from git repository and
+            install it in this installation.
+            Also it may automatically fetch dependencise of module been fetched,
+            if it have *odoo_requirements.txt* file inside.
 - *generate_requirements* - Generates *odoo_requirements.txt* file, with list of modules
                             installed from git repositories. It checks all modules placed in
                             addons directory, which is passed as argument to this command or
                             got from odoo-helper.conf. Resulting file is suitable for *fetch_requirements command
-- *run_server* - Just runs current odoo install. all arguments passed directly to *openerp-server* executable
-- *test_module* - Test set of modules (```-m <module>``` option, which could be passed multiple times)
-                  Depending on options, may create new clean test daatabase.
-                  For depatis run this command with --help option$A
-- *link_module* - link specified module directory to current addons dir. mostly used internaly
+- *server* - Contorlls odoo server of current project. run with *--help* option for more info.
+- *test* - Test set of modules (```-m <module>``` option, which could be passed multiple times)
+           Depending on options, may create new clean test daatabase.
+           For depatis run this command with --help option$A
+- *link* - link specified module directory to current addons dir. mostly used internaly
 - *create_db* - allows to create database from command line
 - *drop_db* - allows to drop database from commandline
 - *list_db* - lists databases, available for this odoo instance
@@ -82,7 +81,7 @@ For details use *--help* option
 *odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper fetch_module``` command:
 
 ```
--r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+-r|--repo <git repository>  [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
 --requirements <requirements file>
 -p|--python <python module>
 
@@ -106,18 +105,28 @@ For details run ```odoo-helper fetch_module --help```
 ## Complete example
 
 ```bash
-odoo-install --install-dir odoo-7.0 --branch 7.0
+odoo-install --install-dir odoo-7.0 --branch 7.0 --extra-utils
 cd odoo-7.0
 
 # Now You will have odoo-7.0 installed in this directory.
 # Note, thant Odoo this odoo install uses virtual env (venv dir)
 # Also You will find there odoo-helper.conf config file
 
-# So now You may run local odoo server:
-odoo-helper run_server   # This will automaticaly use config file: conf/odoo.conf
+# So now You may run local odoo server (i.e openerp-server script).
+# Note that this command run's server in foreground.
+odoo-helper server   # This will automaticaly use config file: conf/odoo.conf
+
+# Also you may run server in background using
+odoo-helper server start
+
+# there are also few additional server related commands:
+odoo-helper server status
+odoo-helper server log
+odoo-helper server restart
+odoo-helper server stop
 
 # Let's install base_tags addon into this odoo installation
-odoo-helper fetch --github katyukha/base_tags
+odoo-helper fetch --github katyukha/base_tags --branch master
 
 # Now look at custom_addons/ dir, there will be placed links to addons
 # from https://github.com/katyukha/base_tags repository
@@ -134,4 +143,32 @@ odoo-helper test --create-test-db -m base_tags -m product_tags
 # If You need color output from Odoo, you may use '--use-unbuffer' option,
 # but it depends on 'expect-dev' package
 odoo-helper --use-unbuffer test --create-test-db -m base_tags -m product_tags
+
+# The one cool thing of odoo-helper script, you may not remeber paths to odoo instalation,
+# and if you change directory to another inside your odoo project, everything will continue to work.
+cd custom_addons
+odoo-helper server status
+dooo-helper server restart
+
+# ...
+
+# So... let's install one more odoo version
+# go back to directory containing our projects (that one, where odoo-7.0 project is placed)
+cd ../../
+
+# Let's install odoo of version 8.0 too here.
+odoo-install --install-dir odoo-8.0 --branch 8.0 --extra-utils
+cd odoo-8.0
+
+# and install there for example addon 'project_sla' for 'project-service' Odoo Comutinty repository
+# Note  that odoo-helper script will automaticaly fetch branch named as server version in current install,
+# if another branch was not specified
+odoo-helper fetch --oca project-service -m project_sla
+
+# and run tests for it
+odoo-helper test --create-test-db -m project_sla
+
+
+# also if you want to install python packages in current installation environment, you may use command:
+odoo-helper fetch -p suds  # this installs 'suds' python package
 ```
