@@ -150,8 +150,6 @@ cd custom_addons
 odoo-helper server status
 dooo-helper server restart
 
-# ...
-
 # So... let's install one more odoo version
 # go back to directory containing our projects (that one, where odoo-7.0 project is placed)
 cd ../../
@@ -171,4 +169,10 @@ odoo-helper test --create-test-db -m project_sla
 
 # also if you want to install python packages in current installation environment, you may use command:
 odoo-helper fetch -p suds  # this installs 'suds' python package
+
+# and as one more example, let's install aeroo-reports with dependancy to aeroolib in odoo 7.0
+cd ../odoo-7.0
+odoo-helper fetch --github gisce/aeroo -n aeroo
+odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
+
 ```
