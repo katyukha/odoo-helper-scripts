@@ -23,6 +23,8 @@ And after nstall you will have available folowing scripts in your path:
 
 Each script have -h or --help option which display most relevant information about script
 
+Look at [complete example](#complete-example)
+
 ### odoo-install
 
 Install Odoo in specified directory in (using virtualenv)
@@ -76,7 +78,7 @@ Core functionality is:
 
 For details use *--help* option
 
-### odoo\_requirements.txt
+### Syntax of odoo\_requirements.txt
 
 *odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper fetch_module``` command:
 
