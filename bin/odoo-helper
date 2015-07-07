@@ -514,8 +514,11 @@ function server_start {
     fi
 
     run_server_impl --pidfile=$ODOO_PID_FILE "$@" &
+    local pid=$!;
     sleep 2;
-    echo "Odoo started using PID File $ODOO_PID_FILE. Process ID: $!";
+    echo -e "${GREENC}Odoo started!${NC}";
+    echo -e "PID File: ${YELLOWC}$ODOO_PID_FILE${NC}."
+    echo -e "Process ID: ${YELLOWC}$pid${NC}";
 }
 
 function server_stop {
