@@ -136,12 +136,13 @@ function print_usage {
     Usage:
         $SCRIPT_NAME [global options] command [command options]
 
-    Current project directory:
-        ${PROJECT_ROOT_DIR:-'No project found'};
+    Current project settings:
+        Project dir: ${PROJECT_ROOT_DIR:-'No project found'};
+        Branch:      ${ODOO_BRANCH:-'Not defined'}
 
     Available commands:
         fetch [--help]
-        link <repo_path> [<module_name>]
+        link [--help]
         generate_requirements [addons dir]
         server [--help]
         odoo-py [args]                              - run project-specific odoo.py script
@@ -243,16 +244,21 @@ function get_repo_name {
     fi
 }
 
-# link_module_impl <source_path> <dest_path>
+# link_module_impl <source_path> <dest_path> <force>
 function link_module_impl {
     local SOURCE=`readlink -f $1`;
-    local DEST=`readlink -f $2`;
+    local DEST="$2";
+    local force=$3;
+
+    if [ ! -z $force ] && [ -d $DEST ]; then
+        echov "Rewriting module $DEST...";
+        rm -rf $DEST;
+    fi
 
     if [ ! -d $DEST ]; then
         if [ -z $USE_COPY ]; then
             ln -s $SOURCE $DEST ;
         else
-            rm -rf $DEST;
             cp -r $SOURCE $DEST;
         fi
     else
@@ -261,8 +267,44 @@ function link_module_impl {
     fetch_requirements $DEST;
 }
 
-# link_module <repo_path> [<module_name>]
+# link_module [-f|--force] <repo_path> [<module_name>]
 function link_module {
+    local usage="
+    Usage: 
+
+        $SCRIPT_NAME link [-f|--force] <repo_path> [<module_name>]
+    ";
+
+    local force=;
+
+    # Parse command line options and run commands
+    if [[ $# -lt 1 ]]; then
+        echo "No options supplied $#: $@";
+        echo "";
+        echo "$usage";
+        exit 0;
+    fi
+
+    while [[ $1 == -* ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help)
+                echo "$usage";
+                exit 0;
+            ;;
+            -f|--force)
+                force=1;
+            ;;
+            *)
+                echo "Unknown option $key";
+                exit 1;
+            ;;
+        esac
+        shift
+    done
+
+
     local REPO_PATH=$1;
     local MODULE_NAME=$2;
 
@@ -271,20 +313,20 @@ function link_module {
     # Guess repository type
     if is_odoo_module $REPO_PATH; then
         # single module repo
-        link_module_impl $REPO_PATH $ADDONS_DIR/${MODULE_NAME:-`basename $REPO_PATH`} 
+        link_module_impl $REPO_PATH $ADDONS_DIR/${MODULE_NAME:-`basename $REPO_PATH`} "$force";
     else
         # multi module repo
         if [ -z $MODULE_NAME ]; then
             # No module name specified, then all modules in repository should be linked
             for file in "$REPO_PATH"/*; do
                 if is_odoo_module $file; then
-                    link_module_impl $file $ADDONS_DIR/`basename $file`
+                    link_module_impl $file $ADDONS_DIR/`basename $file` "$force";
                     # recursivly link module
                 fi
             done
         else
             # Module name specified, then only single module should be linked
-            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_DIR/$MODULE_NAME;
+            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_DIR/$MODULE_NAME "$force";
         fi
     fi
 }
@@ -473,19 +515,19 @@ function fetch_module {
 #  which should be placed in project config)
 # Now it simply returns openerp-server
 function get_server_script {
-    echo "openerp-server";
-    #case $ODOO_BRANCH in
-        #7.0|6.1|6.0)
-            #echo "openerp-server";
-        #;;
-        #8.0|9.0|master)
-            #echo "odoo.py";
-        #;;
-        #*)
-            #echo "unknown server version";
-            #exit 1;
-        #;;
-    #esac;
+    #echo "openerp-server";
+    case $ODOO_BRANCH in
+        7.0|6.1|6.0)
+            echo "openerp-server";
+        ;;
+        8.0|9.0|master)
+            echo "odoo.py";
+        ;;
+        *)
+            echo "unknown server version";
+            exit 1;
+        ;;
+    esac;
 }
 
 # Internal function to run odoo server
