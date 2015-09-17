@@ -141,13 +141,20 @@ function print_usage {
         Branch:      ${ODOO_BRANCH:-'Not defined'}
 
     Available commands:
-        fetch [--help]
-        link [--help]
-        generate_requirements [addons dir]
-        server [--help]
-        odoo-py [args]                              - run project-specific odoo.py script
-        test [--help]
-        env                                         - export environment variables
+        fetch [--help]                           - fetch and install odoo addon
+        link [--help]                            - link module to custom_addons dir
+        generate_requirements [addons dir]       - parse addons dir, find all addons that are
+                                                   git repositories and print odoo-requirements.txt content
+                                                   file content suitable for *fetch* subcommand.
+                                                   for example:
+                                                       $SCRIPT_NAME generate_requirements > odoo_requirements.txt
+                                                   and you can use generated file for fetch subcommand:
+                                                       $SCRIPT_NAME fetch --requirements odoo_requirements.txt
+        update_odoo                              - update odoo source code
+        server [--help]                          - manage local odoo server (run, start, stop, etc)
+        odoo-py [args]                           - run project-specific odoo.py script
+        test [--help]                            - test addon
+        env                                      - export environment variables
         create_db <db_name> [cofig file to use]
         drop_db <db_name> [cofig file to use]
         list_db [config file to use]
@@ -981,6 +988,31 @@ function generate_requirements {
     done
 }
 
+# downoload latest odoo of this version and reinstall it
+function update_odoo_sources {
+    echo -e "${LBLUEC}Updating odoo sources...${NC}";
+    local FILE_SUFFIX=`date -I`.`random_string 4`;
+    local BACKUP_PATH=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
+    
+    (cd $ODOO_PATH/.. && tar -czf $BACKUP_PATH `basename $ODOO_PATH`);
+    echo -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
+
+    if [ -d "$ODOO_PATH/.git" ]; then
+        echo -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
+        (cd $ODOO_PATH && git pull);
+    else
+        echo -e "${LBLUEC}Downloading new sources archive...${NC}"
+        local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
+        wget -q -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
+        rm -r $ODOO_PATH;
+        (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
+    fi
+
+    echo -e "${LBLUEC}Reinstalling odoo...${NC}";
+    (cd $ODOO_PATH && execu python setup.py develop);
+    echo -e "${GREENC}Odoo sources update finished!${NC}";
+}
+
 # Parse command line options and run commands
 if [[ $# -lt 1 ]]; then
     echo "No options/commands supplied $#: $@";
@@ -1029,6 +1061,11 @@ do
         generate_requirements)
             shift;
             generate_requirements "$@"
+            exit;
+        ;;
+        update_odoo)
+            shift;
+            update_odoo_sources;
             exit;
         ;;
         link|link_module)
