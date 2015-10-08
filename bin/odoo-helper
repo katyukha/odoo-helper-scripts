@@ -359,11 +359,11 @@ function fetch_python_dep {
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
     local usage="Usage:
-        $SCRIPT_NAME fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
-        $SCRIPT_NAME fetch_module --github <github username/reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
-        $SCRIPT_NAME fetch_module --oca <OCA reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
-        $SCRIPT_NAME fetch_module --requirements <requirements file>
-        $SCRIPT_NAME fetch_module -p|--python <python module>
+        $SCRIPT_NAME fetch -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+        $SCRIPT_NAME fetch --github <github username/reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+        $SCRIPT_NAME fetch --oca <OCA reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+        $SCRIPT_NAME fetch --requirements <requirements file>
+        $SCRIPT_NAME fetch -p|--python <python module>
 
         Options:
             -r|--repo <repo>         - git repository to get module from
@@ -382,18 +382,18 @@ function fetch_module {
 
         Examples:
            # fetch default branch of base_tags repository, link all modules placed in repository
-           $SCRIPT_NAME fetch_module -r https://github.com/katyukha/base_tags 
+           $SCRIPT_NAME fetch -r https://github.com/katyukha/base_tags 
 
            # same as previous but via --github option
-           $SCRIPT_NAME fetch_module --github katyukha/base_tags
+           $SCRIPT_NAME fetch --github katyukha/base_tags
 
            # fetch project_sla module from project-service repository of OCA using branch 7.0
-           $SCRIPT_NAME fetch_module --oca project-service -m project_sla -b 7.0
+           $SCRIPT_NAME fetch --oca project-service -m project_sla -b 7.0
 
         Also note that if using -p or --python option, You may install packages directly from vcs
         using syntax like
 
-           $SCRIPT_NAME fetch_module -p <vcs>
+           $SCRIPT_NAME fetch -p <vcs>
     ";
 
     if [[ $# -lt 2 ]]; then
