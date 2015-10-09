@@ -13,7 +13,7 @@ CONF_FILE_NAME="odoo-helper.conf";
 set -e;
 
 # Check environment for config
-BRANCH=${ODOO_BRANCH:-8.0};
+BRANCH=${ODOO_BRANCH:-9.0};
 SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
 DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
 DB_USER=${ODOO_DBUSER:-odoo};
@@ -37,20 +37,20 @@ function print_usage {
          bash $SCRIPT_NAME [options]
 
     Environment variables used:
-         ODOO_BRANCH         - allow to clone specified branch. Default is 8.0
+         ODOO_BRANCH         - allow to clone specified branch. Current val is $BRANCH
          ODOO_DOWNLOAD_ARCHIVE - (on|off) if on then only archive will be downloaded
-                                 not clonned. Default 'on'
+                                 not clonned. Current value is '$DOWNLOAD_ARCHIVE'
          ODOO_SHALLOW_CLONE  - (on|off) allow or disallow shallow clone.
                                signifianly increases performance, but have some limitations.
                                If ODOO_DOWNLOAD_ARCHIVE option is on, then this option
                                has no effect
-                               Default is: off
+                               Current value is: $SHALLOW_CLONE
          ODOO_DBHOST         - allow to specify Postgresql's server host.
-                               Default: localhost
+                               Current value: $DB_HOST
          ODOO_DBUSER         - allow to specify user to connect to DB as.
-                               Default: odoo
+                               Current value: $DB_USER
          ODOO_DBPASSWORD     - allow to specify db password to connect to DB as.
-                               Default: odoo
+                               Current value: $DB_PASSWORD
 
     Available options:
          --install-dir <dir>         - directory to install odoo in. default: $INSTALL_DIR
