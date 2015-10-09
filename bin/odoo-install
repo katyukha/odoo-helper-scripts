@@ -57,6 +57,7 @@ function print_usage {
          --branch <branch>           - specify odoo branch to clone. default: $BRANCH
          --extra-utils               - install extra python packages. (for example 'erppeek', which
                                        is used by odoo-helper script to manage databases)
+         --install-sys-deps          - (requires sudo). Attempt to install system dependencies.
          --use-system-packages       - allow virtualenv use system packages. (default: disabled)
          --download-archive on|off   - if on, then odoo will be downloaded as archive. it is faster
                                        Default: $DOWNLOAD_ARCHIVE
@@ -102,6 +103,9 @@ function parse_options {
             ;;
             --extra-utils)
                 INSTALL_EXTRA_UTILS=1;
+            ;;
+            --install-sys-deps)
+                INSTALL_SYS_DEPS=1;
             ;;
             --use-system-packages)
                 USE_SYSTEM_SITE_PACKAGES=1;
@@ -162,7 +166,7 @@ function config_dirs {
 function download_odoo {
    local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$BRANCH.tar.gz
    if [ ! -f $ODOO_ARCHIVE ]; then
-       wget -q -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$BRANCH.tar.gz;
+       wget -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$BRANCH.tar.gz;
    fi
    tar -zxf $ODOO_ARCHIVE;
    mv odoo-$BRANCH $ODOO_PATH;
@@ -179,8 +183,24 @@ function clone_odoo {
 
 }
 
+function install_sys_deps {
+    if [ "$1" == '${misc:Depends}' ]; then
+        shift;
+    fi
+    echo "Installing system dependencies: $@";
+    sudo apt-get install "$@";
+}
+
 function install_odoo {
     cd "$INSTALL_DIR";
+
+    # Install prerequirements if option --install-sys-deps encabled
+    if [ ! -z $INSTALL_SYS_DEPS ]; then
+        sudo apt-get install git wget python-setuptools perl g++ libpq-dev python-dev;
+        sudo easy_install pip;
+        sudo pip install --upgrade pip virtualenv;
+    fi
+
     # if not installed odoo, install it
     if [ ! -d $BASE_DIR/odoo ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
@@ -188,7 +208,12 @@ function install_odoo {
         else
             clone_odoo;
         fi
+    fi
 
+    # Install system dependencies if asked
+    if [ ! -z $INSTALL_SYS_DEPS ]; then
+        local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $ODOO_PATH/debian/control);
+        install_sys_deps $sys_deps;
     fi
 
     # install into virtualenv odoo and its dependencies

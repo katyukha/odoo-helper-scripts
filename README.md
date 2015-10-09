@@ -80,7 +80,7 @@ For details use *--help* option
 
 ### Syntax of odoo\_requirements.txt
 
-*odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper fetch_module``` command:
+*odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper fetch``` command:
 
 ```
 -r|--repo <git repository>  [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
@@ -101,7 +101,7 @@ Fore example:
 --oca project-service -m project_sla -b 7.0
 ```
 
-For details run ```odoo-helper fetch_module --help```
+For details run ```odoo-helper fetch --help```
 
 
 ## Complete example
