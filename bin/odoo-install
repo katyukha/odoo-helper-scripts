@@ -31,7 +31,9 @@ function create_dirs {
 }
 
 function print_usage {
-    echo "Bash script to instal dev version of odoo in local environment
+    echo "Bash script to instal dev version of Odoo in local environment
+
+    Optionaly system dependencies could be installed too (Debian only systems)
 
     Usage:
          bash $SCRIPT_NAME [options]
@@ -57,9 +59,11 @@ function print_usage {
          --branch <branch>           - specify odoo branch to clone. default: $BRANCH
          --extra-utils               - install extra python packages. (for example 'erppeek', which
                                        is used by odoo-helper script to manage databases)
-         --install-sys-deps          - (requires sudo). Attempt to install system dependencies.
+         --install-sys-deps          - (requires sudo) (debian only) (experimental).
+                                       Attempt to install system dependencies.
          --use-system-packages       - allow virtualenv use system packages. (default: disabled)
          --download-archive on|off   - if on, then odoo will be downloaded as archive. it is faster
+                                       if You want to clone Odoo repository set this option to 'off'
                                        Default: $DOWNLOAD_ARCHIVE
          --use-shallow-clone on|off  - if not set 'download-archive' then, this option may increase
                                        download speed using --depth=1 option in git clone. this will
@@ -69,16 +73,26 @@ function print_usage {
          --db-pass <password>        - database password to be used in settings. default: odoo
 
     Prerequirements:
-         Next packages must be installed system-wide:
+         Next packages must be installed system-wide
+         (or use --install-sys-deps option to install them during installation process):
              - virtualenv
-             - postgres
+             - postgresql-client
              - python-dev
              - g++
              - libpq-dev
              - git
 
-    After instalation configs will be generated in 'conf' dir
+    After instalation configs will be generated in 'conf' directory
     Also 'log' directory will contain Odoo logs
+
+    Note that, it is safe enough to run this script second time with same or similar args
+    if it breaks somehow. It will automaticaly detect if odoo sources were downloaded or
+    virtual environment created and will not do this operations second time.
+    So for example if you use option --install-sys-deps and some dependencies cannot be installed
+    you can install them manualy and retry this script with or without thi option and You will not
+    wast time waiting odoo sources to be downloaded again.
+
+    For bug reports use github issues: https://github.com/katyukha/odoo-helper-scripts/issues
     ";
 }
 
@@ -184,6 +198,8 @@ function clone_odoo {
 }
 
 function install_sys_deps {
+    # Odoo's debian/contol file usualy contains this in 'Depends' section 
+    # so we need to skip it before running apt-get
     if [ "$1" == '${misc:Depends}' ]; then
         shift;
     fi
@@ -192,10 +208,12 @@ function install_sys_deps {
 }
 
 function install_odoo {
+    local save_dir=`pwd`;
     cd "$INSTALL_DIR";
 
-    # Install prerequirements if option --install-sys-deps encabled
+    # Install prerequirements if option --install-sys-deps enabled
     if [ ! -z $INSTALL_SYS_DEPS ]; then
+        echo "Installing system preprequirements...";
         sudo apt-get install git wget python-setuptools perl g++ libpq-dev python-dev;
         sudo easy_install pip;
         sudo pip install --upgrade pip virtualenv;
@@ -226,7 +244,7 @@ function install_odoo {
         virtualenv $venv_opts $VENV_DIR;
     fi
     source $VENV_DIR/bin/activate;
-    pip install --upgrade pip setuptools;  # required to make odoo.py work correctly
+    pip install --upgrade pip setuptools;  # required to make odoo.py work correctly when setuptools too old
 
     if ! python -c "import pychart"; then
         pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
@@ -237,8 +255,30 @@ function install_odoo {
     fi
 
     pip install --upgrade --allow-external=PIL --allow-unverified=PIL PIL
+
+    # Workaround for situation when setup does not install openerp-gevent script.
+    if [ -f "$ODOO_PATH/openerp-gevent" ] && \
+       grep -e "scripts=\['openerp-server', 'odoo.py'\]," "$ODOO_PATH/setup.py";
+    then
+        cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.backup
+        sed -i -r "s/scripts=\['openerp-server', 'odoo.py'\],/scripts=\['openerp-server', 'openerp-gevent', 'odoo.py'\],/" \
+            $ODOO_PATH/setup.py;
+
+        local odoo_gevent_fix=1;
+    fi
+
+    # Install Odoo in dev mode; (do not copy sources inside venv, use code in $ODOO_PATH)
     pip install -e $ODOO_PATH;
+
+    if [ ! -z $odoo_gevent_fix ]; then
+        mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
+    fi
+
+    # Deactivate env
     deactivate;
+
+    # restore curenct working dir
+    cd $save_dir;
 }
 
 function print_helper_config {
@@ -412,4 +452,4 @@ EOF
 
 echo "Odoo seems to be successfully installed!";
 echo "Edit configuration at $ODOO_CONF_FILE";
-echo "Use odoo-helper project to managethis odoo instance";
+echo "Use odoo-helper project to manage this odoo instance";
