@@ -165,6 +165,7 @@ function config_dirs {
     ODOO_CONF_FILE=$CONF_DIR/odoo.conf;
     ODOO_TEST_CONF_FILE=$CONF_DIR/odoo.test.conf;
     LOG_DIR=$BASE_DIR/logs;
+    LOG_FILE=$LOG_DIR/odoo.log;
     LIBS_DIR=$BASE_DIR/libs;
     DOWNLOADS_DIR=$BASE_DIR/downloads;
     CUSTOM_ADDONS_DIR=$BASE_DIR/custom_addons;
@@ -175,6 +176,7 @@ function config_dirs {
     ODOO_PATH=$BASE_DIR/odoo;
     BACKUP_DIR=$BASE_DIR/backups;
     ADDONS_PATH="$ODOO_PATH/openerp/addons,$ODOO_PATH/addons,$CUSTOM_ADDONS_DIR";
+
 }
 
 function download_odoo {
@@ -215,6 +217,11 @@ function install_odoo {
     if [ ! -z $INSTALL_SYS_DEPS ]; then
         echo "Installing system preprequirements...";
         sudo apt-get install git wget python-setuptools perl g++ libpq-dev python-dev;
+
+        if [ ! -z $INSTALL_EXTRA_UTILS ]; then
+            sudo apt-get install expect-dev;
+        fi;
+
         sudo easy_install pip;
         sudo pip install --upgrade pip virtualenv;
     fi
@@ -286,6 +293,7 @@ function print_helper_config {
     echo "PROJECT_ROOT_DIR=$INSTALL_DIR;";
     echo "CONF_DIR=$CONF_DIR;";
     echo "LOG_DIR=$LOG_DIR;";
+    echo "LOG_FILE=$LOG_FILE;";
     echo "LIBS_DIR=$LIBS_DIR;";
     echo "DOWNLOADS_DIR=$DOWNLOADS_DIR;";
     echo "ADDONS_DIR=$CUSTOM_ADDONS_DIR;";
@@ -345,7 +353,7 @@ list_db = True
 log_db = False
 log_handler = [':INFO']
 log_level = info
-logfile = $LOG_DIR/odoo.log
+logfile = $LOG_FILE
 logrotate = False
 longpolling_port = 8072
 max_cron_threads = 2

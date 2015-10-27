@@ -2,6 +2,7 @@
 
 # Use odoo-helper --help for a documentation
 
+
 SCRIPT=$0;
 SCRIPT_NAME=`basename $SCRIPT`;
 F=`readlink -f $SCRIPT`;  # full script path;
@@ -20,6 +21,7 @@ LBLUEC='\e[94m';
 # end
 
 set -e;
+
 
 # simply pass all args to exec or unbuffer
 # depending on 'USE_UNBUFFER variable
@@ -50,6 +52,20 @@ function execu {
     fi
     return $res
 }
+
+
+# Simple function to check if at least one command exists.
+# Returns first existing command
+function check_command {
+    for test_cmd in $@; do
+        if execu command -v "$test_cmd" >/dev/null 2>&1; then
+            echo "$test_cmd";
+            return 0;
+        fi;
+    done
+    return -1;
+}
+
 
 # echov $@
 # echo if verbose is on
@@ -127,9 +143,12 @@ function load_conf {
     fi
 }
 
+
+# Load configuration, to make available all required varaible for code below
 load_conf "/etc/default/$CONF_FILE_NAME" \
           "$HOME/$CONF_FILE_NAME" \
           `search_file_up $WORKDIR $CONF_FILE_NAME`;
+
 
 function print_usage {
     echo "
@@ -154,7 +173,6 @@ function print_usage {
         server [--help]                          - manage local odoo server (run, start, stop, etc)
         odoo-py [args]                           - run project-specific odoo.py script
         test [--help]                            - test addon
-        env                                      - export environment variables
         create_db <db_name> [cofig file to use]
         drop_db <db_name> [cofig file to use]
         list_db [config file to use]
@@ -186,12 +204,31 @@ function print_usage {
         DOWNLOADS_DIR                   - Directory where all downloads hould be placed
         ADDONS_DIR                      - directory to place addons fetched (thats one in odoo's addons_path)
         VENV_DIR                        - Directory of virtual environment, if virtualenv is used
-                                        - Note, that if VENV_DIR not set, than system will think that odoo is installed system-wide.
+                                          Note, that if VENV_DIR not set, than system will think that odoo is installed system-wide.
         USE_COPY                        - If set, then addons will be coppied in addons dir, instead of standard symlinking
         ODOO_BRANCH                     - used in run_server command to decide how to run it
         ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
 ";
 }
+
+
+# List addons repositories
+# list_addons_repositories [addons_path]
+function list_addons_repositories {
+    local addons_path=${1:-$ADDONS_DIR};
+    local cdir=`pwd`;
+
+    local req_addons_dir=${1:-$ADDONS_DIR};
+
+    for addon in "$addons_path"/*; do
+        cd $addon;
+        if is_odoo_module . && ([ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1); then
+            echo "$(git rev-parse --show-toplevel)";
+        fi
+        cd $cdir;
+    done | sort -u;
+}
+
 
 # fetch_requirements <file_name>
 function fetch_requirements {
@@ -202,12 +239,15 @@ function fetch_requirements {
     if [ -z $REQ_FILES_PROCESSED ]; then
         REQ_FILES_PROCESSED[0]=$REQUIREMENTS_FILE;
     else
+        # Check if file have been processed, and if so, return from function
         for processed_file in ${REQ_FILES_PROCESSED[*]}; do
             if [ "$processed_file" == "$REQUIREMENTS_FILE" ]; then
                 echo -e "${YELLOWC}WARN${NC}: File $REQUIREMENTS_FILE already had been processed. skipping...";
                 return 0;
             fi
         done;
+        # If file have not been processed yet, add it to array with processed files
+        # and process it
         REQ_FILES_PROCESSED[${#REQ_FILES_PROCESSED[*]}]=$REQUIREMENTS_FILE;
     fi
 
@@ -233,18 +273,20 @@ function fetch_requirements {
 
 # is_odoo_module <module_path>
 function is_odoo_module {
-    if [ -d $1 ] && [ -f "$1/__openerp__.py" ]; then
-        return 0
+    if [ ! -d $1 ]; then
+       return 1;
+    elif [ -f "$1/__openerp__.py" ] || [ -f "$1/__odoo__.py" ] || [ -f "$1/__terp__.py" ]; then
+        return 0;
     else
-        return 1
+        return 1;
     fi
 }
 
 # get_repo_name <repository> [<desired name>]
 function get_repo_name {
     if [ -z "$2" ]; then
-        local R=`basename $1`;
-        R=${R%.git};
+        local R=`basename $1`;  # get repository name
+        R=${R%.git};  # remove .git suffix from name
         echo $R;
     else
         echo $2;
@@ -338,19 +380,18 @@ function link_module {
     fi
 }
 
+# Install python dependencies
 # fetch_python_dep <python module>
 function fetch_python_dep {
+    # Check if python dependency is vcs url like git+https://github.com/smth/smth
+    # And if it is VCS dependency install it as editable via pip
     if [[ $1 =~ .*\+.* ]]; then
         local install_opt="-e $1";
     else
         local install_opt="$1";
     fi
 
-    if [ -z $VENV_DIR ]; then
-        pip install --user $install_opt;
-    else
-        source $VENV_DIR/bin/activate && pip install $install_opt && deactivate;
-    fi
+    execu pip install $install_opt;
 }
 
 # fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
@@ -522,19 +563,7 @@ function fetch_module {
 #  which should be placed in project config)
 # Now it simply returns openerp-server
 function get_server_script {
-    #echo "openerp-server";
-    case $ODOO_BRANCH in
-        7.0|6.1|6.0)
-            echo "openerp-server";
-        ;;
-        8.0|9.0|master)
-            echo "odoo.py";
-        ;;
-        *)
-            echo "unknown server version";
-            exit 1;
-        ;;
-    esac;
+    check_command odoo.py openerp-server openerp-server.py;
 }
 
 # Internal function to run odoo server
@@ -620,13 +649,6 @@ function server {
         --use-test-conf     - Use test configuration file for server
     ";
 
-    ## Parse command line options and run commands
-    #if [[ $# -lt 1 ]]; then
-        #echo "No commands supplied $#: $@";
-        #echo "$usage";
-        #exit 0;
-    #fi
-
     while [[ $# -gt 0 ]]
     do
         key="$1";
@@ -667,7 +689,8 @@ function server {
             ;;
             log)
                 shift;
-                less $LOG_DIR/odoo.log;
+                # TODO: remove backward compatability from this code
+                less ${ODOO_LOG_FILE:-$LOG_DIR/odoo.log};
                 exit;
             ;;
             *)
@@ -888,7 +911,7 @@ function test_module {
     for module in $modules; do
         echo -e "${BLUEC}Testing module $module...${NC}";
         if [ -z $no_tee ]; then
-            # TODO: applyion tee in this way makes output not colored
+            # TODO: applying tee in this way makes output not colored
             test_module_impl $module $odoo_extra_options | tee -a $test_log_file;
         else
             test_module_impl $module $odoo_extra_options;
@@ -947,43 +970,16 @@ function test_module {
     return $res;
 }
 
-# do_export_vars
-# exports global env vars got from config
-function do_export_vars {
-    export DOWNLOADS_DIR;
-    export ADDONS_DIR;
-    export VENV_DIR;
-    export USE_COPY;
-    export ODOO_BRANCH;
-    export ODOO_TEST_CONF_FILE;
-}
-
 # generate_requirements [addons path]
 # prints odoo-requirements file content (only addons which are git repositories)
 function generate_requirements {
     local req_addons_dir=${1:-$ADDONS_DIR};
     local cdir=`pwd`;
 
-    for addon in "$req_addons_dir"/*; do
-        cd $addon;
-        if is_odoo_module . && ([ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1); then
-            local fetch_line="-r `get_git_remote_url` -b `get_git_branch_name`";
-            local fetch_line_hash=`echo "$fetch_line" | md5sum | awk '{print $1}'`;
-
-            local fetch_line_ok=1; 
-            if [ ! -z "$req_repositories_processed" ]; then
-                for c_fetch_line in $req_repositories_processed; do
-                    if [ "$c_fetch_line" == "$fetch_line_hash" ]; then
-                        fetch_line_ok=0;
-                        break
-                    fi
-                done;
-            fi
-            if [ $fetch_line_ok -eq 1 ]; then
-                local req_repositories_processed="$req_repositories_processed $fetch_line_hash";
-                echo "$fetch_line";
-            fi
-        fi
+    for repo in $(list_addons_repositories $req_addons_dir); do
+        cd $repo;
+        local fetch_line="-r `get_git_remote_url` -b `get_git_branch_name`";
+        echo "$fetch_line";
         cd $cdir;
     done
 }
@@ -1013,100 +1009,114 @@ function update_odoo_sources {
     echo -e "${GREENC}Odoo sources update finished!${NC}";
 }
 
-# Parse command line options and run commands
-if [[ $# -lt 1 ]]; then
-    echo "No options/commands supplied $#: $@";
-    print_usage;
-    exit 0;
-fi
+# function that parses commandline arguments and executes commands
+function odoo_helper_main {
+    # Parse command line options and run commands
+    if [[ $# -lt 1 ]]; then
+        echo "No options/commands supplied $#: $@";
+        print_usage;
+        exit 0;
+    fi
 
-while [[ $# -gt 0 ]]
-do
-    key="$1";
-    case $key in
-        -h|--help|help)
-            print_usage;
-            exit 0;
-        ;;
-        --downloads-dir)
-            DOWNLOADS_DIR=$2;
-            shift;
-        ;;
-        --addons-dir)
-            ADDONS_DIR=$2;
-            shift;
-        ;;
-        --virtual-env)
-            VENV_DIR=$2;
-            shift;
-        ;;
-        --use-copy)
-            USE_COPY=1;
-        ;;
-        --use-unbuffer)
-            USE_UNBUFFER=1;
-        ;;
-        --verbose|-vv)
-            VERBOSE=1;
-        ;;
-        env)
-            do_export_vars;
-            exit;
-        ;;
-        fetch)
-            shift;
-            fetch_module "$@";
-            exit
-        ;;
-        generate_requirements)
-            shift;
-            generate_requirements "$@"
-            exit;
-        ;;
-        update_odoo)
-            shift;
-            update_odoo_sources;
-            exit;
-        ;;
-        link|link_module)
-            shift;
-            link_module "$@"
-            exit;
-        ;;
-        server)
-            shift;
-            server "$@";
-            exit;
-        ;;
-        odoo-py)
-            shift;
-            odoo_py "$@";
-            exit;
-        ;;
-        test)
-            shift;
-            test_module "$@";
-            exit;
-        ;;
-        create_db)
-            shift;
-            odoo_create_db "$@";
-            exit;
-        ;;
-        drop_db)
-            shift;
-            odoo_drop_db "$@";
-            exit;
-        ;;
-        list_db)
-            shift;
-            odoo_list_db "$@";
-            exit;
-        ;;
-        *)
-            echo "Unknown option global option /command $key";
-            exit 1;
-        ;;
-    esac
-    shift
-done
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                print_usage;
+                exit 0;
+            ;;
+            --downloads-dir)
+                DOWNLOADS_DIR=$2;
+                shift;
+            ;;
+            --addons-dir)
+                ADDONS_DIR=$2;
+                shift;
+            ;;
+            --virtual-env)
+                VENV_DIR=$2;
+                shift;
+            ;;
+            --use-copy)
+                USE_COPY=1;
+            ;;
+            --use-unbuffer)
+                USE_UNBUFFER=1;
+            ;;
+            --verbose|-vv)
+                VERBOSE=1;
+            ;;
+            fetch)
+                shift;
+                fetch_module "$@";
+                exit
+            ;;
+            generate_requirements)
+                shift;
+                generate_requirements "$@"
+                exit;
+            ;;
+            update_odoo)
+                shift;
+                update_odoo_sources;
+                exit;
+            ;;
+            link|link_module)
+                shift;
+                link_module "$@"
+                exit;
+            ;;
+            server)
+                shift;
+                server "$@";
+                exit;
+            ;;
+            odoo-py)
+                shift;
+                odoo_py "$@";
+                exit;
+            ;;
+            test)
+                shift;
+                test_module "$@";
+                exit;
+            ;;
+            create_db)
+                shift;
+                odoo_create_db "$@";
+                exit;
+            ;;
+            drop_db)
+                shift;
+                odoo_drop_db "$@";
+                exit;
+            ;;
+            list_db)
+                shift;
+                odoo_list_db "$@";
+                exit;
+            ;;
+            # Allows to call functions for this script from outside
+            # Not present in help, becouse mostly for internal usage
+            call_internal)
+                shift;
+                local command_name=$1;
+                shift;
+                if [ $(type -t "$command_name")"" == "function" ]; then
+                    $command_name "$@";
+                else
+                    echo "Unknown function $command_name";
+                fi
+            ;;
+            *)
+                echo "Unknown option global option /command $key";
+                exit 1;
+            ;;
+        esac;
+        shift;
+    done;
+}
+
+odoo_helper_main "$@";
+
