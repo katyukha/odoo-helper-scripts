@@ -144,10 +144,33 @@ function load_conf {
 }
 
 
-# Load configuration, to make available all required varaible for code below
-load_conf "/etc/default/$CONF_FILE_NAME" \
-          "$HOME/$CONF_FILE_NAME" \
-          `search_file_up $WORKDIR $CONF_FILE_NAME`;
+# Load configurations from default locations. No args prowided
+function load_conf_files {
+    load_conf "/etc/default/$CONF_FILE_NAME" \
+              "$HOME/$CONF_FILE_NAME" \
+              `search_file_up $WORKDIR $CONF_FILE_NAME`;
+}
+
+
+# function to print odoo-helper config
+function print_config {
+    echo "ODOO_BRANCH=$ODOO_BRANCH;";
+    echo "PROJECT_ROOT_DIR=$PROJECT_ROOT_DIR;";
+    echo "CONF_DIR=$CONF_DIR;";
+    echo "LOG_DIR=$LOG_DIR;";
+    echo "LOG_FILE=$LOG_FILE;";
+    echo "LIBS_DIR=$LIBS_DIR;";
+    echo "DOWNLOADS_DIR=$DOWNLOADS_DIR;";
+    echo "ADDONS_DIR=$ADDONS_DIR;";
+    echo "DATA_DIR=$DATA_DIR;";
+    echo "BIN_DIR=$BIN_DIR;";
+    echo "VENV_DIR=$VENV_DIR;";
+    echo "ODOO_PATH=$ODOO_PATH;";
+    echo "ODOO_CONF_FILE=$ODOO_CONF_FILE;";
+    echo "ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;";
+    echo "ODOO_PID_FILE=$ODOO_PID_FILE;";
+    echo "BACKUP_DIR=$BACKUP_DIR;";
+}
 
 
 function print_usage {
@@ -173,10 +196,11 @@ function print_usage {
         server [--help]                          - manage local odoo server (run, start, stop, etc)
         odoo-py [args]                           - run project-specific odoo.py script
         test [--help]                            - test addon
-        create_db <db_name> [cofig file to use]
-        drop_db <db_name> [cofig file to use]
-        list_db [config file to use]
-        help | --help | -h
+        create_db <db_name> [cofig file to use]  - create odoo database in current odoo project
+        drop_db <db_name> [cofig file to use]    - drop odoo database in current odoo project
+        list_db [config file to use]             - list databases available for current odoo instance
+        print_config                             - print current configuration
+        help | --help | -h                       - display this help message
     
     Global options:
         --addons-dir <addons_directory>
@@ -1011,6 +1035,9 @@ function update_odoo_sources {
 
 # function that parses commandline arguments and executes commands
 function odoo_helper_main {
+    # load configuration files at startup
+    load_conf_files;
+
     # Parse command line options and run commands
     if [[ $# -lt 1 ]]; then
         echo "No options/commands supplied $#: $@";
@@ -1097,17 +1124,10 @@ function odoo_helper_main {
                 odoo_list_db "$@";
                 exit;
             ;;
-            # Allows to call functions for this script from outside
-            # Not present in help, becouse mostly for internal usage
-            call_internal)
+            print_config)
                 shift;
-                local command_name=$1;
-                shift;
-                if [ $(type -t "$command_name")"" == "function" ]; then
-                    $command_name "$@";
-                else
-                    echo "Unknown function $command_name";
-                fi
+                print_config;
+                exit;
             ;;
             *)
                 echo "Unknown option global option /command $key";
