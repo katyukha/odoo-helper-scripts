@@ -7,39 +7,52 @@ SCRIPT_NAME=`basename $SCRIPT`;
 F=`readlink -f $SCRIPT`;  # full script path;
 WORKDIR=`pwd`;
 
-REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
-CONF_FILE_NAME="odoo-helper.conf";
- 
-set -e;
+
+# load basic conf
+if [ -f "/etc/odoo-helper.conf" ]; then
+    source "/etc/odoo-helper.conf";
+fi
+if [ -f "$HOME/odoo-helper.conf" ]; then
+    source "$HOME/odoo-helper.conf";
+fi
+# -----------
+
+set -e;  # Fail on errors
+
+
+if [ -z $ODOO_HELPER_LIB ]; then
+    echo "Odoo-helper-scripts seems not been installed correctly.";
+    echo "Reinstall it (see Readme on https://github.com/katyukha/odoo-helper-scripts/)";
+    exit 1;
+fi
+
+# Load common functions
+source $ODOO_HELPER_LIB/common.bash; 
+
+# ----------------------------------------------------------------------------------------
+
 
 # Check environment for config
-BRANCH=${ODOO_BRANCH:-9.0};
+ODOO_BRANCH=${ODOO_BRANCH:-9.0};
 SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
 DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
 DB_USER=${ODOO_DBUSER:-odoo};
 DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
 DB_HOST=${ODOO_DBHOST:-localhost};
 
-# Utility functions
-function create_dirs {
-    # Simple function to create directories passed as arguments
-    for dir in $@; do
-        if [ ! -d $dir ]; then
-            mkdir -p "$dir";
-        fi
-    done;
-}
 
 function print_usage {
     echo "Bash script to instal dev version of Odoo in local environment
 
     Optionaly system dependencies could be installed too (Debian only systems)
 
+    Script version: $ODOO_HELPER_VERSION
+
     Usage:
          bash $SCRIPT_NAME [options]
 
     Environment variables used:
-         ODOO_BRANCH         - allow to clone specified branch. Current val is $BRANCH
+         ODOO_BRANCH         - allow to clone specified branch. Current val is $ODOO_BRANCH
          ODOO_DOWNLOAD_ARCHIVE - (on|off) if on then only archive will be downloaded
                                  not clonned. Current value is '$DOWNLOAD_ARCHIVE'
          ODOO_SHALLOW_CLONE  - (on|off) allow or disallow shallow clone.
@@ -56,7 +69,7 @@ function print_usage {
 
     Available options:
          --install-dir <dir>         - directory to install odoo in. default: $INSTALL_DIR
-         --branch <branch>           - specify odoo branch to clone. default: $BRANCH
+         --branch <branch>           - specify odoo branch to clone. default: $ODOO_BRANCH
          --extra-utils               - install extra python packages. (for example 'erppeek', which
                                        is used by odoo-helper script to manage databases)
          --install-sys-deps          - (requires sudo) (debian only) (experimental).
@@ -71,6 +84,11 @@ function print_usage {
          --db-host <host>            - database host to be used in settings. default: $DB_HOST
          --db-user <user>            - database user to be used in settings. default: $DB_USER
          --db-pass <password>        - database password to be used in settings. default: odoo
+         --use-unbuffer              - if set, then 'unbuffer' command from 'expect' package will be used
+                                       otherwise standard 'exec' will be used to run odoo server
+                                       this helps to make odoo server think that it runs in terminal thus
+                                       it provides colored output.
+         --verbose|--vv              - show extra output
 
     Prerequirements:
          Next packages must be installed system-wide
@@ -112,7 +130,7 @@ function parse_options {
                 shift;
             ;;
             --branch|-b)
-                BRANCH=$2;
+                ODOO_BRANCH=$2;
                 shift;
             ;;
             --extra-utils)
@@ -144,6 +162,12 @@ function parse_options {
                 DB_PASSWORD=$2;
                 shift;
             ;;
+            --use-unbuffer)
+                USE_UNBUFFER=1;
+            ;;
+            --verbose|-vv)
+                VERBOSE=1;
+            ;;
             -h|--help|help)
                 print_usage;
                 exit 0;
@@ -159,33 +183,24 @@ function parse_options {
 
 function config_dirs {
     # Directory and file paths
-    INSTALL_DIR=${INSTALL_DIR:-$WORKDIR/odoo-$BRANCH};
+    INSTALL_DIR=${INSTALL_DIR:-$WORKDIR/odoo-$ODOO_BRANCH};
+    PROJECT_ROOT_DIR=$INSTALL_DIR;
     BASE_DIR=$INSTALL_DIR;
-    CONF_DIR=$BASE_DIR/conf;
-    ODOO_CONF_FILE=$CONF_DIR/odoo.conf;
-    ODOO_TEST_CONF_FILE=$CONF_DIR/odoo.test.conf;
-    LOG_DIR=$BASE_DIR/logs;
-    LOG_FILE=$LOG_DIR/odoo.log;
-    LIBS_DIR=$BASE_DIR/libs;
-    DOWNLOADS_DIR=$BASE_DIR/downloads;
-    CUSTOM_ADDONS_DIR=$BASE_DIR/custom_addons;
-    DATA_DIR=$BASE_DIR/data_dir;
-    BIN_DIR=$BASE_DIR/bin;
-    VENV_DIR=$BASE_DIR/venv;
-    PID_FILE=$BASE_DIR/odoo.pid;
-    ODOO_PATH=$BASE_DIR/odoo;
-    BACKUP_DIR=$BASE_DIR/backups;
-    ADDONS_PATH="$ODOO_PATH/openerp/addons,$ODOO_PATH/addons,$CUSTOM_ADDONS_DIR";
+
+    config_default_vars;  # imported from common module
+
+    # define addons path to be placed in config files
+    ADDONS_PATH="$ODOO_PATH/openerp/addons,$ODOO_PATH/addons,$ADDONS_DIR";
 
 }
 
 function download_odoo {
-   local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$BRANCH.tar.gz
+   local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.tar.gz
    if [ ! -f $ODOO_ARCHIVE ]; then
-       wget -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$BRANCH.tar.gz;
+       wget -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
    fi
    tar -zxf $ODOO_ARCHIVE;
-   mv odoo-$BRANCH $ODOO_PATH;
+   mv odoo-$ODOO_BRANCH $ODOO_PATH;
 }
 
 function clone_odoo {
@@ -195,7 +210,7 @@ function clone_odoo {
         local DEPTH="";
     fi
 
-    git clone --branch $BRANCH --single-branch $DEPTH https://github.com/odoo/odoo.git $ODOO_PATH;
+    git clone --branch $ODOO_BRANCH --single-branch $DEPTH https://github.com/odoo/odoo.git $ODOO_PATH;
 
 }
 
@@ -267,6 +282,8 @@ function install_odoo {
     if [ -f "$ODOO_PATH/openerp-gevent" ] && \
        grep -e "scripts=\['openerp-server', 'odoo.py'\]," "$ODOO_PATH/setup.py";
     then
+        echov -e "${YELLOWC}There is openerp-gevent in used in odoo, but it is not specified in setup.py${NC}"
+        echov -e "${YELLOWC}Fix sill be applied${NC}"
         cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.backup
         sed -i -r "s/scripts=\['openerp-server', 'odoo.py'\],/scripts=\['openerp-server', 'openerp-gevent', 'odoo.py'\],/" \
             $ODOO_PATH/setup.py;
@@ -278,6 +295,7 @@ function install_odoo {
     pip install -e $ODOO_PATH;
 
     if [ ! -z $odoo_gevent_fix ]; then
+        echov "${GREENC}openerp-gevent fix was successfully applied${NC}";
         mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
     fi
 
@@ -288,31 +306,13 @@ function install_odoo {
     cd $save_dir;
 }
 
-function print_helper_config {
-    echo "ODOO_BRANCH=$BRANCH;";
-    echo "PROJECT_ROOT_DIR=$INSTALL_DIR;";
-    echo "CONF_DIR=$CONF_DIR;";
-    echo "LOG_DIR=$LOG_DIR;";
-    echo "LOG_FILE=$LOG_FILE;";
-    echo "LIBS_DIR=$LIBS_DIR;";
-    echo "DOWNLOADS_DIR=$DOWNLOADS_DIR;";
-    echo "ADDONS_DIR=$CUSTOM_ADDONS_DIR;";
-    echo "DATA_DIR=$DATA_DIR;";
-    echo "BIN_DIR=$BIN_DIR;";
-    echo "VENV_DIR=$VENV_DIR;";
-    echo "ODOO_PATH=$ODOO_PATH;";
-    echo "ODOO_CONF_FILE=$ODOO_CONF_FILE;";
-    echo "ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;";
-    echo "ODOO_PID_FILE=$PID_FILE;";
-    echo "BACKUP_DIR=$BACKUP_DIR;";
-}
 
 # Install process
 parse_options $@;
 config_dirs;
 
 create_dirs $INSTALL_DIR \
-    $CUSTOM_ADDONS_DIR \
+    $ADDONS_DIR \
     $CONF_DIR \
     $LOG_DIR \
     $LIBS_DIR \
@@ -360,7 +360,7 @@ max_cron_threads = 2
 osv_memory_age_limit = 1.0
 osv_memory_count_limit = False
 pg_path = None
-pidfile = $PID_FILE
+pidfile = $ODOO_PID_FILE
 proxy_mode = False
 reportgz = False
 secure_cert_file = server.cert
@@ -458,6 +458,6 @@ EOF
  
 #---------------------------------------------
 
-echo "Odoo seems to be successfully installed!";
+echo -e "${GREENC}Odoo seems to be successfully installed!${NC}";
 echo "Edit configuration at $ODOO_CONF_FILE";
 echo "Use odoo-helper project to manage this odoo instance";

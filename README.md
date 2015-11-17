@@ -2,21 +2,19 @@
 
 ## Install
 
-To install just do folowing:
+To install (in user home) just do folowing:
 
 ```bash
-# Clone repository to heme directory
-git clone https://github.com/katyukha/odoo-helper-scripts.git $HOME/odoo-helper-scripts
-
-# And add path to it to the system PATH
-echo "
-PATH=\$PATH:\$HOME/odoo-helper-scripts/bin/
-" >> $HOME/.bashrc
+wget https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-user.bash | bash
 ```
+
+After instalation You will have ```odoo-helper-scripts``` directory inside your home directory.
+And ```$HOME/odoo-helper.conf``` file wil be generated with path to odoo-helper-scripts install dir.
+
 
 ## Usage
 
-And after nstall you will have available folowing scripts in your path:
+And after install you will have available folowing scripts in your path:
 
     - odoo-install
     - odoo-helper
