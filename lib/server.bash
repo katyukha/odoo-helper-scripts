@@ -56,12 +56,31 @@ function server_stop {
     if [ -f "$ODOO_PID_FILE" ]; then
         local pid=`cat $ODOO_PID_FILE`;
         if kill $pid; then
-            sleep 2;
+            # wait until server is stopped
+            for stime in 1 2 3 4; do
+                if kill -0 $pid >/dev/null 2>&1; then
+                    # if process alive, wat a little time
+                    echov "Server still running. sleeping for $stime seconds";
+                    sleep $stime;
+                else
+                    break;
+                fi
+            done
+
+            # if process still alive, it seems that it is frozen, so force kill it
+            if kill -0 $pid >/dev/null 2>&1; then
+                kill -SIGKILL $pid;
+                sleep 1;
+            fi
+
             echo "Server stopped.";
             rm -f $PID_FILE;
         else
             echo "Cannot kill process.";
         fi
+    else
+        echo "Server seems not to be running!"
+        echo "Or PID file $ODOO_PID_FILE was removed";
     fi
 }
 
