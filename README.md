@@ -8,8 +8,9 @@ To install (in user home) just do folowing:
 wget https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-user.bash | bash
 ```
 
-After instalation You will have ```odoo-helper-scripts``` directory inside your home directory.
-And ```$HOME/odoo-helper.conf``` file wil be generated with path to odoo-helper-scripts install dir.
+After instalation You will have ```odoo-helper-scripts``` directory inside your home directory
+(also it will be added to PATH environment variable through ```~/.bash-profile``` file).
+And ```$HOME/odoo-helper.conf``` file will be generated with path to odoo-helper-scripts install dir.
 
 
 ## Usage

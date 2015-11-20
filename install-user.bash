@@ -1,11 +1,19 @@
+#!/bin/bash
+
+# Simple script to install odoo-helper-script userspace of current user
+# This script does not require sudo, but some features of installed
+# odoo-helper-scripts may require sudo.
+
+set -e;  # Fail on each error
+
 if ! command -v git >/dev/null 2>&1; then
     echo "To use this script collection you must install Git!"
     exit 1;
 fi
 
 # define vars
-BASHRC_FILE=$HOME/.bashrc
-ODOO_HELPER_USER_CONF=$HOME/odoo-helper.conf;
+BASH_CONF_FILE="$HOME/.profile";
+ODOO_HELPER_USER_CONF="$HOME/odoo-helper.conf";
 
 # Test if there is odoo-helper conf in home dir, which means
 # that odoo-helper-scripts may be already installed
@@ -34,12 +42,14 @@ fi
 
 # add odoo-helper-bin to path
 if ! command -v odoo-helper >/dev/null 2>&1; then
-    echo "" >> $BASHRC_FILE;
-    echo "PATH=$PATH:$ODOO_HELPER_BIN" >> $BASHRC_FILE;
-    export PATH=$PATH:$ODOO_HELPER_BIN;
+    echo "Adding $ODOO_HELPER_BIN to PATH (via $BASH_CONF_FILE)"
+    echo "" >> $BASH_CONF_FILE;
+    echo "export PATH=\"\$PATH:$ODOO_HELPER_BIN\" # Add odoo-helper-scripts to PATH" >> $BASH_CONF_FILE;
+    PATH="$PATH:$ODOO_HELPER_BIN";
 fi
     
 echo "Odoo-helper-scripts seems to be correctly installed for current user!";
 echo "Install path is $INSTALL_PATH";
+echo "PATH var is: $PATH";
 echo "To update odoo-helper-scripts, just go to install path, and pull last repo changes:";
 echo "    (cd $INSTALL_PATH && git pull)";

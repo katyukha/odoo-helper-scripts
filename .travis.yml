@@ -1,11 +1,18 @@
+sudo: required
 language: bash
 
 env:
   global:
     - CI_RUN=1
 
-before_script:
-  - "export PATH=$PATH:$(pwd)"
+install:
+  - "bash install-user.bash"
+  - "cat $HOME/.profile"
+  - "ls -l --color ./bin"
+  - "env"
+  - "bash -c 'env'"
+  - "command -v odoo-install; true"
 
 script:
-  - "bash test.bash"
+  - "source ~/.profile && bash test.bash"
+
