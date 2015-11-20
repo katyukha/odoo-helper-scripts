@@ -4,15 +4,25 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 # define vars
-INSTALL_PATH=$HOME/odoo-helper-scripts;
 BASHRC_FILE=$HOME/.bashrc
-ODOO_HELPER_LIB=$INSTALL_PATH/lib;
-ODOO_HELPER_BIN=$INSTALL_PATH/bin;
 ODOO_HELPER_USER_CONF=$HOME/odoo-helper.conf;
+
+# Test if there is odoo-helper conf in home dir, which means
+# that odoo-helper-scripts may be already installed
+if [ -f $ODOO_HELPER_USER_CONF ]; then
+    source $ODOO_HELPER_USER_CONF;
+fi
+
+# Configure paths
+INSTALL_PATH=${ODOO_HELPER_ROOT:-$HOME/odoo-helper-scripts};
+ODOO_HELPER_LIB=${ODOO_HELPER_LIB:-$INSTALL_PATH/lib};
+ODOO_HELPER_BIN=${ODOO_HELPER_BIN:-$INSTALL_PATH/bin};
 
 # clone repo
 if [ ! -d $INSTALL_PATH ]; then
     git clone https://github.com/katyukha/odoo-helper-scripts $INSALL_PATH;
+    # TODO: may be it is good idea to pull changes from repository if it is already exists?
+    # TODO: implement here some sort of upgrade mechanism?
 fi
 
 # install odoo-helper user config

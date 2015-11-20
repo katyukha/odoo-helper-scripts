@@ -1,0 +1,11 @@
+language: bash
+
+env:
+  global:
+    - CI_RUN=1
+
+before_script:
+  - "export PATH=$PATH:$(pwd)"
+
+script:
+  - "bash test.bash"
