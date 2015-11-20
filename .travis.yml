@@ -1,11 +1,13 @@
+sudo: required
 language: bash
 
 env:
   global:
     - CI_RUN=1
 
-before_script:
-  - "export PATH=$PATH:$(pwd)"
+install:
+  - "bash install-user.bash"
 
 script:
-  - "bash test.bash"
+  - "source ~/.profile && bash test.bash"
+
