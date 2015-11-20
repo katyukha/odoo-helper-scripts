@@ -10,14 +10,28 @@ ODOO_HELPER_VERSION="0.0.1"
 # predefined filenames
 CONF_FILE_NAME="odoo-helper.conf";
 
-# Color related vars
-NC='\e[0m';
-REDC='\e[31m';
-GREENC='\e[32m';
-YELLOWC='\e[33m';
-BLUEC='\e[34m';
-LBLUEC='\e[94m';
-# end
+# Color related definitions
+function allow_colors {
+    NC='\e[0m';
+    REDC='\e[31m';
+    GREENC='\e[32m';
+    YELLOWC='\e[33m';
+    BLUEC='\e[34m';
+    LBLUEC='\e[94m';
+}
+
+# could be used to hide colors in output
+function deny_colors {
+    NC='';
+    REDC='';
+    GREENC='';
+    YELLOWC='';
+    BLUEC='';
+    LBLUEC='';
+}
+# Allow colors by default
+allow_colors;
+# -------------------------
 
 # Simplify import controll
 # oh_require <module_name>

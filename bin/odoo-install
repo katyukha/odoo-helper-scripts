@@ -74,6 +74,8 @@ function print_usage {
                                        is used by odoo-helper script to manage databases)
          --install-sys-deps          - (requires sudo) (debian only) (experimental).
                                        Attempt to install system dependencies.
+         --install-and-conf-postgres - (requires sudo) (debian only) (experimental)
+                                       Install postgresql server and create role for Odoo.
          --use-system-packages       - allow virtualenv use system packages. (default: disabled)
          --download-archive on|off   - if on, then odoo will be downloaded as archive. it is faster
                                        if You want to clone Odoo repository set this option to 'off'
@@ -88,6 +90,8 @@ function print_usage {
                                        otherwise standard 'exec' will be used to run odoo server
                                        this helps to make odoo server think that it runs in terminal thus
                                        it provides colored output.
+         -y                          - Answer yes on any question. (used in apt-get commands
+                                       when --install-sys-deps option supplied.)
          --verbose|--vv              - show extra output
 
     Prerequirements:
@@ -139,6 +143,9 @@ function parse_options {
             --install-sys-deps)
                 INSTALL_SYS_DEPS=1;
             ;;
+            --install-and-conf-postgres)
+                INSTALL_AND_CONFIGURE_POSTGRESQL=1;
+            ;;
             --use-system-packages)
                 USE_SYSTEM_SITE_PACKAGES=1;
             ;;
@@ -164,6 +171,9 @@ function parse_options {
             ;;
             --use-unbuffer)
                 USE_UNBUFFER=1;
+            ;;
+            -y)
+                ALWAYS_ANSWER_YES=1;
             ;;
             --verbose|-vv)
                 VERBOSE=1;
@@ -221,24 +231,51 @@ function install_sys_deps {
         shift;
     fi
     echo "Installing system dependencies: $@";
-    sudo apt-get install "$@";
+    if [ ! -z $ALWAYS_ANSWER_YES ]; then
+        local opt_apt_always_yes="-y";
+    fi
+    sudo apt-get install $opt_apt_always_yes "$@";
+}
+
+function install_and_configure_postgresql {
+    if [ ! -z $ALWAYS_ANSWER_YES ]; then
+        local opt_apt_always_yes="-y";
+    fi
+    sudo apt-get install $opt_apt_always_yes postgresql;
+    local user_count=$(sudo -u postgres -H psql -tA -c "SELECT count(*) FROM pg_user WHERE usename = '$DB_USER';");
+    if [ $user_count -eq 0 ]; then
+        sudo -u postgres -H psql -c "CREATE USER $DB_USER WITH CREATEDB PASSWORD '$DB_PASSWORD';"
+        echov "Postgresql user $DB_USER was created for this Odoo instance";
+    else
+        echo -e "${YELLOWC}There are $DB_USER already exists in postgres server${NC}";
+    fi
+    echov "Postgres seems to be installed and db user seems created.";
 }
 
 function install_odoo {
     local save_dir=`pwd`;
     cd "$INSTALL_DIR";
 
+    if [ ! -z $ALWAYS_ANSWER_YES ]; then
+        local opt_apt_always_yes="-y";
+    fi
+
     # Install prerequirements if option --install-sys-deps enabled
     if [ ! -z $INSTALL_SYS_DEPS ]; then
         echo "Installing system preprequirements...";
-        sudo apt-get install git wget python-setuptools perl g++ libpq-dev python-dev;
+        sudo apt-get install $opt_apt_always_yes git wget python-setuptools perl g++ libpq-dev python-dev;
 
         if [ ! -z $INSTALL_EXTRA_UTILS ]; then
-            sudo apt-get install expect-dev;
+            sudo apt-get install $opt_apt_always_yes expect-dev;
         fi;
 
         sudo easy_install pip;
         sudo pip install --upgrade pip virtualenv;
+    fi
+
+    # Install and configure postgresql
+    if [ ! -z $INSTALL_AND_CONFIGURE_POSTGRESQL ]; then
+        install_and_configure_postgresql;
     fi
 
     # if not installed odoo, install it
