@@ -1,0 +1,14 @@
+sudo: required
+language: bash
+
+env:
+  global:
+    - CI_RUN=1
+    - ODOO_HELPER_ROOT=$TRAVIS_BUILD_DIR
+
+install:
+  - "bash install-user.bash"
+
+script:
+  - "bash --login test.bash"
+
