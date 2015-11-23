@@ -57,6 +57,13 @@ if [ ! -z $CI_RUN ]; then
         echo "";
         echo "Content of ~/.profile file:";
         echo "$(cat $HOME/.profile)";
+        echo "";
+        echo "Content of ~/.bashrc file:";
+        echo "$(cat $HOME/.bashrc)";
+        echo "";
+        echo "Content of ~/.bash_profile file:";
+        echo "$(cat $HOME/.bash_profile)";
+        echo "";
         
     fi
 fi
