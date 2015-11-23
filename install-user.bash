@@ -50,6 +50,5 @@ fi
     
 echo "Odoo-helper-scripts seems to be correctly installed for current user!";
 echo "Install path is $INSTALL_PATH";
-echo "PATH var is: $PATH";
 echo "To update odoo-helper-scripts, just go to install path, and pull last repo changes:";
 echo "    (cd $INSTALL_PATH && git pull)";

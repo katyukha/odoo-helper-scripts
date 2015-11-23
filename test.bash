@@ -37,7 +37,7 @@ set -e;
 mkdir -p $TEST_TMP_DIR;
 cd $TEST_TMP_DIR;
 
-# Prepare for test
+# Prepare for test (if running on CI)
 if [ ! -z $CI_RUN ]; then
     echo "Running as in CI environment";
     export ALWAYS_ANSWER_YES=1;
@@ -73,6 +73,12 @@ fi
 # ==========
 #
 
+echo "
+=================================================
+Test install of odoo version 7.0
+Also install dependencies and configure postgresql
+==================================================
+"
 odoo-install --install-dir odoo-7.0 --branch 7.0 --extra-utils --install-and-conf-postgres --install-sys-deps
 cd odoo-7.0
 
@@ -80,6 +86,11 @@ cd odoo-7.0
 # Note, thant Odoo this odoo install uses virtual env (venv dir)
 # Also You will find there odoo-helper.conf config file
 
+echo "
+=================================
+Test 'odoo-helper server' command
+=================================
+"
 # So now You may run local odoo server (i.e openerp-server script).
 # Note that this command run's server in foreground.
 odoo-helper server --stop-after-init  # This will automaticaly use config file: conf/odoo.conf
@@ -94,6 +105,20 @@ odoo-helper server restart
 odoo-helper server stop
 odoo-helper server status
 
+# The one cool thing of odoo-helper script is that you may not remeber paths to odoo instalation,
+# and if you change directory to another inside your odoo project, everything will continue to work.
+cd custom_addons
+odoo-helper server status
+odoo-helper server restart
+odoo-helper server stop
+odoo-helper server status
+
+
+echo "
+============================================================
+Fetch and test 'https://github.com/katyukha/base_tags' addon
+============================================================
+"
 # Let's install base_tags addon into this odoo installation
 odoo-helper fetch --github katyukha/base_tags --branch master
 
@@ -112,19 +137,16 @@ odoo-helper test --create-test-db -m base_tags -m product_tags
 # If You need color output from Odoo, you may use '--use-unbuffer' option,
 # but it depends on 'expect-dev' package
 odoo-helper --use-unbuffer test --create-test-db -m base_tags -m product_tags
-
-# The one cool thing of odoo-helper script, you may not remeber paths to odoo instalation,
-# and if you change directory to another inside your odoo project, everything will continue to work.
-cd custom_addons
-odoo-helper server status
-odoo-helper server restart
-odoo-helper server stop
-odoo-helper server status
-
 # So... let's install one more odoo version
 # go back to directory containing our projects (that one, where odoo-7.0 project is placed)
 cd ../../
 
+echo "
+========================================================================
+Install odoo 8.0, fetch and run tests for OCA addon 'project_sla'
+Alson install python package 'suds' in virtual env of this odoo instance
+========================================================================
+"
 # Let's install odoo of version 8.0 too here.
 odoo-install --install-dir odoo-8.0 --branch 8.0 --extra-utils
 cd odoo-8.0
@@ -141,10 +163,23 @@ odoo-helper test --create-test-db -m project_sla
 # also if you want to install python packages in current installation environment, you may use command:
 odoo-helper fetch -p suds  # this installs 'suds' python package
 
+echo "
+===============================================================================
+Go back to Odoo 7.0 instance, we installed at start of test
+and fetch and install there aeroo reports addon with it's dependency 'aeroolib'
+===============================================================================
+"
+
 # and as one more example, let's install aeroo-reports with dependancy to aeroolib in odoo 7.0
 cd ../odoo-7.0
 odoo-helper fetch --github gisce/aeroo -n aeroo
 odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
+
+echo "
+================
+Install Odoo 9.0
+================
+"
 
 # got back to test root and install odoo version 9.0
 cd ../;
