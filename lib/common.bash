@@ -221,7 +221,7 @@ function is_odoo_module {
 # Load project configuration. No args prowided
 function load_project_conf {
     local project_conf=`search_file_up $WORKDIR $CONF_FILE_NAME`;
-    if [ -f $project_conf ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
+    if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
         echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
         source $project_conf;
     fi

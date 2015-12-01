@@ -17,7 +17,7 @@ ODOO_HELPER_USER_CONF="$HOME/odoo-helper.conf";
 
 # Test if there is odoo-helper conf in home dir, which means
 # that odoo-helper-scripts may be already installed
-if [ -f $ODOO_HELPER_USER_CONF ]; then
+if [ -f "$ODOO_HELPER_USER_CONF" ]; then
     source $ODOO_HELPER_USER_CONF;
 fi
 
@@ -34,7 +34,7 @@ if [ ! -d $INSTALL_PATH ]; then
 fi
 
 # install odoo-helper user config
-if [ ! -f $ODOO_HELPER_USER_CONF ]; then
+if [ ! -f "$ODOO_HELPER_USER_CONF" ]; then
     echo "ODOO_HELPER_ROOT=$INSTALL_PATH;"   >> $ODOO_HELPER_USER_CONF;
     echo "ODOO_HELPER_BIN=$ODOO_HELPER_BIN;" >> $ODOO_HELPER_USER_CONF;
     echo "ODOO_HELPER_LIB=$ODOO_HELPER_LIB;" >> $ODOO_HELPER_USER_CONF;
