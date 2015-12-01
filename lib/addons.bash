@@ -106,7 +106,7 @@ function addons_command {
     local usage="Usage:
 
         $SCRIPT_NAME addons list_repos [addons path]
-        $SCRIPT_NAME addons git_status --help
+        $SCRIPT_NAME addons show_status --help
         $SCRIPT_NAME addons --help
 
     ";
