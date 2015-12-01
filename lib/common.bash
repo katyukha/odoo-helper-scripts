@@ -340,12 +340,16 @@ function git_parse_status {
       fi
     fi
 
+    if [[ -z "$branch" ]]; then
+        branch=$(get_git_branch_name)
+    fi
+
     if [[ -z "$remote" ]] ; then
-      remote='.'
+        remote='.'
     fi
 
     if [[ -z "$upstream" ]] ; then
-      upstream='^'
+        upstream='^'
     fi
 
     # ---

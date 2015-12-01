@@ -21,13 +21,15 @@ function addons_list_repositories {
     local addons_path=${1:-$ADDONS_DIR};
     local cdir=`pwd`;
 
-    for addon in "$addons_path"/*; do
-        cd $addon;
-        if is_odoo_module . && ([ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1); then
-            echo "$(git rev-parse --show-toplevel)";
-        fi
-        cd $cdir;
-    done | sort -u;
+    if [ ! -z $addons_path ]; then
+        for addon in "$addons_path"/*; do
+            cd $addon;
+            if is_odoo_module . && ([ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1); then
+                echo "$(git rev-parse --show-toplevel)";
+            fi
+            cd $cdir;
+        done | sort -u;
+    fi
 }
 
 
@@ -96,6 +98,7 @@ function addons_show_status {
         [ ${git_status[6]} -gt 0 ] && echo -e "\t${REDC}${git_status[6]} conflicts${NC}";
         [ ${git_status[7]} -gt 0 ] && echo -e "\t${YELLOWC}${git_status[7]} untracked files${NC}";
         [ ${git_status[8]} -gt 0 ] && echo -e "\t${YELLOWC}${git_status[8]} stashed${NC}";
+
     done;
 }
 
