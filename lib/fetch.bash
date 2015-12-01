@@ -10,7 +10,7 @@ fi
 
 # ----------------------------------------------------------------------------------------
 
-# Defin veriables
+# Define veriables
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 
 

@@ -162,7 +162,7 @@ function server {
             log)
                 shift;
                 # TODO: remove backward compatability from this code
-                less ${ODOO_LOG_FILE:-$LOG_DIR/odoo.log};
+                less ${LOG_FILE:-$LOG_DIR/odoo.log};
                 exit;
             ;;
             *)
