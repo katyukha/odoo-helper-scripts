@@ -33,6 +33,7 @@ ohelper_require fetch;
 ohelper_require server;
 ohelper_require db;
 ohelper_require 'test';
+ohelper_require addons;
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -60,6 +61,7 @@ function print_usage {
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
         update_odoo                              - update odoo source code
         server [--help]                          - manage local odoo server (run, start, stop, etc)
+        addons [--help]                          - addons related helpers
         odoo-py [args]                           - run project-specific odoo.py script
         test [--help]                            - test addon
         create_db <db_name> [cofig file to use]  - create odoo database in current odoo project
@@ -108,7 +110,7 @@ function generate_requirements {
     local req_addons_dir=${1:-$ADDONS_DIR};
     local cdir=`pwd`;
 
-    for repo in $(list_addons_repositories $req_addons_dir); do
+    for repo in $(addons_list_repositories $req_addons_dir); do
         cd $repo;
         local fetch_line="-r `get_git_remote_url` -b `get_git_branch_name`";
         echo "$fetch_line";
@@ -205,6 +207,11 @@ function odoo_helper_main {
             server)
                 shift;
                 server "$@";
+                exit;
+            ;;
+            addons)
+                shift;
+                addons_command "$@";
                 exit;
             ;;
             odoo-py)
