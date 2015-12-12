@@ -29,6 +29,8 @@ fi
 # Load common functions
 source $ODOO_HELPER_LIB/common.bash; 
 
+# Require libs
+ohelper_require 'install'
 # ----------------------------------------------------------------------------------------
 
 
@@ -39,6 +41,9 @@ DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
 DB_USER=${ODOO_DBUSER:-odoo};
 DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
 DB_HOST=${ODOO_DBHOST:-localhost};
+
+# Default configs
+USE_SYSTEM_SITE_PACKAGES=on;
 
 
 function print_usage {
@@ -68,31 +73,31 @@ function print_usage {
                                Current value: $DB_PASSWORD
 
     Available options:
-         --install-dir <dir>         - directory to install odoo in. default: $INSTALL_DIR
-         --branch <branch>           - specify odoo branch to clone. default: $ODOO_BRANCH
-         --extra-utils               - install extra python packages. (for example 'erppeek', which
-                                       is used by odoo-helper script to manage databases)
-         --install-sys-deps          - (requires sudo) (debian only) (experimental).
-                                       Attempt to install system dependencies.
-         --install-and-conf-postgres - (requires sudo) (debian only) (experimental)
-                                       Install postgresql server and create role for Odoo.
-         --use-system-packages       - allow virtualenv use system packages. (default: disabled)
-         --download-archive on|off   - if on, then odoo will be downloaded as archive. it is faster
-                                       if You want to clone Odoo repository set this option to 'off'
-                                       Default: $DOWNLOAD_ARCHIVE
-         --use-shallow-clone on|off  - if not set 'download-archive' then, this option may increase
-                                       download speed using --depth=1 option in git clone. this will
-                                       download all by one commit. Default: $SHALLOW_CLONE
-         --db-host <host>            - database host to be used in settings. default: $DB_HOST
-         --db-user <user>            - database user to be used in settings. default: $DB_USER
-         --db-pass <password>        - database password to be used in settings. default: odoo
-         --use-unbuffer              - if set, then 'unbuffer' command from 'expect' package will be used
-                                       otherwise standard 'exec' will be used to run odoo server
-                                       this helps to make odoo server think that it runs in terminal thus
-                                       it provides colored output.
-         -y                          - Answer yes on any question. (used in apt-get commands
-                                       when --install-sys-deps option supplied.)
-         --verbose|--vv              - show extra output
+         --install-dir <dir>           - directory to install odoo in. default: $INSTALL_DIR
+         --branch <branch>             - specify odoo branch to clone. default: $ODOO_BRANCH
+         --extra-utils                 - install extra python packages. (for example 'erppeek', which
+                                         is used by odoo-helper script to manage databases)
+         --install-sys-deps            - (requires sudo) (debian only) (experimental).
+                                         Attempt to install system dependencies.
+         --install-and-conf-postgres   - (requires sudo) (debian only) (experimental)
+                                         Install postgresql server and create role for Odoo.
+         --use-system-packages on|off  - allow virtualenv use system packages. (default: enabled)
+         --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
+                                         if You want to clone Odoo repository set this option to 'off'
+                                         Default: $DOWNLOAD_ARCHIVE
+         --use-shallow-clone on|off    - if not set 'download-archive' then, this option may increase
+                                         download speed using --depth=1 option in git clone. this will
+                                         download all by one commit. Default: $SHALLOW_CLONE
+         --db-host <host>              - database host to be used in settings. default: $DB_HOST
+         --db-user <user>              - database user to be used in settings. default: $DB_USER
+         --db-pass <password>          - database password to be used in settings. default: odoo
+         --use-unbuffer                - if set, then 'unbuffer' command from 'expect' package will be used
+                                         otherwise standard 'exec' will be used to run odoo server
+                                         this helps to make odoo server think that it runs in terminal thus
+                                         it provides colored output.
+         -y                            - Answer yes on any question. (used in apt-get commands
+                                         when --install-sys-deps option supplied.)
+         --verbose|--vv                - show extra output
 
     Prerequirements:
          Next packages must be installed system-wide
@@ -147,7 +152,8 @@ function parse_options {
                 INSTALL_AND_CONFIGURE_POSTGRESQL=1;
             ;;
             --use-system-packages)
-                USE_SYSTEM_SITE_PACKAGES=1;
+                USE_SYSTEM_SITE_PACKAGES=$2;
+                shift
             ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
@@ -224,53 +230,13 @@ function clone_odoo {
 
 }
 
-function install_sys_deps {
-    # Odoo's debian/contol file usualy contains this in 'Depends' section 
-    # so we need to skip it before running apt-get
-    if [ "$1" == '${misc:Depends}' ]; then
-        shift;
-    fi
-    echo "Installing system dependencies: $@";
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
-    fi
-    sudo apt-get install $opt_apt_always_yes "$@";
-}
-
-function install_and_configure_postgresql {
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
-    fi
-    sudo apt-get install $opt_apt_always_yes postgresql;
-    local user_count=$(sudo -u postgres -H psql -tA -c "SELECT count(*) FROM pg_user WHERE usename = '$DB_USER';");
-    if [ $user_count -eq 0 ]; then
-        sudo -u postgres -H psql -c "CREATE USER $DB_USER WITH CREATEDB PASSWORD '$DB_PASSWORD';"
-        echov "Postgresql user $DB_USER was created for this Odoo instance";
-    else
-        echo -e "${YELLOWC}There are $DB_USER already exists in postgres server${NC}";
-    fi
-    echov "Postgres seems to be installed and db user seems created.";
-}
-
 function install_odoo {
     local save_dir=`pwd`;
     cd "$INSTALL_DIR";
 
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
-    fi
-
     # Install prerequirements if option --install-sys-deps enabled
     if [ ! -z $INSTALL_SYS_DEPS ]; then
-        echo "Installing system preprequirements...";
-        sudo apt-get install $opt_apt_always_yes git wget python-setuptools perl g++ libpq-dev python-dev;
-
-        if [ ! -z $INSTALL_EXTRA_UTILS ]; then
-            sudo apt-get install $opt_apt_always_yes expect-dev;
-        fi;
-
-        sudo easy_install pip;
-        sudo pip install --upgrade pip virtualenv;
+        install_system_prerequirements;
     fi
 
     # Install and configure postgresql
@@ -289,55 +255,21 @@ function install_odoo {
 
     # Install system dependencies if asked
     if [ ! -z $INSTALL_SYS_DEPS ]; then
-        local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $ODOO_PATH/debian/control);
-        install_sys_deps $sys_deps;
+        install_sys_deps;
     fi
 
-    # install into virtualenv odoo and its dependencies
-    if [ ! -d $VENV_DIR ]; then
-        if [ ! -z $USE_SYSTEM_SITE_PACKAGES ]; then
-            local venv_opts=" --system-site-packages ";
-        else
-            local venv_opts="";
-        fi
-        virtualenv $venv_opts $VENV_DIR;
-    fi
-    source $VENV_DIR/bin/activate;
-    pip install --upgrade pip setuptools;  # required to make odoo.py work correctly when setuptools too old
-
-    if ! python -c "import pychart"; then
-        pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
-    fi
-
-    if [ ! -z $INSTALL_EXTRA_UTILS ]; then
-        pip install --upgrade erppeek;
-    fi
-
-    pip install --upgrade --allow-external=PIL --allow-unverified=PIL PIL
+    # Install virtual environment
+    install_virtual_env;
 
     # Workaround for situation when setup does not install openerp-gevent script.
-    if [ -f "$ODOO_PATH/openerp-gevent" ] && \
-       grep -e "scripts=\['openerp-server', 'odoo.py'\]," "$ODOO_PATH/setup.py";
-    then
-        echov -e "${YELLOWC}There is openerp-gevent in used in odoo, but it is not specified in setup.py${NC}"
-        echov -e "${YELLOWC}Fix sill be applied${NC}"
-        cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.backup
-        sed -i -r "s/scripts=\['openerp-server', 'odoo.py'\],/scripts=\['openerp-server', 'openerp-gevent', 'odoo.py'\],/" \
-            $ODOO_PATH/setup.py;
-
-        local odoo_gevent_fix=1;
-    fi
+    odoo_gevent_install_workaround;
 
     # Install Odoo in dev mode; (do not copy sources inside venv, use code in $ODOO_PATH)
-    pip install -e $ODOO_PATH;
+    (cd $ODOO_PATH && execu python setup.py develop);
 
-    if [ ! -z $odoo_gevent_fix ]; then
-        echov "${GREENC}openerp-gevent fix was successfully applied${NC}";
-        mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
-    fi
-
-    # Deactivate env
-    deactivate;
+    # Workaround for situation when setup does not install openerp-gevent script.
+    # (Restore modified setup.py)
+    odoo_gevent_install_workaround_cleanup;
 
     # restore curenct working dir
     cd $save_dir;
