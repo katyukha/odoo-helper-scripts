@@ -12,7 +12,6 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 # define vars
-BASH_CONF_FILE="$HOME/.profile";
 ODOO_HELPER_USER_CONF="$HOME/odoo-helper.conf";
 
 # Test if there is odoo-helper conf in home dir, which means
@@ -42,10 +41,12 @@ fi
 
 # add odoo-helper-bin to path
 if ! command -v odoo-helper >/dev/null 2>&1; then
-    echo "Adding $ODOO_HELPER_BIN to PATH (via $BASH_CONF_FILE)"
-    echo "" >> $BASH_CONF_FILE;
-    echo "export PATH=\"\$PATH:$ODOO_HELPER_BIN\" # Add odoo-helper-scripts to PATH" >> $BASH_CONF_FILE;
-    PATH="$PATH:$ODOO_HELPER_BIN";
+    echo "Adding links to $HOME/bin"
+    if [ ! -d $HOME/bin ]; then
+        mkdir -p $HOME/bin;
+    fi
+    ln -s $ODOO_HELPER_BIN/odoo-helper $HOME/bin;
+    ln -s $ODOO_HELPER_BIN/odoo-install $HOME/bin;
 fi
     
 echo "Odoo-helper-scripts seems to be correctly installed for current user!";
