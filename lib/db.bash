@@ -10,6 +10,9 @@ fi
 
 # ----------------------------------------------------------------------------------------
 
+set -e; # fail on errors
+
+
 
 # odoo_db_create <name> [odoo_conf_file]
 function odoo_db_create {

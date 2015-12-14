@@ -35,6 +35,7 @@ ohelper_require db;
 ohelper_require 'test';
 ohelper_require addons;
 ohelper_require 'install'
+ohelper_require 'git';
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -112,7 +113,7 @@ function generate_requirements {
 
     for repo in $(addons_list_repositories $req_addons_dir); do
         cd $repo;
-        local fetch_line="-r `get_git_remote_url` -b `get_git_branch_name`";
+        local fetch_line="-r `git_get_remote_url` -b `git_get_branch_name`";
         echo "$fetch_line";
         cd $cdir;
     done

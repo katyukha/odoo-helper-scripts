@@ -54,7 +54,7 @@ function install_system_prerequirements {
     fi
 
     echo "Updating package list..."
-    sudo apt-get update;
+    sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
     sudo apt-get install $opt_apt_always_yes git wget python-setuptools perl g++ libpq-dev python-dev;

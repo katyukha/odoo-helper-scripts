@@ -8,6 +8,7 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
     source $ODOO_HELPER_LIB/common.bash;
 fi
 
+ohelper_require 'git'
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -23,11 +24,9 @@ function addons_list_repositories {
 
     if [ ! -z $addons_path ]; then
         for addon in "$addons_path"/*; do
-            cd $addon;
-            if is_odoo_module . && ([ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1); then
-                echo "$(git rev-parse --show-toplevel)";
+            if is_odoo_module $addon && git_is_git_repo $addon; then
+                echo "$(git_get_abs_repo_path $addon)";
             fi
-            cd $cdir;
         done | sort -u;
     fi
 }

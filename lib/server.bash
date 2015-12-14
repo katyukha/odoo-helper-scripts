@@ -10,6 +10,9 @@ fi
 
 # ----------------------------------------------------------------------------------------
 
+set -e; # fail on errors
+
+
 
 # Prints server script name
 # (depends on ODOO_BRANCH environment variable,

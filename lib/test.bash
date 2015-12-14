@@ -14,6 +14,9 @@ ohelper_require server;
 ohelper_require db;
 # ----------------------------------------------------------------------------------------
 
+set -e; # fail on errors
+
+
 
 # create_tmp_dirs
 function create_tmp_dirs {

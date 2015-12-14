@@ -8,7 +8,12 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
     source $ODOO_HELPER_LIB/common.bash;
 fi
 
+# Require libs
+ohelper_require 'git'
 # ----------------------------------------------------------------------------------------
+
+set -e; # fail on errors
+
 
 # Define veriables
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
@@ -318,7 +323,7 @@ function fetch_module {
             cd $REPO_PATH;
             if [ -z $VERBOSE ]; then local verbose_opt="";
             else local verbose_opt=" -q "; fi
-            if [ "$(get_git_branch_name)" == "$REPO_BRANCH" ]; then
+            if [ "$(git_get_branch_name)" == "$REPO_BRANCH" ]; then
                     git pull $verbose_opt;
             else
                 git fetch $verbose_opt;
