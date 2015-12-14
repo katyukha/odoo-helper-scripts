@@ -53,6 +53,10 @@ function print_usage {
     Available commands:
         fetch [--help]                           - fetch and install odoo addon
         link [--help]                            - link module to custom_addons dir
+        server [--help]                          - manage local odoo server (run, start, stop, etc)
+        addons [--help]                          - addons related helpers
+        test [--help]                            - test addon
+        db [--help]                              - database management (list, create, drop, etc...)
         generate_requirements [addons dir]       - parse addons dir, find all addons that are
                                                    git repositories and print odoo-requirements.txt content
                                                    file content suitable for *fetch* subcommand.
@@ -61,13 +65,7 @@ function print_usage {
                                                    and you can use generated file for fetch subcommand:
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
         update_odoo                              - update odoo source code
-        server [--help]                          - manage local odoo server (run, start, stop, etc)
-        addons [--help]                          - addons related helpers
         odoo-py [args]                           - run project-specific odoo.py script
-        test [--help]                            - test addon
-        create_db <db_name> [cofig file to use]  - create odoo database in current odoo project
-        drop_db <db_name> [cofig file to use]    - drop odoo database in current odoo project
-        list_db [config file to use]             - list databases available for current odoo instance
         print_config                             - print current configuration
         status                                   - show project status
         help | --help | -h                       - display this help message
@@ -258,19 +256,9 @@ function odoo_helper_main {
                 test_module "$@";
                 exit;
             ;;
-            create_db)
+            db)
                 shift;
-                odoo_create_db "$@";
-                exit;
-            ;;
-            drop_db)
-                shift;
-                odoo_drop_db "$@";
-                exit;
-            ;;
-            list_db)
-                shift;
-                odoo_list_db "$@";
+                odoo_db_command "$@";
                 exit;
             ;;
             print_config)

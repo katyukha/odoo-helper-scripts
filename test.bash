@@ -88,6 +88,27 @@ cd odoo-7.0
 
 echo "
 =================================
+Test database management features
+(create, list, and drop database)
+=================================
+"
+
+# create test database if it does not exists yet
+if ! odoo-helper db exists my-test-odoo-database; then
+    odoo-helper db create my-test-odoo-database;
+fi
+
+# list all odoo databases available for this odoo instance
+odoo-helper db list
+
+# drop test database if it exists
+if odoo-helper db exists my-test-odoo-database; then
+    odoo-helper db drop my-test-odoo-database;
+fi
+
+
+echo "
+=================================
 Test 'odoo-helper server' command
 =================================
 "

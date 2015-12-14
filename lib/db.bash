@@ -11,8 +11,8 @@ fi
 # ----------------------------------------------------------------------------------------
 
 
-# odoo_create_db <name> [odoo_conf_file]
-function odoo_create_db {
+# odoo_db_create <name> [odoo_conf_file]
+function odoo_db_create {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
@@ -26,8 +26,8 @@ function odoo_create_db {
     echo -e "${GREENC}Database $db_name created successfuly!${NC}";
 }
 
-# odoo_drop_db <name> [odoo_conf_file]
-function odoo_drop_db {
+# odoo_db_drop <name> [odoo_conf_file]
+function odoo_db_drop {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
@@ -39,9 +39,9 @@ function odoo_drop_db {
     echo -e "${GREENC}Database $db_name dropt successfuly!${NC}";
 }
 
-# odoo_list_db [odoo_conf_file]
-function odoo_list_db {
-    local conf_file=${2:-$ODOO_CONF_FILE};
+# odoo_db_list [odoo_conf_file]
+function odoo_db_list {
+    local conf_file=${1:-$ODOO_CONF_FILE};
 
     local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd print '\n'.join(['%s'%d for d in cl.db.list()]);";
@@ -49,5 +49,74 @@ function odoo_list_db {
     execu python -c "\"$python_cmd\"";
 }
 
+# odoo_db_exists [odoo_conf_file]
+function odoo_db_exists {
+    local db_name=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
+
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
+    
+    if execu python -c "\"$python_cmd\""; then
+        echov "Database named '$db_name' exists!";
+        return 0;
+    else
+        echov "Database '$db_name' does not exists!";
+        return 1;
+    fi
+}
 
 
+# Command line args processing
+function odoo_db_command {
+    local usage="Usage:
+
+        $SCRIPT_NAME db list [odoo_conf_file]
+        $SCRIPT_NAME db exists <name> [odoo_conf_file]
+        $SCRIPT_NAME db create <name> [odoo_conf_file]
+        $SCRIPT_NAME db drop <name> [odoo_conf_file]
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        exit 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            list)
+                shift;
+                odoo_db_list "$@";
+                exit;
+            ;;
+            create)
+                shift;
+                odoo_db_create "$@";
+                exit;
+            ;;
+            drop)
+                shift;
+                odoo_db_drop "$@";
+                exit;
+            ;;
+            exists)
+                shift;
+                local VERBOSE=1;
+                odoo_db_exists "$@";
+                exit;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                exit 1;
+            ;;
+        esac
+        shift
+    done
+}

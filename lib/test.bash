@@ -160,7 +160,7 @@ function test_module {
         local test_db_name=`random_string 24`;
         test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
         echo -e "Creating test database: ${YELLOWC}$test_db_name${NC}";
-        odoo_create_db $test_db_name $ODOO_TEST_CONF_FILE;
+        odoo_db_create $test_db_name $ODOO_TEST_CONF_FILE;
         echov "Test database created successfully";
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     else
@@ -186,7 +186,7 @@ function test_module {
 
     if [ ! -z $create_test_db ]; then
         echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
-        odoo_drop_db $test_db_name $ODOO_TEST_CONF_FILE
+        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE
     fi
 
     # remove color codes from log file
