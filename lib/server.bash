@@ -19,6 +19,26 @@ function get_server_script {
     check_command odoo.py openerp-server openerp-server.py;
 }
 
+# Function to check server run status;
+# Function echo:
+#   pid - server running process <pid>
+#   -1  - server stopped
+#   -2  - pid file points to unexistent process
+#
+# server_is_running
+function server_get_pid {
+    if [ -f "$ODOO_PID_FILE" ]; then
+        local pid=`cat $ODOO_PID_FILE`;
+        if is_process_running $pid; then
+            echo "$pid";
+        else
+            echo "-2";
+        fi
+    else
+        echo "-1";
+    fi
+}
+
 # Internal function to run odoo server
 function run_server_impl {
     local SERVER=`get_server_script`;
@@ -36,12 +56,9 @@ function server_run {
 
 function server_start {
     # Check if server process is already running
-    if [ -f "$ODOO_PID_FILE" ]; then
-        local pid=`cat $ODOO_PID_FILE`;
-        if kill -0 $pid >/dev/null 2>&1; then
-            echo -e "${REDC}Server process already running. PID=${pid}.${NC}";
-            exit 1;
-        fi
+    if [ $(server_get_pid) -gt 0 ]; then
+        echo -e "${REDC}Server process already running.${NC}";
+        exit 1;
     fi
 
     run_server_impl --pidfile=$ODOO_PID_FILE "$@" &
@@ -53,13 +70,13 @@ function server_start {
 }
 
 function server_stop {
-    if [ -f "$ODOO_PID_FILE" ]; then
-        local pid=`cat $ODOO_PID_FILE`;
+    local pid=$(server_get_pid);
+    if [ $pid -gt 0 ]; then
         if kill $pid; then
             # wait until server is stopped
             for stime in 1 2 3 4; do
-                if kill -0 $pid >/dev/null 2>&1; then
-                    # if process alive, wat a little time
+                if is_process_running $pid; then
+                    # if process alive, wait a little time
                     echov "Server still running. sleeping for $stime seconds";
                     sleep $stime;
                 else
@@ -68,7 +85,7 @@ function server_stop {
             done
 
             # if process still alive, it seems that it is frozen, so force kill it
-            if kill -0 $pid >/dev/null 2>&1; then
+            if is_process_running $pid; then
                 kill -SIGKILL $pid;
                 sleep 1;
             fi
@@ -85,14 +102,12 @@ function server_stop {
 }
 
 function server_status {
-    if [ -f "$ODOO_PID_FILE" ]; then
-        local pid=`cat $ODOO_PID_FILE`;
-        if kill -0 $pid >/dev/null 2>&1; then
-            echo -e "${GREENC}Server process already running. PID=${pid}.${NC}";
-        else
-            echo -e "${YELLOWC}Pid file points to unexistent process.${NC}";
-        fi
-    else
+    local pid=$(server_get_pid);
+    if [ $pid -gt 0 ]; then
+        echo -e "${GREENC}Server process already running. PID=${pid}.${NC}";
+    elif [ $pid -eq -2 ]; then
+        echo -e "${YELLOWC}Pid file points to unexistent process.${NC}";
+    elif [ $pid -eq -1 ]; then
         echo "Server stopped";
     fi
 }

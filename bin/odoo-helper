@@ -69,6 +69,7 @@ function print_usage {
         drop_db <db_name> [cofig file to use]    - drop odoo database in current odoo project
         list_db [config file to use]             - list databases available for current odoo instance
         print_config                             - print current configuration
+        status                                   - show project status
         help | --help | -h                       - display this help message
     
     Global options:
@@ -124,6 +125,9 @@ function update_odoo_sources {
     echo -e "${LBLUEC}Updating odoo sources...${NC}";
     local FILE_SUFFIX=`date -I`.`random_string 4`;
     local BACKUP_PATH=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
+    local wget_opt="";
+
+    [ ! -z $VERBOSE ] && wget_opt="$wget_opt -q";
     
     (cd $ODOO_PATH/.. && tar -czf $BACKUP_PATH `basename $ODOO_PATH`);
     echo -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
@@ -134,7 +138,7 @@ function update_odoo_sources {
     else
         echo -e "${LBLUEC}Downloading new sources archive...${NC}"
         local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-        wget -q -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
+        wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
         rm -r $ODOO_PATH;
         (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
     fi
@@ -153,6 +157,24 @@ function update_odoo_sources {
     odoo_gevent_install_workaround_cleanup;
 
     echo -e "${GREENC}Odoo sources update finished!${NC}";
+}
+
+# display project status
+function show_project_status {
+    local pid=$(server_get_pid);
+    local server_status=;
+    if [ $pid -gt 0 ]; then
+        server_status="Running ($pid)";
+    else
+        server_status="Stopped";
+    fi
+
+    echo "Current project:
+
+        Project dir: ${PROJECT_ROOT_DIR:-'No project found'};
+        Odoo branch: ${ODOO_BRANCH:-'Not defined'}
+        Server status: ${server_status}
+    ";
 }
 
 # function that parses commandline arguments and executes commands
@@ -254,6 +276,10 @@ function odoo_helper_main {
             print_config)
                 shift;
                 print_helper_config;
+                exit;
+            ;;
+            status)
+                show_project_status;
                 exit;
             ;;
             *)

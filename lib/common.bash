@@ -108,6 +108,13 @@ function echov {
     fi
 }
 
+# check if process is running
+# is_process_running <pid>
+function is_process_running {
+    kill -0 $1 >/dev/null 2>&1;
+    return $?;
+}
+
 # random_string [length]
 # default length = 8
 function random_string {
