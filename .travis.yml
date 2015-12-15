@@ -1,9 +1,6 @@
 sudo: required
 language: bash
 
-cache:
-  apt: false
-
 env:
   global:
     - CI_RUN=1
