@@ -101,8 +101,8 @@ function print_usage {
          -y                            - Answer yes on any question. (used in apt-get commands
                                          when --install-sys-deps option supplied.)
 
-         --conf-opt-<option_name>      - rewrite configuration option
-         --test-conf-opt-<option_name> - rewrite test configuration option
+         --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xml_rpc_port 9999'
+         --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xml_rpc_port 9998'
          --verbose|--vv                - show extra output
 
     Prerequirements:

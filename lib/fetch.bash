@@ -17,9 +17,10 @@ set -e; # fail on errors
 
 # Define veriables
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
+PIP_REQUIREMENTS_FILE_NAME="requirements.txt";
 
 
-# fetch_requirements <file_name>
+# fetch_requirements <file_name|path_name>
 function fetch_requirements {
     local REQUIREMENTS_FILE=${1:-$WORKDIR};
     local line=;
@@ -60,6 +61,18 @@ function fetch_requirements {
     fi
 }
 
+# fetch_pip_requirements <filepath>
+function fetch_pip_requirements {
+     local pip_requirements=$1;
+     if [ -d $pip_requirements ]; then
+         pip_requirements=$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME;
+     fi
+
+     if [ -f $pip_requirements ]; then
+         execu pip install -r $pip_requirements;
+     fi
+}
+
 # get_repo_name <repository> [<desired name>]
 function get_repo_name {
     if [ -z "$2" ]; then
@@ -92,6 +105,7 @@ function link_module_impl {
         echov "Module $SOURCE already linked to $DEST";
     fi
     fetch_requirements $DEST;
+    fetch_pip_requirements $DEST/$PIP_REQUIREMENTS_FILE_NAME;
 }
 
 # link_module [-f|--force] <repo_path> [<module_name>]
@@ -144,6 +158,10 @@ function link_module {
     else
         # multi module repo
         if [ -z $MODULE_NAME ]; then
+            # Check for requirements files in repository root dir
+            fetch_requirements $REPO_PATH;
+            fetch_pip_requirements $REPO_PATH/$PIP_REQUIREMENTS_FILE_NAME;
+
             # No module name specified, then all modules in repository should be linked
             for file in "$REPO_PATH"/*; do
                 if is_odoo_module $file; then
