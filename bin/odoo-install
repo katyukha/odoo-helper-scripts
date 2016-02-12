@@ -42,6 +42,9 @@ DB_USER=${ODOO_DBUSER:-odoo};
 DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
 DB_HOST=${ODOO_DBHOST:-localhost};
 
+declare -A CONF_OPTIONS;
+declare -A TEST_CONF_OPTIONS;
+
 # Default configs
 USE_SYSTEM_SITE_PACKAGES=on;
 
@@ -97,6 +100,9 @@ function print_usage {
                                          it provides colored output.
          -y                            - Answer yes on any question. (used in apt-get commands
                                          when --install-sys-deps option supplied.)
+
+         --conf-opt-<option_name>      - rewrite configuration option
+         --test-conf-opt-<option_name> - rewrite test configuration option
          --verbose|--vv                - show extra output
 
     Prerequirements:
@@ -183,6 +189,16 @@ function parse_options {
             ;;
             --verbose|-vv)
                 VERBOSE=1;
+            ;;
+            --conf-opt-*)
+                local opt_name=$(echo '--conf-opt-xmlrpc_port' | sed 's/--conf-opt-\(.*\)/\1/')
+                CONF_OPTIONS[$opt_name]=$2;
+                shift;
+            ;;
+            --test-conf-opt-*)
+                local opt_name=$(echo '--test-conf-opt-xmlrpc_port' | sed 's/--test-conf-opt-\(.*\)/\1/')
+                TEST_CONF_OPTIONS[$opt_name]=$2;
+                shift;
             ;;
             -h|--help|help)
                 print_usage;
@@ -296,132 +312,132 @@ echo "`print_helper_config`" > $BASE_DIR/$CONF_FILE_NAME;
 # Generate configuration
 cat > $ODOO_CONF_FILE << EOF
 [options]
-addons_path = $ADDONS_PATH
-admin_passwd = admin
-auto_reload = False
-csv_internal_sep = ,
-data_dir = $DATA_DIR
-db_host = $DB_HOST
-db_maxconn = 64
+addons_path = ${CONF_OPTIONS['addons_path']:-$ADDONS_PATH}
+admin_passwd = ${CONF_OPTIONS['admin_passwd']:-admin}
+auto_reload = ${CONF_OPTIONS['auto_reload']:-False}
+csv_internal_sep = ${CONF_OPTIONS['csv_internal_sep']:-,}
+data_dir = ${CONF_OPTIONS['data_dir']:-$DATA_DIR}
+db_host = ${CONF_OPTIONS['db_host']:-$DB_HOST}
+db_maxconn = ${CONF_OPTIONS['db_maxconn']:-64}
 ;db_name = odoo
-db_user = $DB_USER
-db_password = $DB_PASSWORD
-db_port = False
-db_template = template1
-dbfilter = .*
-debug_mode = False
-demo = {}
-email_from = False
+db_user = ${CONF_OPTIONS['db_user']:-$DB_USER}
+db_password = ${CONF_OPTIONS['db_password']:-$DB_PASSWORD}
+db_port = ${CONF_OPTIONS['db_port']:-False}
+db_template = ${CONF_OPTIONS['db_template']:-template1}
+dbfilter = ${CONF_OPTIONS['dbfilter']:-.*}
+debug_mode = ${CONF_OPTIONS['debug_mode']:-False}
+demo = ${CONF_OPTIONS['demo']:-{}}
+email_from = ${CONF_OPTIONS['email_from']:-False}
 import_partial = 
-limit_memory_hard = 2684354560
-limit_memory_soft = 2147483648
-limit_request = 8192
-limit_time_cpu = 60
-limit_time_real = 120
-list_db = True
-log_db = False
-log_handler = [':INFO']
-log_level = info
-logfile = $LOG_FILE
-logrotate = False
-longpolling_port = 8072
-max_cron_threads = 2
-osv_memory_age_limit = 1.0
-osv_memory_count_limit = False
-pg_path = None
-pidfile = $ODOO_PID_FILE
-proxy_mode = False
-reportgz = False
-secure_cert_file = server.cert
-secure_pkey_file = server.pkey
-server_wide_modules = None
-smtp_password = False
-smtp_port = 25
-smtp_server = localhost
-smtp_ssl = False
-smtp_user = False
-syslog = False
-test_commit = False
-test_enable = False
-test_file = False
-test_report_directory = False
-timezone = False
-translate_modules = ['all']
-unaccent = False
-without_demo = False
-workers = 1
-xmlrpc = True
-xmlrpc_interface = 
-xmlrpc_port = 8069
-xmlrpcs = True
-xmlrpcs_interface = 
-xmlrpcs_port = 8071
+${CONF_OPTIONS['import_partial']:-limit_memory_hard = 2684354560}
+limit_memory_soft = ${CONF_OPTIONS['limit_memory_soft']:-2147483648}
+limit_request = ${CONF_OPTIONS['limit_request']:-8192}
+limit_time_cpu = ${CONF_OPTIONS['limit_time_cpu']:-60}
+limit_time_real = ${CONF_OPTIONS['limit_time_real']:-120}
+list_db = ${CONF_OPTIONS['list_db']:-True}
+log_db = ${CONF_OPTIONS['log_db']:-False}
+log_handler = ${CONF_OPTIONS['log_handler']:-[':INFO']}
+log_level = ${CONF_OPTIONS['log_level']:-info}
+logfile = ${CONF_OPTIONS['logfile']:-$LOG_FILE}
+logrotate = ${CONF_OPTIONS['logrotate']:-False}
+longpolling_port = ${CONF_OPTIONS['longpolling_port']:-8072}
+max_cron_threads = ${CONF_OPTIONS['max_cron_threads']:-2}
+osv_memory_age_limit = ${CONF_OPTIONS['osv_memory_age_limit']:-1.0}
+osv_memory_count_limit = ${CONF_OPTIONS['osv_memory_count_limit']:-False}
+pg_path = ${CONF_OPTIONS['pg_path']:-None}
+pidfile = ${CONF_OPTIONS['pidfile']:-$ODOO_PID_FILE}
+proxy_mode = ${CONF_OPTIONS['proxy_mode']:-False}
+reportgz = ${CONF_OPTIONS['reportgz']:-False}
+secure_cert_file = ${CONF_OPTIONS['secure_cert_file']:-server.cert}
+secure_pkey_file = ${CONF_OPTIONS['secure_pkey_file']:-server.pkey}
+server_wide_modules = ${CONF_OPTIONS['server_wide_modules']:-None}
+smtp_password = ${CONF_OPTIONS['smtp_password']:-False}
+smtp_port = ${CONF_OPTIONS['smtp_port']:-25}
+smtp_server = ${CONF_OPTIONS['smtp_server']:-localhost}
+smtp_ssl = ${CONF_OPTIONS['smtp_ssl']:-False}
+smtp_user = ${CONF_OPTIONS['smtp_user']:-False}
+syslog = ${CONF_OPTIONS['syslog']:-False}
+test_commit = ${CONF_OPTIONS['test_commit']:-False}
+test_enable = ${CONF_OPTIONS['test_enable']:-False}
+test_file = ${CONF_OPTIONS['test_file']:-False}
+test_report_directory = ${CONF_OPTIONS['test_report_directory']:-False}
+timezone = ${CONF_OPTIONS['timezone']:-False}
+translate_modules = ${CONF_OPTIONS['translate_modules']:-['all']}
+unaccent = ${CONF_OPTIONS['unaccent']:-False}
+without_demo = ${CONF_OPTIONS['without_demo']:-False}
+workers = ${CONF_OPTIONS['workers']:-1}
+xmlrpc = ${CONF_OPTIONS['xmlrpc']:-True}
+xmlrpc_interface = ${CONF_OPTIONS['xmlrpc_interface']:-}
+xmlrpc_port = ${CONF_OPTIONS['xmlrpc_port']:-8069}
+xmlrpcs = ${CONF_OPTIONS['xmlrpcs']:-True}
+xmlrpcs_interface = ${CONF_OPTIONS['xmlrpcs_interface']:-}
+xmlrpcs_port = ${CONF_OPTIONS['xmlrpcs_port']:-8071}
 EOF
 #---------------------------------------------
  
 # Generate test configuration configuration
 cat > $ODOO_TEST_CONF_FILE << EOF
 [options]
-addons_path = $ADDONS_PATH
-admin_passwd = admin
-auto_reload = False
-csv_internal_sep = ,
-data_dir = $BASE_DIR/data_dir
-db_host = $DB_HOST
-db_maxconn = 64
-db_name = $DB_USER-odoo-test
-db_user = $DB_USER
-db_password = $DB_PASSWORD
-db_port = False
-db_template = template1
-dbfilter = $DB_USER-odoo-test
-debug_mode = False
-demo = {}
-email_from = False
-import_partial = 
-limit_memory_hard = 2684354560
-limit_memory_soft = 2147483648
-limit_request = 8192
-limit_time_cpu = 60
-limit_time_real = 120
-list_db = True
-log_db = False
-log_handler = [':INFO']
-log_level = test
-logfile = False
-logrotate = False
-longpolling_port = 8072
-max_cron_threads = 2
-osv_memory_age_limit = 1.0
-osv_memory_count_limit = False
-pg_path = None
-pidfile = $BASE_DIR/odoo-test.pid
-proxy_mode = False
-reportgz = False
-;secure_cert_file = server.cert
-;secure_pkey_file = server.pkey
-server_wide_modules = None
-smtp_password = False
-smtp_port = 25
-smtp_server = localhost
-smtp_ssl = False
-smtp_user = False
-syslog = False
-test_commit = False
-test_enable = False
-test_file = False
-test_report_directory = False
-timezone = False
-translate_modules = ['all']
-unaccent = False
-without_demo = False
-workers = 1
-xmlrpc = False
-xmlrpc_interface = 
-xmlrpc_port = 8269
-xmlrpcs = False
-xmlrpcs_interface = 
-xmlrpcs_port = 8271
+addons_path = ${TEST_CONF_OPTION['addons_path']:-$ADDONS_PATH}
+admin_passwd = ${TEST_CONF_OPTION['admin_passwd']:-admin}
+auto_reload = ${TEST_CONF_OPTION['auto_reload']:-False}
+csv_internal_sep = ${TEST_CONF_OPTION['csv_internal_sep']:-,}
+data_dir = ${TEST_CONF_OPTION['data_dir']:-$BASE_DIR/data_dir}
+db_host = ${TEST_CONF_OPTION['db_host']:-$DB_HOST}
+db_maxconn = ${TEST_CONF_OPTION['db_maxconn']:-64}
+db_name = ${TEST_CONF_OPTION['db_name']:-$DB_USER-odoo-test}
+db_user = ${TEST_CONF_OPTION['db_user']:-$DB_USER}
+db_password = ${TEST_CONF_OPTION['db_password']:-$DB_PASSWORD}
+db_port = ${TEST_CONF_OPTION['db_port']:-False}
+db_template = ${TEST_CONF_OPTION['db_template']:-template1}
+dbfilter = ${TEST_CONF_OPTION['dbfilter']:-$DB_USER-odoo-test}
+debug_mode = ${TEST_CONF_OPTION['debug_mode']:-False}
+demo = ${TEST_CONF_OPTION['demo']:-{}}
+email_from = ${TEST_CONF_OPTION['email_from']:-False}
+import_partial = ${TEST_CONF_OPTION['import_partial']:-}
+limit_memory_hard = ${TEST_CONF_OPTION['limit_memory_hard']:-2684354560}
+limit_memory_soft = ${TEST_CONF_OPTION['limit_memory_soft']:-2147483648}
+limit_request = ${TEST_CONF_OPTION['limit_request']:-8192}
+limit_time_cpu = ${TEST_CONF_OPTION['limit_time_cpu']:-60}
+limit_time_real = ${TEST_CONF_OPTION['limit_time_real']:-120}
+list_db = ${TEST_CONF_OPTION['list_db']:-True}
+log_db = ${TEST_CONF_OPTION['log_db']:-False}
+log_handler = ${TEST_CONF_OPTION['log_handler']:-[':INFO']}
+log_level = ${TEST_CONF_OPTION['log_level']:-test}
+logfile = ${TEST_CONF_OPTION['logfile']:-False}
+logrotate = ${TEST_CONF_OPTION['logrotate']:-False}
+longpolling_port = ${TEST_CONF_OPTION['longpolling_port']:-8072}
+max_cron_threads = ${TEST_CONF_OPTION['max_cron_threads']:-2}
+osv_memory_age_limit = ${TEST_CONF_OPTION['osv_memory_age_limit']:-1.0}
+osv_memory_count_limit = ${TEST_CONF_OPTION['osv_memory_count_limit']:-False}
+pg_path = ${TEST_CONF_OPTION['pg_path']:-None}
+pidfile = ${TEST_CONF_OPTION['pidfile']:-$BASE_DIR/odoo-test.pid}
+proxy_mode = ${TEST_CONF_OPTION['proxy_mode']:-False}
+reportgz = ${TEST_CONF_OPTION['reportgz']:-False}
+;secure_cert_file ${TEST_CONF_OPTION['secure_cert_file']:-= server.cert}
+;secure_pkey_file ${TEST_CONF_OPTION['secure_pkey_file']:-= server.pkey}
+server_wide_modules = ${TEST_CONF_OPTION['server_wide_modules']:-None}
+smtp_password = ${TEST_CONF_OPTION['smtp_password']:-False}
+smtp_port = ${TEST_CONF_OPTION['smtp_port']:-25}
+smtp_server = ${TEST_CONF_OPTION['smtp_server']:-localhost}
+smtp_ssl = ${TEST_CONF_OPTION['smtp_ssl']:-False}
+smtp_user = ${TEST_CONF_OPTION['smtp_user']:-False}
+syslog = ${TEST_CONF_OPTION['syslog']:-False}
+test_commit = ${TEST_CONF_OPTION['test_commit']:-False}
+test_enable = ${TEST_CONF_OPTION['test_enable']:-False}
+test_file = ${TEST_CONF_OPTION['test_file']:-False}
+test_report_directory = ${TEST_CONF_OPTION['test_report_directory']:-False}
+timezone = ${TEST_CONF_OPTION['timezone']:-False}
+translate_modules = ${TEST_CONF_OPTION['translate_modules']:-['all']}
+unaccent = ${TEST_CONF_OPTION['unaccent']:-False}
+without_demo = ${TEST_CONF_OPTION['without_demo']:-False}
+workers = ${TEST_CONF_OPTION['workers']:-1}
+xmlrpc = ${TEST_CONF_OPTION['xmlrpc']:-False}
+xmlrpc_interface = ${TEST_CONF_OPTION['xmlrpc_interface']:-}
+xmlrpc_port = ${TEST_CONF_OPTION['xmlrpc_port']:-8269}
+xmlrpcs = ${TEST_CONF_OPTION['xmlrpcs']:-False}
+xmlrpcs_interface = ${TEST_CONF_OPTION['xmlrpcs_interface']:-}
+xmlrpcs_port = ${TEST_CONF_OPTION['xmlrpcs_port']:-8271}
  
 EOF
  
