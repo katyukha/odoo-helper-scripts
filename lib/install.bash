@@ -37,7 +37,13 @@ function install_and_configure_postgresql {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
-    sudo apt-get install $opt_apt_always_yes postgresql;
+
+    # Check if postgres is installed on this machine. If not, install it
+    # TODO: think about better way to check postgres presence
+    if [ ! -f /etc/init.d/postgresql ]; then
+        echov "It seems that postgresql is already installed, so not installing it, just configuring...";
+        sudo apt-get install $opt_apt_always_yes postgresql;
+    fi
     local user_count=$(sudo -u postgres -H psql -tA -c "SELECT count(*) FROM pg_user WHERE usename = '$DB_USER';");
     if [ $user_count -eq 0 ]; then
         sudo -u postgres -H psql -c "CREATE USER $DB_USER WITH CREATEDB PASSWORD '$DB_PASSWORD';"
@@ -79,9 +85,11 @@ function install_virtual_env {
         virtualenv $venv_opts $VENV_DIR;
     fi
 
-    execu pip install --upgrade pip setuptools;  # required to make odoo.py work correctly when setuptools too old
+    # required to make odoo.py work correctly when setuptools too old
+    execu easy_install --upgrade setuptools;
+    execu pip install --upgrade pip;  
 
-    if ! execu python -c "import pychart"; then
+    if ! execu python -c 'import pychart'; then
         execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
     fi
 

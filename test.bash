@@ -66,6 +66,7 @@ if [ ! -z $CI_RUN ]; then
         echo "";
         
     fi
+    sudo pip install --upgrade pytz
 fi
 
 #
@@ -79,7 +80,8 @@ Test install of odoo version 7.0
 Also install dependencies and configure postgresql
 ==================================================
 "
-odoo-install --install-dir odoo-7.0 --branch 7.0 --extra-utils --install-and-conf-postgres --install-sys-deps
+odoo-install --install-dir odoo-7.0 --branch 7.0 --extra-utils --install-and-conf-postgres --install-sys-deps \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371
 cd odoo-7.0
 
 # Now You will have odoo-7.0 installed in this directory.
@@ -169,7 +171,9 @@ Alson install python package 'suds' in virtual env of this odoo instance
 ========================================================================
 "
 # Let's install odoo of version 8.0 too here.
-odoo-install --install-dir odoo-8.0 --branch 8.0 --extra-utils
+odoo-install --install-dir odoo-8.0 --branch 8.0 --extra-utils\
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
+
 cd odoo-8.0
 
 # and install there for example addon 'project_sla' for 'project-service' Odoo Comutinty repository
@@ -204,7 +208,9 @@ Install Odoo 9.0
 
 # got back to test root and install odoo version 9.0
 cd ../;
-odoo-install --install-dir odoo-9.0 --branch 9.0 --extra-utils
+odoo-install --install-dir odoo-9.0 --branch 9.0 --extra-utils\
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
+
 cd odoo-9.0;
 odoo-helper server --stop-after-init;  # test that it runs
 
