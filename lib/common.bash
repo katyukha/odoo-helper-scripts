@@ -8,7 +8,7 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.0.3"
+ODOO_HELPER_VERSION="0.0.4"
 
 # predefined filenames
 CONF_FILE_NAME="odoo-helper.conf";
