@@ -35,6 +35,7 @@ ohelper_require 'install'
 
 
 # Check environment for config
+ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
 ODOO_BRANCH=${ODOO_BRANCH:-9.0};
 SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
 DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
@@ -77,6 +78,8 @@ function print_usage {
 
     Available options:
          --install-dir <dir>           - directory to install odoo in. default: $INSTALL_DIR
+         --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
+                                         Used only if *download-archive* set to *off*
          --branch <branch>             - specify odoo branch to clone. default: $ODOO_BRANCH
          --extra-utils                 - install extra python packages. (for example 'erppeek', which
                                          is used by odoo-helper script to manage databases)
@@ -142,6 +145,10 @@ function parse_options {
         case $key in
             --install-dir)
                 INSTALL_DIR=`readlink -f $2`;
+                shift;
+            ;;
+            --odoo-repo)
+                ODOO_REPO=$2;
                 shift;
             ;;
             --branch|-b)
@@ -242,7 +249,7 @@ function clone_odoo {
         local DEPTH="";
     fi
 
-    git clone --branch $ODOO_BRANCH --single-branch $DEPTH https://github.com/odoo/odoo.git $ODOO_PATH;
+    git clone --branch $ODOO_BRANCH --single-branch $DEPTH $ODOO_REPO $ODOO_PATH;
 
 }
 
@@ -277,15 +284,8 @@ function install_odoo {
     # Install virtual environment
     install_virtual_env;
 
-    # Workaround for situation when setup does not install openerp-gevent script.
-    odoo_gevent_install_workaround;
-
-    # Install Odoo in dev mode; (do not copy sources inside venv, use code in $ODOO_PATH)
-    (cd $ODOO_PATH && execu python setup.py develop);
-
-    # Workaround for situation when setup does not install openerp-gevent script.
-    # (Restore modified setup.py)
-    odoo_gevent_install_workaround_cleanup;
+    # Run setup.py with gevent workaround applied.
+    odoo_run_setup_py;  # imported from 'install' module
 
     # restore curenct working dir
     cd $save_dir;

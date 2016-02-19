@@ -122,3 +122,16 @@ function odoo_gevent_install_workaround_cleanup {
     fi
 }
 
+function odoo_run_setup_py {
+    # Workaround for situation when setup does not install openerp-gevent script.
+    odoo_gevent_install_workaround;
+
+    # Install odoo
+    (cd $ODOO_PATH && execu python setup.py develop);
+
+     
+    # Workaround for situation when setup does not install openerp-gevent script.
+    # (Restore modified setup.py)
+    odoo_gevent_install_workaround_cleanup;
+}
+
