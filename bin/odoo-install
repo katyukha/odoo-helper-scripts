@@ -303,6 +303,7 @@ create_dirs $INSTALL_DIR \
     $LIBS_DIR \
     $DOWNLOADS_DIR \
     $BACKUP_DIR \
+    $REPOSITORIES_DIR \
     $BIN_DIR;
  
 install_odoo; 
@@ -328,8 +329,8 @@ dbfilter = ${CONF_OPTIONS['dbfilter']:-.*}
 debug_mode = ${CONF_OPTIONS['debug_mode']:-False}
 demo = ${CONF_OPTIONS['demo']:-{}}
 email_from = ${CONF_OPTIONS['email_from']:-False}
-import_partial = 
-${CONF_OPTIONS['import_partial']:-limit_memory_hard = 2684354560}
+import_partial = ${TEST_CONF_OPTION['import_partial']:-}
+limit_memory_hard = ${TEST_CONF_OPTION['limit_memory_hard']:-2684354560}
 limit_memory_soft = ${CONF_OPTIONS['limit_memory_soft']:-2147483648}
 limit_request = ${CONF_OPTIONS['limit_request']:-8192}
 limit_time_cpu = ${CONF_OPTIONS['limit_time_cpu']:-60}

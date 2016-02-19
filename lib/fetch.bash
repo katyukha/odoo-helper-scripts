@@ -74,6 +74,8 @@ function fetch_pip_requirements {
 }
 
 # get_repo_name <repository> [<desired name>]
+# converts for example https://github.com/katyukha/base_tags.git to
+# base_tags
 function get_repo_name {
     if [ -z "$2" ]; then
         local R=`basename $1`;  # get repository name
@@ -311,7 +313,7 @@ function fetch_module {
     fi
 
     REPO_NAME=${REPO_NAME:-`get_repo_name $REPOSITORY`};
-    local REPO_PATH=$DOWNLOADS_DIR/$REPO_NAME;
+    local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
 
     # Conditions:
     # - repo dir not exists and no module name specified

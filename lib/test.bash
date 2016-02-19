@@ -25,13 +25,17 @@ function create_tmp_dirs {
 
     OLD_ADDONS_DIR=$ADDONS_DIR;
     OLD_DOWNLOADS_DIR=$DOWNLOADS_DIR;
+    OLD_REPOSITORIES_DIR=$REPOSITORIES_DIR;
     OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
+
     ADDONS_DIR=$TMP_ROOT_DIR/addons;
     DOWNLOADS_DIR=$TMP_ROOT_DIR/downloads;
+    REPOSITORIES_DIR=$TMP_ROOT_DIR/repositories;
     ODOO_TEST_CONF_FILE=$TMP_ROOT_DIR/odoo.test.conf;
     
     mkdir -p $ADDONS_DIR;
     mkdir -p $DOWNLOADS_DIR;
+    mkdir -p $REPOSITORIES_DIR;
     sed -r "s@addons_path(.*)@addons_path\1,$ADDONS_DIR@" $OLD_ODOO_TEST_CONF_FILE > $ODOO_TEST_CONF_FILE
 }
 
@@ -43,6 +47,7 @@ function remove_tmp_dirs {
 
     ADDONS_DIR=$OLD_ADDONS_DIR;
     DOWNLOADS_DIR=$OLD_DOWNLOADS_DIR;
+    REPOSITORIES_DIR=$OLD_REPOSITORIES_DIR;
     ODOO_TEST_CONF_FILE=$OLD_ODOO_TEST_CONF_FILE;
     rm -rf $TMP_ROOT_DIR;
 
@@ -50,6 +55,7 @@ function remove_tmp_dirs {
     TMP_ROOT_DIR=;
     OLD_ADDONS_DIR=;
     OLD_DOWNLOADS_DIR=;
+    OLD_REPOSITORIES_DIR=;
     OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
 }
 

@@ -155,6 +155,8 @@ function print_helper_config {
     echo "ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;";
     echo "ODOO_PID_FILE=$ODOO_PID_FILE;";
     echo "BACKUP_DIR=$BACKUP_DIR;";
+    echo "REPOSITORIES_DIR=$REPOSITORIES_DIR;";
+    echo "INIT_SCRIPT=$INIT_SCRIPT;";
 }
 
 
@@ -178,6 +180,8 @@ function config_default_vars {
     ODOO_PID_FILE=${ODOO_PID_FILE:-$PROJECT_ROOT_DIR/odoo.pid};
     ODOO_PATH=${ODOO_PATH:-$PROJECT_ROOT_DIR/odoo};
     BACKUP_DIR=${BACKUP_DIR:-$PROJECT_ROOT_DIR/backups};
+    REPOSITORIES_DIR=${REPOSITORIES_DIR:-$PROJECT_ROOT_DIR/repositories};
+    INIT_SCRIPT=$ODOO_INIT_SCRIPT;
 }
 
 
