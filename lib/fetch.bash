@@ -18,7 +18,7 @@ set -e; # fail on errors
 # Define veriables
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 PIP_REQUIREMENTS_FILE_NAME="requirements.txt";
-
+OCA_REQUIREMENTS_FILE_NAME="oca_dependencies.txt";
 
 # fetch_requirements <file_name|path_name>
 function fetch_requirements {
@@ -73,6 +73,41 @@ function fetch_pip_requirements {
      fi
 }
 
+# fetch_oca_requirements <filepath>
+function fetch_oca_requirements {
+     local oca_requirements=$1;
+     if [ -d $oca_requirements ]; then
+         oca_requirements=$oca_requirements/$OCA_REQUIREMENTS_FILE_NAME;
+     fi
+
+     if [ -f $oca_requirements ]; then
+         while read -ra line; do
+            if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
+                local opt="--name ${line[0]}";
+
+                # if there are no url specified then use --oca shortcut
+                if [ -z ${line[1]} ]; then
+                    opt="$opt --oca ${line[0]}";
+                else
+                    # else, specify url directly
+                    opt="$opt --repo ${line[1]}";
+                fi
+
+                # add branch if it spcified in file
+                if [ ! -z ${line[2]} ]; then
+                    opt="$opt --branch ${line[2]}";
+                fi
+                
+                if fetch_module $opt; then
+                    echo -e "Line ${GREENC}OK${NC}: $line";
+                else
+                    echo -e "Line ${GREENC}FAIL${NC}: $line";
+                fi
+            fi
+         done < $oca_requirements;
+    fi
+}
+
 # get_repo_name <repository> [<desired name>]
 # converts for example https://github.com/katyukha/base_tags.git to
 # base_tags
@@ -108,6 +143,7 @@ function link_module_impl {
     fi
     fetch_requirements $DEST;
     fetch_pip_requirements $DEST/$PIP_REQUIREMENTS_FILE_NAME;
+    fetch_oca_requirements $DEST/$OCA_REQUIREMENTS_FILE_NAME;
 }
 
 # link_module [-f|--force] <repo_path> [<module_name>]
@@ -163,6 +199,7 @@ function link_module {
             # Check for requirements files in repository root dir
             fetch_requirements $REPO_PATH;
             fetch_pip_requirements $REPO_PATH/$PIP_REQUIREMENTS_FILE_NAME;
+            fetch_oca_requirements $REPO_PATH/$OCA_REQUIREMENTS_FILE_NAME;
 
             # No module name specified, then all modules in repository should be linked
             for file in "$REPO_PATH"/*; do
