@@ -25,6 +25,11 @@ function fetch_requirements {
     local REQUIREMENTS_FILE=${1:-$WORKDIR};
     local line=;
 
+    # If passed requirement_file is directory, then check for requirements file inside
+    if [ -d "$REQUIREMENTS_FILE" ]; then
+        REQUIREMENTS_FILE=$REQUIREMENTS_FILE/$REQUIREMENTS_FILE_NAME;
+    fi
+
     # Store here all requirements files processed to deal with circle dependencies
     if [ -z $REQ_FILES_PROCESSED ]; then
         REQ_FILES_PROCESSED[0]=$REQUIREMENTS_FILE;
@@ -42,9 +47,6 @@ function fetch_requirements {
     fi
 
     # Process requirements file and run fetch_module subcomand for each line
-    if [ -d "$REQUIREMENTS_FILE" ]; then
-        REQUIREMENTS_FILE=$REQUIREMENTS_FILE/$REQUIREMENTS_FILE_NAME;
-    fi
     if [ -f "$REQUIREMENTS_FILE" ] && [ ! -d "$REQUIREMENTS_FILE" ]; then
         echov "Processing requirements file $REQUIREMENTS_FILE";
         while read -r line; do
@@ -63,7 +65,7 @@ function fetch_requirements {
 
 # fetch_pip_requirements <filepath>
 function fetch_pip_requirements {
-     local pip_requirements=$1;
+     local pip_requirements=${1:-$WORKDIR};
      if [ -d $pip_requirements ]; then
          pip_requirements=$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME;
      fi
@@ -75,7 +77,7 @@ function fetch_pip_requirements {
 
 # fetch_oca_requirements <filepath>
 function fetch_oca_requirements {
-     local oca_requirements=$1;
+     local oca_requirements=${1:-$WORKDIR};
      if [ -d $oca_requirements ]; then
          oca_requirements=$oca_requirements/$OCA_REQUIREMENTS_FILE_NAME;
      fi
