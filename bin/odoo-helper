@@ -69,6 +69,7 @@ function print_usage {
         odoo-py [args]                           - run project-specific odoo.py script
         print_config                             - print current configuration
         status                                   - show project status
+        system update [branch]                   - update odoo-helper-scripts
         help | --help | -h                       - display this help message
     
     Global options:
@@ -168,6 +169,22 @@ function show_project_status {
     ";
 }
 
+# update odoo-helper-scripts
+function update_odoo_helper_scripts {
+    local scripts_branch=$1;
+
+    # update
+    local cdir=$(pwd);
+    cd $ODOO_HELPER_ROOT;
+    if [ -z $scripts_branch ]; then
+        git pull;
+    else
+        git fetch origin;
+        git checkout origin/$scripts_branch;
+    fi
+    cd $cdir;
+}
+
 # function that parses commandline arguments and executes commands
 function odoo_helper_main {
     # load configuration files at startup
@@ -262,6 +279,14 @@ function odoo_helper_main {
             status)
                 show_project_status;
                 exit;
+            ;;
+            system)
+                if [ "$2" == "update" ]; then
+                    shift;
+                    shift;
+                    update_odoo_helper_scripts $@;
+                    exit 0;
+                fi
             ;;
             *)
                 echo "Unknown option global option /command $key";
