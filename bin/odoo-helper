@@ -70,6 +70,7 @@ function print_usage {
         print_config                             - print current configuration
         status                                   - show project status
         system update [branch]                   - update odoo-helper-scripts
+        exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
         help | --help | -h                       - display this help message
     
     Global options:
@@ -287,6 +288,11 @@ function odoo_helper_main {
                     update_odoo_helper_scripts $@;
                     exit 0;
                 fi
+            ;;
+            exec)
+                shift;
+                execu "$@";
+                exit 0;
             ;;
             *)
                 echo "Unknown option global option /command $key";

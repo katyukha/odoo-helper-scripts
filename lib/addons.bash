@@ -133,7 +133,7 @@ function addons_command {
 
         $SCRIPT_NAME addons list_repos [addons path]    - list git repositories
         $SCRIPT_NAME addons list_no_repo [addons path]  - list addons not under git repo
-        $SCRIPT_NAME addons show_status --help          - show addons status
+        $SCRIPT_NAME addons status --help               - show addons status
         $SCRIPT_NAME addons --help
 
     ";
@@ -157,7 +157,7 @@ function addons_command {
                 addons_list_no_repository "$@";
                 exit 0;
             ;;
-            show_status)
+            status|show_status)
                 shift;
                 addons_show_status "$@";
                 exit 0;
