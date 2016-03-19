@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.0.6
+
+- Added 'odoo-helper exec <cmd> [args]' command
+- Added simple auto-update mechanism
+- odoo-helper addons: Added ability to list addons not under git
+
 ## Version 0.0.5
 
 - Added support to manage server state via init script

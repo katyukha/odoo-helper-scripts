@@ -28,6 +28,15 @@ After instalation You will have ```odoo-helper-scripts``` directory under ```/op
 And ```/etc/odoo-helper.conf``` file will be generated with path to odoo-helper-scripts install dir.
 
 
+## Features
+
+- Easily manage few instnces of odoo that ran on same machine
+- High usage of virtual env for isolation
+- Easy mechanism to fetch addons from any git repo
+- Easy mechanism to fetch python dependency from PyPI or any vcs
+- Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
+
+
 ## Usage
 
 And after install you will have available folowing scripts in your path:

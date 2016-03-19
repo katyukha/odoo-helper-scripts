@@ -20,12 +20,28 @@ set -e; # fail on errors
 # addons_list_repositories [addons_path]
 function addons_list_repositories {
     local addons_path=${1:-$ADDONS_DIR};
-    local cdir=`pwd`;
 
     if [ ! -z $addons_path ]; then
         for addon in "$addons_path"/*; do
             if is_odoo_module $addon && git_is_git_repo $addon; then
                 echo "$(git_get_abs_repo_path $addon)";
+            fi
+        done | sort -u;
+    fi
+}
+
+
+# Lists addons that do not belong to any git repository
+# Note, that addons that are under git controll will not be listed
+#
+# addons_list_no_repository [addons_path]
+function addons_list_no_repository {
+    local addons_path=${1:-$ADDONS_DIR};
+
+    if [ ! -z $addons_path ]; then
+        for addon in "$addons_path"/*; do
+            if is_odoo_module $addon && ! git_is_git_repo $addon; then
+                echo "$(readlink -f $addon)";
             fi
         done | sort -u;
     fi
@@ -44,10 +60,11 @@ function addons_show_status {
         $SCRIPT_NAME addons show_status [options]
 
     Options:
-        --addons-dir        - directory to search addons in. By default used one from
-                              project config
-        --only-unclean      - show only addons in unclean repo state
-        --help|-h           - diplay this help message
+        --addons-dir          - directory to search addons in. By default used one from
+                                project config
+        --only-unclean        - show only addons in unclean repo state
+        --ignore-no-git-repo  - do not show addons that are not in any git repository
+        --help|-h             - diplay this help message
     ";
 
     # Parse command line options and run commands
@@ -65,6 +82,9 @@ function addons_show_status {
             ;;
             --only-unclean)
                 local only_unclean=1
+            ;;
+            --ignore-no-git-repo)
+                local ignore_no_git_repo=1;
             ;;
             *)
                 echo "Unknown option: $key";
@@ -99,13 +119,21 @@ function addons_show_status {
         [ ${git_status[8]} -gt 0 ] && echo -e "\t${YELLOWC}${git_status[8]} stashed${NC}";
 
     done;
+
+    if [ -z $ignore_no_git_repo ]; then
+        for addon_path in $(addons_list_no_repository $addons_dir); do
+            echo -e "Addon status for ${BLUEC}$addon_path${NC}'";
+            echo -e "\t${REDC}Warning: not under git controll${NC}";
+        done
+    fi
 }
 
 function addons_command {
     local usage="Usage:
 
-        $SCRIPT_NAME addons list_repos [addons path]
-        $SCRIPT_NAME addons show_status --help
+        $SCRIPT_NAME addons list_repos [addons path]    - list git repositories
+        $SCRIPT_NAME addons list_no_repo [addons path]  - list addons not under git repo
+        $SCRIPT_NAME addons status --help               - show addons status
         $SCRIPT_NAME addons --help
 
     ";
@@ -124,7 +152,12 @@ function addons_command {
                 addons_list_repositories "$@";
                 exit 0;
             ;;
-            show_status)
+            list_no_repo)
+                shift;
+                addons_list_no_repository "$@";
+                exit 0;
+            ;;
+            status|show_status)
                 shift;
                 addons_show_status "$@";
                 exit 0;
