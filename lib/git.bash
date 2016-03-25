@@ -97,7 +97,11 @@ function git_parse_status {
     local num_changed=0
     local num_conflicts=0
     local num_untracked=0
-    while IFS='' read -r line || [[ -n "$line" ]]; do
+    while IFS='' read -r line; do
+      if [ -z $line ]; then
+          continue;
+      fi
+
       local status=${line:0:2}
       case "$status" in
         \#\#)
