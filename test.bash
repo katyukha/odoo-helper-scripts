@@ -7,11 +7,15 @@ SCRIPT_NAME=`basename $SCRIPT`;
 WORK_DIR=`pwd`;
 TEST_TMP_DIR="$WORK_DIR/test-temp";
 
+ERROR=;
+
 tempfiles=( )
 
 # do cleanup on exit
 cleanup() {
-  rm -rf "$TEST_TMP_DIR";
+  if [ -z $ERROR ]; then
+      rm -rf "$TEST_TMP_DIR";
+  fi
 }
 trap cleanup 0
 
@@ -21,6 +25,7 @@ error() {
   local parent_lineno="$1"
   local message="$2"
   local code="${3:-1}"
+  ERROR=1;
   if [[ -n "$message" ]] ; then
     echo "Error on or near line ${parent_lineno}: ${message}; exiting with status ${code}"
   else
@@ -188,10 +193,14 @@ odoo-helper test --create-test-db -m project_sla
 # also if you want to install python packages in current installation environment, you may use command:
 odoo-helper fetch -p suds  # this installs 'suds' python package
 
+# Show addons status for this project
+odoo-helper --use-unbuffer addons status
+
 echo "
 ===============================================================================
 Go back to Odoo 7.0 instance, we installed at start of test
 and fetch and install there aeroo reports addon with it's dependency 'aeroolib'
+After this, generate requirements list.
 ===============================================================================
 "
 
@@ -199,11 +208,12 @@ and fetch and install there aeroo reports addon with it's dependency 'aeroolib'
 cd ../odoo-7.0
 odoo-helper fetch --github gisce/aeroo -n aeroo
 odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
+odoo-helper generate_requirements
 
 echo "
-================
-Install Odoo 9.0
-================
+==========================
+Install and check Odoo 9.0 
+==========================
 "
 
 # got back to test root and install odoo version 9.0
@@ -213,4 +223,8 @@ odoo-install --install-dir odoo-9.0 --branch 9.0 --extra-utils\
 
 cd odoo-9.0;
 odoo-helper server --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status
+
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.0.7.dev
+- odoo-helper system lib-path command makes available to use some parts of this project from outside
+- Added db dump | restore commands
+- odoo-helper addons status: bugfix in parsing git status
+
 ## Version 0.0.6
 
 - Added 'odoo-helper exec <cmd> [args]' command
