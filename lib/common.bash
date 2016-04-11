@@ -93,17 +93,25 @@ function execu {
         USE_UNBUFFER=;
     fi
 
-    if [ -z $USE_UNBUFFER ]; then
-        eval "$@";
+    # Decide wether to use unbuffer or not
+    if [ ! -z $USE_UNBUFFER ]; then
+        local unbuffer_opt="unbuffer";
+    else
+        local unbuffer_opt="";
+    fi
+
+    # Eval command and save result
+    if eval $unbuffer_opt "$@"; then
         local res=$?;
     else
-        eval unbuffer "$@";
         local res=$?;
     fi
 
+    # deactivate virtual environment
     if [ ! -z $VENV_DIR ]; then
         deactivate;
     fi
+
     return $res
 }
 
