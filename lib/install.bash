@@ -106,10 +106,11 @@ function install_system_prerequirements {
     sudo apt-get install $opt_apt_always_yes xfonts-75dpi;
     wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O /tmp/wkhtmltox.deb
     if ! sudo dpkg --force-depends -i /tmp/wkhtmltox.deb; then
-        sudo apt-get -f install;
+        sudo apt-get -f install $opt_apt_always_yes;
     fi
 
     if [ ! -z $install_extra_utils ]; then
+        echov "Installing extrautils (expect-dev)";
         sudo apt-get install $opt_apt_always_yes expect-dev;
     fi;
 
@@ -147,7 +148,10 @@ function install_python_prerequirements {
         execu pip install --upgrade erppeek;
     fi
 
-    execu pip install --upgrade --allow-external=PIL --allow-unverified=PIL PIL
+    # Install PIL only for odoo versions that have no requirements txt (<8.0)
+    if [ ! -f "$ODOO_PATH/requirements.txt" ]; then
+        execu pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
+    fi
 }
 
 # Generate configuration file fo odoo
