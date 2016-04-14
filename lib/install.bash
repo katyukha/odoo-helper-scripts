@@ -103,11 +103,9 @@ function install_system_prerequirements {
     sudo apt-get install $opt_apt_always_yes git wget python-setuptools perl g++ libpq-dev python-dev;
 
     # Install wkhtmltopdf
-    sudo apt-get install $opt_apt_always_yes xfonts-75dpi;
     wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O /tmp/wkhtmltox.deb
-    if ! sudo dpkg --force-depends -i /tmp/wkhtmltox.deb; then
-        sudo apt-get -f install $opt_apt_always_yes;
-    fi
+    sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
+    sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
 
     if [ ! -z $install_extra_utils ]; then
         echov "Installing extrautils (expect-dev)";
