@@ -24,7 +24,8 @@ function install_create_project_dir_tree {
         $DOWNLOADS_DIR \
         $BACKUP_DIR \
         $REPOSITORIES_DIR \
-        $BIN_DIR;
+        $BIN_DIR \
+        $DATA_DIR;
 }
 
 # install_clone_odoo [path [branch [repo]]]
