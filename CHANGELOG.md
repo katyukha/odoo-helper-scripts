@@ -2,8 +2,9 @@
 
 ## Version 0.0.7.dev
 - odoo-helper system lib-path command makes available to use some parts of this project from outside
-- Added db dump | restore commands
+- Added new db commands: dump, restore, backup
 - odoo-helper addons status: bugfix in parsing git status
+- odoo-install related fixes
 
 ## Version 0.0.6
 
