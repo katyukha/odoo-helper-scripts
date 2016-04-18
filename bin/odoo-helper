@@ -70,6 +70,8 @@ function print_usage {
         print_config                             - print current configuration
         status                                   - show project status
         system update [branch]                   - update odoo-helper-scripts
+        system lib-path <lib name>               - print path to lib with specified name
+                                                   this allows to use some libs of this project in external utils
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
         help | --help | -h                       - display this help message
     
@@ -188,12 +190,13 @@ function update_odoo_helper_scripts {
 
 # function that parses commandline arguments and executes commands
 function odoo_helper_main {
-    # load configuration files at startup
-    load_project_conf;
-
     # Parse command line options and run commands
     if [[ $# -lt 1 ]]; then
         echo "No options/commands supplied $#: $@";
+
+        # load configuration files at startup
+        load_project_conf;
+
         print_usage;
         exit 0;
     fi
@@ -229,55 +232,66 @@ function odoo_helper_main {
             ;;
             fetch)
                 shift;
+                load_project_conf;
                 fetch_module "$@";
                 exit
             ;;
             generate_requirements)
                 shift;
+                load_project_conf;
                 generate_requirements "$@"
                 exit;
             ;;
             update_odoo)
                 shift;
+                load_project_conf;
                 update_odoo_sources;
                 exit;
             ;;
             link|link_module)
                 shift;
+                load_project_conf;
                 link_module "$@"
                 exit;
             ;;
             server)
                 shift;
+                load_project_conf;
                 server "$@";
                 exit;
             ;;
             addons)
                 shift;
+                load_project_conf;
                 addons_command "$@";
                 exit;
             ;;
             odoo-py)
                 shift;
+                load_project_conf;
                 odoo_py "$@";
                 exit;
             ;;
             test)
                 shift;
+                load_project_conf;
                 test_module "$@";
                 exit;
             ;;
             db)
                 shift;
+                load_project_conf;
                 odoo_db_command "$@";
                 exit;
             ;;
             print_config)
                 shift;
+                load_project_conf;
                 print_helper_config;
                 exit;
             ;;
             status)
+                load_project_conf;
                 show_project_status;
                 exit;
             ;;
@@ -285,12 +299,18 @@ function odoo_helper_main {
                 if [ "$2" == "update" ]; then
                     shift;
                     shift;
-                    update_odoo_helper_scripts $@;
+                    update_odoo_helper_scripts "$@";
+                    exit 0;
+                elif [ "$2" == "lib-path" ]; then
+                    shift;
+                    shift;
+                    oh_get_lib_path "$@"
                     exit 0;
                 fi
             ;;
             exec)
                 shift;
+                load_project_conf;
                 execu "$@";
                 exit 0;
             ;;

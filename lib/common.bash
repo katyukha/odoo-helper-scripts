@@ -8,7 +8,29 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.0.6"
+ODOO_HELPER_VERSION="0.0.7"
+
+# if odoo-helper root conf is not loaded yet, try to load it
+# This is useful when this lib is used by external utils,
+# making possible to write things like:
+#   source $(odoo-helper system lib-path common);
+#   oh_require 'server'
+#   ...
+
+if [ -z $ODOO_HELPER_ROOT ]; then
+    if [ -f "/etc/odoo-helper.conf" ]; then
+        source "/etc/odoo-helper.conf";
+    fi
+    if [ -f "$HOME/odoo-helper.conf" ]; then
+        source "$HOME/odoo-helper.conf";
+    fi
+
+    if [ -z $ODOO_HELPER_ROOT ]; then
+        echo "Odoo-helper-scripts seems not been installed correctly.";
+        echo "Reinstall it (see Readme on https://github.com/katyukha/odoo-helper-scripts/)";
+        exit 1;
+    fi
+fi
 
 # predefined filenames
 CONF_FILE_NAME="odoo-helper.conf";
@@ -37,12 +59,19 @@ function deny_colors {
 allow_colors;
 # -------------------------
 
+# Get path to specified bash lib
+# oh_get_lib_path <lib name>
+function oh_get_lib_path {
+    local mod_name=$1;
+    echo "$ODOO_HELPER_LIB/$mod_name.bash";
+}
+
 # Simplify import controll
 # oh_require <module_name>
 function ohelper_require {
     local mod_name=$1;
     if [ -z ${ODOO_HELPER_IMPORTED_MODULES[$mod_name]} ]; then
-        source $ODOO_HELPER_LIB/$mod_name.bash;
+        source $(oh_get_lib_path $mod_name);
         ODOO_HELPER_IMPORTED_MODULES[$mod_name]=1;
     fi
 }
@@ -64,17 +93,25 @@ function execu {
         USE_UNBUFFER=;
     fi
 
-    if [ -z $USE_UNBUFFER ]; then
-        eval "$@";
+    # Decide wether to use unbuffer or not
+    if [ ! -z $USE_UNBUFFER ]; then
+        local unbuffer_opt="unbuffer";
+    else
+        local unbuffer_opt="";
+    fi
+
+    # Eval command and save result
+    if eval $unbuffer_opt "$@"; then
         local res=$?;
     else
-        eval unbuffer "$@";
         local res=$?;
     fi
 
+    # deactivate virtual environment
     if [ ! -z $VENV_DIR ]; then
         deactivate;
     fi
+
     return $res
 }
 
@@ -99,7 +136,7 @@ function check_command {
             return 0;
         fi;
     done
-    return -1;
+    return 1;
 }
 
 
@@ -181,7 +218,7 @@ function config_default_vars {
     ODOO_PATH=${ODOO_PATH:-$PROJECT_ROOT_DIR/odoo};
     BACKUP_DIR=${BACKUP_DIR:-$PROJECT_ROOT_DIR/backups};
     REPOSITORIES_DIR=${REPOSITORIES_DIR:-$PROJECT_ROOT_DIR/repositories};
-    INIT_SCRIPT=$ODOO_INIT_SCRIPT;
+    INIT_SCRIPT=$INIT_SCRIPT;
 }
 
 

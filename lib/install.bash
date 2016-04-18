@@ -13,6 +13,41 @@ fi
 set -e; # fail on errors
 
 
+# create directory tree for project
+function install_create_project_dir_tree {
+    # create dirs is imported from common module
+    create_dirs $PROJECT_ROOT_DIR \
+        $ADDONS_DIR \
+        $CONF_DIR \
+        $LOG_DIR \
+        $LIBS_DIR \
+        $DOWNLOADS_DIR \
+        $BACKUP_DIR \
+        $REPOSITORIES_DIR \
+        $BIN_DIR \
+        $DATA_DIR;
+}
+
+# install_clone_odoo [path [branch [repo]]]
+function install_clone_odoo {
+    local odoo_path=${1:-$ODOO_PATH};
+    local odoo_branch=${2:-$ODOO_BRANCH};
+    local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
+
+    if [ "$SHALLOW_CLONE" == "on" ]; then
+        local DEPTH="--depth=1";
+    else
+        local DEPTH="";
+    fi
+
+    if [ ! -z $odoo_branch ]; then
+        local branch_opt=" --branch $odoo_branch --single-branch";
+    fi
+
+    git clone $branch_opt $DEPTH $odoo_repo $odoo_path;
+
+}
+
 # install_sys_deps_internal dep_1 dep_2 ... dep_n
 function install_sys_deps_internal {
     # Odoo's debian/contol file usualy contains this in 'Depends' section 
@@ -54,7 +89,10 @@ function install_and_configure_postgresql {
     echov "Postgres seems to be installed and db user seems created.";
 }
 
+
+# install_system_prerequirements [install extra utils (1)]
 function install_system_prerequirements {
+    local install_extra_utils=${1:-$INSTALL_EXTRA_UTILS};
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
@@ -65,7 +103,13 @@ function install_system_prerequirements {
     echo "Installing system preprequirements...";
     sudo apt-get install $opt_apt_always_yes git wget python-setuptools perl g++ libpq-dev python-dev;
 
-    if [ ! -z $INSTALL_EXTRA_UTILS ]; then
+    # Install wkhtmltopdf
+    wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O /tmp/wkhtmltox.deb
+    sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
+    sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+
+    if [ ! -z $install_extra_utils ]; then
+        echov "Installing extrautils (expect-dev)";
         sudo apt-get install $opt_apt_always_yes expect-dev;
     fi;
 
@@ -75,16 +119,22 @@ function install_system_prerequirements {
 
 
 # Install virtual environment, and preinstall some packages
+# install_virtual_env [path]
 function install_virtual_env {
-    if [ ! -d $VENV_DIR ]; then
+    local venv_path=${1:-$VENV_DIR};
+    if [ ! -z $venv_path ] &&[ ! -d $venv_path ]; then
         if [ ! -z $USE_SYSTEM_SITE_PACKAGES ]; then
             local venv_opts=" --system-site-packages ";
         else
             local venv_opts="";
         fi
-        virtualenv $venv_opts $VENV_DIR;
+        virtualenv $venv_opts $venv_path;
     fi
+}
 
+# install_python_prerequirements [install extra utils (1)]
+function install_python_prerequirements {
+    local install_extra_utils=${1:-$INSTALL_EXTRA_UTILS};
     # required to make odoo.py work correctly when setuptools too old
     execu easy_install --upgrade setuptools;
     execu pip install --upgrade pip;  
@@ -93,11 +143,43 @@ function install_virtual_env {
         execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
     fi
 
-    if [ ! -z $INSTALL_EXTRA_UTILS ]; then
+    if [ ! -z $install_extra_utils ]; then
         execu pip install --upgrade erppeek;
     fi
 
-    execu pip install --upgrade --allow-external=PIL --allow-unverified=PIL PIL
+    # Install PIL only for odoo versions that have no requirements txt (<8.0)
+    if [ ! -f "$ODOO_PATH/requirements.txt" ]; then
+        execu pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
+    fi
+}
+
+# Generate configuration file fo odoo
+# this function looks into ODOO_CONF_OPTIONS anvironment variable,
+# which should be associative array with options to be written to file
+# install_generate_odoo_conf <file_path>
+function install_generate_odoo_conf {
+    local conf_file=$1;
+
+    # default addonspath
+    local addons_path="$ODOO_PATH/openerp/addons,$ODOO_PATH/addons,$ADDONS_DIR";
+
+    # default values
+    ODOO_CONF_OPTIONS[addons_path]="${ODOO_CONF_OPTIONS['addons_path']:-$addons_path}";
+    ODOO_CONF_OPTIONS[admin_passwd]="${ODOO_CONF_OPTIONS['admin_passwd']:-admin}";
+    ODOO_CONF_OPTIONS[data_dir]="${ODOO_CONF_OPTIONS['data_dir']:-$DATA_DIR}";
+    ODOO_CONF_OPTIONS[logfile]="${ODOO_CONF_OPTIONS['logfile']:-$LOG_FILE}";
+    ODOO_CONF_OPTIONS[pidfile]="${ODOO_CONF_OPTIONS['pidfile']:-$ODOO_PID_FILE}";
+    ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-False}";
+    ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
+    ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-odoo}";
+    ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-False}";
+
+    local conf_file_data="[options]";
+    for key in ${!ODOO_CONF_OPTIONS[@]}; do
+        conf_file_data="$conf_file_data\n$key = ${ODOO_CONF_OPTIONS[$key]}";
+    done
+
+    echo -e "$conf_file_data" > $conf_file;
 }
 
 
@@ -134,4 +216,6 @@ function odoo_run_setup_py {
     # (Restore modified setup.py)
     odoo_gevent_install_workaround_cleanup;
 }
+
+
 
