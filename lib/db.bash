@@ -115,13 +115,37 @@ function odoo_db_backup {
     local db_dump_file="$BACKUP_DIR/db-backup-$db_name-$FILE_SUFFIX";
 
     # if format is passed and format is 'zip':
-    if [ ! -z $3 ] && [ "$3" == "zip" ]; then
-        db_dump_file=$db_dump_file.zip;
-    else:
-        db_dump_file=$db_dump_file.backup;
+    if [ ! -z $2 ] && [ "$2" == "zip" ]; then
+        db_dump_file="$db_dump_file.zip";
+    else
+        db_dump_file="$db_dump_file.backup";
     fi
 
     odoo_db_dump $db_name $db_dump_file $2 $3;
+}
+
+# odoo_db_backup_all [format [odoo_conf_file]]
+# backup all databases available for this server
+function odoo_db_backup_all {
+    local conf_file=$ODOO_CONF_FILE;
+
+    # parse args
+    if [ -f "$1" ]; then
+        conf_file=$1;
+    elif [ ! -z $1 ]; then
+        local format=$1;
+        local format_opt=", '$format'";
+
+        if [ -f "$2" ]; then
+            conf_file=$2;
+        fi
+    fi
+
+    # dump databases
+    for dbname in $(odoo_db_list $conf_file); do
+        echo -e "${LBLUEC}backing-up database: $dbname${NC}";
+        odoo_db_backup $dbname $format $conf_file;
+    done
 }
 
 # odoo_db_restore <dbname> <dump_file> [odoo_conf_file]
@@ -153,6 +177,7 @@ function odoo_db_command {
         $SCRIPT_NAME db drop <name> [odoo_conf_file]
         $SCRIPT_NAME db dump <name> <dump_file_path> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup <name> [format [odoo_conf_file]]
+        $SCRIPT_NAME db backup-all [format [odoo_conf_file]]
         $SCRIPT_NAME db restore <name> <dump_file_path> [odoo_conf_file]
 
     ";
@@ -189,6 +214,11 @@ function odoo_db_command {
             backup)
                 shift;
                 odoo_db_backup "$@";
+                exit;
+            ;;
+            backup-all)
+                shift;
+                odoo_db_backup_all "$@";
                 exit;
             ;;
             restore)

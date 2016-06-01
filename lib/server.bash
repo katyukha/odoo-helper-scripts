@@ -171,10 +171,7 @@ function server_auto_update {
     server_stop;
 
     # Do database backup
-    for dbname in $(odoo_db_list); do
-        echo -e "${LBLUEC}backing-up database: $dbname${NC}";
-        odoo_db_backup $dbname zip;
-    done
+    odoo_db_backup_all zip;
 
     # Update odoo source
     (cd $ODOO_PATH &&
