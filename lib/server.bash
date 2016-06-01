@@ -8,6 +8,8 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
     source $ODOO_HELPER_LIB/common.bash;
 fi
 
+ohelper_require 'db';
+ohelper_require 'git';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -47,7 +49,12 @@ function run_server_impl {
     local SERVER=`get_server_script`;
     echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
     export OPENERP_SERVER=$ODOO_CONF_FILE;
-    execu $SERVER "$@";
+    if [ ! -z $SERVER_RUN_USER ]; then
+        local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
+        echov "Using server run opt: $sudo_opt";
+    fi
+
+    execu "$sudo_opt" $SERVER "$@";
     unset OPENERP_SERVER;
 }
 
@@ -141,6 +148,39 @@ function server_restart {
     fi
 }
 
+
+# WARN: only for odoo 8.0+
+# Update odoo sources
+function server_auto_update {
+    local update_date=$(date +'%Y-%m-%d.%H-%M-%S')
+    local tag_name="$(git_get_branch_name $ODOO_PATH)-before-update-$update_date";
+
+    if ! git_is_git_repo $ODOO_PATH; then
+        echo -e "${REDC}Cannot update odoo. Odoo sources are not under git.${NC}";
+        return 1;
+    fi
+
+    # Stop odoo server
+    server_stop;
+
+    # Do database backup
+    for dbname in $(odoo_db_list); do
+        echo -e "${LBLUEC}backing-up database: $dbname${NC}";
+        odoo_db_backup $dbname zip;
+    done
+
+    # Update odoo source
+    (cd $ODOO_PATH &&
+     git tag -a $tag_name -m 'Save before odoo update' &&
+     git pull);
+
+    for dbname in $(odoo_db_list); do
+        echo -e "${LBLUE}updating database $dbname${NC}";
+        server_run -d $dbname --update all --stop-after-init "$@";
+    done
+    server_start;
+}
+
 # server [options] <command> <args>
 # server [options] start <args>
 # server [options] stop <args>
@@ -158,11 +198,13 @@ function server {
         stop            - stop background running server
         restart         - restart background server
         status          - status of background server
+        auto_update     - automatiacly update server. (WARN: experimental feature. may be buggy)
         log             - open server log
         -h|--help|help  - display this message
 
     Options:
         --use-test-conf     - Use test configuration file for server
+        -u|--user           - Name of user to run server as
     ";
 
     while [[ $# -gt 0 ]]
@@ -176,6 +218,10 @@ function server {
             --use-test-conf)
                 ODOO_CONF_FILE=$ODOO_TEST_CONF_FILE;
                 echo -e "${YELLOWC}NOTE${NC}: Using test configuration file: $ODOO_TEST_CONF_FILE";
+            ;;
+            -u|--user)
+                SERVER_RUN_USER=$2;
+                shift;
             ;;
             run)
                 shift;
@@ -201,6 +247,11 @@ function server {
                 shift;
                 server_status "$@";
                 exit
+            ;;
+            auto_update)
+                shift;
+                server_auto_update "$@";
+                exit;
             ;;
             log)
                 shift;
