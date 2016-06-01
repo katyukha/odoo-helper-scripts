@@ -155,8 +155,15 @@ function server_auto_update {
     local update_date=$(date +'%Y-%m-%d.%H-%M-%S')
     local tag_name="$(git_get_branch_name $ODOO_PATH)-before-update-$update_date";
 
+    # Ensure odoo is repository
     if ! git_is_git_repo $ODOO_PATH; then
         echo -e "${REDC}Cannot update odoo. Odoo sources are not under git.${NC}";
+        return 1;
+    fi
+
+    # ensure odoo repository is clean
+    if ! git_is_clean $ODOO_PATH; then
+        echo -e "${REDC}Cannot update odoo. Odoo source repo is not clean.${NC}";
         return 1;
     fi
 
@@ -175,7 +182,7 @@ function server_auto_update {
      git pull);
 
     for dbname in $(odoo_db_list); do
-        echo -e "${LBLUE}updating database $dbname${NC}";
+        echo -e "${LBLUEC}updating database $dbname${NC}";
         server_run -d $dbname --update all --stop-after-init "$@";
     done
     server_start;

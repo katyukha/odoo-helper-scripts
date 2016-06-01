@@ -112,7 +112,14 @@ function odoo_db_backup {
 
     local FILE_SUFFIX=`date -I`.`random_string 4`;
     local db_name=$1;
-    local db_dump_file="$BACKUP_DIR/db-backup-$db_name-$FILE_SUFFIX.backup";
+    local db_dump_file="$BACKUP_DIR/db-backup-$db_name-$FILE_SUFFIX";
+
+    # if format is passed and format is 'zip':
+    if [ ! -z $3 ] && [ "$3" == "zip" ]; then
+        db_dump_file=$db_dump_file.zip;
+    else:
+        db_dump_file=$db_dump_file.backup;
+    fi
 
     odoo_db_dump $db_name $db_dump_file $2 $3;
 }
