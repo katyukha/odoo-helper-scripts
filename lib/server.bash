@@ -202,7 +202,7 @@ function server {
         stop            - stop background running server
         restart         - restart background server
         status          - status of background server
-        auto_update     - automatiacly update server. (WARN: experimental feature. may be buggy)
+        auto-update     - automatiacly update server. (WARN: experimental feature. may be buggy)
         log             - open server log
         -h|--help|help  - display this message
 
@@ -252,7 +252,7 @@ function server {
                 server_status "$@";
                 exit
             ;;
-            auto_update)
+            auto-update)
                 shift;
                 server_auto_update "$@";
                 exit;
