@@ -4,8 +4,9 @@
 
 SCRIPT=$0;
 SCRIPT_NAME=`basename $SCRIPT`;
+PROJECT_DIR=$(readlink -f "`dirname $SCRIPT`/..");
+TEST_TMP_DIR="$PROJECT_DIR/test-temp";
 WORK_DIR=`pwd`;
-TEST_TMP_DIR="$WORK_DIR/test-temp";
 
 ERROR=;
 
@@ -43,36 +44,7 @@ mkdir -p $TEST_TMP_DIR;
 cd $TEST_TMP_DIR;
 
 # Prepare for test (if running on CI)
-if [ ! -z $CI_RUN ]; then
-    echo "Running as in CI environment";
-    export ALWAYS_ANSWER_YES=1;
-
-    if ! command -v "odoo-install" >/dev/null 2>&1 || ! command -v "odoo-helper" >/dev/null 2>&1; then
-        echo "Seems that odoo-helper-scripts were not installed correctly!";
-        echo "PATH: $PATH";
-        echo "Current path: $(pwd)";
-        echo "Home var: $HOME";
-        echo "";
-        if [ -f $HOME/odoo-helper.conf ]; then
-            echo "User conf: ";
-            echo "$(cat $HOME/odoo-helper.conf)";
-        else
-            echo "User conf not found!";
-        fi
-        echo "";
-        echo "Content of ~/.profile file:";
-        echo "$(cat $HOME/.profile)";
-        echo "";
-        echo "Content of ~/.bashrc file:";
-        echo "$(cat $HOME/.bashrc)";
-        echo "";
-        echo "Content of ~/.bash_profile file:";
-        echo "$(cat $HOME/.bash_profile)";
-        echo "";
-        
-    fi
-    sudo pip install --upgrade pip pytz;
-fi
+source "$PROJECT_DIR/tests/ci.bash";
 
 # import odoo-helper common lib to allow colors in test output
 source $(odoo-helper system lib-path common);
@@ -111,11 +83,22 @@ fi
 # list all odoo databases available for this odoo instance
 odoo-helper db list
 
+# backup database
+backup_file=$(odoo-helper db backup my-test-odoo-database);
+
 # drop test database if it exists
 if odoo-helper db exists my-test-odoo-database; then
     odoo-helper db drop my-test-odoo-database;
 fi
 
+# restore dropped database
+odoo-helper db restore my-test-odoo-database $backup_file;
+
+# ensure that database exists
+odoo-helper db exists my-test-odoo-database
+
+# drop database egain
+odoo-helper db drop my-test-odoo-database;
 
 echo -e "${YELLOWC}
 =================================

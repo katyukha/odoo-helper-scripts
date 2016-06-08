@@ -16,7 +16,7 @@ install:
   - "bash install-user.bash"
 
 script:
-  - "bashcov test.bash"
+  - "bashcov tests/test.bash"
 
 
 after_success:

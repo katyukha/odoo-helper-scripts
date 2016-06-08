@@ -2,3 +2,5 @@
 *.swp
 *.swn
 *.swo
+/coverage/
+/venv/

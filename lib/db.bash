@@ -122,6 +122,7 @@ function odoo_db_backup {
     fi
 
     odoo_db_dump $db_name $db_dump_file $2 $3;
+    echo $db_dump_file
 }
 
 # odoo_db_backup_all [format [odoo_conf_file]]
