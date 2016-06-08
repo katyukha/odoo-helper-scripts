@@ -1,10 +1,22 @@
 # Changelog
 
+## Version 0.0.8
+
+- Bugfix in ``odoo-helper link .`` command
+- Added aditional extra_python depenencies:
+    - setproctitle
+    - python-slugify
+    - watchdog
+- Added experimental command ``odoo-helper server auto-update``.
+- Added experimental command ``odoo-helper db backup-all``.
+
+
 ## Version 0.0.7
 - odoo-helper system lib-path command makes available to use some parts of this project from outside
 - Added new db commands: dump, restore, backup
 - odoo-helper addons status: bugfix in parsing git status
 - odoo-install related fixes
+
 
 ## Version 0.0.6
 
@@ -12,12 +24,14 @@
 - Added simple auto-update mechanism
 - odoo-helper addons: Added ability to list addons not under git
 
+
 ## Version 0.0.5
 
 - Added support to manage server state via init script
 - Separate *repository* directory to store repositories fetched by this scripts
 - Added ability to install Odoo from non-standard repository
 - Added basic support of OCA dependency files (oca\_dependencies.txt)
+
 
 ## Version 0.0.4
 

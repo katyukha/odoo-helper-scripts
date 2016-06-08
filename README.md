@@ -1,6 +1,7 @@
 # Odoo helper scripts collection
 
 [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=master)](https://travis-ci.org/katyukha/odoo-helper-scripts)
+[![Coverage Status](https://coveralls.io/repos/github/katyukha/odoo-helper-scripts/badge.svg?branch=master)](https://coveralls.io/github/katyukha/odoo-helper-scripts?branch=master)
 
 
 ## Install (user space)

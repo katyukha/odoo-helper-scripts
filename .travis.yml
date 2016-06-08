@@ -7,8 +7,18 @@ env:
     - ODOO_HELPER_ROOT=$TRAVIS_BUILD_DIR
 
 install:
+  #- "sudo apt-get update -y -qq"
+  #- "sudo apt-get install -y -qq python-gevent"
+  - "sudo pip install gevent"
+  - "rvm use 2.2.0"
+  - "gem install bashcov"
+  - "gem install coveralls"
   - "bash install-user.bash"
 
 script:
-  - "bash --login test.bash"
+  - "bashcov tests/test.bash"
+
+
+after_success:
+  - coveralls
 

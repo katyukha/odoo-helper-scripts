@@ -192,3 +192,16 @@ function git_parse_status {
     # Go back to working dir
     cd $cdir;
 }
+
+
+# git_is_clean <repo path>
+# Check if repository is clean (no uncommited changes)
+function git_is_clean {
+    local git_status=;
+    IFS=$'\n' git_status=( $(git_parse_status $1 || echo '') );
+    if (( ${git_status[4]} == 0 && ${git_status[5]} == 0 && ${git_status[6]} == 0 && ${git_status[7]} == 0 )) ; then
+        return 0;  # repo is clean
+    else
+        return 1;  # repo is dirty
+    fi
+}

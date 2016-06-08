@@ -144,7 +144,7 @@ function install_python_prerequirements {
     fi
 
     if [ ! -z $install_extra_utils ]; then
-        execu pip install --upgrade erppeek;
+        execu pip install --upgrade erppeek setproctitle python-slugify watchdog;
     fi
 
     # Install PIL only for odoo versions that have no requirements txt (<8.0)
