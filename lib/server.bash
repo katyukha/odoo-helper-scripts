@@ -54,7 +54,7 @@ function run_server_impl {
         echov "Using server run opt: $sudo_opt";
     fi
 
-    execu "$sudo_opt" $SERVER "$@";
+    execu "$sudo_opt $SERVER $@";
     unset OPENERP_SERVER;
 }
 

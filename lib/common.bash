@@ -77,14 +77,31 @@ function ohelper_require {
 }
 
 
-# simply pass all args to exec or unbuffer
-# depending on 'USE_UNBUFFER variable
-# Also take in account virtualenv
-function execu {
+# Simple function to exec command in virtual environment if required
+function execv {
     if [ ! -z $VENV_DIR ]; then
         source $VENV_DIR/bin/activate;
     fi
 
+    # Eval command and save result
+    if eval "$@"; then
+        local res=$?;
+    else
+        local res=$?;
+    fi
+
+    # deactivate virtual environment
+    if [ ! -z $VENV_DIR ]; then
+        deactivate;
+    fi
+
+    return $res
+
+}
+# simply pass all args to exec or unbuffer
+# depending on 'USE_UNBUFFER variable
+# Also take in account virtualenv
+function execu {
     # Check unbuffer option
     if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
         echo -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
@@ -100,19 +117,7 @@ function execu {
         local unbuffer_opt="";
     fi
 
-    # Eval command and save result
-    if eval $unbuffer_opt "$@"; then
-        local res=$?;
-    else
-        local res=$?;
-    fi
-
-    # deactivate virtual environment
-    if [ ! -z $VENV_DIR ]; then
-        deactivate;
-    fi
-
-    return $res
+    execv "$unbuffer_opt $@";
 }
 
 
@@ -131,7 +136,7 @@ function create_dirs {
 # Returns first existing command
 function check_command {
     for test_cmd in $@; do
-        if execu command -v "$test_cmd" >/dev/null 2>&1; then
+        if execv "command -v $test_cmd >/dev/null 2>&1"; then
             echo "$test_cmd";
             return 0;
         fi;
