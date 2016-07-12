@@ -135,6 +135,7 @@ function addons_show_status {
 # addons_install_update <install|update>
 function addons_install_update {
     local cmd="$1";
+    shift;
     local usage="Usage:
 
         $SCRIPT_NAME addons $cmd [-d <db>] <addons>    - $cmd some addons
@@ -182,19 +183,6 @@ function addons_install_update {
     server_start;
 }
 
-# Update addons 
-# addons_update [-d dbname] <addons>
-# <addons> comma-separated lists of addons
-function addons_update {
-    addons_install_update "update" "$@";
-}
-
-# Install addons 
-# addons_install [-d dbname] <addons>
-function addons_install {
-    addons_install_update "install" "$@";
-}
-
 
 function addons_command {
     local usage="Usage:
@@ -233,10 +221,12 @@ function addons_command {
                 exit 0;
             ;;
             update)
+                shift;
                 addons_install_update "update" "$@";
                 exit 0;
             ;;
             install)
+                shift;
                 addons_install_update "install" "$@";
                 exit 0;
             ;;
