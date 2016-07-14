@@ -137,7 +137,12 @@ function update_odoo_sources {
 
     if [ -d "$ODOO_PATH/.git" ]; then
         echo -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
-        (cd $ODOO_PATH && git pull);
+        # TODO: check repo branch and branch present odoo-helper config
+        if git_is_clean $ODOO_PATH; then
+            (cd $ODOO_PATH && git pull);
+        else
+            echo -e "${REDC}Odoo sources directory is not clean! Do update manual!${NC}";
+        fi
     else
         echo -e "${LBLUEC}Downloading new sources archive...${NC}"
         local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz

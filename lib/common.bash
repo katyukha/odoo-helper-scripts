@@ -71,8 +71,8 @@ function oh_get_lib_path {
 function ohelper_require {
     local mod_name=$1;
     if [ -z ${ODOO_HELPER_IMPORTED_MODULES[$mod_name]} ]; then
-        source $(oh_get_lib_path $mod_name);
         ODOO_HELPER_IMPORTED_MODULES[$mod_name]=1;
+        source $(oh_get_lib_path $mod_name);
     fi
 }
 

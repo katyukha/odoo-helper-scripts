@@ -10,6 +10,7 @@ fi
 
 ohelper_require 'db';
 ohelper_require 'git';
+ohelper_require 'addons';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -178,11 +179,8 @@ function server_auto_update {
      git tag -a $tag_name -m 'Save before odoo update' &&
      git pull);
 
-    for dbname in $(odoo_db_list); do
-        echo -e "${LBLUEC}updating database $dbname${NC}";
-        server_run -d $dbname --update all --stop-after-init "$@";
-    done
-    server_start;
+    echo -e "${LBLUEC}updating databases...${NC}";
+    addons_install_update "update" all;
 }
 
 # server [options] <command> <args>
