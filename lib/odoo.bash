@@ -8,7 +8,7 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
     source $ODOO_HELPER_LIB/common.bash;
 fi
 
-# ohelper_require 'db';
+ohelper_require 'install';
 # ----------------------------------------------------------------------------------------
 
 
