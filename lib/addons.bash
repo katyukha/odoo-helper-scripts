@@ -50,6 +50,16 @@ function addons_list_no_repository {
 }
 
 
+# generate_requirements [addons path]
+# prints odoo-requirements file content (only addons which are git repositories)
+function addons_generate_requirements {
+    local req_addons_dir=${1:-$ADDONS_DIR};
+    for repo in $(addons_list_repositories $req_addons_dir); do
+      echo "-r $(git_get_remote_url $repo) -b $(git_get_branch_name $repo)";
+    done
+}
+
+
 # Show git status for each addon
 # show_addons_status
 function addons_show_status {
@@ -228,6 +238,11 @@ function addons_command {
             install)
                 shift;
                 addons_install_update "install" "$@";
+                exit 0;
+            ;;
+            generate_requirements)
+                shift;
+                addons_generate_requirements "$@";
                 exit 0;
             ;;
             -h|--help|help)

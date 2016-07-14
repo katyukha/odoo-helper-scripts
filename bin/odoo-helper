@@ -36,6 +36,7 @@ ohelper_require 'test';
 ohelper_require addons;
 ohelper_require 'install'
 ohelper_require 'git';
+ohelper_require 'odoo';
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -106,57 +107,6 @@ function print_usage {
         ODOO_BRANCH                     - used in run_server command to decide how to run it
         ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
 ";
-}
-
-
-# generate_requirements [addons path]
-# prints odoo-requirements file content (only addons which are git repositories)
-function generate_requirements {
-    local req_addons_dir=${1:-$ADDONS_DIR};
-    local cdir=`pwd`;
-
-    for repo in $(addons_list_repositories $req_addons_dir); do
-        cd $repo;
-        local fetch_line="-r `git_get_remote_url` -b `git_get_branch_name`";
-        echo "$fetch_line";
-        cd $cdir;
-    done
-}
-
-# downoload latest odoo of this version and reinstall it
-function update_odoo_sources {
-    echo -e "${LBLUEC}Updating odoo sources...${NC}";
-    local FILE_SUFFIX=`date -I`.`random_string 4`;
-    local BACKUP_PATH=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-    local wget_opt="";
-
-    [ ! -z $VERBOSE ] && wget_opt="$wget_opt -q";
-    
-    (cd $ODOO_PATH/.. && tar -czf $BACKUP_PATH `basename $ODOO_PATH`);
-    echo -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
-
-    if [ -d "$ODOO_PATH/.git" ]; then
-        echo -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
-        # TODO: check repo branch and branch present odoo-helper config
-        if git_is_clean $ODOO_PATH; then
-            (cd $ODOO_PATH && git pull);
-        else
-            echo -e "${REDC}Odoo sources directory is not clean! Do update manual!${NC}";
-        fi
-    else
-        echo -e "${LBLUEC}Downloading new sources archive...${NC}"
-        local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-        wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
-        rm -r $ODOO_PATH;
-        (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
-    fi
-
-    echo -e "${LBLUEC}Reinstalling odoo...${NC}";
-
-    # Run setup.py with gevent workaround applied.
-    odoo_run_setup_py;  # imported from 'install' module
-
-    echo -e "${GREENC}Odoo sources update finished!${NC}";
 }
 
 # display project status
@@ -256,13 +206,13 @@ function odoo_helper_main {
             generate_requirements)
                 shift;
                 load_project_conf;
-                generate_requirements "$@"
+                addons_generate_requirements "$@"
                 exit;
             ;;
             update_odoo)
                 shift;
                 load_project_conf;
-                update_odoo_sources;
+                odoo_update_sources "$@";
                 exit;
             ;;
             link|link_module)
