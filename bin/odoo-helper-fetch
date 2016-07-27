@@ -30,7 +30,7 @@ fi
 source $ODOO_HELPER_LIB/common.bash; 
 
 
-ohelper_require db;
+ohelper_require fetch;
 
 load_project_conf;
 fetch_module "$@";
