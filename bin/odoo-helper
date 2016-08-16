@@ -68,6 +68,7 @@ function print_usage {
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
         update_odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
+        scaffold <addon_name> [addon_path]       - shortcut for odoo.py scaffold command.
         print_config                             - print current configuration
         status                                   - show project status
         system update [branch]                   - update odoo-helper-scripts
@@ -237,6 +238,12 @@ function odoo_helper_main {
                 shift;
                 load_project_conf;
                 odoo_py "$@";
+                exit;
+            ;;
+            scaffold)
+                shift;
+                load_project_conf;
+                odoo_scaffold "$@";
                 exit;
             ;;
             test)

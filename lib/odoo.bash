@@ -9,6 +9,8 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
 fi
 
 ohelper_require 'install';
+ohelper_require 'server';
+ohelper_require 'fetch';
 # ----------------------------------------------------------------------------------------
 
 
@@ -79,4 +81,13 @@ function odoo_update_sources {
 
     echo -e "${GREENC}Odoo sources update finished!${NC}";
 
+}
+
+# odoo_scaffold <addon_name> [addon_path]
+function odoo_scaffold {
+    local addon_name=$1;
+    local addon_path=${2:-$REPOSITORIES_DIR};
+
+    odoo_py scaffold $addon_name $addon_path;
+    link_module $addon_path/$addon_name;
 }
