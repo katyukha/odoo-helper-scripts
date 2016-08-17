@@ -58,7 +58,7 @@ function tr_load {
     local db=$1;
     local lang=$2;
 
-    odoo_py -d $db --load-language=$lang;
+    odoo_py -d $db --load-language=$lang --stop-after-init;
 }
 
 function tr_main {
