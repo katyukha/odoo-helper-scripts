@@ -1,5 +1,18 @@
 # Changelog
 
+## Version 0.0.9
+
+- Added ``odoo-helper scaffold <addon_name> [addon_path]`` shortcut command
+- Added ``odoo-helper tr`` subcommand that simplifies translation management
+- Added shortcuts for frequently used subcommands to ``bin`` dir,
+  so standard autocomplete can help. They are:
+    - odoo-helper-server
+    - odoo-helper-db
+    - odoo-helper-addons
+    - odoo-helper-fetch
+- Added ``odoo-helper addons update`` and ``odoo-helper addons install`` subcommands
+- Refactored ``odoo-helper server auto-update`` and ``odoo-helper update_odoo``
+
 ## Version 0.0.8
 
 - Bugfix in ``odoo-helper link .`` command

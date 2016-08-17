@@ -187,7 +187,7 @@ function link_module {
 
 
     local REPO_PATH=$(readlink -f $1);
-    local MODULE_NAME=${2:-$(get_repo_name $REPO_PATH)};
+    local MODULE_NAME=$2
 
     echov "Linking module $1 [$2] ...";
 

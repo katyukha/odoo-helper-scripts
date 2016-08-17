@@ -36,6 +36,8 @@ ohelper_require 'test';
 ohelper_require addons;
 ohelper_require 'install'
 ohelper_require 'git';
+ohelper_require 'odoo';
+ohelper_require 'tr';
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -58,6 +60,7 @@ function print_usage {
         addons [--help]                          - addons related helpers
         test [--help]                            - test addon
         db [--help]                              - database management (list, create, drop, etc...)
+        tr [--help]                              - manage translations (import, export, load, ...)
         generate_requirements [addons dir]       - parse addons dir, find all addons that are
                                                    git repositories and print odoo-requirements.txt content
                                                    file content suitable for *fetch* subcommand.
@@ -67,6 +70,7 @@ function print_usage {
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
         update_odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
+        scaffold <addon_name> [addon_path]       - shortcut for odoo.py scaffold command.
         print_config                             - print current configuration
         status                                   - show project status
         system update [branch]                   - update odoo-helper-scripts
@@ -108,52 +112,6 @@ function print_usage {
 ";
 }
 
-
-# generate_requirements [addons path]
-# prints odoo-requirements file content (only addons which are git repositories)
-function generate_requirements {
-    local req_addons_dir=${1:-$ADDONS_DIR};
-    local cdir=`pwd`;
-
-    for repo in $(addons_list_repositories $req_addons_dir); do
-        cd $repo;
-        local fetch_line="-r `git_get_remote_url` -b `git_get_branch_name`";
-        echo "$fetch_line";
-        cd $cdir;
-    done
-}
-
-# downoload latest odoo of this version and reinstall it
-function update_odoo_sources {
-    echo -e "${LBLUEC}Updating odoo sources...${NC}";
-    local FILE_SUFFIX=`date -I`.`random_string 4`;
-    local BACKUP_PATH=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-    local wget_opt="";
-
-    [ ! -z $VERBOSE ] && wget_opt="$wget_opt -q";
-    
-    (cd $ODOO_PATH/.. && tar -czf $BACKUP_PATH `basename $ODOO_PATH`);
-    echo -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
-
-    if [ -d "$ODOO_PATH/.git" ]; then
-        echo -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
-        (cd $ODOO_PATH && git pull);
-    else
-        echo -e "${LBLUEC}Downloading new sources archive...${NC}"
-        local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-        wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
-        rm -r $ODOO_PATH;
-        (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
-    fi
-
-    echo -e "${LBLUEC}Reinstalling odoo...${NC}";
-
-    # Run setup.py with gevent workaround applied.
-    odoo_run_setup_py;  # imported from 'install' module
-
-    echo -e "${GREENC}Odoo sources update finished!${NC}";
-}
-
 # display project status
 function show_project_status {
     local pid=$(server_get_pid);
@@ -185,6 +143,18 @@ function update_odoo_helper_scripts {
         git fetch origin;
         git checkout origin/$scripts_branch;
     fi
+
+    # update odoo-helper bin links
+    local base_path=$(dirname $ODOO_HELPER_ROOT);
+    for oh_cmd in $ODOO_HELPER_BIN/*; do
+        if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
+            if [ "$base_path" == /opt* ]; then
+                sudo ln -s $oh_cmd /usr/local/bin/;
+            elif [ "$base_path" == $HOME/* ]; then
+                ln -s $oh_cmd $HOME/bin;
+            fi
+        fi
+    done
     cd $cdir;
 }
 
@@ -239,13 +209,13 @@ function odoo_helper_main {
             generate_requirements)
                 shift;
                 load_project_conf;
-                generate_requirements "$@"
+                addons_generate_requirements "$@"
                 exit;
             ;;
             update_odoo)
                 shift;
                 load_project_conf;
-                update_odoo_sources;
+                odoo_update_sources "$@";
                 exit;
             ;;
             link|link_module)
@@ -272,6 +242,12 @@ function odoo_helper_main {
                 odoo_py "$@";
                 exit;
             ;;
+            scaffold)
+                shift;
+                load_project_conf;
+                odoo_scaffold "$@";
+                exit;
+            ;;
             test)
                 shift;
                 load_project_conf;
@@ -282,6 +258,12 @@ function odoo_helper_main {
                 shift;
                 load_project_conf;
                 odoo_db_command "$@";
+                exit;
+            ;;
+            tr)
+                shift;
+                load_project_conf;
+                tr_main "$@";
                 exit;
             ;;
             print_config)

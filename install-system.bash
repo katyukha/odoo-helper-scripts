@@ -38,10 +38,11 @@ if [ ! -f "$ODOO_HELPER_SYS_CONF" ]; then
 fi
 
 # add odoo-helper-bin to path
-if ! command -v odoo-helper >/dev/null 2>&1; then
-    sudo ln -s $ODOO_HELPER_BIN/odoo-helper /usr/local/bin/;
-    sudo ln -s $ODOO_HELPER_BIN/odoo-install /usr/local/bin/;
-fi
+for oh_cmd in $ODOO_HELPER_BIN/*; do
+    if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
+        sudo ln -s $oh_cmd /usr/local/bin/;
+    fi
+done
     
 echo "Odoo-helper-scripts seems to be correctly installed system-wide!";
 echo "Install path is $INSTALL_PATH";

@@ -35,13 +35,7 @@ ohelper_require 'install'
 
 
 # Check environment for config
-ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
-ODOO_BRANCH=${ODOO_BRANCH:-9.0};
-SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
-DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
-DB_USER=${ODOO_DBUSER:-odoo};
-DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
-DB_HOST=${ODOO_DBHOST:-localhost};
+install_preconfigure_env;
 
 declare -A CONF_OPTIONS;
 declare -A TEST_CONF_OPTIONS;

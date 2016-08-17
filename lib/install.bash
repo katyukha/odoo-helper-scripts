@@ -12,6 +12,16 @@ fi
 
 set -e; # fail on errors
 
+# Set-up defaul values for environment variables
+function install_preconfigure_env {
+    ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
+    ODOO_BRANCH=${ODOO_BRANCH:-9.0};
+    SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
+    DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
+    DB_USER=${ODOO_DBUSER:-odoo};
+    DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
+    DB_HOST=${ODOO_DBHOST:-localhost};
+}
 
 # create directory tree for project
 function install_create_project_dir_tree {
@@ -64,8 +74,40 @@ function install_sys_deps_internal {
 
 # Get dependencies from odoo's debian/control file
 function install_sys_deps {
-        local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $ODOO_PATH/debian/control);
+    local control_file=$ODOO_PATH/debian/control;
+    local perl_expr='next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p';
+
+    # If odoo not installed, then fetch this file from odoo repository
+    if [ ! -f "$control_file" ]; then
+        if [ ! -z $ODOO_REPO ] && [[ $ODOO_REPO == "https://github.com"* ]]; then
+            # Odoo repo is github, so we can get control file easily
+            # NOTE: Experimental code
+            local gh_repo=${ODOO_REPO##https://github.com};
+            gh_repo=${gh_repo%.git};
+            local control_url="raw.githubusercontent.com/$gh_repo/$ODOO_BRANCH/debian/control";
+            control_url=${control_url/\/\//\/};  # replace '//' on '/'
+            control_url=https://${control_url/\/\//\/};  # repeat replace '//' on '/'
+            local tmp_control=$(mktemp);
+            wget $control_url -O $tmp_control;
+            control_file=$tmp_control; 
+        else
+            echo -e "${YELLOWC}Warning, cannot get debian/control file automaticaly.${NC}";
+        fi
+    fi
+
+    # Parse control file and install system dependencies
+    if [ -f "$control_file" ]; then
+        local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $control_file);
+        echo -e "${BLUEC}Sys deps to be installed:${NC} $sys_deps";
         install_sys_deps_internal $sys_deps;
+    else
+        echo -e "${REDC}ERROR! Cannot find debian/control file${NC}";
+    fi
+   
+    # Remove temp file if it was created 
+    if [ ! -z $tmp_control ]; then
+        rm $tmp_control;
+    fi
 }
 
 function install_and_configure_postgresql {

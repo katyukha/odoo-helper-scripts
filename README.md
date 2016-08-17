@@ -21,7 +21,7 @@ And ```$HOME/odoo-helper.conf``` file will be generated with path to odoo-helper
 To install (system-wide) just do folowing:
 
 ```bash
-wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | bash -s
+wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
 ```
 
 After instalation You will have ```odoo-helper-scripts``` directory under ```/opt/``` directory.

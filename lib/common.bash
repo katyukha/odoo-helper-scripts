@@ -8,7 +8,7 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.0.8"
+ODOO_HELPER_VERSION="0.0.9"
 
 # if odoo-helper root conf is not loaded yet, try to load it
 # This is useful when this lib is used by external utils,
@@ -71,20 +71,37 @@ function oh_get_lib_path {
 function ohelper_require {
     local mod_name=$1;
     if [ -z ${ODOO_HELPER_IMPORTED_MODULES[$mod_name]} ]; then
-        source $(oh_get_lib_path $mod_name);
         ODOO_HELPER_IMPORTED_MODULES[$mod_name]=1;
+        source $(oh_get_lib_path $mod_name);
     fi
 }
 
 
-# simply pass all args to exec or unbuffer
-# depending on 'USE_UNBUFFER variable
-# Also take in account virtualenv
-function execu {
+# Simple function to exec command in virtual environment if required
+function execv {
     if [ ! -z $VENV_DIR ]; then
         source $VENV_DIR/bin/activate;
     fi
 
+    # Eval command and save result
+    if eval "$@"; then
+        local res=$?;
+    else
+        local res=$?;
+    fi
+
+    # deactivate virtual environment
+    if [ ! -z $VENV_DIR ]; then
+        deactivate;
+    fi
+
+    return $res
+
+}
+# simply pass all args to exec or unbuffer
+# depending on 'USE_UNBUFFER variable
+# Also take in account virtualenv
+function execu {
     # Check unbuffer option
     if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
         echo -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
@@ -100,19 +117,7 @@ function execu {
         local unbuffer_opt="";
     fi
 
-    # Eval command and save result
-    if eval $unbuffer_opt "$@"; then
-        local res=$?;
-    else
-        local res=$?;
-    fi
-
-    # deactivate virtual environment
-    if [ ! -z $VENV_DIR ]; then
-        deactivate;
-    fi
-
-    return $res
+    execv "$unbuffer_opt $@";
 }
 
 
@@ -131,7 +136,7 @@ function create_dirs {
 # Returns first existing command
 function check_command {
     for test_cmd in $@; do
-        if execu command -v "$test_cmd" >/dev/null 2>&1; then
+        if execv "command -v $test_cmd >/dev/null 2>&1"; then
             echo "$test_cmd";
             return 0;
         fi;
@@ -162,6 +167,8 @@ function random_string {
 }
 
 # search_file_up <start path> <file name>
+# Try to find file in start_path, if found, print path, if not found,
+# then try to find it in parent directory recursively
 function search_file_up {
     local path=$1;
     while [[ "$path" != "/" ]];
@@ -171,6 +178,23 @@ function search_file_up {
             return 0;
         fi
         path=`dirname $path`;
+    done
+}
+
+# Try to find file in one of directories specified
+# search_file_in <file_name> <dir1> [dir2] [dir3] ...
+function search_file_in {
+    local file_name=$1;
+    shift;  # skip first argument
+
+    while [[ $# -gt 0 ]]  # while there at least one argumet left
+    do
+        local path=$(readlink -f $1);
+        if [ -e "$path/$file_name" ]; then
+            echo "$path/$file_name";
+            return 0;
+        fi
+        shift
     done
 }
 

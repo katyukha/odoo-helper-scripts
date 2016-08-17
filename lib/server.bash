@@ -10,6 +10,8 @@ fi
 
 ohelper_require 'db';
 ohelper_require 'git';
+ohelper_require 'addons';
+ohelper_require 'odoo';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -54,7 +56,7 @@ function run_server_impl {
         echov "Using server run opt: $sudo_opt";
     fi
 
-    execu "$sudo_opt" $SERVER "$@";
+    execu "$sudo_opt $SERVER $@";
     unset OPENERP_SERVER;
 }
 
@@ -152,36 +154,19 @@ function server_restart {
 # WARN: only for odoo 8.0+
 # Update odoo sources
 function server_auto_update {
-    local update_date=$(date +'%Y-%m-%d.%H-%M-%S')
-    local tag_name="$(git_get_branch_name $ODOO_PATH)-before-update-$update_date";
-
-    # Ensure odoo is repository
-    if ! git_is_git_repo $ODOO_PATH; then
-        echo -e "${REDC}Cannot update odoo. Odoo sources are not under git.${NC}";
-        return 1;
-    fi
-
-    # ensure odoo repository is clean
-    if ! git_is_clean $ODOO_PATH; then
-        echo -e "${REDC}Cannot update odoo. Odoo source repo is not clean.${NC}";
-        return 1;
-    fi
-
     # Stop odoo server
     server_stop;
 
     # Do database backup
     odoo_db_backup_all zip;
 
-    # Update odoo source
-    (cd $ODOO_PATH &&
-     git tag -a $tag_name -m 'Save before odoo update' &&
-     git pull);
+    # Update odoo sources
+    odoo_update_sources;
 
-    for dbname in $(odoo_db_list); do
-        echo -e "${LBLUEC}updating database $dbname${NC}";
-        server_run -d $dbname --update all --stop-after-init "$@";
-    done
+    echo -e "${LBLUEC}update databases...${NC}";
+    addons_install_update "update" all;
+
+    # Start server
     server_start;
 }
 

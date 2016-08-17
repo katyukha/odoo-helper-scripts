@@ -40,14 +40,15 @@ if [ ! -f "$ODOO_HELPER_USER_CONF" ]; then
 fi
 
 # add odoo-helper-bin to path
-if ! command -v odoo-helper >/dev/null 2>&1; then
-    echo "Adding links to $HOME/bin"
-    if [ ! -d $HOME/bin ]; then
-        mkdir -p $HOME/bin;
-    fi
-    ln -s $ODOO_HELPER_BIN/odoo-helper $HOME/bin;
-    ln -s $ODOO_HELPER_BIN/odoo-install $HOME/bin;
+echo "Adding links to $HOME/bin"
+if [ ! -d $HOME/bin ]; then
+    mkdir -p $HOME/bin;
 fi
+for oh_cmd in $ODOO_HELPER_BIN/*; do
+    if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
+        ln -s $oh_cmd $HOME/bin;
+    fi
+done
     
 echo "Odoo-helper-scripts seems to be correctly installed for current user!";
 echo "Install path is $INSTALL_PATH";

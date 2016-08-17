@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Use odoo-helper --help for a documentation
+
+
+SCRIPT=$0;
+SCRIPT_NAME=`basename $SCRIPT`;
+F=`readlink -f $SCRIPT`;  # full script path;
+WORKDIR=`pwd`;
+
+# load basic conf
+if [ -f "/etc/odoo-helper.conf" ]; then
+    source "/etc/odoo-helper.conf";
+fi
+if [ -f "$HOME/odoo-helper.conf" ]; then
+    source "$HOME/odoo-helper.conf";
+fi
+# -----------
+
+set -e;  # Fail on errors
+
+
+if [ -z $ODOO_HELPER_LIB ]; then
+    echo "Odoo-helper-scripts seems not been installed correctly.";
+    echo "Reinstall it (see Readme on https://github.com/katyukha/odoo-helper-scripts/)";
+    exit 1;
+fi
+
+# Load common functions
+source $ODOO_HELPER_LIB/common.bash; 
+
+
+ohelper_require fetch;
+
+load_project_conf;
+fetch_module "$@";
+
+
