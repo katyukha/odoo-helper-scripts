@@ -12,6 +12,16 @@ fi
 
 set -e; # fail on errors
 
+# Set-up defaul values for environment variables
+function install_preconfigure_env {
+    ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
+    ODOO_BRANCH=${ODOO_BRANCH:-9.0};
+    SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
+    DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
+    DB_USER=${ODOO_DBUSER:-odoo};
+    DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
+    DB_HOST=${ODOO_DBHOST:-localhost};
+}
 
 # create directory tree for project
 function install_create_project_dir_tree {
