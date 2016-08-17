@@ -167,6 +167,8 @@ function random_string {
 }
 
 # search_file_up <start path> <file name>
+# Try to find file in start_path, if found, print path, if not found,
+# then try to find it in parent directory recursively
 function search_file_up {
     local path=$1;
     while [[ "$path" != "/" ]];
@@ -176,6 +178,23 @@ function search_file_up {
             return 0;
         fi
         path=`dirname $path`;
+    done
+}
+
+# Try to find file in one of directories specified
+# search_file_in <file_name> <dir1> [dir2] [dir3] ...
+function search_file_in {
+    local file_name=$1;
+    shift;  # skip first argument
+
+    while [[ $# -gt 0 ]]  # while there at least one argumet left
+    do
+        local path=$(readlink -f $1);
+        if [ -e "$path/$file_name" ]; then
+            echo "$path/$file_name";
+            return 0;
+        fi
+        shift
     done
 }
 

@@ -8,13 +8,28 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
     source $ODOO_HELPER_LIB/common.bash;
 fi
 
-ohelper_require 'git'
-ohelper_require 'db'
-ohelper_require 'server'
+ohelper_require 'git';
+ohelper_require 'db';
+ohelper_require 'server';
+ohelper_require 'odoo';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
 
+
+# Echo path to addon specified by name
+# addons_get_addon_path <addon>
+function addons_get_addon_path {
+    local addon=$1;
+    local addons_path=$(odoo_get_conf_val addons_path);
+    local addon_dirs=;
+
+    # note addon_dirs is array
+    IFS=',' read -r -a addon_dirs <<< "$addons_path";
+
+    local addon_path=$(search_file_in $addon ${addon_dirs[@]});
+    echo "$addon_path";
+}
 
 # List addons repositories
 # Note that this function list only addons that are under git control

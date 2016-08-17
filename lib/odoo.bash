@@ -20,6 +20,15 @@ ohelper_require 'fetch';
 
 set -e; # fail on errors
 
+# odoo_get_conf_val <key> [conf file]
+# get value from odoo config file
+function odoo_get_conf_val {
+    local key=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
+
+    echo $(awk -F " *= *" "/$key/ {print \$2}" $conf_file);
+}
+
 function odoo_update_sources_git {
     local update_date=$(date +'%Y-%m-%d.%H-%M-%S')
 
