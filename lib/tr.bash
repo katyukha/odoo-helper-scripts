@@ -28,7 +28,11 @@ function tr_export {
     do
         local addon=$1;
         local addon_path=$(addons_get_addon_path $addon);
-        odoo_py -d $db -l $lang --i18n-export=$addon_path/i18n/$lang.po --modules=$addon;
+        local i18n_dir=$addon_path/i18n;
+        if [ ! -d $i18n_dir ]; then
+            mkdir -p $i18n_dir;
+        fi
+        odoo_py -d $db -l $lang --i18n-export=$i18n_dir/$lang.po --modules=$addon;
         shift
     done
 }
