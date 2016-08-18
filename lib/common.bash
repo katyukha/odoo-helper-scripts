@@ -91,7 +91,7 @@ function execv {
     fi
 
     # deactivate virtual environment
-    if [ ! -z $VENV_DIR ]; then
+    if [ ! -z $VENV_DIR ] && [ ! -z $VIRTUAL_ENV ]; then
         deactivate;
     fi
 

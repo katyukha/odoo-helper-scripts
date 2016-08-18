@@ -31,6 +31,20 @@ function addons_get_addon_path {
     echo "$addon_path";
 }
 
+# Get list of installed addons
+# addons_get_installed_addons <db>
+function addons_get_installed_addons {
+    local db=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
+
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
+    python_cmd="$python_cmd installed_addons=env['ir.module.module'].search([('state', '=', 'installed')]);"
+    python_cmd="$python_cmd print ','.join(installed_addons.mapped('name'));"
+
+    execu python -c "\"$python_cmd\"";
+}
+
 # List addons repositories
 # Note that this function list only addons that are under git control
 #
