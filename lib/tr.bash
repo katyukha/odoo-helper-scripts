@@ -74,7 +74,7 @@ function tr_import {
     if [ "$1" == "--overwrite" ]; then
         local opt_overwrite=" --i18n-overwrite ";
         shift;
-    else:
+    else
         local opt_overwrite="  ";
     fi
 

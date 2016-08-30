@@ -11,6 +11,7 @@ fi
 ohelper_require 'install';
 ohelper_require 'server';
 ohelper_require 'fetch';
+ohelper_require 'git';
 # ----------------------------------------------------------------------------------------
 
 
@@ -95,8 +96,26 @@ function odoo_update_sources {
 # odoo_scaffold <addon_name> [addon_path]
 function odoo_scaffold {
     local addon_name=$1;
-    local addon_path=${2:-$REPOSITORIES_DIR};
+    local addon_dir=${2:-$REPOSITORIES_DIR};
+    local addon_path=$addon_dir/$addon_name;
 
-    odoo_py scaffold $addon_name $addon_path;
-    link_module $addon_path/$addon_name;
+    odoo_py scaffold $addon_name $addon_dir;
+    link_module $addon_path;
+
+    # if addon is not part of some repo, create repo for it
+    if ! git_is_git_repo $addon_path; then
+        local cdir=$(pwd);
+        cd $addon_path;
+        git init;
+
+        # generate gitignore
+        echo "*.pyc" >> .gitignore;
+        echo "*.swp" >> .gitignore;
+        echo "*.idea/" >> .gitignore;
+        echo "*~" >> .gitignore;
+        echo "*.swo" >> .gitignore;
+        echo "*.pyo" >> .gitignore;
+        echo ".ropeproject/" >> .gitignore;
+        cd $cdir;
+    fi
 }
