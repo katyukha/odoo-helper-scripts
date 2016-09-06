@@ -68,10 +68,10 @@ function test_module_impl {
     set +e; # do not fail on errors
     # Install module
     run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs "$@";
+        --no-xmlrpc "$@";
     # Test module
     run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs --workers=0 "$@";
+        --no-xmlrpc --workers=0 "$@";
     set -e; # Fail on any error
 }
 
@@ -158,6 +158,7 @@ function test_module {
         create_tmp_dirs;
     fi
 
+    # Parse --link args
     if [ ! -z "$link_module_args" ]; then
         for lm_arg in $link_module_args; do
             local lm_arg_x=`echo $lm_arg | tr ':' ' '`;
@@ -173,13 +174,14 @@ function test_module {
         echov "Test database created successfully";
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     else
+        # name of test database expected to be defined in ODOO_TEST_CONF_FILE
         local test_log_file="${LOG_DIR:-.}/odoo.test.`random_string 24`.log";
     fi
 
     if [ ! -z $reinit_base ]; then
         echo -e "${BLUEC}Reinitializing base module...${NC}";
         run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=base --log-level=warn \
-            --stop-after-init --no-xmlrpc --no-xmlrpcs;
+            --stop-after-init --no-xmlrpc;
     fi
 
     for module in $modules; do
