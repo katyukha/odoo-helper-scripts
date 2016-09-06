@@ -32,7 +32,7 @@ function addons_get_addon_path {
 }
 
 # Get list of installed addons
-# addons_get_installed_addons <db>
+# addons_get_installed_addons <db> [conf_file]
 function addons_get_installed_addons {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
@@ -41,6 +41,24 @@ function addons_get_installed_addons {
     python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
     python_cmd="$python_cmd installed_addons=env['ir.module.module'].search([('state', '=', 'installed')]);"
     python_cmd="$python_cmd print ','.join(installed_addons.mapped('name'));"
+
+    execu python -c "\"$python_cmd\"";
+}
+
+# Update list of addons visible in system
+# addons_update_module_list <db> [conf_file]
+function addons_update_module_list {
+    local db=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
+
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db');";
+    python_cmd="$python_cmd env=odoo.api.Environment(reg.cursor(), 1, {});";
+    python_cmd="$python_cmd res=env['ir.module.module'].update_list();";
+    python_cmd="$python_cmd env.cr.commit();";
+    python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
+
+    echo $python_cmd
 
     execu python -c "\"$python_cmd\"";
 }
@@ -231,7 +249,8 @@ function addons_command {
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
         $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
-        $SCRIPT_NAME addons --help
+        $SCRIPT_NAME addons update-list <db>              - updaate list of addons
+        $SCRIPT_NAME addons --help                        - show this help message
 
     ";
 
@@ -267,6 +286,11 @@ function addons_command {
             install)
                 shift;
                 addons_install_update "install" "$@";
+                exit 0;
+            ;;
+            update-list)
+                shift;
+                addons_update_module_list "$@";
                 exit 0;
             ;;
             generate_requirements)
