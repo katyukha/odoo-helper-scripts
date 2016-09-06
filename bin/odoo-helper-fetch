@@ -26,13 +26,4 @@ if [ -z $ODOO_HELPER_LIB ]; then
     exit 1;
 fi
 
-# Load common functions
-source $ODOO_HELPER_LIB/common.bash; 
-
-
-ohelper_require fetch;
-
-load_project_conf;
-fetch_module "$@";
-
-
+$ODOO_HELPER_BIN/odoo-helper fetch "$@";
