@@ -58,8 +58,6 @@ function addons_update_module_list {
     python_cmd="$python_cmd env.cr.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
-    echo $python_cmd
-
     execu python -c "\"$python_cmd\"";
 }
 
@@ -222,6 +220,13 @@ function addons_install_update {
         esac
         shift
     done
+
+    todo_addons="${todo_addons#,}";  # remove first comma
+
+    if [ -z $todo_addons ]; then
+        echo "No addons specified! Exiting";
+        return 1;
+    fi
 
     if [ -z $dbs ]; then
         dbs=$(odoo_db_list);
