@@ -9,6 +9,8 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
 fi
 
 # ----------------------------------------------------------------------------------------
+ohelper_require "postgres";
+
 
 set -e; # fail on errors
 
@@ -111,23 +113,14 @@ function install_sys_deps {
 }
 
 function install_and_configure_postgresql {
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
+    # Check if postgres is installed on this machine. If not, install it
+    if ! postgres_is_installed; then
+        postgres_install_postgresql;
+    else
+        echov "It seems that postgresql is already installed, so not installing it, just configuring...";
     fi
 
-    # Check if postgres is installed on this machine. If not, install it
-    # TODO: think about better way to check postgres presence
-    if [ ! -f /etc/init.d/postgresql ]; then
-        echov "It seems that postgresql is already installed, so not installing it, just configuring...";
-        sudo apt-get install $opt_apt_always_yes postgresql;
-    fi
-    local user_count=$(sudo -u postgres -H psql -tA -c "SELECT count(*) FROM pg_user WHERE usename = '$DB_USER';");
-    if [ $user_count -eq 0 ]; then
-        sudo -u postgres -H psql -c "CREATE USER $DB_USER WITH CREATEDB PASSWORD '$DB_PASSWORD';"
-        echov "Postgresql user $DB_USER was created for this Odoo instance";
-    else
-        echo -e "${YELLOWC}There are $DB_USER already exists in postgres server${NC}";
-    fi
+    postgres_user_create $DB_USER $DB_PASSWORD;
     echov "Postgres seems to be installed and db user seems created.";
 }
 
@@ -143,17 +136,16 @@ function install_system_prerequirements {
     sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    sudo apt-get install $opt_apt_always_yes git wget python-setuptools perl g++ libpq-dev python-dev;
+    local to_install="git wget python-setuptools perl g++ libpq-dev python-dev";
+    if [ ! -z $install_extra_utils ]; then
+        to_install="$to_install expect-dev";
+    fi;
+    sudo apt-get install $opt_apt_always_yes $to_install;
 
     # Install wkhtmltopdf
     wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O /tmp/wkhtmltox.deb
     sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
     sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
-
-    if [ ! -z $install_extra_utils ]; then
-        echov "Installing extrautils (expect-dev)";
-        sudo apt-get install $opt_apt_always_yes expect-dev;
-    fi;
 
     sudo easy_install pip;
     sudo pip install --upgrade pip virtualenv;

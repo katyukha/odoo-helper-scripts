@@ -71,10 +71,10 @@ function print_usage {
                                Current value: $DB_PASSWORD
 
     Available options:
-         --install-dir <dir>           - directory to install odoo in. default: $PROJECT_ROOT_DIR
+         -i|--install-dir <dir>        - directory to install odoo in. default: $PROJECT_ROOT_DIR
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
-         --branch <branch>             - specify odoo branch to clone. default: $ODOO_BRANCH
+         -b|--branch <branch>          - specify odoo branch to clone. default: $ODOO_BRANCH
          --extra-utils                 - install extra python packages. (for example 'erppeek', which
                                          is used by odoo-helper script to manage databases)
          --install-sys-deps            - (requires sudo) (debian only) (experimental).
@@ -137,7 +137,7 @@ function parse_options {
     do
         local key="$1";
         case $key in
-            --install-dir)
+            --install-dir|-i)
                 PROJECT_ROOT_DIR=`readlink -f $2`;
                 shift;
             ;;
