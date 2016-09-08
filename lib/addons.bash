@@ -31,6 +31,36 @@ function addons_get_addon_path {
     echo "$addon_path";
 }
 
+# Get list of installed addons
+# addons_get_installed_addons <db> [conf_file]
+function addons_get_installed_addons {
+    local db=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
+
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
+    python_cmd="$python_cmd installed_addons=env['ir.module.module'].search([('state', '=', 'installed')]);"
+    python_cmd="$python_cmd print ','.join(installed_addons.mapped('name'));"
+
+    execu python -c "\"$python_cmd\"";
+}
+
+# Update list of addons visible in system
+# addons_update_module_list <db> [conf_file]
+function addons_update_module_list {
+    local db=$1;
+    local conf_file=${2:-$ODOO_CONF_FILE};
+
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db');";
+    python_cmd="$python_cmd env=odoo.api.Environment(reg.cursor(), 1, {});";
+    python_cmd="$python_cmd res=env['ir.module.module'].update_list();";
+    python_cmd="$python_cmd env.cr.commit();";
+    python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
+
+    execu python -c "\"$python_cmd\"";
+}
+
 # List addons repositories
 # Note that this function list only addons that are under git control
 #
@@ -75,6 +105,16 @@ function addons_generate_requirements {
 }
 
 
+# Check for git updates for addons
+# addons_git_fetch_updates [addons path]
+function addons_git_fetch_updates {
+    # fetch updates for each addon repo
+    for addon_repo in $(addons_list_repositories $addons_dir); do
+        (cd $addon_repo && git fetch) || true;
+    done
+}
+
+
 # Show git status for each addon
 # show_addons_status
 function addons_show_status {
@@ -90,6 +130,7 @@ function addons_show_status {
         --addons-dir          - directory to search addons in. By default used one from
                                 project config
         --only-unclean        - show only addons in unclean repo state
+        --only-git-updates    - display only addons that are not up to date with remotes
         --ignore-no-git-repo  - do not show addons that are not in any git repository
         --help|-h             - diplay this help message
     ";
@@ -108,7 +149,11 @@ function addons_show_status {
                 shift;
             ;;
             --only-unclean)
-                local only_unclean=1
+                local only_unclean=1;
+            ;;
+            --only-git-updates)
+                local only_git_updates=1;
+                local ignore_no_git_repo=1;
             ;;
             --ignore-no-git-repo)
                 local ignore_no_git_repo=1;
@@ -129,21 +174,27 @@ function addons_show_status {
             continue;
         fi
 
+        # if '--only-unclean' specified, skip addons that are clean
         if [ ! -z $only_unclean ] && [ ${git_status[3]} -eq 1 ]; then
             continue
         fi
 
+        # if '--only-git-updates' specified, skip addons which is up to date
+        if [ ! -z $only_git_updates ] && [ ${git_status[1]} == "." ]; then
+            continue
+        fi
+
+        # Display addon status
         echo -e "Addon status for ${BLUEC}$addon_repo${NC}'";
         echo -e "\tRepo branch:          ${git_status[0]}";
-        echov -e "\tRepo remote status:   ${git_status[1]}";
-        echov -e "\tRepo upstream:        ${git_status[2]}";
-
-        [ ${git_status[3]} -eq 1 ] && echo -e "\t${GREENC}Repo is clean!${NC}";
-        [ ${git_status[4]} -gt 0 ] && echo -e "\t${YELLOWC}${git_status[4]} files staged for commit${NC}";
-        [ ${git_status[5]} -gt 0 ] && echo -e "\t${YELLOWC}${git_status[5]} files changed${NC}";
-        [ ${git_status[6]} -gt 0 ] && echo -e "\t${REDC}${git_status[6]} conflicts${NC}";
-        [ ${git_status[7]} -gt 0 ] && echo -e "\t${YELLOWC}${git_status[7]} untracked files${NC}";
-        [ ${git_status[8]} -gt 0 ] && echo -e "\t${YELLOWC}${git_status[8]} stashed${NC}";
+        [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Remote: ${git_status[1]}${NC}";
+        [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Upstream: ${git_status[2]}${NC}";
+        [ ${git_status[3]} -eq 1 ]  && echo -e "\t${GREENC}Repo is clean!${NC}";
+        [ ${git_status[4]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[4]} files staged for commit${NC}";
+        [ ${git_status[5]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[5]} files changed${NC}";
+        [ ${git_status[6]} -gt 0 ]  && echo -e "\t${REDC}${git_status[6]} conflicts${NC}";
+        [ ${git_status[7]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[7]} untracked files${NC}";
+        [ ${git_status[8]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[8]} stashed${NC}";
 
     done;
 
@@ -191,6 +242,15 @@ function addons_install_update {
         shift
     done
 
+    todo_addons="${todo_addons#,}";  # remove first comma
+
+    if [ -z $todo_addons ]; then
+        echo "No addons specified! Exiting";
+        return 1;
+    fi
+
+    # If no database specified, install/update addons
+    # to all available databases
     if [ -z $dbs ]; then
         dbs=$(odoo_db_list);
     fi
@@ -214,10 +274,12 @@ function addons_command {
 
         $SCRIPT_NAME addons list_repos [addons path]      - list git repositories
         $SCRIPT_NAME addons list_no_repo [addons path]    - list addons not under git repo
+        $SCRIPT_NAME addons check_updates                 - Check for git updates of addons and displays status
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
         $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
-        $SCRIPT_NAME addons --help
+        $SCRIPT_NAME addons update-list <db>              - update list of addons
+        $SCRIPT_NAME addons --help                        - show this help message
 
     ";
 
@@ -240,6 +302,12 @@ function addons_command {
                 addons_list_no_repository "$@";
                 exit 0;
             ;;
+            check_updates)
+                shift;
+                addons_git_fetch_updates;
+                addons_show_status --only-git-updates;
+                exit 0;
+            ;;
             status|show_status)
                 shift;
                 addons_show_status "$@";
@@ -253,6 +321,11 @@ function addons_command {
             install)
                 shift;
                 addons_install_update "install" "$@";
+                exit 0;
+            ;;
+            update-list)
+                shift;
+                addons_update_module_list "$@";
                 exit 0;
             ;;
             generate_requirements)

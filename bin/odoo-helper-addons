@@ -8,6 +8,7 @@ SCRIPT_NAME=`basename $SCRIPT`;
 F=`readlink -f $SCRIPT`;  # full script path;
 WORKDIR=`pwd`;
 
+
 # load basic conf
 if [ -f "/etc/odoo-helper.conf" ]; then
     source "/etc/odoo-helper.conf";
@@ -26,11 +27,4 @@ if [ -z $ODOO_HELPER_LIB ]; then
     exit 1;
 fi
 
-# Load common functions
-source $ODOO_HELPER_LIB/common.bash; 
-
-
-ohelper_require addons;
-
-load_project_conf;
-addons_command "$@";
+$ODOO_HELPER_BIN/odoo-helper addons "$@";

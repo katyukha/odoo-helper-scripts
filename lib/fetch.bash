@@ -129,7 +129,7 @@ function link_module_impl {
     local DEST="$2";
     local force=$3;
 
-    if [ ! -z $force ] && [ -d $DEST ]; then
+    if [ ! -z $force ] && ([ -e $DEST ] || [ -L $DEST ]); then
         echov "Rewriting module $DEST...";
         rm -rf $DEST;
     fi
@@ -194,7 +194,7 @@ function link_module {
     # Guess repository type
     if is_odoo_module $REPO_PATH; then
         # single module repo
-        link_module_impl $REPO_PATH $ADDONS_DIR/${MODULE_NAME:-`basename $REPO_PATH`} "$force";
+        link_module_impl $REPO_PATH $ADDONS_DIR/${MODULE_NAME:-`basename $REPO_PATH`} $force;
     else
         # multi module repo
         if [ -z $MODULE_NAME ]; then
@@ -206,13 +206,13 @@ function link_module {
             # No module name specified, then all modules in repository should be linked
             for file in "$REPO_PATH"/*; do
                 if is_odoo_module $file; then
-                    link_module_impl $file $ADDONS_DIR/`basename $file` "$force";
+                    link_module_impl $file $ADDONS_DIR/`basename $file` $force;
                     # recursivly link module
                 fi
             done
         else
             # Module name specified, then only single module should be linked
-            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_DIR/$MODULE_NAME "$force";
+            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_DIR/$MODULE_NAME $force;
         fi
     fi
 }

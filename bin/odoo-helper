@@ -38,6 +38,7 @@ ohelper_require 'install'
 ohelper_require 'git';
 ohelper_require 'odoo';
 ohelper_require 'tr';
+ohelper_require 'postgres';
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -61,6 +62,7 @@ function print_usage {
         test [--help]                            - test addon
         db [--help]                              - database management (list, create, drop, etc...)
         tr [--help]                              - manage translations (import, export, load, ...)
+        postgres [--help]                        - manage local instance of postgresql server
         generate_requirements [addons dir]       - parse addons dir, find all addons that are
                                                    git repositories and print odoo-requirements.txt content
                                                    file content suitable for *fetch* subcommand.
@@ -264,6 +266,11 @@ function odoo_helper_main {
                 shift;
                 load_project_conf;
                 tr_main "$@";
+                exit;
+            ;;
+            postgres)
+                shift;
+                postgres_command "$@";
                 exit;
             ;;
             print_config)

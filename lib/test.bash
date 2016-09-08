@@ -12,6 +12,7 @@ fi
 ohelper_require fetch;
 ohelper_require server;
 ohelper_require db;
+ohelper_require odoo;
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -68,10 +69,10 @@ function test_module_impl {
     set +e; # do not fail on errors
     # Install module
     run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs "$@";
+        --no-xmlrpc "$@";
     # Test module
     run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
-        --no-xmlrpc --no-xmlrpcs --workers=0 "$@";
+        --no-xmlrpc --workers=0 "$@";
     set -e; # Fail on any error
 }
 
@@ -158,6 +159,7 @@ function test_module {
         create_tmp_dirs;
     fi
 
+    # Parse --link args
     if [ ! -z "$link_module_args" ]; then
         for lm_arg in $link_module_args; do
             local lm_arg_x=`echo $lm_arg | tr ':' ' '`;
@@ -165,6 +167,7 @@ function test_module {
         done
     fi
 
+    # Create new test database if required
     if [ ! -z $create_test_db ]; then
         local test_db_name=`random_string 24`;
         test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
@@ -173,15 +176,25 @@ function test_module {
         echov "Test database created successfully";
         odoo_extra_options="$odoo_extra_options -d $test_db_name";
     else
-        local test_log_file="${LOG_DIR:-.}/odoo.test.`random_string 24`.log";
+        # name of test database expected to be defined in ODOO_TEST_CONF_FILE
+        local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
+        odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
 
+    # Remove log file if it is present before test, otherwise
+    # it will be appended, wich could lead to incorrect test results
+    if [ -e $test_log_file ]; then
+        rm $test_log_file;
+    fi
+
+    # Reinitialize base module, to find new addons
     if [ ! -z $reinit_base ]; then
         echo -e "${BLUEC}Reinitializing base module...${NC}";
         run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=base --log-level=warn \
-            --stop-after-init --no-xmlrpc --no-xmlrpcs;
+            --stop-after-init --no-xmlrpc;
     fi
 
+    # Test modules
     for module in $modules; do
         echo -e "${BLUEC}Testing module $module...${NC}";
         if [ -z $no_tee ]; then
@@ -193,6 +206,7 @@ function test_module {
     done
 
 
+    # Drop test db created
     if [ ! -z $create_test_db ]; then
         echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
         odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE

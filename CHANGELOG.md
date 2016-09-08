@@ -1,5 +1,18 @@
 # Changelog
 
+## Version 0.0.10
+
+- Bugfixes in ``odoo-helper test`` command
+- Added ``odoo-helper addons check_updates`` command
+- Improved ``odoo-helper addons status`` command to be able to
+  correctyle display remote status of git repos of addons
+- Added ``odoo-helper postgres`` command to manage local postgres instance
+- ``odoo-helper-*`` shortcuts refactored
+- Added command ``odoo-helper addons update_list <db>`` which updates
+  list of available modules for specified db
+- Bugfixes and improvements in ``odoo-helper tr`` command
+
+
 ## Version 0.0.9
 
 - Added ``odoo-helper scaffold <addon_name> [addon_path]`` shortcut command

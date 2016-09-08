@@ -26,12 +26,5 @@ if [ -z $ODOO_HELPER_LIB ]; then
     exit 1;
 fi
 
-# Load common functions
-source $ODOO_HELPER_LIB/common.bash; 
-
-
-ohelper_require db;
-
-load_project_conf;
-odoo_db_command "$@";
+$ODOO_HELPER_BIN/odoo-helper db "$@";
 

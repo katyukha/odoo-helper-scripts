@@ -8,7 +8,7 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.0.9"
+ODOO_HELPER_VERSION="0.0.10"
 
 # if odoo-helper root conf is not loaded yet, try to load it
 # This is useful when this lib is used by external utils,
@@ -91,7 +91,7 @@ function execv {
     fi
 
     # deactivate virtual environment
-    if [ ! -z $VENV_DIR ]; then
+    if [ ! -z $VENV_DIR ] && [ ! -z $VIRTUAL_ENV ]; then
         deactivate;
     fi
 
@@ -235,7 +235,7 @@ function config_default_vars {
     LIBS_DIR=${LIBS_DIR:-$PROJECT_ROOT_DIR/libs};
     DOWNLOADS_DIR=${DOWNLOADS_DIR:-$PROJECT_ROOT_DIR/downloads};
     ADDONS_DIR=${ADDONS_DIR:-$PROJECT_ROOT_DIR/custom_addons};
-    DATA_DIR=${DATA_DIR:-$PROJECT_ROOT_DIR/data_dir};
+    DATA_DIR=${DATA_DIR:-$PROJECT_ROOT_DIR/data};
     BIN_DIR=${BIN_DIR:-$PROJECT_ROOT_DIR/bin};
     VENV_DIR=${VENV_DIR:-$PROJECT_ROOT_DIR/venv};
     ODOO_PID_FILE=${ODOO_PID_FILE:-$PROJECT_ROOT_DIR/odoo.pid};
