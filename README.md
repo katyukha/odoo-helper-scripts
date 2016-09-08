@@ -35,7 +35,7 @@ And ```/etc/odoo-helper.conf``` file will be generated with path to odoo-helper-
 - High usage of virtual env for isolation purpose
 - Easy way to install from git repositories
     - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
-    - Specific format of dependencies: [odoo_requirements.txt](#Syntax of odoo\_requirements.txt)
+    - Specific format of dependencies: [odoo_requirements.txt](#syntax-of-odoo_requirementstxt)
 - Easy mechanism to fetch addons from any git repo
 - Easy mechanism to fetch python dependency from PyPI or any vcs
 - Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
