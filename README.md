@@ -31,8 +31,11 @@ And ```/etc/odoo-helper.conf``` file will be generated with path to odoo-helper-
 
 ## Features
 
-- Easily manage few instnces of odoo that ran on same machine
-- High usage of virtual env for isolation
+- Easily manage few instances of odoo that ran on same machine
+- High usage of virtual env for isolation purpose
+- Easy way to install from git repositories
+    - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
+    - Specific format of dependencies: [odoo_requirements.txt](#Syntax of odoo\_requirements.txt)
 - Easy mechanism to fetch addons from any git repo
 - Easy mechanism to fetch python dependency from PyPI or any vcs
 - Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
@@ -45,7 +48,8 @@ And after install you will have available folowing scripts in your path:
     - odoo-install
     - odoo-helper
 
-Each script have -h or --help option which display most relevant information about script
+Each script have ```-h``` or ```--help``` option which display most relevant information
+about script and all possible options and subcommands of script
 
 Look at [complete example](#complete-example)
 
@@ -96,15 +100,17 @@ Core functionality is:
            Depending on options, may create new clean test daatabase.
            For depatis run this command with --help option$A
 - *link* - link specified module directory to current addons dir. mostly used internaly
-- *create_db* - allows to create database from command line
-- *drop_db* - allows to drop database from commandline
-- *list_db* - lists databases, available for this odoo instance
+- *db* - manage database (create, drop, dump, restore, etc)
+- *addons* - manage addons (install, update, check for updates in git repos, etc)
+- *tr* - translation utils
+- *postgres* - manage local postgres (create pg user, etc)
 
 For details use *--help* option
 
 ### Syntax of odoo\_requirements.txt
 
-*odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper fetch``` command:
+*odoo_requirements.txt* parsed line by line, and each line
+must be just set of options for ```odoo-helper fetch``` command:
 
 ```
 -r|--repo <git repository>  [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
