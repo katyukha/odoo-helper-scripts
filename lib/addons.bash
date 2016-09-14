@@ -255,14 +255,19 @@ function addons_install_update {
         dbs=$(odoo_db_list);
     fi
 
+    [ "$cmd" == "install" ] && local cmd_opt="-i";
+    [ "$cmd" == "update" ]  && local cmd_opt="-u";
+
+    if [ -z $cmd_opt ]; then
+        echo -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
+    fi
+
     server_stop;
     for db in $dbs; do
-        if [ "$cmd" == "install" ]; then
-            server_run -d $db -i $todo_addons --stop-after-init
-        elif [ "$cmd" == "update" ]; then
-            server_run -d $db -u $todo_addons --stop-after-init
+        if server_run -d $db $cmd_opt $todo_addons --stop-after-init; then
+            echo -e "${LBLUEC}Update for '$db':${NC} ${GREENC}OK${NC}";
         else
-            echo -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
+            echo -e "${LBLUEC}Update for '$db':${NC} ${REDC}FAIL${NC}";
         fi
     done
     server_start;
