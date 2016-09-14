@@ -192,12 +192,12 @@ function parse_options {
                 VERBOSE=1;
             ;;
             --conf-opt-*)
-                local opt_name=$(echo '--conf-opt-xmlrpc_port' | sed 's/--conf-opt-\(.*\)/\1/')
+                local opt_name="${key#--conf-opt-}"
                 CONF_OPTIONS[$opt_name]=$2;
                 shift;
             ;;
             --test-conf-opt-*)
-                local opt_name=$(echo '--test-conf-opt-xmlrpc_port' | sed 's/--test-conf-opt-\(.*\)/\1/')
+                local opt_name="${key#--test-conf-opt-}"
                 TEST_CONF_OPTIONS[$opt_name]=$2;
                 shift;
             ;;
