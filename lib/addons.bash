@@ -108,9 +108,24 @@ function addons_generate_requirements {
 # Check for git updates for addons
 # addons_git_fetch_updates [addons path]
 function addons_git_fetch_updates {
+    local addons_dir=${1:-$ADDONS_DIR};
     # fetch updates for each addon repo
     for addon_repo in $(addons_list_repositories $addons_dir); do
         (cd $addon_repo && git fetch) || true;
+    done
+}
+
+# Update git repositories
+# addons_git_pull_updates [addons path]
+function addons_git_pull_updates {
+    local addons_dir=${1:-$ADDONS_DIR};
+    for addon_repo in $(addons_list_repositories $addons_dir); do
+        IFS=$'\n' git_status=( $(git_parse_status $addon_repo || echo '') );
+        local git_remote_status=${git_status[1]};
+        if [[ $git_remote_status == _BEHIND_* ]] && [[ $git_remote_status != *_AHEAD_* ]]; then
+            (cd $addon_repo && git pull);
+        fi
+
     done
 }
 
@@ -279,7 +294,8 @@ function addons_command {
 
         $SCRIPT_NAME addons list_repos [addons path]      - list git repositories
         $SCRIPT_NAME addons list_no_repo [addons path]    - list addons not under git repo
-        $SCRIPT_NAME addons check_updates                 - Check for git updates of addons and displays status
+        $SCRIPT_NAME addons check_updates [addons path]   - Check for git updates of addons and displays status
+        $SCRIPT_NAME addons pull_updates [addons path]    - Pull changes from git repos
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
         $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
@@ -309,8 +325,18 @@ function addons_command {
             ;;
             check_updates)
                 shift;
+                ADDONS_DIR=${1:-$ADDONS_DIR};
                 addons_git_fetch_updates;
                 addons_show_status --only-git-updates;
+                exit 0;
+            ;;
+            pull_updates)
+                shift;
+                echo -e "${LBLUEC}Checking for updates...${NC}";
+                addons_git_fetch_updates "$@";
+                echo -e "${LBLUEC}Applying updates...${NC}";
+                addons_git_pull_updates "$@";
+                echo -e "${GREENC}DONE${NC}";
                 exit 0;
             ;;
             status|show_status)
