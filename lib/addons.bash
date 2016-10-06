@@ -32,6 +32,7 @@ function addons_get_addon_path {
 }
 
 # Get list of installed addons
+# NOTE: Odoo 8.0+ required
 # addons_get_installed_addons <db> [conf_file]
 function addons_get_installed_addons {
     local db=$1;
@@ -46,6 +47,7 @@ function addons_get_installed_addons {
 }
 
 # Update list of addons visible in system
+# NOTE: Odoo 8.0+ required
 # addons_update_module_list <db> [conf_file]
 function addons_update_module_list {
     local db=$1;

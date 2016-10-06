@@ -23,7 +23,7 @@ set -e; # fail on errors
 #  which should be placed in project config)
 # Now it simply returns openerp-server
 function get_server_script {
-    check_command odoo.py openerp-server openerp-server.py;
+    check_command odoo odoo.py openerp-server openerp-server.py;
 }
 
 # Function to check server run status;

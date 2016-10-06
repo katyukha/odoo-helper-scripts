@@ -188,14 +188,19 @@ function install_python_prerequirements {
 }
 
 # Generate configuration file fo odoo
-# this function looks into ODOO_CONF_OPTIONS anvironment variable,
+# this function looks into ODOO_CONF_OPTIONS environment variable,
 # which should be associative array with options to be written to file
 # install_generate_odoo_conf <file_path>
 function install_generate_odoo_conf {
     local conf_file=$1;
 
     # default addonspath
-    local addons_path="$ODOO_PATH/openerp/addons,$ODOO_PATH/addons,$ADDONS_DIR";
+    local addons_path="$ODOO_PATH/addons,$ADDONS_DIR";
+    if [ -e "$ODOO_PATH/odoo/addons" ]; then
+        addons_path="$ODOO_PATH/odoo/addons,$addons_path";
+    elif [ -e "$ODOO_PATH/openerp/addons" ]; then
+        addons_path="$ODOO_PATH/openerp/addons,$addons_path";
+    fi
 
     # default values
     ODOO_CONF_OPTIONS[addons_path]="${ODOO_CONF_OPTIONS['addons_path']:-$addons_path}";

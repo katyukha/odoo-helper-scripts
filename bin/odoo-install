@@ -264,17 +264,31 @@ function install_odoo {
 
 function generate_conf {
     # Generate configuration
-    local -A ODOO_CONF_OPTIONS=$CONF_OPTIONS;
+    local -A ODOO_CONF_OPTIONS;
+
+    for key in ${!CONF_OPTIONS[@]}; do
+        ODOO_CONF_OPTIONS[$key]=${CONF_OPTIONS[$key]};
+    done
+
+    # Add default values
     ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-$DB_HOST}";
     ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
     ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-$DB_USER}";
     ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-$DB_PASSWORD}";
-    install_generate_odoo_conf $ODOO_CONF_FILE;
+
+    # Generate conf
+    install_generate_odoo_conf $ODOO_CONF_FILE;  # imported from 'install' module
 }
 
 function generate_test_conf {
     # Generate test configuration configuration
-    local -A ODOO_CONF_OPTIONS=$TEST_CONF_OPTIONS;
+    local -A ODOO_CONF_OPTIONS;
+
+    for key in ${!TEST_CONF_OPTIONS[@]}; do
+        ODOO_CONF_OPTIONS[$key]=${TEST_CONF_OPTIONS[$key]};
+    done
+
+    # Add default values
     ODOO_CONF_OPTIONS[logfile]="${ODOO_CONF_OPTIONS['logfile']:-test-$LOG_FILE}";
     ODOO_CONF_OPTIONS[pidfile]="${ODOO_CONF_OPTIONS['pidfile']:-test-$ODOO_PID_FILE}";
     ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-$DB_HOST}";
@@ -286,7 +300,9 @@ function generate_test_conf {
     ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-8269}";
     ODOO_CONF_OPTIONS[xmlrpcs_port]="${ODOO_CONF_OPTIONS['xmlrpcs_port']:-8271}";
     ODOO_CONF_OPTIONS[longpolling_port]="${ODOO_CONF_OPTIONS['longpolling_port']:-8272}";
-    install_generate_odoo_conf $ODOO_TEST_CONF_FILE;
+
+    # Generate conf
+    install_generate_odoo_conf $ODOO_TEST_CONF_FILE;   # imported from 'install' module
 }
 
 #------------------------------------------------------------------------
@@ -307,8 +323,8 @@ install_odoo;
 
 # Generate and save odoo-helper project conf
 echo "`print_helper_config`" > $PROJECT_ROOT_DIR/$CONF_FILE_NAME;
-generate_conf;  # imported from 'install' module
-generate_test_conf;  # imported from 'install' module
+generate_conf;
+generate_test_conf;
 #---------------------------------------------
 
 echo -e "${GREENC}Odoo seems to be successfully installed!${NC}";
