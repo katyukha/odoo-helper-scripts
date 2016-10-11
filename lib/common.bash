@@ -270,3 +270,13 @@ function load_project_conf {
         echo -e "${REDC}WARNING: no project config file found${NC}";
     fi
 }
+
+# with_sudo <args>
+# Run command with sudo if required
+function with_sudo {
+    if [[ $UID != 0 ]]; then
+        sudo $@;
+    else
+        $@
+    fi
+}

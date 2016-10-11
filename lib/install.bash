@@ -23,6 +23,7 @@ function install_preconfigure_env {
     DB_USER=${ODOO_DBUSER:-odoo};
     DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
     DB_HOST=${ODOO_DBHOST:-localhost};
+    DB_PORT=${ODOO_DBPORT:-5432};
 }
 
 # create directory tree for project
@@ -71,7 +72,7 @@ function install_sys_deps_internal {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
-    sudo apt-get install $opt_apt_always_yes "$@";
+    with_sudo apt-get install $opt_apt_always_yes "$@";
 }
 
 # Get dependencies from odoo's debian/control file
@@ -133,22 +134,22 @@ function install_system_prerequirements {
     fi
 
     echo "Updating package list..."
-    sudo apt-get update || true;
+    with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
     local to_install="git wget python-setuptools perl g++ libpq-dev python-dev";
     if [ ! -z $install_extra_utils ]; then
         to_install="$to_install expect-dev";
     fi;
-    sudo apt-get install $opt_apt_always_yes $to_install;
+    with_sudo apt-get install $opt_apt_always_yes $to_install;
 
     # Install wkhtmltopdf
     wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O /tmp/wkhtmltox.deb
-    sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
-    sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+    with_sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
+    with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
 
-    sudo easy_install pip;
-    sudo pip install --upgrade pip virtualenv;
+    with_sudo easy_install pip;
+    with_sudo pip install --upgrade pip virtualenv;
 }
 
 
