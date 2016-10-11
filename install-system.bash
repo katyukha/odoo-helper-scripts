@@ -1,12 +1,17 @@
 #!/bin/bash
 
 # Simple script to install odoo-helper-script system-wide
+if [[ $UID != 0 ]]; then
+    echo "Please run this script with sudo:"
+    echo "sudo $0 $*"
+    exit 1
+fi
 
 
 set -e;  # Fail on each error
 
 if ! command -v git >/dev/null 2>&1; then
-    sudo apt-get install -y git
+    apt-get install -y git
 fi
 
 # define vars
@@ -25,27 +30,27 @@ ODOO_HELPER_BIN=${ODOO_HELPER_BIN:-$INSTALL_PATH/bin};
 
 # clone repo
 if [ ! -d $INSTALL_PATH ]; then
-    sudo git clone https://github.com/katyukha/odoo-helper-scripts $INSTALL_PATH;
+    git clone https://github.com/katyukha/odoo-helper-scripts $INSTALL_PATH;
     # TODO: may be it is good idea to pull changes from repository if it is already exists?
     # TODO: implement here some sort of upgrade mechanism?
 fi
 
 # install odoo-helper user config
 if [ ! -f "$ODOO_HELPER_SYS_CONF" ]; then
-    sudo echo "ODOO_HELPER_ROOT=$INSTALL_PATH;"   >> $ODOO_HELPER_SYS_CONF;
-    sudo echo "ODOO_HELPER_BIN=$ODOO_HELPER_BIN;" >> $ODOO_HELPER_SYS_CONF;
-    sudo echo "ODOO_HELPER_LIB=$ODOO_HELPER_LIB;" >> $ODOO_HELPER_SYS_CONF;
+    echo "ODOO_HELPER_ROOT=$INSTALL_PATH;"   >> $ODOO_HELPER_SYS_CONF;
+    echo "ODOO_HELPER_BIN=$ODOO_HELPER_BIN;" >> $ODOO_HELPER_SYS_CONF;
+    echo "ODOO_HELPER_LIB=$ODOO_HELPER_LIB;" >> $ODOO_HELPER_SYS_CONF;
 fi
 
 # add odoo-helper-bin to path
 for oh_cmd in $ODOO_HELPER_BIN/*; do
     if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
-        sudo ln -s $oh_cmd /usr/local/bin/;
+        ln -s $oh_cmd /usr/local/bin/;
     fi
 done
     
 echo "Odoo-helper-scripts seems to be correctly installed system-wide!";
 echo "Install path is $INSTALL_PATH";
-echo "To update odoo-helper-scripts, just go to install path, and pull last repo changes:";
-echo "    (cd $INSTALL_PATH && sudo git pull)";
+echo "To update odoo-helper-scripts, just run following command:";
+echo "    odoo-helper system update";
 
