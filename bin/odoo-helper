@@ -80,6 +80,7 @@ function print_usage {
                                                    this allows to use some libs of this project in external utils
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
         help | --help | -h                       - display this help message
+        --version                                - display odoo-helper version and exit
     
     Global options:
         --addons-dir <addons_directory>
@@ -179,6 +180,10 @@ function odoo_helper_main {
         case $key in
             -h|--help|help)
                 print_usage;
+                exit 0;
+            ;;
+            --version)
+                echo "$ODOO_HELPER_VERSION";
                 exit 0;
             ;;
             --downloads-dir)
