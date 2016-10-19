@@ -173,7 +173,7 @@ function install_python_prerequirements {
     execu easy_install --upgrade setuptools;
     execu pip install --upgrade pip erppeek setproctitle python-slugify watchdog;  
 
-    if ! execu python -c 'import pychart'; then
+    if ! execu "python -c 'import pychart'"; then
         execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
     fi
 
