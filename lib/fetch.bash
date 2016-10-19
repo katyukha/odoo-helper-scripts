@@ -371,10 +371,9 @@ function fetch_module {
             echo "The module $MODULE already present in addons dir";
             return 0;
         else
-            if [ -z $VERBOSE ]; then
-                git clone -q $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH;
-            else
-                git clone $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH;
+            [ -z $VERBOSE ] && local git_clone_opt=" -q "
+            if ! git clone $git_clone_opt $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH; then
+                echo -e "${REDC}Cannot clone '$REPOSITORY to $REPO_PATH'!${NC}";
             fi
         fi
     else
@@ -384,10 +383,10 @@ function fetch_module {
             else local verbose_opt=" -q "; fi
             if [ "$(git_get_branch_name)" == "$REPO_BRANCH" ]; then
                     git pull $verbose_opt;
-            else
-                git fetch $verbose_opt;
-                git stash $verbose_opt;  # TODO: seems to be not correct behavior. think about workaround
-                git checkout $verbose_opt $REPO_BRANCH;
+            #else
+                #git fetch $verbose_opt;
+                #git stash $verbose_opt;  # TODO: seems to be not correct behavior. think about workaround
+                #git checkout $verbose_opt $REPO_BRANCH;
             fi
         )
     fi
