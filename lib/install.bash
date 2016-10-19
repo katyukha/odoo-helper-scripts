@@ -167,19 +167,14 @@ function install_virtual_env {
     fi
 }
 
-# install_python_prerequirements [install extra utils (1)]
+# install_python_prerequirements
 function install_python_prerequirements {
-    local install_extra_utils=${1:-$INSTALL_EXTRA_UTILS};
     # required to make odoo.py work correctly when setuptools too old
     execu easy_install --upgrade setuptools;
-    execu pip install --upgrade pip;  
+    execu pip install --upgrade pip erppeek setproctitle python-slugify watchdog;  
 
     if ! execu python -c 'import pychart'; then
         execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
-    fi
-
-    if [ ! -z $install_extra_utils ]; then
-        execu pip install --upgrade erppeek setproctitle python-slugify watchdog;
     fi
 
     # Install PIL only for odoo versions that have no requirements txt (<8.0)
