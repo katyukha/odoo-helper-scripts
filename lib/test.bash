@@ -60,26 +60,35 @@ function remove_tmp_dirs {
 }
 
 
-# test_run_server [options]
+# test_run_server <with_coverage 0|1> [server options]
 function test_run_server {
+    local with_coverage=$1; shift;
     local SERVER=`get_server_script`;
     echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}]${NC}: $SERVER $@";
     export OPENERP_SERVER=$ODOO_TEST_CONF_FILE;
-    execu "$SERVER --stop-after-init --no-xmlrpc $@";
+
+    # enable test coverage
+    if [ $with_coverage -eq 1 ]; then
+        execu "coverage run $(execv command -v $SERVER) --stop-after-init --no-xmlrpc $@";
+    else
+        execu "$SERVER --stop-after-init --no-xmlrpc $@";
+    fi
+
     unset OPENERP_SERVER;
 }
 
-# test_module_impl <module> [extra_options]
+# test_module_impl <with_coverage 0|1> <module> [extra_options]
 # example: test_module_impl base -d test1
 function test_module_impl {
-    local module=$1
-    shift;  # all next arguments will be passed to server
+    local with_coverage=$1
+    local module=$2
+    shift; shift;  # all next arguments will be passed to server
 
     set +e; # do not fail on errors
     # Install module
-    test_run_server --init=$module --log-level=warn "$@";
+    test_run_server $with_coverage --init=$module --log-level=warn "$@";
     # Test module
-    test_run_server --update=$module --log-level=test --test-enable --workers=0 "$@";
+    test_run_server $with_coverage --update=$module --log-level=test --test-enable --workers=0 "$@";
     set -e; # Fail on any error
 }
 
@@ -101,14 +110,16 @@ function test_get_or_create_db {
 
 
 # Run tests for set of addons
-# test_run_tests_for_modules <test_db_name> <log_file> <module_1> [module2] ...
+# test_run_tests_for_modules <with_coverage 0|1> <test_db_name> <log_file> <module_1> [module2] ...
 function test_run_tests_for_modules {
-    local test_db_name=$1;
-    local test_log_file=$2;
-    shift; shift;
+    local with_coverage=$1
+    local test_db_name=$2;
+    local test_log_file=$3;
+    shift; shift; shift;
+
     for module in $@; do
         echo -e "${BLUEC}Testing module $module...${NC}";
-        test_module_impl $module --database $test_db_name \
+        test_module_impl $with_coverage $module --database $test_db_name \
             2>&1 | tee -a $test_log_file;
     done
 }
@@ -155,11 +166,11 @@ function test_parse_log_file {
 
 
 # Run tests
-# test_run_tests <create_test_db 1|0> <reinit_base 1|0> <fail_on_warn 1|0> <modules>
+# test_run_tests <create_test_db 1|0> <fail_on_warn 1|0> <with_coverage 1|0> <modules>
 function test_run_tests {
     local create_test_db=$1;
-    local reinit_base=$2;
-    local fail_on_warn=$3;
+    local fail_on_warn=$2;
+    local with_coverage=$3;
     shift; shift; shift;
 
     # Create new test database if required
@@ -172,16 +183,15 @@ function test_run_tests {
         rm $test_log_file;
     fi
 
-    # Reinitialize base module, to find new addons
-    if [ $reinit_base -eq 1 ]; then
-        echo -e "${BLUEC}Reinitializing base module...${NC}";
-        test_run_server -d $test_db_name --init=base --log-level=warn;
+    test_run_tests_for_modules $with_coverage $test_db_name $test_log_file $@;
+
+    # Combine test coverage results
+    if [ $with_coverage -eq 1 ]; then
+        execv coverage combine;
     fi
 
-    test_run_tests_for_modules $test_db_name $test_log_file $@;
-
     # Drop created test db
-    if [ ! -z $create_test_db ]; then
+    if [ $create_test_db -eq 1 ]; then
         echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
         odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE
     fi
@@ -198,8 +208,8 @@ function test_run_tests {
 # test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
 function test_module {
     local create_test_db=0;
-    local reinit_base=0;
     local fail_on_warn=0;
+    local with_coverage=0;
     local modules="";
     local usage="
     Usage 
@@ -208,10 +218,10 @@ function test_module {
 
     Options:
         --create-test-db    - Creates temporary database to run tests in
-        --reinit-base       - this option adds 'base' module to init list. this is way to reload module list in existing database
         --fail-on-warn      - if this option passed, then tests will fail even on warnings
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
+        --coverage          - calculate code coverage
     ";
 
     # Parse command line options and run commands
@@ -230,13 +240,13 @@ function test_module {
                 exit 0;
             ;;
             --create-test-db)
-                local create_test_db=1;
-            ;;
-            --reinit-base)
-                local reinit_base=1;
+                create_test_db=1;
             ;;
             --fail-on-warn)
-                local fail_on_warn=1;
+                fail_on_warn=1;
+            ;;
+            --coverage)
+                with_coverage=1;
             ;;
             -m|--module)
                 modules="$modules $2";  # add module to module list
@@ -261,8 +271,8 @@ function test_module {
     fi
 
     # Run tests
-    if test_run_tests ${create_test_db:-0} ${reinit_base:-0} \
-            ${fail_on_warn:-0} $modules;
+    if test_run_tests ${create_test_db:-0} ${fail_on_warn:-0} \
+            ${with_coverage:-0} $modules;
     then
         local res=$?;
     else

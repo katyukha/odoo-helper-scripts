@@ -78,6 +78,7 @@ function odoo_db_dump {
     local db_dump_file=$2;
     local conf_file=$ODOO_CONF_FILE;
 
+    # determine 3-d and 4-th arguments (format and odoo_conf_file)
     if [ -f "$3" ]; then
         conf_file=$3;
     elif [ ! -z $3 ]; then
