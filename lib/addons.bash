@@ -46,10 +46,10 @@ function addons_get_installed_addons {
     execu python -c "\"$python_cmd\"";
 }
 
-# Update list of addons visible in system
+# Update list of addons visible in system (for single db)
 # NOTE: Odoo 8.0+ required
 # addons_update_module_list <db> [conf_file]
-function addons_update_module_list {
+function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
@@ -61,6 +61,24 @@ function addons_update_module_list {
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
     execu python -c "\"$python_cmd\"";
+}
+
+
+# Update list of addons visible in system for db or all databases
+# NOTE: Odoo 8.0+ required
+# addons_update_module_list <db> [conf_file]
+function addons_update_module_list {
+    local db=$1;
+
+    if [ ! -z $db ]; then
+        echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
+        addons_update_module_list_db $db;
+    else
+        for db in $(odoo_db_list); do
+            echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
+            addons_update_module_list_db $db;
+        done
+    fi
 }
 
 # List addons repositories
@@ -301,7 +319,7 @@ function addons_command {
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
         $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
-        $SCRIPT_NAME addons update-list <db>              - update list of addons
+        $SCRIPT_NAME addons update-list [db>              - update list of addons
         $SCRIPT_NAME addons --help                        - show this help message
 
     ";
