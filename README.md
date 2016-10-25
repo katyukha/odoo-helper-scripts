@@ -28,6 +28,12 @@ After instalation You will have ```odoo-helper-scripts``` directory under ```/op
 (also ```odoo-helper``` and ```odoo-install``` scripts will be linked to ```/usr/local/bin/``` dir).
 And ```/etc/odoo-helper.conf``` file will be generated with path to odoo-helper-scripts install dir.
 
+If you wish to install from *dev* branch, you can use following command:
+
+```bash
+wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s - dev
+```
+
 
 ## Features
 
