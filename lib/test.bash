@@ -69,9 +69,9 @@ function test_run_server {
 
     # enable test coverage
     if [ $with_coverage -eq 1 ]; then
-        execu "coverage run $(execv command -v $SERVER) --stop-after-init --no-xmlrpc $@";
+        execu "coverage run $(execv command -v $SERVER) --stop-after-init $@";
     else
-        execu "$SERVER --stop-after-init --no-xmlrpc $@";
+        execu "$SERVER --stop-after-init $@";
     fi
 
     unset OPENERP_SERVER;
@@ -88,7 +88,8 @@ function test_module_impl {
     # Install module
     test_run_server $with_coverage --init=$module --log-level=warn "$@";
     # Test module
-    test_run_server $with_coverage --update=$module --log-level=test --test-enable --workers=0 "$@";
+    test_run_server $with_coverage --update=$module \
+        --log-level=test --test-enable "$@";
     set -e; # Fail on any error
 }
 
@@ -100,7 +101,7 @@ function test_get_or_create_db {
 
     if [ $create_test_db -eq 1 ]; then
         local test_db_name=`random_string 24`;
-        odoo_db_create $test_db_name $ODOO_TEST_CONF_FILE 1&>2;
+        odoo_db_create $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
     else
         # name of test database expected to be defined in ODOO_TEST_CONF_FILE
         local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
@@ -150,6 +151,7 @@ function test_parse_log_file {
                -e "ERROR $test_db_name" \
                -e "At least one test failed" \
                -e "invalid module names, ignored" \
+               -e "no access rules, consider adding one" \
                -e "OperationalError: FATAL" \
                "$test_log_file"; then
         res=1;
@@ -162,6 +164,19 @@ function test_parse_log_file {
 
     return $res
     
+}
+
+# Function to handle Keyboard Interrupt while test.
+# Primary reason for this is to clean up database if it was created for test
+function test_run_tests_handle_sigint {
+    local create_test_db=$1;
+    local test_db_name=$2
+
+    if [ $create_test_db -eq 1 ]; then
+        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE;
+    fi
+
+    exit 1;
 }
 
 
@@ -182,6 +197,8 @@ function test_run_tests {
     if [ -e $test_log_file ]; then
         rm $test_log_file;
     fi
+
+    trap "test_run_tests_handle_sigint $create_test_db $test_db_name" SIGINT;
 
     test_run_tests_for_modules $with_coverage $test_db_name $test_log_file $@;
 
