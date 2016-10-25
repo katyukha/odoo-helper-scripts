@@ -134,8 +134,8 @@ function update_odoo_helper_scripts {
     if [ -z $scripts_branch ]; then
         git pull;
     else
-        git fetch origin;
-        git checkout origin/$scripts_branch;
+        git fetch -q origin;
+        git checkout -q origin/$scripts_branch;
     fi
 
     # update odoo-helper bin links
@@ -143,7 +143,7 @@ function update_odoo_helper_scripts {
     for oh_cmd in $ODOO_HELPER_BIN/*; do
         if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
             if [ "$base_path" == /opt* ]; then
-                sudo ln -s $oh_cmd /usr/local/bin/;
+                with_sudo ln -s $oh_cmd /usr/local/bin/;
             elif [ "$base_path" == $HOME/* ]; then
                 ln -s $oh_cmd $HOME/bin;
             fi
