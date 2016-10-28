@@ -221,24 +221,41 @@ function test_run_tests {
     fi
 }
 
+
+# test_find_modules_in_directories <dir1> [dir2] ...
+# echoes list of modules found in specified directories
+function test_find_modules_in_directories {
+    for directory in $@; do
+        # skip non directories
+        for addon_path in $(addons_list_in_directory $directory); do
+            echo -n " $(basename $addon_path)";
+        done
+    done
+}
+
 # test_module [--create-test-db] -m <module_name>
 # test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
+# test_module [--tmp-dirs] [--create-test-db] -d <dir with addons to test>
 function test_module {
     local create_test_db=0;
     local fail_on_warn=0;
     local with_coverage=0;
     local modules="";
+    local directories="";
     local usage="
     Usage 
 
-        $SCRIPT_NAME test_module [options] [-m <module_name>] [-m <module name>] ...
+        $SCRIPT_NAME test [options] [-m <module_name>] [-m <module name>] ...
+        $SCRIPT_NAME test [options] [-d <dir with addons to test>]
 
     Options:
         --create-test-db    - Creates temporary database to run tests in
         --fail-on-warn      - if this option passed, then tests will fail even on warnings
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
-        --coverage          - calculate code coverage
+        --coverage          - calculate code coverage (use python's *coverage* util)
+        -m|--module         - specify module to test
+        -d|--directory      - specify directory with modules to test
     ";
 
     # Parse command line options and run commands
@@ -267,6 +284,10 @@ function test_module {
             ;;
             -m|--module)
                 modules="$modules $2";  # add module to module list
+                shift;
+            ;;
+            -d|--directory)
+                modules="$modules $(test_find_modules_in_directories $2)";
                 shift;
             ;;
             --tmp-dirs)

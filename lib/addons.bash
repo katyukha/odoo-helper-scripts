@@ -81,6 +81,21 @@ function addons_update_module_list {
     fi
 }
 
+
+# List addons in specified directory
+#
+# addons_list_in_directory <directory to search odoo addons in>
+function addons_list_in_directory {
+    local addons_path=${1:-$ADDONS_DIR};
+    if [ -d $addons_path ]; then
+        for addon in "$addons_path"/*; do
+            if is_odoo_module $addon; then
+                echo "$(readlink -f $addon)";
+            fi
+        done
+    fi
+}
+
 # List addons repositories
 # Note that this function list only addons that are under git control
 #
@@ -88,13 +103,11 @@ function addons_update_module_list {
 function addons_list_repositories {
     local addons_path=${1:-$ADDONS_DIR};
 
-    if [ ! -z $addons_path ]; then
-        for addon in "$addons_path"/*; do
-            if is_odoo_module $addon && git_is_git_repo $addon; then
-                echo "$(git_get_abs_repo_path $addon)";
-            fi
-        done | sort -u;
-    fi
+    for addon in $(addons_list_in_directory $addons_path); do
+        if git_is_git_repo $addon; then
+            echo "$(git_get_abs_repo_path $addon)";
+        fi
+    done | sort -u;
 }
 
 
@@ -105,13 +118,11 @@ function addons_list_repositories {
 function addons_list_no_repository {
     local addons_path=${1:-$ADDONS_DIR};
 
-    if [ ! -z $addons_path ]; then
-        for addon in "$addons_path"/*; do
-            if is_odoo_module $addon && ! git_is_git_repo $addon; then
-                echo "$(readlink -f $addon)";
-            fi
-        done | sort -u;
-    fi
+    for addon in $(addons_list_in_directory $addons_path); do
+        if ! git_is_git_repo $addon; then
+            echo "$(readlink -f $addon)";
+        fi
+    done | sort -u;
 }
 
 
@@ -319,7 +330,7 @@ function addons_command {
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
         $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
-        $SCRIPT_NAME addons update-list [db>              - update list of addons
+        $SCRIPT_NAME addons update-list [db]              - update list of addons
         $SCRIPT_NAME addons --help                        - show this help message
 
     ";
