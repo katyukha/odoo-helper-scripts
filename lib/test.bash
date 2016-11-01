@@ -118,11 +118,10 @@ function test_run_tests_for_modules {
     local test_log_file=$3;
     shift; shift; shift;
 
-    for module in $@; do
-        echo -e "${BLUEC}Testing module $module...${NC}";
-        test_module_impl $with_coverage $module --database $test_db_name \
-            2>&1 | tee -a $test_log_file;
-    done
+    local modules=$(join_by , $@);
+    echo -e "${BLUEC}Testing modules $modules...${NC}";
+    test_module_impl $with_coverage $modules --database $test_db_name \
+        2>&1 | tee -a $test_log_file;
 }
 
 
@@ -225,6 +224,10 @@ function test_run_tests {
 # test_find_modules_in_directories <dir1> [dir2] ...
 # echoes list of modules found in specified directories
 function test_find_modules_in_directories {
+    # TODO: sort addons in correct order to avoid duble test runs
+    #       in cases when addon that is tested first depends on other,
+    #       which is tested next, but when it is tested, then all dependent
+    #       addons will be also tested
     for directory in $@; do
         # skip non directories
         for addon_path in $(addons_list_in_directory $directory); do

@@ -280,3 +280,12 @@ function with_sudo {
         $@
     fi
 }
+
+# Join arguments useing arg $1 as separator
+# join_by , a "b c" d -> a,b c,d
+# origin: http://stackoverflow.com/questions/1527049/bash-join-elements-of-an-array#answer-17841619
+function join_by {
+    local IFS="$1";
+    shift;
+    echo "$*";
+}
