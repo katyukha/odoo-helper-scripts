@@ -75,10 +75,29 @@ function install_sys_deps_internal {
     with_sudo apt-get install $opt_apt_always_yes "$@";
 }
 
+# install_parse_debian_control_file <control file>
+# parse debian control file to fetch odoo dependencies
+function install_parse_debian_control_file {
+    local file_path=$1;
+    local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+    echo "$sys_deps";
+}
+
+# install_sys_deps_for_odoo_version <odoo branch>
+# Note that odoo branch here is branch of official odoo repository
+function install_sys_deps_for_odoo_version {
+    local odoo_branch=$1;
+    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
+    local tmp_control=$(mktemp);
+    wget $control_url -O $tmp_control;
+    local sys_deps=$(install_parse_debian_control_file $tmp_control);
+    install_sys_deps_internal $sys_deps;
+    rm $tmp_control;
+}
+
 # Get dependencies from odoo's debian/control file
 function install_sys_deps {
     local control_file=$ODOO_PATH/debian/control;
-    local perl_expr='next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p';
 
     # If odoo not installed, then fetch this file from odoo repository
     if [ ! -f "$control_file" ]; then
@@ -100,7 +119,7 @@ function install_sys_deps {
 
     # Parse control file and install system dependencies
     if [ -f "$control_file" ]; then
-        local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $control_file);
+        local sys_deps=$(install_parse_debian_control_file $control_file);
         echo -e "${BLUEC}Sys deps to be installed:${NC} $sys_deps";
         install_sys_deps_internal $sys_deps;
     else
@@ -144,9 +163,11 @@ function install_system_prerequirements {
     with_sudo apt-get install $opt_apt_always_yes $to_install;
 
     # Install wkhtmltopdf
-    wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O /tmp/wkhtmltox.deb
-    with_sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
-    with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+    if [ ! -f $DOWNLOADS_DIR/wkhtmltox.deb ]; then
+        wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O $DOWNLOADS_DIR/wkhtmltox.deb
+        with_sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
+        with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+    fi
 
     with_sudo easy_install pip;
     with_sudo pip install --upgrade pip virtualenv;
@@ -171,7 +192,9 @@ function install_virtual_env {
 function install_python_prerequirements {
     # required to make odoo.py work correctly when setuptools too old
     execu easy_install --upgrade setuptools;
-    execu pip install --upgrade pip erppeek setproctitle python-slugify watchdog;  
+    execu pip install --upgrade pip erppeek \
+        setproctitle python-slugify watchdog pylint pylint-odoo coverage \
+        flake8 flake8-colors;  
 
     if ! execu "python -c 'import pychart'"; then
         execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
