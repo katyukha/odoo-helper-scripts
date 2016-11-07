@@ -236,6 +236,47 @@ function test_find_modules_in_directories {
     done
 }
 
+# Run flake8 for modules
+# test_run_flake8 <module1 path> [module2 path] .. [module n path]
+function test_run_flake8 {
+    local res=0;
+    for addon_path in $@; do
+        if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $addon_path; then
+            res=1;
+        fi
+    done
+    return res;
+}
+
+# Run pylint tests for modules
+# test_run_flake8 <module1 path> [module2 path] .. [module n path]
+function test_run_pylint {
+    local pylint_rc="$ODOO_HELPER_LIB/default_config/pylint_odoo.cfg";
+    local pylint_opts="--rcfile=$pylint_rc -d manifest-required-author";
+    local res=0;
+    for path in $@; do
+        if is_odoo_module $path; then
+            local addon_dir=$(dirname $path);
+            local addon_name=$(basename $path);
+            local save_dir=$(pwd);
+            cd $addon_dir;
+            if ! execu pylint $pylint_opts $addon_name; then
+                res=1;
+            fi
+            cd $save_dir;
+        elif [ -d $path ]; then
+            for subdir in "$path"/*; do
+                if is_odoo_module $subdir; then
+                    if ! test_run_pylint $subdir; then
+                        res=1;
+                    fi
+                fi
+            done
+        fi
+    done
+    return $res
+}
+
 # test_module [--create-test-db] -m <module_name>
 # test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
 # test_module [--tmp-dirs] [--create-test-db] -d <dir with addons to test>
@@ -250,6 +291,8 @@ function test_module {
 
         $SCRIPT_NAME test [options] [-m <module_name>] [-m <module name>] ...
         $SCRIPT_NAME test [options] [-d <dir with addons to test>]
+        $SCRIPT_NAME test flake8 <addon path> [addon path]
+        $SCRIPT_NAME test pylint <addon path> [addon path]
 
     Options:
         --create-test-db    - Creates temporary database to run tests in
@@ -298,6 +341,16 @@ function test_module {
             ;;
             --no-rm-tmp-dirs)
                 local not_remove_tmp_dirs=1;
+            ;;
+            flake8)
+                shift;
+                test_run_flake8 $@;
+                exit;
+            ;;
+            pylint)
+                shift;
+                test_run_pylint $@;
+                exit;
             ;;
             *)
                 echo "Unknown option: $key";
