@@ -255,9 +255,18 @@ function test_run_flake8 {
 
 # Run pylint tests for modules
 # test_run_flake8 <module1 path> [module2 path] .. [module n path]
+# test_run_flake8 [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
 function test_run_pylint {
+    if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
+        local pylint_disable_opt=$1;
+        local pylint_disable_arg="${BASH_REMATCH[1]}";
+        local pylint_disable=$(join_by , $pylint_disable_arg "manifest-required-author");
+        shift;
+    else
+        local pylint_disable="manifest-required-author";
+    fi
     local pylint_rc="$ODOO_HELPER_LIB/default_config/pylint_odoo.cfg";
-    local pylint_opts="--rcfile=$pylint_rc -d manifest-required-author";
+    local pylint_opts="--rcfile=$pylint_rc -d $pylint_disable";
     local res=0;
     for path in $@; do
         if is_odoo_module $path; then
@@ -272,7 +281,7 @@ function test_run_pylint {
         elif [ -d $path ]; then
             for subdir in "$path"/*; do
                 if is_odoo_module $subdir; then
-                    if ! test_run_pylint $subdir; then
+                    if ! test_run_pylint "$pylint_disable_opt" $subdir; then
                         res=1;
                     fi
                 fi
@@ -298,6 +307,7 @@ function test_module {
         $SCRIPT_NAME test [options] [-d <dir with addons to test>]
         $SCRIPT_NAME test flake8 <addon path> [addon path]
         $SCRIPT_NAME test pylint <addon path> [addon path]
+        $SCRIPT_NAME test pylint [--disable=E111,E222,...] <addon path> [addon path]
 
     Options:
         --create-test-db    - Creates temporary database to run tests in
