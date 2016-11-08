@@ -69,7 +69,12 @@ function test_run_server {
 
     # enable test coverage
     if [ $with_coverage -eq 1 ]; then
-        execu "coverage run $(execv command -v $SERVER) --stop-after-init $@";
+        if [ -z $COVERAGE_INCLUDE ]; then
+            local COVERAGE_INCLUDE="$(pwd)/*";
+        fi
+        execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
+            --include='$COVERAGE_INCLUDE' $(execv command -v $SERVER) \
+            --stop-after-init $@";
     else
         execu "$SERVER --stop-after-init $@";
     fi
@@ -245,7 +250,7 @@ function test_run_flake8 {
             res=1;
         fi
     done
-    return res;
+    return $res;
 }
 
 # Run pylint tests for modules
