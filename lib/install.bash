@@ -164,8 +164,9 @@ function install_system_prerequirements {
 
     # Install wkhtmltopdf
     if [ ! -f $DOWNLOADS_DIR/wkhtmltox.deb ]; then
-        wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O $DOWNLOADS_DIR/wkhtmltox.deb
-        with_sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
+        wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
+             -O $DOWNLOADS_DIR/wkhtmltox.deb
+        with_sudo dpkg --force-depends -i $DOWNLOADS_DIR/wkhtmltox.deb  # install ignoring dependencies
         with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
     fi
 
