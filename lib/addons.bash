@@ -12,6 +12,7 @@ ohelper_require 'git';
 ohelper_require 'db';
 ohelper_require 'server';
 ohelper_require 'odoo';
+ohelper_require 'fetch';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -66,7 +67,7 @@ function addons_update_module_list_db {
 
 # Update list of addons visible in system for db or all databases
 # NOTE: Odoo 8.0+ required
-# addons_update_module_list <db> [conf_file]
+# addons_update_module_list [db] [conf_file]
 function addons_update_module_list {
     local db=$1;
 
@@ -154,10 +155,12 @@ function addons_git_pull_updates {
         IFS=$'\n' git_status=( $(git_parse_status $addon_repo || echo '') );
         local git_remote_status=${git_status[1]};
         if [[ $git_remote_status == _BEHIND_* ]] && [[ $git_remote_status != *_AHEAD_* ]]; then
-            (cd $addon_repo && git pull);
+            (cd $addon_repo && git pull && link_module .);
         fi
-
     done
+
+    # update list available modules for all databases
+    addons_update_module_list
 }
 
 
