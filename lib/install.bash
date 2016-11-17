@@ -133,6 +133,8 @@ function install_sys_deps {
 }
 
 function install_and_configure_postgresql {
+    local db_user=${1:-$DB_USER};
+    local db_password=${2:-DB_PASSWORD};
     # Check if postgres is installed on this machine. If not, install it
     if ! postgres_is_installed; then
         postgres_install_postgresql;
@@ -140,7 +142,7 @@ function install_and_configure_postgresql {
         echov "It seems that postgresql is already installed, so not installing it, just configuring...";
     fi
 
-    postgres_user_create $DB_USER $DB_PASSWORD;
+    postgres_user_create $db_user $db_password;
     echov "Postgres seems to be installed and db user seems created.";
 }
 
@@ -163,11 +165,15 @@ function install_system_prerequirements {
     with_sudo apt-get install $opt_apt_always_yes $to_install;
 
     # Install wkhtmltopdf
-    if [ ! -f $DOWNLOADS_DIR/wkhtmltox.deb ]; then
-        wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
-             -O $DOWNLOADS_DIR/wkhtmltox.deb
-        with_sudo dpkg --force-depends -i $DOWNLOADS_DIR/wkhtmltox.deb  # install ignoring dependencies
+    if ! check_command wkhtmltopdf > /dev/null; then
+        local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
+        if [ ! -f $wkhtmltox_path ]; then
+            wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
+                 -O $wkhtmltox_path
+        fi
+        with_sudo dpkg --force-depends -i $wkhtmltox_path  # install ignoring dependencies
         with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+        rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
     fi
 
     with_sudo easy_install pip;
