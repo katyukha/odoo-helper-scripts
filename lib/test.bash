@@ -235,8 +235,8 @@ function test_find_modules_in_directories {
     #       addons will be also tested
     for directory in $@; do
         # skip non directories
-        for addon_path in $(addons_list_in_directory $directory); do
-            echo -n " $(basename $addon_path)";
+        for addon in $(addons_list_in_directory_by_name $directory); do
+            echo -n " $addon";
         done
     done
 }

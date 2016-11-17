@@ -13,6 +13,7 @@ fi
 
 ohelper_require "addons";
 ohelper_require "server";
+ohelper_require "db";
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -37,12 +38,16 @@ function tr_parse_addons {
     if [ "$1" == "all" ]; then
         addons_get_installed_addons $db;
     else
-        local addons="$1"; shift;
+        local addons=;
         while [[ $# -gt 0 ]]; do  # while there at least one argumet left
-            addons="$addons,$1";
+            if [[ "$1" =~ ^--dir=(.*)$ ]]; then
+                addons="$addons $(join_by ' '  $(addons_list_in_directory_by_name ${BASH_REMATCH[1]}))";
+            else
+                addons="$addons $1";
+            fi
             shift;
         done
-        echo "$addons";
+        echo "$(join_by , $addons)";
     fi;
 }
 
@@ -66,8 +71,8 @@ function tr_import_export_internal {
         local i18n_dir=$addon_path/i18n;
         local i18n_file=$i18n_dir/$file_name.po
 
-        # if there is no i18n dir, create it
-        if [ ! -d $i18n_dir ]; then
+        # if export and there is no i18n dir, create it
+        if [ "$cmd" == "export" ] && [ ! -d $i18n_dir ]; then
             mkdir -p $i18n_dir;
         fi
 
@@ -136,6 +141,7 @@ function tr_main {
             $SCRIPT_NAME tr export <db> uk_UA uk <addon1> [addon2] [addon3]...
             $SCRIPT_NAME tr export <db> uk_UA uk all
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk <addon1> [addon2] [addon3]...
+            $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk --dir=/addons/dir --dir=/addons/dir2 [addon3]...
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk all
             $SCRIPT_NAME tr load <db> uk_UA
 

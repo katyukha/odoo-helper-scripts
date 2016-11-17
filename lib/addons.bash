@@ -86,6 +86,8 @@ function addons_update_module_list {
 # List addons in specified directory
 #
 # addons_list_in_directory <directory to search odoo addons in>
+#
+# Note: this funtion lists addon paths
 function addons_list_in_directory {
     local addons_path=${1:-$ADDONS_DIR};
     if [ -d $addons_path ]; then
@@ -96,6 +98,19 @@ function addons_list_in_directory {
         done
     fi
 }
+
+
+# List addons in specified directory by name
+# This function prints only name of addons found in specified dir.
+# Not paths!
+#
+# addons_list_in_directory_by_name <directory to search odoo addons in>
+function addons_list_in_directory_by_name {
+    for addon_path in $(addons_list_in_directory $1); do
+        echo "$(basename $addon_path)";
+    done
+}
+
 
 # List addons repositories
 # Note that this function list only addons that are under git control
