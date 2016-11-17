@@ -158,7 +158,9 @@ function addons_git_fetch_updates {
     local addons_dir=${1:-$ADDONS_DIR};
     # fetch updates for each addon repo
     for addon_repo in $(addons_list_repositories $addons_dir); do
-        (cd $addon_repo && git fetch) || true;
+        if ! (cd $addon_repo && git fetch); then
+            echo -e "${REDC} fetch updates error: $addon_repo${NC}";
+        fi
     done
 }
 
