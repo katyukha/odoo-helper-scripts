@@ -117,8 +117,8 @@ function server_stop {
                 echo "Cannot kill process.";
             fi
         else
-            echo "Server seems not to be running!"
-            echo "Or PID file $ODOO_PID_FILE was removed";
+            echo -e "${YELLOWC}Server seems not to be running!${NC}"
+            echo -e "${YELLOWC}Or PID file $ODOO_PID_FILE was removed${NC}";
         fi
     fi
 

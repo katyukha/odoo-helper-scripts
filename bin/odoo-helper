@@ -93,6 +93,7 @@ function print_usage {
                                                 otherwise standard 'exec' will be used to run odoo server
                                                 this helps to make odoo server think that it runs in terminal thus
                                                 it provides colored output.
+        --no-colors                           - disable colored output
         --verbose|--vv                        - show extra output
 
     Also global options may be set up using configuration files.
@@ -195,6 +196,9 @@ function odoo_helper_main {
             --use-unbuffer)
                 USE_UNBUFFER=1;
             ;;
+            --no-colors)
+                deny_colors;
+            ;;
             --verbose|-vv)
                 VERBOSE=1;
             ;;
@@ -296,7 +300,7 @@ function odoo_helper_main {
             exec)
                 shift;
                 load_project_conf;
-                execu "$@";
+                execv "$@";
                 exit 0;
             ;;
             *)
