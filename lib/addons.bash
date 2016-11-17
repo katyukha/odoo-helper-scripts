@@ -341,6 +341,23 @@ function addons_install_update {
 }
 
 
+# This function test what databases have this addon installed
+# addons_test_installed <addon>
+function addons_test_installed {
+    local addons=$(join_by , $@);
+    for db in $(odoo_db_list); do
+        local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$ODOO_CONF_FILE']);";
+        python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
+        python_cmd="$python_cmd is_installed=bool(env['ir.module.module'].search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
+        python_cmd="$python_cmd exit(not is_installed);"
+
+        if execu python -c "\"$python_cmd\""; then
+            echo "$db";
+        fi
+    done
+}
+
+
 function addons_command {
     local usage="Usage:
 
@@ -352,6 +369,7 @@ function addons_command {
         $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
         $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
         $SCRIPT_NAME addons update-list [db]              - update list of addons
+        $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons --help                        - show this help message
 
     ";
@@ -409,6 +427,11 @@ function addons_command {
             update-list)
                 shift;
                 addons_update_module_list "$@";
+                exit 0;
+            ;;
+            test-installed)
+                shift;
+                addons_test_installed $@;
                 exit 0;
             ;;
             generate_requirements)
