@@ -251,6 +251,7 @@ function addons_show_status {
         # Display addon status
         echo -e "Addon status for ${BLUEC}$addon_repo${NC}'";
         echo -e "\tRepo branch:          ${git_status[0]}";
+        echo -e "\tRepo remote:          $(git_get_remote_url $addon_repo)";
         [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Remote: ${git_status[1]}${NC}";
         [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Upstream: ${git_status[2]}${NC}";
         [ ${git_status[3]} -eq 1 ]  && echo -e "\t${GREENC}Repo is clean!${NC}";

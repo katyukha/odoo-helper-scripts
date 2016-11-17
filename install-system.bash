@@ -13,7 +13,7 @@ ODOO_HELPER_BRANCH=${1:-master}
 set -e;  # Fail on each error
 
 if ! command -v git >/dev/null 2>&1; then
-    apt-get install -y git
+    apt-get install -y git;
 fi
 
 # define vars
