@@ -351,7 +351,7 @@ function addons_test_installed {
         python_cmd="$python_cmd is_installed=bool(env['ir.module.module'].search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
         python_cmd="$python_cmd exit(not is_installed);"
 
-        if execu python -c "\"$python_cmd\""; then
+        if execu python -c "\"$python_cmd\"" >/dev/null 2>&1; then
             echo "$db";
         fi
     done
