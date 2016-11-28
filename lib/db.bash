@@ -24,7 +24,7 @@ function odoo_db_create {
     echov "Creating odoo database $db_name using conf file $conf_file";
 
     local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', True, 'en_US');"
+    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', ${DB_DEMO:-True}, '${DB_LANG:-en_US}');"
 
     execu python -c "\"$python_cmd\"";
     

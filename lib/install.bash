@@ -17,7 +17,8 @@ set -e; # fail on errors
 # Set-up defaul values for environment variables
 function install_preconfigure_env {
     ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
-    ODOO_BRANCH=${ODOO_BRANCH:-9.0};
+    ODOO_VERSION=${ODOO_VERSION:-9.0};
+    ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
     SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
     DB_USER=${ODOO_DBUSER:-odoo};
@@ -83,11 +84,11 @@ function install_parse_debian_control_file {
     echo "$sys_deps";
 }
 
-# install_sys_deps_for_odoo_version <odoo branch>
-# Note that odoo branch here is branch of official odoo repository
+# install_sys_deps_for_odoo_version <odoo version>
+# Note that odoo version here is branch of official odoo repository
 function install_sys_deps_for_odoo_version {
-    local odoo_branch=$1;
-    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
+    local odoo_version=$1;
+    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
     wget $control_url -O $tmp_control;
     local sys_deps=$(install_parse_debian_control_file $tmp_control);
@@ -99,36 +100,16 @@ function install_sys_deps_for_odoo_version {
 function install_sys_deps {
     local control_file=$ODOO_PATH/debian/control;
 
-    # If odoo not installed, then fetch this file from odoo repository
-    if [ ! -f "$control_file" ]; then
-        if [ ! -z $ODOO_REPO ] && [[ $ODOO_REPO == "https://github.com"* ]]; then
-            # Odoo repo is github, so we can get control file easily
-            # NOTE: Experimental code
-            local gh_repo=${ODOO_REPO##https://github.com};
-            gh_repo=${gh_repo%.git};
-            local control_url="raw.githubusercontent.com/$gh_repo/$ODOO_BRANCH/debian/control";
-            control_url=${control_url/\/\//\/};  # replace '//' on '/'
-            control_url=https://${control_url/\/\//\/};  # repeat replace '//' on '/'
-            local tmp_control=$(mktemp);
-            wget $control_url -O $tmp_control;
-            control_file=$tmp_control; 
-        else
-            echo -e "${YELLOWC}Warning, cannot get debian/control file automaticaly.${NC}";
-        fi
-    fi
-
-    # Parse control file and install system dependencies
-    if [ -f "$control_file" ]; then
+    if [ ! -f "$control_file" ] && [ ! -z $ODOO_VERSION ]; then
+        # If odoo not installed, then fetch this file from odoo repository
+        install_sys_deps_for_odoo_version $ODOO_VERSION;
+    elif [ -f "$control_file" ]; then
+        # Parse control file and install system dependencies
         local sys_deps=$(install_parse_debian_control_file $control_file);
         echo -e "${BLUEC}Sys deps to be installed:${NC} $sys_deps";
         install_sys_deps_internal $sys_deps;
     else
         echo -e "${REDC}ERROR! Cannot find debian/control file${NC}";
-    fi
-   
-    # Remove temp file if it was created 
-    if [ ! -z $tmp_control ]; then
-        rm $tmp_control;
     fi
 }
 

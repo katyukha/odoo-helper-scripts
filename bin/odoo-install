@@ -74,14 +74,16 @@ function print_usage {
          -i|--install-dir <dir>        - directory to install odoo in. default: $PROJECT_ROOT_DIR
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
-         -b|--branch <branch>          - specify odoo branch to clone. default: $ODOO_BRANCH
+         --odoo-version <odoo version> - odoo version to install. default: $ODOO_VERSION
+         -b|--branch <branch>          - specify odoo branch to install. default: $ODOO_BRANCH
+                                         Normaly it is same as odoo version, but if You want to install odoo
+                                         from diferent branch, use this option.
          --extra-utils                 - install extra python packages. (for example 'erppeek', which
                                          is used by odoo-helper script to manage databases)
          --install-sys-deps            - (requires sudo) (debian only) (experimental).
                                          Attempt to install system dependencies.
          --install-and-conf-postgres   - (requires sudo) (debian only) (experimental)
                                          Install postgresql server and create role for Odoo.
-         --use-system-packages on|off  - allow virtualenv use system packages. (default: enabled)
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
@@ -91,10 +93,6 @@ function print_usage {
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
-         --use-unbuffer                - if set, then 'unbuffer' command from 'expect' package will be used
-                                         otherwise standard 'exec' will be used to run odoo server
-                                         this helps to make odoo server think that it runs in terminal thus
-                                         it provides colored output.
          -y                            - Answer yes on any question. (used in apt-get commands
                                          when --install-sys-deps option supplied.)
 
@@ -158,10 +156,6 @@ function parse_options {
             --install-and-conf-postgres)
                 INSTALL_AND_CONFIGURE_POSTGRESQL=1;
             ;;
-            --use-system-packages)
-                USE_SYSTEM_SITE_PACKAGES=$2;
-                shift
-            ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
                 shift;
@@ -181,9 +175,6 @@ function parse_options {
             --db-pass)
                 DB_PASSWORD=$2;
                 shift;
-            ;;
-            --use-unbuffer)
-                USE_UNBUFFER=1;
             ;;
             -y)
                 ALWAYS_ANSWER_YES=1;

@@ -200,6 +200,7 @@ function search_file_in {
 
 # function to print odoo-helper config
 function print_helper_config {
+    echo "ODOO_VERSION=$ODOO_VERSION;";
     echo "ODOO_BRANCH=$ODOO_BRANCH;";
     echo "PROJECT_ROOT_DIR=$PROJECT_ROOT_DIR;";
     echo "CONF_DIR=$CONF_DIR;";
@@ -217,7 +218,9 @@ function print_helper_config {
     echo "ODOO_PID_FILE=$ODOO_PID_FILE;";
     echo "BACKUP_DIR=$BACKUP_DIR;";
     echo "REPOSITORIES_DIR=$REPOSITORIES_DIR;";
-    echo "INIT_SCRIPT=$INIT_SCRIPT;";
+    if [ ! -z $INIT_SCRIPT ]; then
+        echo "INIT_SCRIPT=$INIT_SCRIPT;";
+    fi
 }
 
 

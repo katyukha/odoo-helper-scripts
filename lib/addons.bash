@@ -329,7 +329,12 @@ function addons_install_update {
         echo -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
     fi
 
-    server_stop;
+    # Stop server if it is running
+    if [ $(server_get_pid) -gt 0 ]; then
+        server_stop;
+        local need_start=1;
+    fi
+
     for db in $dbs; do
         if server_run -d $db $cmd_opt $todo_addons --stop-after-init; then
             echo -e "${LBLUEC}Update for '$db':${NC} ${GREENC}OK${NC}";
@@ -337,7 +342,11 @@ function addons_install_update {
             echo -e "${LBLUEC}Update for '$db':${NC} ${REDC}FAIL${NC}";
         fi
     done
-    server_start;
+
+    # Start server again if it was stopped
+    if [ ! -z $need_start ]; then
+        server_start;
+    fi
 }
 
 

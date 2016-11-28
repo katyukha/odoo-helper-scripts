@@ -300,7 +300,9 @@ function fetch_module {
             ;;
             --oca)
                 REPOSITORY="https://github.com/OCA/$2";
-                REPO_BRANCH=${REPO_BRANCH:-$ODOO_BRANCH};  # Here we could use same branch as branch of odoo installed
+                # for backward compatability (if odoo version not defined,
+                # then use odoo branch
+                REPO_BRANCH=${REPO_BRANCH:-${ODOO_VERSION:-$ODOO_BRANCH}};
                 shift;
             ;;
             -m|--module)
@@ -351,7 +353,7 @@ function fetch_module {
         exit 2;
     fi
 
-    REPO_NAME=${REPO_NAME:-`get_repo_name $REPOSITORY`};
+    REPO_NAME=${REPO_NAME:-$(get_repo_name $REPOSITORY)};
     local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
 
     # Conditions:
