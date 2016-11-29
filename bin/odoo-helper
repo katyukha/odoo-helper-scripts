@@ -79,6 +79,7 @@ function print_usage {
         system lib-path <lib name>               - print path to lib with specified name
                                                    this allows to use some libs of this project in external utils
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
+        pip <pip arguments>                      - shortcut for *odoo-helper exec pip*
         help | --help | -h                       - display this help message
         --version                                - display odoo-helper version and exit
     
@@ -301,6 +302,12 @@ function odoo_helper_main {
                 shift;
                 load_project_conf;
                 execv "$@";
+                exit 0;
+            ;;
+            pip)
+                shift;
+                load_project_conf;
+                execv pip "$@";
                 exit 0;
             ;;
             *)
