@@ -242,20 +242,18 @@ function test_find_modules_in_directories {
 }
 
 # Run flake8 for modules
-# test_run_flake8 <module1 path> [module2 path] .. [module n path]
+# test_run_flake8 [flake8 options] <module1 path> [module2 path] .. [module n path]
 function test_run_flake8 {
     local res=0;
-    for addon_path in $@; do
-        if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $addon_path; then
-            res=1;
-        fi
-    done
+    if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $@; then
+        res=1;
+    fi
     return $res;
 }
 
 # Run pylint tests for modules
-# test_run_flake8 <module1 path> [module2 path] .. [module n path]
-# test_run_flake8 [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
+# test_run_pylint <module1 path> [module2 path] .. [module n path]
+# test_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
 function test_run_pylint {
     if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
         local pylint_disable_opt=$1;
