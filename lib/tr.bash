@@ -38,6 +38,7 @@ function tr_parse_addons {
     if [ "$1" == "all" ]; then
         addons_get_installed_addons $db;
     else
+        local installed_addons="$(addons_get_installed_addons $db)"
         local addons=;
         while [[ $# -gt 0 ]]; do  # while there at least one argumet left
             if [[ "$1" =~ ^--dir=(.*)$ ]]; then
@@ -47,7 +48,8 @@ function tr_parse_addons {
             fi
             shift;
         done
-        echo "$(join_by , $addons)";
+        local todo_addons="$(join_by , $addons)";
+        echo $(execv python -c "\"print ','.join(set('$todo_addons'.split(',')) & set('$installed_addons'.split(',')))\"");
     fi;
 }
 
@@ -81,7 +83,7 @@ function tr_import_export_internal {
             continue
         fi
 
-        # dow the work
+        # do the work
         odoo_py -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_file --modules=$addon;
     done
 }
