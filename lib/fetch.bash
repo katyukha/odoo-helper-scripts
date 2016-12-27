@@ -210,9 +210,14 @@ function link_module {
         shift
     done
 
-
     local REPO_PATH=$(readlink -f $1);
     local MODULE_NAME=$2
+
+    local recursion_key="link_module";
+    if ! recursion_protection_easy_check $recursion_key "${REPO_PATH}__${MODULE_NAME:-all}"; then
+        echo -e "${YELLOWC}WARN${NC}: REPO__MODULE ${REPO_PATH}__${MODULE_NAME:-all} already had been processed. skipping...";
+        return 0
+    fi
 
     echov "Linking module $1 [$2] ...";
 
