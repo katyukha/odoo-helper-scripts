@@ -386,6 +386,11 @@ function fetch_module {
     REPO_NAME=${REPO_NAME:-$(get_repo_name $REPOSITORY)};
     local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
 
+    local recursion_key="fetch_module";
+    if ! recursion_protection_easy_check $recursion_key "${REPO_PATH}__${MODULE:-all}"; then
+        echo -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
+        return 0
+    fi
     # Conditions:
     # - repo dir not exists and no module name specified
     #    - clone
