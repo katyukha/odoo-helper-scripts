@@ -11,6 +11,7 @@ fi
 # Require libs
 ohelper_require 'git';
 ohelper_require 'recursion';
+ohelper_require 'addons';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -235,7 +236,7 @@ function link_module {
 
             # No module name specified, then all modules in repository should be linked
             for file in "$REPO_PATH"/*; do
-                if is_odoo_module $file; then
+                if is_odoo_module $file && addons_is_installable $file; then
                     link_module_impl $file $ADDONS_DIR/`basename $file` $force;
                     # recursivly link module
                 fi

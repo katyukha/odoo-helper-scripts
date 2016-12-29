@@ -32,6 +32,18 @@ function addons_get_addon_path {
     echo "$addon_path";
 }
 
+# Check if addon is installable
+#
+# addons_is_installable <addon_path>
+function addons_is_installable {
+    local addon_path=$1;
+    if python -c "exit(not eval(open('$1/__openerp__.py', 'rt').read()).get('installable', True))"; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
 # Get list of installed addons
 # NOTE: Odoo 8.0+ required
 # addons_get_installed_addons <db> [conf_file]
