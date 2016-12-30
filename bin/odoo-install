@@ -40,10 +40,6 @@ install_preconfigure_env;
 declare -A CONF_OPTIONS;
 declare -A TEST_CONF_OPTIONS;
 
-# Default configs
-USE_SYSTEM_SITE_PACKAGES=on;
-
-
 function print_usage {
     echo "Bash script to instal dev version of Odoo in local environment
 
@@ -58,11 +54,6 @@ function print_usage {
          ODOO_BRANCH         - allow to clone specified branch. Current val is $ODOO_BRANCH
          ODOO_DOWNLOAD_ARCHIVE - (on|off) if on then only archive will be downloaded
                                  not clonned. Current value is '$DOWNLOAD_ARCHIVE'
-         ODOO_SHALLOW_CLONE  - (on|off) allow or disallow shallow clone.
-                               signifianly increases performance, but have some limitations.
-                               If ODOO_DOWNLOAD_ARCHIVE option is on, then this option
-                               has no effect
-                               Current value is: $SHALLOW_CLONE
          ODOO_DBHOST         - allow to specify Postgresql's server host.
                                Current value: $DB_HOST
          ODOO_DBUSER         - allow to specify user to connect to DB as.
@@ -78,18 +69,13 @@ function print_usage {
          -b|--branch <branch>          - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
                                          from diferent branch, use this option.
-         --extra-utils                 - install extra python packages. (for example 'erppeek', which
-                                         is used by odoo-helper script to manage databases)
-         --install-sys-deps            - (requires sudo) (debian only) (experimental).
+         --sys-deps                    - (requires sudo) (debian only) (experimental).
                                          Attempt to install system dependencies.
-         --install-and-conf-postgres   - (requires sudo) (debian only) (experimental)
+         --postgres                    - (requires sudo) (debian only) (experimental)
                                          Install postgresql server and create role for Odoo.
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
-         --use-shallow-clone on|off    - if not set 'download-archive' then, this option may increase
-                                         download speed using --depth=1 option in git clone. this will
-                                         download all by one commit. Default: $SHALLOW_CLONE
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
@@ -102,7 +88,7 @@ function print_usage {
 
     Prerequirements:
          Next packages must be installed system-wide
-         (or use --install-sys-deps option to install them during installation process):
+         (or use --sys-deps option to install them during installation process):
              - virtualenv
              - postgresql-client
              - python-dev
@@ -116,7 +102,7 @@ function print_usage {
     Note that, it is safe enough to run this script second time with same or similar args
     if it breaks somehow. It will automaticaly detect if odoo sources were downloaded or
     virtual environment created and will not do this operations second time.
-    So for example if you use option --install-sys-deps and some dependencies cannot be installed
+    So for example if you use option --sys-deps and some dependencies cannot be installed
     you can install them manualy and retry this script with or without thi option and You will not
     wast time waiting odoo sources to be downloaded again.
 
@@ -147,21 +133,14 @@ function parse_options {
                 ODOO_BRANCH=$2;
                 shift;
             ;;
-            --extra-utils)
-                INSTALL_EXTRA_UTILS=1;
-            ;;
-            --install-sys-deps)
+            --sys-deps)
                 INSTALL_SYS_DEPS=1;
             ;;
-            --install-and-conf-postgres)
+            --postgres)
                 INSTALL_AND_CONFIGURE_POSTGRESQL=1;
             ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
-                shift;
-            ;;
-            --use-shallow-clone)
-                SHALLOW_CLONE=$2;
                 shift;
             ;;
             --db-host)

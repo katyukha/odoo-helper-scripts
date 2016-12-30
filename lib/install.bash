@@ -19,7 +19,6 @@ function install_preconfigure_env {
     ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
     ODOO_VERSION=${ODOO_VERSION:-9.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
-    SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
     DB_USER=${ODOO_DBUSER:-odoo};
     DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
@@ -48,17 +47,11 @@ function install_clone_odoo {
     local odoo_branch=${2:-$ODOO_BRANCH};
     local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
 
-    if [ "$SHALLOW_CLONE" == "on" ]; then
-        local DEPTH="--depth=1";
-    else
-        local DEPTH="";
-    fi
-
     if [ ! -z $odoo_branch ]; then
         local branch_opt=" --branch $odoo_branch --single-branch";
     fi
 
-    git clone $branch_opt $DEPTH $odoo_repo $odoo_path;
+    git clone $branch_opt $odoo_repo $odoo_path;
 
 }
 
@@ -119,18 +112,20 @@ function install_and_configure_postgresql {
     # Check if postgres is installed on this machine. If not, install it
     if ! postgres_is_installed; then
         postgres_install_postgresql;
+        echov "Postgres installed";
     else
         echov "It seems that postgresql is already installed, so not installing it, just configuring...";
     fi
 
-    postgres_user_create $db_user $db_password;
-    echov "Postgres seems to be installed and db user seems created.";
+    if [ ! -z $db_user ] && [ ! -z $db_password ]; then
+        postgres_user_create $db_user $db_password;
+        echov "Postgres user $db_user created";
+    fi
 }
 
 
 # install_system_prerequirements [install extra utils (1)]
 function install_system_prerequirements {
-    local install_extra_utils=${1:-$INSTALL_EXTRA_UTILS};
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
@@ -139,10 +134,7 @@ function install_system_prerequirements {
     with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    local to_install="git wget python-setuptools perl g++ libpq-dev python-dev";
-    if [ ! -z $install_extra_utils ]; then
-        to_install="$to_install expect-dev";
-    fi;
+    local to_install="git wget python-setuptools perl g++ libpq-dev python-dev expect-dev";
     with_sudo apt-get install $opt_apt_always_yes $to_install;
 
     # Install wkhtmltopdf
@@ -167,12 +159,7 @@ function install_system_prerequirements {
 function install_virtual_env {
     local venv_path=${1:-$VENV_DIR};
     if [ ! -z $venv_path ] &&[ ! -d $venv_path ]; then
-        if [ ! -z $USE_SYSTEM_SITE_PACKAGES ]; then
-            local venv_opts=" --system-site-packages ";
-        else
-            local venv_opts="";
-        fi
-        virtualenv $venv_opts $venv_path;
+        virtualenv --system-site-packages $venv_path;
     fi
 }
 
@@ -266,4 +253,45 @@ function odoo_run_setup_py {
 }
 
 
+# Entry point for install subcommand
+function install_entry_point {
+    local usage="Usage:
 
+        $SCRIPT_NAME install sys-deps <odoo-version>       - list git repositories
+        $SCRIPT_NAME install postgres [user] [password]    - install postgres.
+                                                             and if user/password specified, create it
+        $SCRIPT_NAME install --help                        - show this help message
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        exit 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            sys-deps)
+                shift;
+                install_sys_deps_for_odoo_version "$@";
+                exit 0;
+            ;;
+            postgres)
+                shift;
+                install_and_configure_postgresql "$@";
+                exit 0;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                exit 1;
+            ;;
+        esac
+        shift
+    done
+}

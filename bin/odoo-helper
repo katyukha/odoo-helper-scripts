@@ -63,6 +63,7 @@ function print_usage {
         db [--help]                              - database management (list, create, drop, etc...)
         tr [--help]                              - manage translations (import, export, load, ...)
         postgres [--help]                        - manage local instance of postgresql server
+        install [--help]                         - install related stuff (sys-deps, ...)
         generate_requirements [addons dir]       - parse addons dir, find all addons that are
                                                    git repositories and print odoo-requirements.txt content
                                                    file content suitable for *fetch* subcommand.
@@ -272,6 +273,11 @@ function odoo_helper_main {
             postgres)
                 shift;
                 postgres_command "$@";
+                exit;
+            ;;
+            install)
+                shift;
+                install_entry_point "$@";
                 exit;
             ;;
             print_config)

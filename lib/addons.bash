@@ -34,6 +34,8 @@ function addons_get_addon_path {
 
 # Check if addon is installable
 #
+# Return 0 if addon is installable else 1;
+#
 # addons_is_installable <addon_path>
 function addons_is_installable {
     local addon_path=$1;
