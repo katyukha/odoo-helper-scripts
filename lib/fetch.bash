@@ -412,14 +412,14 @@ function fetch_module {
             [ -z $VERBOSE ] && local git_clone_opt=" -q "
             if ! git clone $git_clone_opt $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH; then
                 echo -e "${REDC}Cannot clone '$REPOSITORY to $REPO_PATH'!${NC}";
-            else
+            elif [ -z "$REPO_BRANCH_OPT" ]; then
                 # IF repo clonned successfuly, and not branch specified then
                 # try to checkout to ODOO_VERSION branch if it exists.
                 (
-                    [ -z "$REPO_BRANCH_OPT" ] && cd $REPO_PATH && \
+                    cd $REPO_PATH && \
                     [ "$(git_get_branch_name)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
                     [ $(git branch --list -a "origin/${ODOO_VERSION:-$ODOO_BRANCH}") ] && \
-                    git checkout -q ${ODOO_VERSION:-$ODOO_BRANCH}
+                    git checkout -q ${ODOO_VERSION:-$ODOO_BRANCH} || true
                 )
             fi
         fi
