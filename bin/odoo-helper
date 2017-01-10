@@ -29,16 +29,17 @@ fi
 # Load common functions
 source $ODOO_HELPER_LIB/common.bash; 
 
-ohelper_require fetch;
-ohelper_require server;
-ohelper_require db;
-ohelper_require 'test';
-ohelper_require addons;
-ohelper_require 'install'
-ohelper_require 'git';
-ohelper_require 'odoo';
-ohelper_require 'tr';
-ohelper_require 'postgres';
+ohelper_require "fetch";
+ohelper_require "link";
+ohelper_require "server";
+ohelper_require "db";
+ohelper_require "test";
+ohelper_require "addons";
+ohelper_require "install";
+ohelper_require "git";
+ohelper_require "odoo";
+ohelper_require "tr";
+ohelper_require "postgres";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -225,7 +226,7 @@ function odoo_helper_main {
             link|link_module)
                 shift;
                 load_project_conf;
-                link_module "$@"
+                link_command "$@"
                 exit;
             ;;
             server)

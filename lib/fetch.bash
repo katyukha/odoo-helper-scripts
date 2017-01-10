@@ -12,6 +12,7 @@ fi
 ohelper_require 'git';
 ohelper_require 'recursion';
 ohelper_require 'addons';
+ohelper_require 'link';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -92,12 +93,13 @@ function fetch_oca_requirements {
     if [ -d $oca_requirements ]; then
         oca_requirements=$oca_requirements/$OCA_REQUIREMENTS_FILE_NAME;
     fi
-    oca_requirements=$(readlink -f $oca_requirements);
 
     if [ ! -f "$oca_requirements" ]; then
         echov "No oca file: $oca_requirements";
         return 0;
     fi
+
+    oca_requirements=$(readlink -f $oca_requirements);
 
     # Check recursion
     local recursion_key=fetch_oca_requirements;
@@ -142,109 +144,6 @@ function get_repo_name {
         echo $R;
     else
         echo $2;
-    fi
-}
-
-# link_module_impl <source_path> <dest_path> <force>
-function link_module_impl {
-    local SOURCE=`readlink -f $1`;
-    local DEST="$2";
-    local force=$3;
-
-    if [ ! -z $force ] && ([ -e $DEST ] || [ -L $DEST ]); then
-        echov "Rewriting module $DEST...";
-        rm -rf $DEST;
-    fi
-
-    if [ ! -d $DEST ]; then
-        if [ -z $USE_COPY ]; then
-            if [ -h $DEST ] && [ ! -e $DEST ]; then
-                # If it is broken link, remove it
-                rm $DEST;
-            fi
-            ln -s $SOURCE $DEST ;
-        else
-            cp -r $SOURCE $DEST;
-        fi
-    else
-        echov "Module $SOURCE already linked to $DEST";
-    fi
-    fetch_requirements $DEST;
-    fetch_pip_requirements $DEST/$PIP_REQUIREMENTS_FILE_NAME;
-    fetch_oca_requirements $DEST/$OCA_REQUIREMENTS_FILE_NAME;
-}
-
-# link_module [-f|--force] <repo_path> [<module_name>]
-function link_module {
-    local usage="
-    Usage: 
-
-        $SCRIPT_NAME link [-f|--force] <repo_path> [<module_name>]
-    ";
-
-    local force=;
-
-    # Parse command line options and run commands
-    if [[ $# -lt 1 ]]; then
-        echo "No options supplied $#: $@";
-        echo "";
-        echo "$usage";
-        exit 0;
-    fi
-
-    while [[ $1 == -* ]]
-    do
-        key="$1";
-        case $key in
-            -h|--help)
-                echo "$usage";
-                exit 0;
-            ;;
-            -f|--force)
-                force=1;
-            ;;
-            *)
-                echo "Unknown option $key";
-                exit 1;
-            ;;
-        esac
-        shift
-    done
-
-    local REPO_PATH=$(readlink -f $1);
-    local MODULE_NAME=$2
-
-    local recursion_key="link_module";
-    if ! recursion_protection_easy_check $recursion_key "${REPO_PATH}__${MODULE_NAME:-all}"; then
-        echo -e "${YELLOWC}WARN${NC}: REPO__MODULE ${REPO_PATH}__${MODULE_NAME:-all} already had been processed. skipping...";
-        return 0
-    fi
-
-    echov "Linking module $1 [$2] ...";
-
-    # Guess repository type
-    if is_odoo_module $REPO_PATH; then
-        # single module repo
-        link_module_impl $REPO_PATH $ADDONS_DIR/${MODULE_NAME:-`basename $REPO_PATH`} $force;
-    else
-        # multi module repo
-        if [ -z $MODULE_NAME ]; then
-            # Check for requirements files in repository root dir
-            fetch_requirements $REPO_PATH;
-            fetch_pip_requirements $REPO_PATH/$PIP_REQUIREMENTS_FILE_NAME;
-            fetch_oca_requirements $REPO_PATH/$OCA_REQUIREMENTS_FILE_NAME;
-
-            # No module name specified, then all modules in repository should be linked
-            for file in "$REPO_PATH"/*; do
-                if is_odoo_module $file && addons_is_installable $file; then
-                    link_module_impl $file $ADDONS_DIR/`basename $file` $force;
-                    # recursivly link module
-                fi
-            done
-        else
-            # Module name specified, then only single module should be linked
-            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_DIR/$MODULE_NAME $force;
-        fi
     fi
 }
 
@@ -438,5 +337,8 @@ function fetch_module {
         )
     fi
 
-    link_module $REPO_PATH $MODULE
+    if [ -d $REPO_PATH ]; then
+        # Link repo only if it exists
+        link_module off $REPO_PATH $MODULE;
+    fi
 }
