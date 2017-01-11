@@ -39,7 +39,14 @@ function addons_get_addon_path {
 # addons_is_installable <addon_path>
 function addons_is_installable {
     local addon_path=$1;
-    if python -c "exit(not eval(open('$1/__openerp__.py', 'rt').read()).get('installable', True))"; then
+    if [ -f "$1/__openerp__.py" ]; then
+        local manifest_file="$1/__openerp__.py";
+    elif [ -f "$1/__manifest__.py" ]; then
+        local manifest_file="$1/__manifest__.py";
+    else
+        return 2
+    fi
+    if python -c "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
         return 0;
     else
         return 1;

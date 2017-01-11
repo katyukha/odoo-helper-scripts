@@ -299,10 +299,10 @@ function fetch_module {
     #        - warn and return
     #    - module absent in addons
     #        - clone and link
-    # - repo dir
-    #    - pull 
+    # - repo dir exists:
+    #    - repository is already clonned
 
-    # Clone or pull repository
+    # Clone
     if [ ! -d $REPO_PATH ]; then
         if [ ! -z $MODULE ] && [ -d "$ADDONS_DIR/$MODULE" ]; then
             echo "The module $MODULE already present in addons dir";
@@ -322,19 +322,6 @@ function fetch_module {
                 )
             fi
         fi
-    else
-        (
-            cd $REPO_PATH;
-            if [ -z $VERBOSE ]; then local verbose_opt="";
-            else local verbose_opt=" -q "; fi
-            if [ "$(git_get_branch_name)" == "$REPO_BRANCH" ]; then
-                    git pull $verbose_opt;
-            #else
-                #git fetch $verbose_opt;
-                #git stash $verbose_opt;  # TODO: seems to be not correct behavior. think about workaround
-                #git checkout $verbose_opt $REPO_BRANCH;
-            fi
-        )
     fi
 
     if [ -d $REPO_PATH ]; then
