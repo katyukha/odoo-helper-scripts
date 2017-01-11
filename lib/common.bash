@@ -253,7 +253,11 @@ function config_default_vars {
 function is_odoo_module {
     if [ ! -d $1 ]; then
        return 1;
-    elif [ -f "$1/__openerp__.py" ] || [ -f "$1/__odoo__.py" ] || [ -f "$1/__terp__.py" ]; then
+    elif [ -f "$1/__manifest__.py" ]; then
+        # Odoo 10.0+
+        return 0;
+    elif [ -f "$1/__openerp__.py" ]; then
+        # Odoo 6.0 - 9.0
         return 0;
     else
         return 1;
