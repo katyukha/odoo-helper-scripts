@@ -257,7 +257,7 @@ function odoo_run_setup_py {
 function install_entry_point {
     local usage="Usage:
 
-        $SCRIPT_NAME install sys-deps <odoo-version>       - list git repositories
+        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - list git repositories
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install --help                        - show this help message
@@ -275,6 +275,10 @@ function install_entry_point {
         case $key in
             sys-deps)
                 shift;
+                if [ "$1" == "-y" ]; then
+                    ALWAYS_ANSWER_YES=1;
+                    shift;
+                fi
                 install_sys_deps_for_odoo_version "$@";
                 exit 0;
             ;;
