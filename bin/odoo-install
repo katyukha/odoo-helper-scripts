@@ -34,9 +34,6 @@ ohelper_require 'install'
 # ----------------------------------------------------------------------------------------
 
 
-# Check environment for config
-install_preconfigure_env;
-
 declare -A CONF_OPTIONS;
 declare -A TEST_CONF_OPTIONS;
 
@@ -129,6 +126,10 @@ function parse_options {
                 ODOO_REPO=$2;
                 shift;
             ;;
+            --odoo-version)
+                ODOO_VERSION=$2;
+                shift;
+            ;;
             --branch|-b)
                 ODOO_BRANCH=$2;
                 shift;
@@ -172,6 +173,9 @@ function parse_options {
                 shift;
             ;;
             -h|--help|help)
+                # Check environment for config
+                install_preconfigure_env;
+
                 print_usage;
                 exit 0;
             ;;
@@ -290,6 +294,9 @@ function generate_test_conf {
 
 # Install process
 parse_options $@;
+
+# Check environment to get values not provided via command line args
+install_preconfigure_env;
 
 # Directory and file paths
 PROJECT_ROOT_DIR=${PROJECT_ROOT_DIR:-$WORKDIR/odoo-$ODOO_BRANCH};

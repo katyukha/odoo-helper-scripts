@@ -79,7 +79,12 @@ function ohelper_require {
 
 # Simple function to exec command in virtual environment if required
 function execv {
-    if [ ! -z $VENV_DIR ]; then
+    #if [ ! -z $VIRTUAL_ENV ]; then
+        ## virtual env already activated, so no need to activate it again
+        #local no_activate_venv=1;
+    #fi
+
+    if [ ! -z $VENV_DIR ] && [ -z $no_activate_venv ]; then
         source $VENV_DIR/bin/activate;
     fi
 
@@ -91,7 +96,7 @@ function execv {
     fi
 
     # deactivate virtual environment
-    if [ ! -z $VENV_DIR ] && [ ! -z $VIRTUAL_ENV ]; then
+    if [ ! -z $VENV_DIR ] && [ ! -z $VIRTUAL_ENV ] && [ -z $no_activate_venv ]; then
         deactivate;
     fi
 

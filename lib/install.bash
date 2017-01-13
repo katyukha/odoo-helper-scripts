@@ -55,6 +55,26 @@ function install_clone_odoo {
 
 }
 
+
+# install_wkhtmltopdf
+function install_wkhtmltopdf {
+    if [ ! -z $ALWAYS_ANSWER_YES ]; then
+        local opt_apt_always_yes="-y";
+    fi
+    # Install wkhtmltopdf
+    if ! check_command wkhtmltopdf > /dev/null; then
+        local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
+        if [ ! -f $wkhtmltox_path ]; then
+            wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
+                 -O $wkhtmltox_path
+        fi
+        with_sudo dpkg --force-depends -i $wkhtmltox_path  # install ignoring dependencies
+        with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+        rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
+    fi
+}
+
+
 # install_sys_deps_internal dep_1 dep_2 ... dep_n
 function install_sys_deps_internal {
     # Odoo's debian/contol file usualy contains this in 'Depends' section 
@@ -134,27 +154,17 @@ function install_system_prerequirements {
     with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    local to_install="git wget python-setuptools perl g++ libpq-dev python-dev expect-dev";
-    with_sudo apt-get install $opt_apt_always_yes $to_install;
+    install_sys_deps_internal git wget python-setuptools perl g++ \
+        libpq-dev python-dev expect-dev
 
-    # Install wkhtmltopdf
-    if ! check_command wkhtmltopdf > /dev/null; then
-        local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
-        if [ ! -f $wkhtmltox_path ]; then
-            wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
-                 -O $wkhtmltox_path
-        fi
-        with_sudo dpkg --force-depends -i $wkhtmltox_path  # install ignoring dependencies
-        with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
-        rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
-    fi
+    install_wkhtmltopdf;
 
     with_sudo easy_install pip;
     with_sudo pip install --upgrade pip virtualenv;
 }
 
 
-# Install virtual environment, and preinstall some packages
+# Install virtual environment
 # install_virtual_env [path]
 function install_virtual_env {
     local venv_path=${1:-$VENV_DIR};
@@ -243,6 +253,11 @@ function odoo_run_setup_py {
     # Workaround for situation when setup does not install openerp-gevent script.
     odoo_gevent_install_workaround;
 
+    # Install dependencies via pip (it is faster if they are cached)
+    if [ -f "$ODOO_PATH/requirements.txt" ]; then
+        execu pip install -r $ODOO_PATH/requirements.txt;
+    fi
+
     # Install odoo
     (cd $ODOO_PATH && execu python setup.py develop $@);
 
@@ -257,7 +272,8 @@ function odoo_run_setup_py {
 function install_entry_point {
     local usage="Usage:
 
-        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - list git repositories
+        $SCRIPT_NAME install pre-requirements [-y]         - install system preprequirements
+        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install --help                        - show this help message
@@ -273,6 +289,15 @@ function install_entry_point {
     do
         local key="$1";
         case $key in
+            pre-requirements)
+                shift
+                if [ "$1" == "-y" ]; then
+                    ALWAYS_ANSWER_YES=1;
+                    shift;
+                fi
+                install_system_prerequirements;
+                exit 0;
+            ;;
             sys-deps)
                 shift;
                 if [ "$1" == "-y" ]; then
