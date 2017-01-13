@@ -60,7 +60,7 @@ Test install of odoo version 7.0
 Also install dependencies and configure postgresql
 ==================================================
 ${NC}"
-odoo-install -i odoo-7.0 --branch 7.0 --postgres --sys-deps \
+odoo-install -i odoo-7.0 --odoo-version 7.0 --postgres --sys-deps \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371
 cd odoo-7.0
 
@@ -162,7 +162,8 @@ Also install python package 'suds' in virtual env of this odoo instance
 ========================================================================
 ${NC}"
 # Let's install odoo of version 8.0 too here.
-odoo-install --install-dir odoo-8.0 --branch 8.0 \
+odoo-helper install sys-deps -y 8.0;
+odoo-install --install-dir odoo-8.0 --odoo-version 8.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
 
 cd odoo-8.0
@@ -204,7 +205,8 @@ ${NC}"
 
 # got back to test root and install odoo version 9.0
 cd ../;
-odoo-install --install-dir odoo-9.0 --branch 9.0 \
+odoo-helper install sys-deps -y 9.0;
+odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
 
 cd odoo-9.0;
@@ -222,7 +224,8 @@ ${NC}"
 
 # got back to test root and install odoo version 9.0
 cd ../;
-odoo-install --install-dir odoo-10.0 --branch 10.0 \
+odoo-helper install sys-deps -y 10.0;
+odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
 
 cd odoo-10.0;

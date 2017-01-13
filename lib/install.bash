@@ -155,7 +155,7 @@ function install_system_prerequirements {
 
     echo "Installing system preprequirements...";
     install_sys_deps_internal git wget python-setuptools perl g++ \
-        libpq-dev python-dev expect-dev
+        libpq-dev python-dev expect-dev libevent-dev
 
     install_wkhtmltopdf;
 
@@ -255,7 +255,10 @@ function odoo_run_setup_py {
 
     # Install dependencies via pip (it is faster if they are cached)
     if [ -f "$ODOO_PATH/requirements.txt" ]; then
-        execu pip install -r $ODOO_PATH/requirements.txt;
+        if ! execu pip install -r $ODOO_PATH/requirements.txt; then
+            echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
+                "This may be caused by error when building gevent on ubuntu.";
+        fi
     fi
 
     # Install odoo
