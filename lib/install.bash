@@ -55,6 +55,27 @@ function install_clone_odoo {
 
 }
 
+# install_download_odoo [path [branch [repo]]]
+function install_download_odoo {
+    local odoo_path=${1:-$ODOO_PATH};
+    local odoo_branch=${2:-$ODOO_BRANCH};
+    local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
+
+    local odoo_archive=/tmp/odoo.$ODOO_BRANCH.tar.gz
+    if [ -f $odoo_archive ]; then
+        rm $odoo_archive;
+    fi
+
+    if [[ $ODOO_REPO == "https://github.com"* ]]; then
+        local repo=${odoo_repo%.git};
+        local repo_base=$(basename $repo);
+        wget -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
+        tar -zxf $odoo_archive;
+        mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
+        rm $odoo_archive;
+    fi
+}
+
 
 # install_wkhtmltopdf
 function install_wkhtmltopdf {
@@ -254,12 +275,12 @@ function odoo_run_setup_py {
     odoo_gevent_install_workaround;
 
     # Install dependencies via pip (it is faster if they are cached)
-    #if [ -f "$ODOO_PATH/requirements.txt" ]; then
-        #if ! execu pip install -r $ODOO_PATH/requirements.txt; then
-            #echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
-                #"This may be caused by error when building gevent on ubuntu.";
-        #fi
-    #fi
+    if [ -f "$ODOO_PATH/requirements.txt" ]; then
+        if ! execu pip install -r $ODOO_PATH/requirements.txt; then
+            echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
+                "This may be caused by error when building gevent on ubuntu.";
+        fi
+    fi
 
     # Install odoo
     (cd $ODOO_PATH && execu python setup.py develop $@);

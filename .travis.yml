@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+#dist: trusty
 language: bash
 
 cache:
@@ -13,7 +13,6 @@ env:
 
 install:
   - "sudo apt-get install -y -qq python-all-dev"
-  - "sudo pip install gevent"
 
   - "rvm use 2.3"
   - "gem install bashcov coveralls"

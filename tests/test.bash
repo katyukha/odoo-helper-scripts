@@ -232,22 +232,22 @@ odoo-helper server --stop-after-init;  # test that it runs
 odoo-helper status
 
 
-echo -e "${YELLOWC}
-==========================
-Install and check Odoo 10.0 
-==========================
-${NC}"
+#echo -e "${YELLOWC}
+#==========================
+#Install and check Odoo 10.0 
+#==========================
+#${NC}"
 
-# got back to test root and install odoo version 9.0
-cd ../;
-odoo-helper install sys-deps -y 10.0;
-odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
+## got back to test root and install odoo version 9.0
+#cd ../;
+#odoo-helper install sys-deps -y 10.0;
+#odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
+    #--conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
 
-cd odoo-10.0;
-odoo-helper server --stop-after-init;  # test that it runs
+#cd odoo-10.0;
+#odoo-helper server --stop-after-init;  # test that it runs
 
-# Show project status
-odoo-helper status
+## Show project status
+#odoo-helper status
 
 

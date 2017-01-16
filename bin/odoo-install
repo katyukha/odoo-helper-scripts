@@ -178,24 +178,6 @@ function parse_options {
     done
 }
 
-function download_odoo {
-    local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.tar.gz
-    if [ ! -f $ODOO_ARCHIVE ]; then
-        if [ ! -z $ODOO_REPO ] && [[ $ODOO_REPO == "https://github.com"* ]]; then
-            local repo=${ODOO_REPO%.git};
-            local repo_base=$(basename $repo);
-            ODOO_ARCHIVE=$DOWNLOADS_DIR/$repo_base.$ODOO_BRANCH.tar.gz;
-            wget -O $ODOO_ARCHIVE $repo/archive/$ODOO_BRANCH.tar.gz;
-            tar -zxf $ODOO_ARCHIVE;
-            mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
-        else
-            wget -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
-            tar -zxf $ODOO_ARCHIVE;
-            mv odoo-$ODOO_BRANCH $ODOO_PATH;
-        fi
-    fi
-}
-
 function install_odoo {
     local save_dir=`pwd`;
     cd "$PROJECT_ROOT_DIR";
@@ -203,7 +185,7 @@ function install_odoo {
     # if not installed odoo, install it
     if [ ! -d $ODOO_PATH ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
-            download_odoo;
+            install_download_odoo;
         else
             install_clone_odoo;
         fi
