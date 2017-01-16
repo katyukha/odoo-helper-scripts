@@ -56,11 +56,27 @@ allow_colors;
 #
 echo -e "${YELLOWC}
 =================================================
+Install odoo-helper and odoo system prerequirements
+==================================================
+${NC}"
+
+odoo-helper install pre-requirements -y
+
+echo -e "${YELLOWC}
+=================================================
 Test install of odoo version 7.0
 Also install dependencies and configure postgresql
 ==================================================
 ${NC}"
-odoo-install -i odoo-7.0 --odoo-version 7.0 --postgres --sys-deps \
+
+# Install system dependencies for odoo version 7.0
+odoo-helper install sys-deps -y 7.0;
+
+# Install postgres and create there user with name='odoo' and password='odoo'
+odoo-helper install postgres odoo odoo
+
+# Install odoo 7.0
+odoo-install -i odoo-7.0 --odoo-version 7.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371
 cd odoo-7.0
 

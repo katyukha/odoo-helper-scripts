@@ -132,14 +132,14 @@ function install_and_configure_postgresql {
     # Check if postgres is installed on this machine. If not, install it
     if ! postgres_is_installed; then
         postgres_install_postgresql;
-        echov "Postgres installed";
+        echo -e "${GREENC}Postgres installed${NC}";
     else
-        echov "It seems that postgresql is already installed, so not installing it, just configuring...";
+        echo -e "${YELLOWC}It seems that postgresql is already installed, so not installing it, just configuring...${NC}";
     fi
 
     if [ ! -z $db_user ] && [ ! -z $db_password ]; then
         postgres_user_create $db_user $db_password;
-        echov "Postgres user $db_user created";
+        echo -e "${GREENC}Postgres user $db_user created${NC}";
     fi
 }
 
@@ -254,12 +254,12 @@ function odoo_run_setup_py {
     odoo_gevent_install_workaround;
 
     # Install dependencies via pip (it is faster if they are cached)
-    if [ -f "$ODOO_PATH/requirements.txt" ]; then
-        if ! execu pip install -r $ODOO_PATH/requirements.txt; then
-            echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
-                "This may be caused by error when building gevent on ubuntu.";
-        fi
-    fi
+    #if [ -f "$ODOO_PATH/requirements.txt" ]; then
+        #if ! execu pip install -r $ODOO_PATH/requirements.txt; then
+            #echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
+                #"This may be caused by error when building gevent on ubuntu.";
+        #fi
+    #fi
 
     # Install odoo
     (cd $ODOO_PATH && execu python setup.py develop $@);

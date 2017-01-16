@@ -66,10 +66,6 @@ function print_usage {
          -b|--branch <branch>          - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
                                          from diferent branch, use this option.
-         --sys-deps                    - (requires sudo) (debian only) (experimental).
-                                         Attempt to install system dependencies.
-         --postgres                    - (requires sudo) (debian only) (experimental)
-                                         Install postgresql server and create role for Odoo.
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
@@ -133,12 +129,6 @@ function parse_options {
             --branch|-b)
                 ODOO_BRANCH=$2;
                 shift;
-            ;;
-            --sys-deps)
-                INSTALL_SYS_DEPS=1;
-            ;;
-            --postgres)
-                INSTALL_AND_CONFIGURE_POSTGRESQL=1;
             ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
@@ -210,16 +200,6 @@ function install_odoo {
     local save_dir=`pwd`;
     cd "$PROJECT_ROOT_DIR";
 
-    # Install prerequirements if option --install-sys-deps enabled
-    if [ ! -z $INSTALL_SYS_DEPS ]; then
-        install_system_prerequirements;
-    fi
-
-    # Install and configure postgresql
-    if [ ! -z $INSTALL_AND_CONFIGURE_POSTGRESQL ]; then
-        install_and_configure_postgresql;
-    fi
-
     # if not installed odoo, install it
     if [ ! -d $ODOO_PATH ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
@@ -227,11 +207,6 @@ function install_odoo {
         else
             install_clone_odoo;
         fi
-    fi
-
-    # Install system dependencies if asked
-    if [ ! -z $INSTALL_SYS_DEPS ]; then
-        install_sys_deps;
     fi
 
     # Install virtual environment

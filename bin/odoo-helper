@@ -139,7 +139,9 @@ function update_odoo_helper_scripts {
         git pull;
     else
         git fetch -q origin;
-        git checkout -q origin/$scripts_branch;
+        if ! git checkout -q origin/$scripts_branch; then
+            git checkout -q $scripts_branch;
+        fi
     fi
 
     # update odoo-helper bin links

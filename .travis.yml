@@ -2,20 +2,21 @@ sudo: required
 dist: trusty
 language: bash
 
+cache:
+    pip: true
+    apt: true
+
 env:
   global:
     - CI_RUN=1
     - ODOO_HELPER_ROOT=$TRAVIS_BUILD_DIR
 
 install:
-  - "sudo apt-get update -y -qq"
-  - "sudo apt-get install -y -qq python-gevent"
-  - "sudo apt-get install python-all-dev"
+  - "sudo apt-get install -y -qq python-all-dev"
   - "sudo pip install gevent"
 
   - "rvm use 2.3"
-  - "gem install bashcov"
-  - "gem install coveralls"
+  - "gem install bashcov coveralls"
   - "bash install-user.bash"
 
 script:
