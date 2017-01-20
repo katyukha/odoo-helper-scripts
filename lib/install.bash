@@ -178,7 +178,9 @@ function install_system_prerequirements {
     install_sys_deps_internal git wget python-setuptools perl g++ \
         libpq-dev python-dev expect-dev libevent-dev
 
-    install_wkhtmltopdf;
+    if ! install_wkhtmltopdf; then
+        echo "Cannot install wkhtmltopdf!!! Skipping...";
+    fi
 
     with_sudo easy_install pip;
     with_sudo pip install --upgrade pip virtualenv;
