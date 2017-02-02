@@ -84,7 +84,19 @@ function fetch_pip_requirements {
     fi
 
     # Do pip install
-    execu pip install -r $pip_requirements;
+    #
+    # Here we set workdir to directory that conains requirements file,
+    # before running pip install, to allow usage of relative requirements.
+    # This is useful in case, when addon depends on python module,
+    # that is not on pip or github, but placed directly in addon directory,
+    # and should be installed via setup.py
+    #
+    # Example requirements.txt:
+    #
+    # -e ./lib/python-project
+    #
+    local req_dir=$(dirname $pip_requirements);
+    (cd $req_dir && execu pip install -r $pip_requirements);
 }
 
 # fetch_oca_requirements <filepath>
