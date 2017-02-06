@@ -302,11 +302,15 @@ function addons_install_update {
     shift;
     local usage="Usage:
 
-        $SCRIPT_NAME addons $cmd [-d <db>] <addons>    - $cmd some addons
+        $SCRIPT_NAME addons $cmd [-d <db>] [--no-restart] <addons>    - $cmd some addons
         $SCRIPT_NAME addons $cmd --help
 
         if -d <db> argument is not passed '$cmd' will be executed on all databases
         <addons> is comma-separated or space-separated list of addons
+
+        if --no-restart option passed, then do not restart server.
+        By default, befor updating \ installing addons server will be stopped,
+        and started on success
 
     ";
     local dbs="";
@@ -318,6 +322,9 @@ function addons_install_update {
             -d|--db)
                 dbs=$dbs$'\n'$2;
                 shift;
+            ;;
+            --no-restart)
+                local no_restart_server=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -351,7 +358,7 @@ function addons_install_update {
     fi
 
     # Stop server if it is running
-    if [ $(server_get_pid) -gt 0 ]; then
+    if [ -z $no_restart_server ] && [ $(server_get_pid) -gt 0 ]; then
         server_stop;
         local need_start=1;
     fi
@@ -365,7 +372,7 @@ function addons_install_update {
     done
 
     # Start server again if it was stopped
-    if [ ! -z $need_start ]; then
+    if [ -z $no_restart_server ] && [ ! -z $need_start ]; then
         server_start;
     fi
 }
@@ -396,8 +403,8 @@ function addons_command {
         $SCRIPT_NAME addons check_updates [addons path]   - Check for git updates of addons and displays status
         $SCRIPT_NAME addons pull_updates [addons path]    - Pull changes from git repos
         $SCRIPT_NAME addons status --help                 - show addons status
-        $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
-        $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
+        $SCRIPT_NAME addons update --help                 - update some addon[s]
+        $SCRIPT_NAME addons install --help                - install some addon[s]
         $SCRIPT_NAME addons update-list [db]              - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons --help                        - show this help message
