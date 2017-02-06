@@ -364,7 +364,7 @@ function addons_install_update {
     fi
 
     for db in $dbs; do
-        if server_run -d $db $cmd_opt $todo_addons --stop-after-init; then
+        if server_run -d $db $cmd_opt $todo_addons --stop-after-init --no-xmlrpc; then
             echo -e "${LBLUEC}Update for '$db':${NC} ${GREENC}OK${NC}";
         else
             echo -e "${LBLUEC}Update for '$db':${NC} ${REDC}FAIL${NC}";
