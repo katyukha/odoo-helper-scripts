@@ -1,6 +1,59 @@
 # Changelog
 
-## Version 0.0.11
+## Version 0.1.0
+
+- Added ``odoo-helper addons pull_updates`` command
+- Added basic support of Odoo 10
+- Added ``odoo-helper --version`` command
+- Refactored ``odoo-install`` script:
+  - Always install python extra utils
+  - Removed following options (primery goal of this, is to simplify ``odoo-install`` script):
+    - ``--extra-utils``: extrautils are installed by default
+    - ``--install-sys-deps``: use instead separate command: ``odoo-helper install``
+    - ``--install-and-conf-postgres``: use instead separate command: ``odoo-helper install`` or ``odoo-helper postgres``
+    - ``--use-system-packages``: seems to be not useful
+    - ``--use-shallow-clone``: seems to be not useful
+    - ``--use-unbuffer``: seems to be not useful
+  - Added following options:
+    - ``--odoo-version``: this option is useful in case of using custom
+      repository and custom branch with name different then odoo's version branches
+  - Fixed bug with ``--conf-opt-*`` and ``--test-conf-opt-*`` options
+- Completely refactored ``odoo-helper test`` command
+  - removed ``--reinit-base``
+  - added ``--coverage`` options
+  - Added subcommand ``odoo-helper test flake8``
+  - Added subcommand ``odoo-helper test pylint``
+- ``odoo-helper addons update-list`` command: ran for all databases if no db specified
+- suppress git feedback in ``odoo-helper system update``
+- improve system-wide install script: allow to choose odoo-helper branch or
+  commit to install
+- Added ability to run tests for directory.
+  In this case odoo-helper script will automaticaly discover addons in
+  that directory
+- odoo-helper: added ``--no-colors`` option
+- ``odoo-helper tr`` command improved:
+  - ``import`` and ``load`` subcommands can be ran on all databases
+  - ``import`` subcommand: added ability to search addons in directory
+  - bugfix in ``tr import``: import translations only for installed addons
+- Added ``addons test-installed`` command
+  This allows to find databases where this addon is installed
+- Bugfix: ``addons check_updates`` command: show repositories that caused errors when checking for updates
+- ``addons status`` command now shows repository's remores
+- ``odoo-helper fetch`` and ``odoo-helper link`` commands refactored:
+  - Added recursion protection for both of therm, to avoid infinite recursion
+  - ``odoo-helepr fetch`` filter-out uninstallable addons, on linking muti-addon repo
+  - ``odoo-helper link`` now is recursive, thus it will look for odoo addons
+    recursively in a specified directory and link them all.
+- Added ``odoo-helper install`` command, which allows to install
+  system dependencies for specific odoo version without installing odoo itself
+- Added ``odoo-helper addons install --no-restart`` option
+- Added ``odoo-helper addons update --no-restart`` option
+- Added following shortcuts:
+  - ``odoo-helper pip`` to run pip for current project
+  - ``odoo-helper start`` for ``odoo-helper server start``
+  - ``odoo-helper stop`` for ``odoo-helper server stop``
+  - ``odoo-helper restart`` for ``odoo-helper server restart``
+  - ``odoo-helper log`` for ``odoo-helper server log``
 
 
 ## Version 0.0.10
