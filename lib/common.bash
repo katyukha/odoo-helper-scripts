@@ -267,14 +267,17 @@ function is_odoo_module {
 
 # Load project configuration. No args prowided
 function load_project_conf {
-    local project_conf=`search_file_up $WORKDIR $CONF_FILE_NAME`;
-    if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
-        echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
-        source $project_conf;
-    fi
-
     if [ -z $PROJECT_ROOT_DIR ]; then
-        echo -e "${REDC}WARNING: no project config file found${NC}";
+        # Load project conf, only if it is not loaded yet.
+        local project_conf=`search_file_up $WORKDIR $CONF_FILE_NAME`;
+        if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
+            echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
+            source $project_conf;
+        fi
+
+        if [ -z $PROJECT_ROOT_DIR ]; then
+            echo -e "${REDC}WARNING: no project config file found${NC}";
+        fi
     fi
 }
 
@@ -295,4 +298,13 @@ function join_by {
     local IFS="$1";
     shift;
     echo "$*";
+}
+
+# Run python code
+#
+# run_python_cmd <code>
+function run_python_cmd {
+    local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
+    python_cmd="$python_cmd $1";
+    execu python -c "\"$python_cmd\"";
 }
