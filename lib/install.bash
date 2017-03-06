@@ -176,7 +176,9 @@ function install_system_prerequirements {
 
     echo "Installing system preprequirements...";
     install_sys_deps_internal git wget python-setuptools perl g++ \
-        libpq-dev python-dev expect-dev libevent-dev
+        libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
+        libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
+        libsasl2-dev libldap2-dev libssl-dev;
 
     if ! install_wkhtmltopdf; then
         echo "Cannot install wkhtmltopdf!!! Skipping...";
@@ -280,7 +282,7 @@ function odoo_run_setup_py {
     if [ -f "$ODOO_PATH/requirements.txt" ]; then
         if ! execu pip install -r $ODOO_PATH/requirements.txt; then
             echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
-                "This may be caused by error when building gevent on ubuntu.";
+                    "This may be caused by compilation error when building one of python packages on ubuntu.";
         fi
     fi
 
