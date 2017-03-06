@@ -165,7 +165,7 @@ function install_and_configure_postgresql {
 }
 
 
-# install_system_prerequirements [install extra utils (1)]
+# install_system_prerequirements
 function install_system_prerequirements {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";

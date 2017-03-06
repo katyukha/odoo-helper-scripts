@@ -146,11 +146,11 @@ For details run ```odoo-helper fetch --help```
 # Install odoo-helper scripts pre-requirements.
 # This step should be usualy ran one time, and is required to ensure that
 # all odoo-helper dependencies installed.
-odoo-helper install pre-requirements -y
+odoo-helper install pre-requirements
 
 # Install system dependencies for odoo version 7.0
 # This option requires sudo.
-odoo-helper install sys-deps -y 7.0;
+odoo-helper install sys-deps 7.0;
 
 # Install postgres and create there user with name='odoo' and password='odoo'
 odoo-helper install postgres odoo odoo
@@ -215,7 +215,7 @@ cd ../../
 
 # Let's install odoo of version 8.0 here too.
 # First, install system dependencies for odoo version 8.0
-odoo-helper install sys-deps -y 7.0;
+odoo-helper install sys-deps 8.0;
 
 # And when system dependencies installed, install odoo itself
 odoo-install --install-dir odoo-8.0 --odoo-version 8.0
