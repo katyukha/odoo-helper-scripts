@@ -17,12 +17,13 @@ set -e; # fail on errors
 # Set-up defaul values for environment variables
 function install_preconfigure_env {
     ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
-    ODOO_BRANCH=${ODOO_BRANCH:-9.0};
-    SHALLOW_CLONE=${ODOO_SHALLOW_CLONE:-off};
+    ODOO_VERSION=${ODOO_VERSION:-9.0};
+    ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
     DB_USER=${ODOO_DBUSER:-odoo};
     DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
     DB_HOST=${ODOO_DBHOST:-localhost};
+    DB_PORT=${ODOO_DBPORT:-5432};
 }
 
 # create directory tree for project
@@ -46,19 +47,54 @@ function install_clone_odoo {
     local odoo_branch=${2:-$ODOO_BRANCH};
     local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
 
-    if [ "$SHALLOW_CLONE" == "on" ]; then
-        local DEPTH="--depth=1";
-    else
-        local DEPTH="";
-    fi
-
     if [ ! -z $odoo_branch ]; then
         local branch_opt=" --branch $odoo_branch --single-branch";
     fi
 
-    git clone $branch_opt $DEPTH $odoo_repo $odoo_path;
+    git clone $branch_opt $odoo_repo $odoo_path;
 
 }
+
+# install_download_odoo [path [branch [repo]]]
+function install_download_odoo {
+    local odoo_path=${1:-$ODOO_PATH};
+    local odoo_branch=${2:-$ODOO_BRANCH};
+    local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
+
+    local odoo_archive=/tmp/odoo.$ODOO_BRANCH.tar.gz
+    if [ -f $odoo_archive ]; then
+        rm $odoo_archive;
+    fi
+
+    if [[ $ODOO_REPO == "https://github.com"* ]]; then
+        local repo=${odoo_repo%.git};
+        local repo_base=$(basename $repo);
+        wget -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
+        tar -zxf $odoo_archive;
+        mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
+        rm $odoo_archive;
+    fi
+}
+
+
+# install_wkhtmltopdf
+function install_wkhtmltopdf {
+    if [ ! -z $ALWAYS_ANSWER_YES ]; then
+        local opt_apt_always_yes="-y";
+    fi
+    # Install wkhtmltopdf
+    if ! check_command wkhtmltopdf > /dev/null; then
+        local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
+        if [ ! -f $wkhtmltox_path ]; then
+            wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
+                 -O $wkhtmltox_path
+        fi
+        with_sudo dpkg --force-depends -i $wkhtmltox_path  # install ignoring dependencies
+        with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+        rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
+    fi
+}
+
 
 # install_sys_deps_internal dep_1 dep_2 ... dep_n
 function install_sys_deps_internal {
@@ -71,114 +107,107 @@ function install_sys_deps_internal {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
-    sudo apt-get install $opt_apt_always_yes "$@";
+    with_sudo apt-get install $opt_apt_always_yes "$@";
+}
+
+# install_parse_debian_control_file <control file>
+# parse debian control file to fetch odoo dependencies
+function install_parse_debian_control_file {
+    local file_path=$1;
+    local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+    echo "$sys_deps";
+}
+
+# install_sys_deps_for_odoo_version <odoo version>
+# Note that odoo version here is branch of official odoo repository
+function install_sys_deps_for_odoo_version {
+    local odoo_version=$1;
+    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
+    local tmp_control=$(mktemp);
+    wget $control_url -O $tmp_control;
+    local sys_deps=$(install_parse_debian_control_file $tmp_control);
+    install_sys_deps_internal $sys_deps;
+    rm $tmp_control;
 }
 
 # Get dependencies from odoo's debian/control file
 function install_sys_deps {
     local control_file=$ODOO_PATH/debian/control;
-    local perl_expr='next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p';
 
-    # If odoo not installed, then fetch this file from odoo repository
-    if [ ! -f "$control_file" ]; then
-        if [ ! -z $ODOO_REPO ] && [[ $ODOO_REPO == "https://github.com"* ]]; then
-            # Odoo repo is github, so we can get control file easily
-            # NOTE: Experimental code
-            local gh_repo=${ODOO_REPO##https://github.com};
-            gh_repo=${gh_repo%.git};
-            local control_url="raw.githubusercontent.com/$gh_repo/$ODOO_BRANCH/debian/control";
-            control_url=${control_url/\/\//\/};  # replace '//' on '/'
-            control_url=https://${control_url/\/\//\/};  # repeat replace '//' on '/'
-            local tmp_control=$(mktemp);
-            wget $control_url -O $tmp_control;
-            control_file=$tmp_control; 
-        else
-            echo -e "${YELLOWC}Warning, cannot get debian/control file automaticaly.${NC}";
-        fi
-    fi
-
-    # Parse control file and install system dependencies
-    if [ -f "$control_file" ]; then
-        local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $control_file);
+    if [ ! -f "$control_file" ] && [ ! -z $ODOO_VERSION ]; then
+        # If odoo not installed, then fetch this file from odoo repository
+        install_sys_deps_for_odoo_version $ODOO_VERSION;
+    elif [ -f "$control_file" ]; then
+        # Parse control file and install system dependencies
+        local sys_deps=$(install_parse_debian_control_file $control_file);
         echo -e "${BLUEC}Sys deps to be installed:${NC} $sys_deps";
         install_sys_deps_internal $sys_deps;
     else
         echo -e "${REDC}ERROR! Cannot find debian/control file${NC}";
     fi
-   
-    # Remove temp file if it was created 
-    if [ ! -z $tmp_control ]; then
-        rm $tmp_control;
-    fi
 }
 
 function install_and_configure_postgresql {
+    local db_user=${1:-$DB_USER};
+    local db_password=${2:-DB_PASSWORD};
     # Check if postgres is installed on this machine. If not, install it
     if ! postgres_is_installed; then
         postgres_install_postgresql;
+        echo -e "${GREENC}Postgres installed${NC}";
     else
-        echov "It seems that postgresql is already installed, so not installing it, just configuring...";
+        echo -e "${YELLOWC}It seems that postgresql is already installed, so not installing it, just configuring...${NC}";
     fi
 
-    postgres_user_create $DB_USER $DB_PASSWORD;
-    echov "Postgres seems to be installed and db user seems created.";
+    if [ ! -z $db_user ] && [ ! -z $db_password ]; then
+        postgres_user_create $db_user $db_password;
+        echo -e "${GREENC}Postgres user $db_user created${NC}";
+    fi
 }
 
 
-# install_system_prerequirements [install extra utils (1)]
+# install_system_prerequirements
 function install_system_prerequirements {
-    local install_extra_utils=${1:-$INSTALL_EXTRA_UTILS};
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
 
     echo "Updating package list..."
-    sudo apt-get update || true;
+    with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    local to_install="git wget python-setuptools perl g++ libpq-dev python-dev";
-    if [ ! -z $install_extra_utils ]; then
-        to_install="$to_install expect-dev";
-    fi;
-    sudo apt-get install $opt_apt_always_yes $to_install;
+    install_sys_deps_internal git wget python-setuptools perl g++ \
+        libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
+        libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
+        libsasl2-dev libldap2-dev libssl-dev;
 
-    # Install wkhtmltopdf
-    wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O /tmp/wkhtmltox.deb
-    sudo dpkg --force-depends -i /tmp/wkhtmltox.deb  # install ignoring dependencies
-    sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+    if ! install_wkhtmltopdf; then
+        echo "Cannot install wkhtmltopdf!!! Skipping...";
+    fi
 
-    sudo easy_install pip;
-    sudo pip install --upgrade pip virtualenv;
+    with_sudo easy_install pip;
+    with_sudo pip install --upgrade pip virtualenv;
 }
 
 
-# Install virtual environment, and preinstall some packages
+# Install virtual environment
 # install_virtual_env [path]
 function install_virtual_env {
     local venv_path=${1:-$VENV_DIR};
     if [ ! -z $venv_path ] &&[ ! -d $venv_path ]; then
-        if [ ! -z $USE_SYSTEM_SITE_PACKAGES ]; then
-            local venv_opts=" --system-site-packages ";
-        else
-            local venv_opts="";
-        fi
-        virtualenv $venv_opts $venv_path;
+        virtualenv --system-site-packages $venv_path;
     fi
 }
 
-# install_python_prerequirements [install extra utils (1)]
+# install_python_prerequirements
 function install_python_prerequirements {
-    local install_extra_utils=${1:-$INSTALL_EXTRA_UTILS};
     # required to make odoo.py work correctly when setuptools too old
     execu easy_install --upgrade setuptools;
-    execu pip install --upgrade pip;  
+    execu pip install --upgrade pip erppeek \
+        setproctitle python-slugify watchdog pylint pylint-odoo coverage \
+        flake8 flake8-colors;  
 
-    if ! execu python -c 'import pychart'; then
+    if ! execu "python -c 'import pychart'"; then
         execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
-    fi
-
-    if [ ! -z $install_extra_utils ]; then
-        execu pip install --upgrade erppeek setproctitle python-slugify watchdog;
     fi
 
     # Install PIL only for odoo versions that have no requirements txt (<8.0)
@@ -188,14 +217,19 @@ function install_python_prerequirements {
 }
 
 # Generate configuration file fo odoo
-# this function looks into ODOO_CONF_OPTIONS anvironment variable,
+# this function looks into ODOO_CONF_OPTIONS environment variable,
 # which should be associative array with options to be written to file
 # install_generate_odoo_conf <file_path>
 function install_generate_odoo_conf {
     local conf_file=$1;
 
     # default addonspath
-    local addons_path="$ODOO_PATH/openerp/addons,$ODOO_PATH/addons,$ADDONS_DIR";
+    local addons_path="$ODOO_PATH/addons,$ADDONS_DIR";
+    if [ -e "$ODOO_PATH/odoo/addons" ]; then
+        addons_path="$ODOO_PATH/odoo/addons,$addons_path";
+    elif [ -e "$ODOO_PATH/openerp/addons" ]; then
+        addons_path="$ODOO_PATH/openerp/addons,$addons_path";
+    fi
 
     # default values
     ODOO_CONF_OPTIONS[addons_path]="${ODOO_CONF_OPTIONS['addons_path']:-$addons_path}";
@@ -238,12 +272,22 @@ function odoo_gevent_install_workaround_cleanup {
     fi
 }
 
+
+# odoo_run_setup_py [setup.py develop arguments]
 function odoo_run_setup_py {
     # Workaround for situation when setup does not install openerp-gevent script.
     odoo_gevent_install_workaround;
 
+    # Install dependencies via pip (it is faster if they are cached)
+    if [ -f "$ODOO_PATH/requirements.txt" ]; then
+        if ! execu pip install -r $ODOO_PATH/requirements.txt; then
+            echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
+                    "This may be caused by compilation error when building one of python packages on ubuntu.";
+        fi
+    fi
+
     # Install odoo
-    (cd $ODOO_PATH && execu python setup.py develop);
+    (cd $ODOO_PATH && execu python setup.py develop $@);
 
      
     # Workaround for situation when setup does not install openerp-gevent script.
@@ -252,4 +296,59 @@ function odoo_run_setup_py {
 }
 
 
+# Entry point for install subcommand
+function install_entry_point {
+    local usage="Usage:
 
+        $SCRIPT_NAME install pre-requirements [-y]         - install system preprequirements
+        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
+        $SCRIPT_NAME install postgres [user] [password]    - install postgres.
+                                                             and if user/password specified, create it
+        $SCRIPT_NAME install --help                        - show this help message
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        exit 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            pre-requirements)
+                shift
+                if [ "$1" == "-y" ]; then
+                    ALWAYS_ANSWER_YES=1;
+                    shift;
+                fi
+                install_system_prerequirements;
+                exit 0;
+            ;;
+            sys-deps)
+                shift;
+                if [ "$1" == "-y" ]; then
+                    ALWAYS_ANSWER_YES=1;
+                    shift;
+                fi
+                install_sys_deps_for_odoo_version "$@";
+                exit 0;
+            ;;
+            postgres)
+                shift;
+                install_and_configure_postgresql "$@";
+                exit 0;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                exit 1;
+            ;;
+        esac
+        shift
+    done
+}

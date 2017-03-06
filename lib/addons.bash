@@ -12,6 +12,7 @@ ohelper_require 'git';
 ohelper_require 'db';
 ohelper_require 'server';
 ohelper_require 'odoo';
+ohelper_require 'fetch';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -31,7 +32,29 @@ function addons_get_addon_path {
     echo "$addon_path";
 }
 
+# Check if addon is installable
+#
+# Return 0 if addon is installable else 1;
+#
+# addons_is_installable <addon_path>
+function addons_is_installable {
+    local addon_path=$1;
+    if [ -f "$1/__openerp__.py" ]; then
+        local manifest_file="$1/__openerp__.py";
+    elif [ -f "$1/__manifest__.py" ]; then
+        local manifest_file="$1/__manifest__.py";
+    else
+        return 2
+    fi
+    if python -c "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
 # Get list of installed addons
+# NOTE: Odoo 8.0+ required
 # addons_get_installed_addons <db> [conf_file]
 function addons_get_installed_addons {
     local db=$1;
@@ -45,9 +68,10 @@ function addons_get_installed_addons {
     execu python -c "\"$python_cmd\"";
 }
 
-# Update list of addons visible in system
+# Update list of addons visible in system (for single db)
+# NOTE: Odoo 8.0+ required
 # addons_update_module_list <db> [conf_file]
-function addons_update_module_list {
+function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
@@ -61,6 +85,54 @@ function addons_update_module_list {
     execu python -c "\"$python_cmd\"";
 }
 
+
+# Update list of addons visible in system for db or all databases
+# NOTE: Odoo 8.0+ required
+# addons_update_module_list [db] [conf_file]
+function addons_update_module_list {
+    local db=$1;
+
+    if [ ! -z $db ]; then
+        echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
+        addons_update_module_list_db $db;
+    else
+        for db in $(odoo_db_list); do
+            echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
+            addons_update_module_list_db $db;
+        done
+    fi
+}
+
+
+# List addons in specified directory
+#
+# addons_list_in_directory <directory to search odoo addons in>
+#
+# Note: this funtion lists addon paths
+function addons_list_in_directory {
+    local addons_path=${1:-$ADDONS_DIR};
+    if [ -d $addons_path ]; then
+        for addon in "$addons_path"/*; do
+            if is_odoo_module $addon; then
+                echo "$(readlink -f $addon)";
+            fi
+        done
+    fi
+}
+
+
+# List addons in specified directory by name
+# This function prints only name of addons found in specified dir.
+# Not paths!
+#
+# addons_list_in_directory_by_name <directory to search odoo addons in>
+function addons_list_in_directory_by_name {
+    for addon_path in $(addons_list_in_directory $1); do
+        echo "$(basename $addon_path)";
+    done
+}
+
+
 # List addons repositories
 # Note that this function list only addons that are under git control
 #
@@ -68,13 +140,11 @@ function addons_update_module_list {
 function addons_list_repositories {
     local addons_path=${1:-$ADDONS_DIR};
 
-    if [ ! -z $addons_path ]; then
-        for addon in "$addons_path"/*; do
-            if is_odoo_module $addon && git_is_git_repo $addon; then
-                echo "$(git_get_abs_repo_path $addon)";
-            fi
-        done | sort -u;
-    fi
+    for addon in $(addons_list_in_directory $addons_path); do
+        if git_is_git_repo $addon; then
+            echo "$(git_get_abs_repo_path $addon)";
+        fi
+    done | sort -u;
 }
 
 
@@ -85,13 +155,11 @@ function addons_list_repositories {
 function addons_list_no_repository {
     local addons_path=${1:-$ADDONS_DIR};
 
-    if [ ! -z $addons_path ]; then
-        for addon in "$addons_path"/*; do
-            if is_odoo_module $addon && ! git_is_git_repo $addon; then
-                echo "$(readlink -f $addon)";
-            fi
-        done | sort -u;
-    fi
+    for addon in $(addons_list_in_directory $addons_path); do
+        if ! git_is_git_repo $addon; then
+            echo "$(readlink -f $addon)";
+        fi
+    done | sort -u;
 }
 
 
@@ -108,10 +176,29 @@ function addons_generate_requirements {
 # Check for git updates for addons
 # addons_git_fetch_updates [addons path]
 function addons_git_fetch_updates {
+    local addons_dir=${1:-$ADDONS_DIR};
     # fetch updates for each addon repo
     for addon_repo in $(addons_list_repositories $addons_dir); do
-        (cd $addon_repo && git fetch) || true;
+        if ! (cd $addon_repo && git fetch); then
+            echo -e "${REDC} fetch updates error: $addon_repo${NC}";
+        fi
     done
+}
+
+# Update git repositories
+# addons_git_pull_updates [addons path]
+function addons_git_pull_updates {
+    local addons_dir=${1:-$ADDONS_DIR};
+    for addon_repo in $(addons_list_repositories $addons_dir); do
+        IFS=$'\n' git_status=( $(git_parse_status $addon_repo || echo '') );
+        local git_remote_status=${git_status[1]};
+        if [[ $git_remote_status == _BEHIND_* ]] && [[ $git_remote_status != *_AHEAD_* ]]; then
+            (cd $addon_repo && git pull && link_module .);
+        fi
+    done
+
+    # update list available modules for all databases
+    addons_update_module_list
 }
 
 
@@ -187,6 +274,7 @@ function addons_show_status {
         # Display addon status
         echo -e "Addon status for ${BLUEC}$addon_repo${NC}'";
         echo -e "\tRepo branch:          ${git_status[0]}";
+        echo -e "\tRepo remote:          $(git_get_remote_url $addon_repo)";
         [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Remote: ${git_status[1]}${NC}";
         [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Upstream: ${git_status[2]}${NC}";
         [ ${git_status[3]} -eq 1 ]  && echo -e "\t${GREENC}Repo is clean!${NC}";
@@ -214,11 +302,15 @@ function addons_install_update {
     shift;
     local usage="Usage:
 
-        $SCRIPT_NAME addons $cmd [-d <db>] <addons>    - $cmd some addons
+        $SCRIPT_NAME addons $cmd [-d <db>] [--no-restart] <addons>    - $cmd some addons
         $SCRIPT_NAME addons $cmd --help
 
         if -d <db> argument is not passed '$cmd' will be executed on all databases
         <addons> is comma-separated or space-separated list of addons
+
+        if --no-restart option passed, then do not restart server.
+        By default, befor updating \ installing addons server will be stopped,
+        and started on success
 
     ";
     local dbs="";
@@ -230,6 +322,9 @@ function addons_install_update {
             -d|--db)
                 dbs=$dbs$'\n'$2;
                 shift;
+            ;;
+            --no-restart)
+                local no_restart_server=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -255,17 +350,48 @@ function addons_install_update {
         dbs=$(odoo_db_list);
     fi
 
-    server_stop;
+    [ "$cmd" == "install" ] && local cmd_opt="-i";
+    [ "$cmd" == "update" ]  && local cmd_opt="-u";
+
+    if [ -z $cmd_opt ]; then
+        echo -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
+    fi
+
+    # Stop server if it is running
+    if [ -z $no_restart_server ] && [ $(server_get_pid) -gt 0 ]; then
+        server_stop;
+        local need_start=1;
+    fi
+
     for db in $dbs; do
-        if [ "$cmd" == "install" ]; then
-            server_run -d $db -i $todo_addons --stop-after-init
-        elif [ "$cmd" == "update" ]; then
-            server_run -d $db -u $todo_addons --stop-after-init
+        if server_run -d $db $cmd_opt $todo_addons --stop-after-init --no-xmlrpc; then
+            echo -e "${LBLUEC}Update for '$db':${NC} ${GREENC}OK${NC}";
         else
-            echo -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
+            echo -e "${LBLUEC}Update for '$db':${NC} ${REDC}FAIL${NC}";
         fi
     done
-    server_start;
+
+    # Start server again if it was stopped
+    if [ -z $no_restart_server ] && [ ! -z $need_start ]; then
+        server_start;
+    fi
+}
+
+
+# This function test what databases have this addon installed
+# addons_test_installed <addon>
+function addons_test_installed {
+    local addons=$(join_by , $@);
+    for db in $(odoo_db_list); do
+        local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$ODOO_CONF_FILE']);";
+        python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
+        python_cmd="$python_cmd is_installed=bool(env['ir.module.module'].search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
+        python_cmd="$python_cmd exit(not is_installed);"
+
+        if execu python -c "\"$python_cmd\"" >/dev/null 2>&1; then
+            echo "$db";
+        fi
+    done
 }
 
 
@@ -274,11 +400,13 @@ function addons_command {
 
         $SCRIPT_NAME addons list_repos [addons path]      - list git repositories
         $SCRIPT_NAME addons list_no_repo [addons path]    - list addons not under git repo
-        $SCRIPT_NAME addons check_updates                 - Check for git updates of addons and displays status
+        $SCRIPT_NAME addons check_updates [addons path]   - Check for git updates of addons and displays status
+        $SCRIPT_NAME addons pull_updates [addons path]    - Pull changes from git repos
         $SCRIPT_NAME addons status --help                 - show addons status
-        $SCRIPT_NAME addons update [-d <db>] <name>       - update some addon
-        $SCRIPT_NAME addons install [-d <db>] <name>      - update some addon
-        $SCRIPT_NAME addons update-list <db>              - update list of addons
+        $SCRIPT_NAME addons update --help                 - update some addon[s]
+        $SCRIPT_NAME addons install --help                - install some addon[s]
+        $SCRIPT_NAME addons update-list [db]              - update list of addons
+        $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons --help                        - show this help message
 
     ";
@@ -304,8 +432,18 @@ function addons_command {
             ;;
             check_updates)
                 shift;
+                ADDONS_DIR=${1:-$ADDONS_DIR};
                 addons_git_fetch_updates;
                 addons_show_status --only-git-updates;
+                exit 0;
+            ;;
+            pull_updates)
+                shift;
+                echo -e "${LBLUEC}Checking for updates...${NC}";
+                addons_git_fetch_updates "$@";
+                echo -e "${LBLUEC}Applying updates...${NC}";
+                addons_git_pull_updates "$@";
+                echo -e "${GREENC}DONE${NC}";
                 exit 0;
             ;;
             status|show_status)
@@ -326,6 +464,11 @@ function addons_command {
             update-list)
                 shift;
                 addons_update_module_list "$@";
+                exit 0;
+            ;;
+            test-installed)
+                shift;
+                addons_test_installed $@;
                 exit 0;
             ;;
             generate_requirements)

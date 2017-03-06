@@ -8,7 +8,7 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.0.10"
+ODOO_HELPER_VERSION="0.1.0"
 
 # if odoo-helper root conf is not loaded yet, try to load it
 # This is useful when this lib is used by external utils,
@@ -105,7 +105,7 @@ function execu {
     # Check unbuffer option
     if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
         echo -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
-        echo -e "It could be installed by installing package expect-dev";
+        echo -e "It could be installed by installing package *expect-dev*";
         echo -e "Using standard behavior${NC}";
         USE_UNBUFFER=;
     fi
@@ -200,6 +200,7 @@ function search_file_in {
 
 # function to print odoo-helper config
 function print_helper_config {
+    echo "ODOO_VERSION=$ODOO_VERSION;";
     echo "ODOO_BRANCH=$ODOO_BRANCH;";
     echo "PROJECT_ROOT_DIR=$PROJECT_ROOT_DIR;";
     echo "CONF_DIR=$CONF_DIR;";
@@ -217,7 +218,9 @@ function print_helper_config {
     echo "ODOO_PID_FILE=$ODOO_PID_FILE;";
     echo "BACKUP_DIR=$BACKUP_DIR;";
     echo "REPOSITORIES_DIR=$REPOSITORIES_DIR;";
-    echo "INIT_SCRIPT=$INIT_SCRIPT;";
+    if [ ! -z $INIT_SCRIPT ]; then
+        echo "INIT_SCRIPT=$INIT_SCRIPT;";
+    fi
 }
 
 
@@ -250,7 +253,11 @@ function config_default_vars {
 function is_odoo_module {
     if [ ! -d $1 ]; then
        return 1;
-    elif [ -f "$1/__openerp__.py" ] || [ -f "$1/__odoo__.py" ] || [ -f "$1/__terp__.py" ]; then
+    elif [ -f "$1/__manifest__.py" ]; then
+        # Odoo 10.0+
+        return 0;
+    elif [ -f "$1/__openerp__.py" ]; then
+        # Odoo 6.0 - 9.0
         return 0;
     else
         return 1;
@@ -260,13 +267,44 @@ function is_odoo_module {
 
 # Load project configuration. No args prowided
 function load_project_conf {
-    local project_conf=`search_file_up $WORKDIR $CONF_FILE_NAME`;
-    if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
-        echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
-        source $project_conf;
-    fi
-
     if [ -z $PROJECT_ROOT_DIR ]; then
-        echo -e "${REDC}WARNING: no project config file found${NC}";
+        # Load project conf, only if it is not loaded yet.
+        local project_conf=`search_file_up $WORKDIR $CONF_FILE_NAME`;
+        if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
+            echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
+            source $project_conf;
+        fi
+
+        if [ -z $PROJECT_ROOT_DIR ]; then
+            echo -e "${REDC}WARNING: no project config file found${NC}";
+        fi
     fi
+}
+
+# with_sudo <args>
+# Run command with sudo if required
+function with_sudo {
+    if [[ $UID != 0 ]]; then
+        sudo $@;
+    else
+        $@
+    fi
+}
+
+# Join arguments useing arg $1 as separator
+# join_by , a "b c" d -> a,b c,d
+# origin: http://stackoverflow.com/questions/1527049/bash-join-elements-of-an-array#answer-17841619
+function join_by {
+    local IFS="$1";
+    shift;
+    echo "$*";
+}
+
+# Run python code
+#
+# run_python_cmd <code>
+function run_python_cmd {
+    local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
+    python_cmd="$python_cmd $1";
+    execu python -c "\"$python_cmd\"";
 }

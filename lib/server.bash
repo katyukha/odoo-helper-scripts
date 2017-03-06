@@ -23,7 +23,7 @@ set -e; # fail on errors
 #  which should be placed in project config)
 # Now it simply returns openerp-server
 function get_server_script {
-    check_command odoo.py openerp-server openerp-server.py;
+    check_command odoo odoo.py openerp-server openerp-server.py;
 }
 
 # Function to check server run status;
@@ -51,6 +51,7 @@ function run_server_impl {
     local SERVER=`get_server_script`;
     echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
     export OPENERP_SERVER=$ODOO_CONF_FILE;
+    export ODOO_RC=$ODOO_CONF_FILE;  # for odoo 10.0+
     if [ ! -z $SERVER_RUN_USER ]; then
         local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
         echov "Using server run opt: $sudo_opt";
@@ -58,6 +59,7 @@ function run_server_impl {
 
     execu "$sudo_opt $SERVER $@";
     unset OPENERP_SERVER;
+    unset ODOO_RC;
 }
 
 # server_run <arg1> .. <argN>
@@ -117,8 +119,8 @@ function server_stop {
                 echo "Cannot kill process.";
             fi
         else
-            echo "Server seems not to be running!"
-            echo "Or PID file $ODOO_PID_FILE was removed";
+            echo -e "${YELLOWC}Server seems not to be running!${NC}"
+            echo -e "${YELLOWC}Or PID file $ODOO_PID_FILE was removed${NC}";
         fi
     fi
 

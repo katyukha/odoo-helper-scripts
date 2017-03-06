@@ -28,11 +28,20 @@ After instalation You will have ```odoo-helper-scripts``` directory under ```/op
 (also ```odoo-helper``` and ```odoo-install``` scripts will be linked to ```/usr/local/bin/``` dir).
 And ```/etc/odoo-helper.conf``` file will be generated with path to odoo-helper-scripts install dir.
 
+If you wish to install from *dev* branch, you can use following command:
+
+```bash
+wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s - dev
+```
+
 
 ## Features
 
-- Easily manage few instnces of odoo that ran on same machine
-- High usage of virtual env for isolation
+- Easily manage few instances of odoo that ran on same machine
+- High usage of virtual env for isolation purpose
+- Easy way to install from git repositories
+    - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
+    - Specific format of dependencies: [odoo_requirements.txt](#syntax-of-odoo_requirementstxt)
 - Easy mechanism to fetch addons from any git repo
 - Easy mechanism to fetch python dependency from PyPI or any vcs
 - Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
@@ -45,7 +54,8 @@ And after install you will have available folowing scripts in your path:
     - odoo-install
     - odoo-helper
 
-Each script have -h or --help option which display most relevant information about script
+Each script have ```-h``` or ```--help``` option which display most relevant information
+about script and all possible options and subcommands of script
 
 Look at [complete example](#complete-example)
 
@@ -96,15 +106,17 @@ Core functionality is:
            Depending on options, may create new clean test daatabase.
            For depatis run this command with --help option$A
 - *link* - link specified module directory to current addons dir. mostly used internaly
-- *create_db* - allows to create database from command line
-- *drop_db* - allows to drop database from commandline
-- *list_db* - lists databases, available for this odoo instance
+- *db* - manage database (create, drop, dump, restore, etc)
+- *addons* - manage addons (install, update, check for updates in git repos, etc)
+- *tr* - translation utils
+- *postgres* - manage local postgres (create pg user, etc)
 
 For details use *--help* option
 
 ### Syntax of odoo\_requirements.txt
 
-*odoo_requirements.txt* parsed line by line, and each line must be just set of options to ```odoo-helper fetch``` command:
+*odoo_requirements.txt* parsed line by line, and each line
+must be just set of options for ```odoo-helper fetch``` command:
 
 ```
 -r|--repo <git repository>  [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
@@ -131,18 +143,33 @@ For details run ```odoo-helper fetch --help```
 ## Complete example
 
 ```bash
-odoo-install --install-dir odoo-7.0 --branch 7.0 --extra-utils
+# Install odoo-helper scripts pre-requirements.
+# This step should be usualy ran one time, and is required to ensure that
+# all odoo-helper dependencies installed.
+odoo-helper install pre-requirements
+
+# Install system dependencies for odoo version 7.0
+# This option requires sudo.
+odoo-helper install sys-deps 7.0;
+
+# Install postgres and create there user with name='odoo' and password='odoo'
+odoo-helper install postgres odoo odoo
+
+# Install odoo 7.0 into 'odoo-7.0' directory
+odoo-install -i odoo-7.0 --odoo-version 7.0
 cd odoo-7.0
 
-# Now You will have odoo-7.0 installed in this directory.
-# Note, thant Odoo this odoo install uses virtual env (venv dir)
+# Now You have odoo-7.0 installed in this directory.
+# Note, that this odoo installation uses virtual env (venv dir)
 # Also You will find there odoo-helper.conf config file
 
 # So now You may run local odoo server (i.e openerp-server script).
 # Note that this command run's server in foreground.
-odoo-helper server   # This will automaticaly use config file: conf/odoo.conf
+odoo-helper server run  # This will automaticaly use config file: conf/odoo.conf
 
-# Also you may run server in background using
+# Press Ctrl+C to stop seerver
+
+# To run server in backgroud use following command
 odoo-helper server start
 
 # there are also few additional server related commands:
@@ -151,23 +178,29 @@ odoo-helper server log
 odoo-helper server restart
 odoo-helper server stop
 
+# Also there are shourtcuts for these commands:
+odoo-helper status
+odoo-helper log
+odoo-helper restart
+odoo-helper stop
+
 # Let's install base_tags addon into this odoo installation
 odoo-helper fetch --github katyukha/base_tags --branch master
 
 # Now look at custom_addons/ dir, there will be placed links to addons
 # from https://github.com/katyukha/base_tags repository
-# But repository itself is placed in downloads/ directory
+# But repository itself is placed in repositories/ directory
 # By default no branch specified when You fetch module,
 # but there are -b or --branch option which can be used to specify which branch to fetch
 
 # Now let's run tests for these just installed modules
 odoo-helper test --create-test-db -m base_tags -m product_tags
 
-# this will create test database (it will be dropt after test finishes) and 
+# this will create test database (it will be dropt after test finished) and 
 # run tests for modules 'base_tags' and 'product_tags'
 
 # If You need color output from Odoo, you may use '--use-unbuffer' option,
-# but it depends on 'expect-dev' package
+# but it depends on 'expect-dev' package.
 odoo-helper --use-unbuffer test --create-test-db -m base_tags -m product_tags
 
 # The one cool thing of odoo-helper script, you may not remeber paths to odoo instalation,
@@ -180,14 +213,18 @@ dooo-helper server restart
 # go back to directory containing our projects (that one, where odoo-7.0 project is placed)
 cd ../../
 
-# Let's install odoo of version 8.0 too here.
-odoo-install --install-dir odoo-8.0 --branch 8.0 --extra-utils
+# Let's install odoo of version 8.0 here too.
+# First, install system dependencies for odoo version 8.0
+odoo-helper install sys-deps 8.0;
+
+# And when system dependencies installed, install odoo itself
+odoo-install --install-dir odoo-8.0 --odoo-version 8.0
 cd odoo-8.0
 
-# and install there for example addon 'project_sla' for 'project-service' Odoo Comutinty repository
+# and install there for example addon 'project_sla' for 'project' Odoo Comutinty repository
 # Note  that odoo-helper script will automaticaly fetch branch named as server version in current install,
 # if another branch was not specified
-odoo-helper fetch --oca project-service -m project_sla
+odoo-helper fetch --oca project -m project_sla
 
 # and run tests for it
 odoo-helper test --create-test-db -m project_sla

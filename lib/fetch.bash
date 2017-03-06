@@ -9,7 +9,10 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
 fi
 
 # Require libs
-ohelper_require 'git'
+ohelper_require 'git';
+ohelper_require 'recursion';
+ohelper_require 'addons';
+ohelper_require 'link';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -19,6 +22,7 @@ set -e; # fail on errors
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 PIP_REQUIREMENTS_FILE_NAME="requirements.txt";
 OCA_REQUIREMENTS_FILE_NAME="oca_dependencies.txt";
+
 
 # fetch_requirements <file_name|path_name>
 function fetch_requirements {
@@ -30,20 +34,20 @@ function fetch_requirements {
         REQUIREMENTS_FILE=$REQUIREMENTS_FILE/$REQUIREMENTS_FILE_NAME;
     fi
 
-    # Store here all requirements files processed to deal with circle dependencies
-    if [ -z $REQ_FILES_PROCESSED ]; then
-        REQ_FILES_PROCESSED[0]=$REQUIREMENTS_FILE;
-    else
-        # Check if file have been processed, and if so, return from function
-        for processed_file in ${REQ_FILES_PROCESSED[*]}; do
-            if [ "$processed_file" == "$REQUIREMENTS_FILE" ]; then
-                echo -e "${YELLOWC}WARN${NC}: File $REQUIREMENTS_FILE already had been processed. skipping...";
-                return 0;
-            fi
-        done;
-        # If file have not been processed yet, add it to array with processed files
-        # and process it
-        REQ_FILES_PROCESSED[${#REQ_FILES_PROCESSED[*]}]=$REQUIREMENTS_FILE;
+    # Get absolute path to requirements file
+    REQUIREMENTS_FILE=$(readlink -f $REQUIREMENTS_FILE);
+
+    # Stop if file does not exists
+    if [ ! -f "$REQUIREMENTS_FILE" ]; then
+        echov "Requirements file '$REQUIREMENTS_FILE' not found!";
+        return 0;
+    fi
+
+    # recursion protection
+    local recursion_key=fetch_odoo_requirements;
+    if ! recursion_protection_easy_check $recursion_key $REQUIREMENTS_FILE; then
+        echo -e "${YELLOWC}WARN${NC}: File $REQUIREMENTS_FILE already had been processed. skipping...";
+        return 0
     fi
 
     # Process requirements file and run fetch_module subcomand for each line
@@ -58,56 +62,88 @@ function fetch_requirements {
                 fi
             fi
         done < $REQUIREMENTS_FILE;
-    else
-        echov "Requirements file '$REQUIREMENTS_FILE' not found!";
     fi
 }
 
 # fetch_pip_requirements <filepath>
 function fetch_pip_requirements {
-     local pip_requirements=${1:-$WORKDIR};
-     if [ -d $pip_requirements ]; then
-         pip_requirements=$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME;
-     fi
+    local pip_requirements=${1:-$WORKDIR};
+    if [ -d $pip_requirements ]; then
+        pip_requirements=$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME;
+    fi
 
-     if [ -f $pip_requirements ]; then
-         execu pip install -r $pip_requirements;
-     fi
+    if [ ! -f $pip_requirements ]; then
+        return 0;
+    fi
+
+    # Check recursion
+    local recursion_key=fetch_pip_requirements;
+    if ! recursion_protection_easy_check $recursion_key $pip_requirements; then
+        echo -e "${YELLOWC}WARN${NC}: File $pip_requirements already had been processed. skipping...";
+        return 0
+    fi
+
+    # Do pip install
+    #
+    # Here we set workdir to directory that conains requirements file,
+    # before running pip install, to allow usage of relative requirements.
+    # This is useful in case, when addon depends on python module,
+    # that is not on pip or github, but placed directly in addon directory,
+    # and should be installed via setup.py
+    #
+    # Example requirements.txt:
+    #
+    # -e ./lib/python-project
+    #
+    local req_dir=$(dirname $pip_requirements);
+    (cd $req_dir && execu pip install -r $pip_requirements);
 }
 
 # fetch_oca_requirements <filepath>
 function fetch_oca_requirements {
-     local oca_requirements=${1:-$WORKDIR};
-     if [ -d $oca_requirements ]; then
-         oca_requirements=$oca_requirements/$OCA_REQUIREMENTS_FILE_NAME;
-     fi
-
-     if [ -f $oca_requirements ]; then
-         while read -ra line; do
-            if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
-                local opt="--name ${line[0]}";
-
-                # if there are no url specified then use --oca shortcut
-                if [ -z ${line[1]} ]; then
-                    opt="$opt --oca ${line[0]}";
-                else
-                    # else, specify url directly
-                    opt="$opt --repo ${line[1]}";
-                fi
-
-                # add branch if it spcified in file
-                if [ ! -z ${line[2]} ]; then
-                    opt="$opt --branch ${line[2]}";
-                fi
-                
-                if fetch_module $opt; then
-                    echo -e "Line ${GREENC}OK${NC}: $line";
-                else
-                    echo -e "Line ${GREENC}FAIL${NC}: $line";
-                fi
-            fi
-         done < $oca_requirements;
+    local oca_requirements=${1:-$WORKDIR};
+    if [ -d $oca_requirements ]; then
+        oca_requirements=$oca_requirements/$OCA_REQUIREMENTS_FILE_NAME;
     fi
+
+    if [ ! -f "$oca_requirements" ]; then
+        echov "No oca file: $oca_requirements";
+        return 0;
+    fi
+
+    oca_requirements=$(readlink -f $oca_requirements);
+
+    # Check recursion
+    local recursion_key=fetch_oca_requirements;
+    if ! recursion_protection_easy_check $recursion_key $oca_requirements; then
+        echo -e "${YELLOWC}WARN${NC}: File $oca_requirements already had been processed. skipping...";
+        return 0
+    fi
+
+    while read -ra line; do
+       if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
+           local opt=""; #"--name ${line[0]}";
+
+           # if there are no url specified then use --oca shortcut
+           if [ -z ${line[1]} ]; then
+               opt="$opt --oca ${line[0]}";
+           else
+               # else, specify url directly
+               opt="$opt --repo ${line[1]}";
+           fi
+
+           # add branch if it spcified in file
+           if [ ! -z ${line[2]} ]; then
+               opt="$opt --branch ${line[2]}";
+           fi
+           
+           if fetch_module $opt; then
+               echo -e "Line ${GREENC}OK${NC}: $opt";
+           else
+               echo -e "Line ${GREENC}FAIL${NC}: $opt";
+           fi
+       fi
+    done < $oca_requirements;
 }
 
 # get_repo_name <repository> [<desired name>]
@@ -120,100 +156,6 @@ function get_repo_name {
         echo $R;
     else
         echo $2;
-    fi
-}
-
-# link_module_impl <source_path> <dest_path> <force>
-function link_module_impl {
-    local SOURCE=`readlink -f $1`;
-    local DEST="$2";
-    local force=$3;
-
-    if [ ! -z $force ] && ([ -e $DEST ] || [ -L $DEST ]); then
-        echov "Rewriting module $DEST...";
-        rm -rf $DEST;
-    fi
-
-    if [ ! -d $DEST ]; then
-        if [ -z $USE_COPY ]; then
-            ln -s $SOURCE $DEST ;
-        else
-            cp -r $SOURCE $DEST;
-        fi
-    else
-        echov "Module $SOURCE already linked to $DEST";
-    fi
-    fetch_requirements $DEST;
-    fetch_pip_requirements $DEST/$PIP_REQUIREMENTS_FILE_NAME;
-    fetch_oca_requirements $DEST/$OCA_REQUIREMENTS_FILE_NAME;
-}
-
-# link_module [-f|--force] <repo_path> [<module_name>]
-function link_module {
-    local usage="
-    Usage: 
-
-        $SCRIPT_NAME link [-f|--force] <repo_path> [<module_name>]
-    ";
-
-    local force=;
-
-    # Parse command line options and run commands
-    if [[ $# -lt 1 ]]; then
-        echo "No options supplied $#: $@";
-        echo "";
-        echo "$usage";
-        exit 0;
-    fi
-
-    while [[ $1 == -* ]]
-    do
-        key="$1";
-        case $key in
-            -h|--help)
-                echo "$usage";
-                exit 0;
-            ;;
-            -f|--force)
-                force=1;
-            ;;
-            *)
-                echo "Unknown option $key";
-                exit 1;
-            ;;
-        esac
-        shift
-    done
-
-
-    local REPO_PATH=$(readlink -f $1);
-    local MODULE_NAME=$2
-
-    echov "Linking module $1 [$2] ...";
-
-    # Guess repository type
-    if is_odoo_module $REPO_PATH; then
-        # single module repo
-        link_module_impl $REPO_PATH $ADDONS_DIR/${MODULE_NAME:-`basename $REPO_PATH`} $force;
-    else
-        # multi module repo
-        if [ -z $MODULE_NAME ]; then
-            # Check for requirements files in repository root dir
-            fetch_requirements $REPO_PATH;
-            fetch_pip_requirements $REPO_PATH/$PIP_REQUIREMENTS_FILE_NAME;
-            fetch_oca_requirements $REPO_PATH/$OCA_REQUIREMENTS_FILE_NAME;
-
-            # No module name specified, then all modules in repository should be linked
-            for file in "$REPO_PATH"/*; do
-                if is_odoo_module $file; then
-                    link_module_impl $file $ADDONS_DIR/`basename $file` $force;
-                    # recursivly link module
-                fi
-            done
-        else
-            # Module name specified, then only single module should be linked
-            link_module_impl $REPO_PATH/$MODULE_NAME $ADDONS_DIR/$MODULE_NAME $force;
-        fi
     fi
 }
 
@@ -300,7 +242,9 @@ function fetch_module {
             ;;
             --oca)
                 REPOSITORY="https://github.com/OCA/$2";
-                REPO_BRANCH=${REPO_BRANCH:-$ODOO_BRANCH};  # Here we could use same branch as branch of odoo installed
+                # for backward compatability (if odoo version not defined,
+                # then use odoo branch
+                REPO_BRANCH=${REPO_BRANCH:-${ODOO_VERSION:-$ODOO_BRANCH}};
                 shift;
             ;;
             -m|--module)
@@ -351,9 +295,14 @@ function fetch_module {
         exit 2;
     fi
 
-    REPO_NAME=${REPO_NAME:-`get_repo_name $REPOSITORY`};
+    REPO_NAME=${REPO_NAME:-$(get_repo_name $REPOSITORY)};
     local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
 
+    local recursion_key="fetch_module";
+    if ! recursion_protection_easy_check $recursion_key "${REPO_PATH}__${MODULE:-all}"; then
+        echo -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
+        return 0
+    fi
     # Conditions:
     # - repo dir not exists and no module name specified
     #    - clone
@@ -362,35 +311,33 @@ function fetch_module {
     #        - warn and return
     #    - module absent in addons
     #        - clone and link
-    # - repo dir
-    #    - pull 
+    # - repo dir exists:
+    #    - repository is already clonned
 
-    # Clone or pull repository
+    # Clone
     if [ ! -d $REPO_PATH ]; then
         if [ ! -z $MODULE ] && [ -d "$ADDONS_DIR/$MODULE" ]; then
             echo "The module $MODULE already present in addons dir";
             return 0;
         else
-            if [ -z $VERBOSE ]; then
-                git clone -q $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH;
-            else
-                git clone $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH;
+            [ -z $VERBOSE ] && local git_clone_opt=" -q "
+            if ! git clone $git_clone_opt $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH; then
+                echo -e "${REDC}Cannot clone '$REPOSITORY to $REPO_PATH'!${NC}";
+            elif [ -z "$REPO_BRANCH_OPT" ]; then
+                # IF repo clonned successfuly, and not branch specified then
+                # try to checkout to ODOO_VERSION branch if it exists.
+                (
+                    cd $REPO_PATH && \
+                    [ "$(git_get_branch_name)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
+                    [ $(git branch --list -a "origin/${ODOO_VERSION:-$ODOO_BRANCH}") ] && \
+                    git checkout -q ${ODOO_VERSION:-$ODOO_BRANCH} || true
+                )
             fi
         fi
-    else
-        (
-            cd $REPO_PATH;
-            if [ -z $VERBOSE ]; then local verbose_opt="";
-            else local verbose_opt=" -q "; fi
-            if [ "$(git_get_branch_name)" == "$REPO_BRANCH" ]; then
-                    git pull $verbose_opt;
-            else
-                git fetch $verbose_opt;
-                git stash $verbose_opt;  # TODO: seems to be not correct behavior. think about workaround
-                git checkout $verbose_opt $REPO_BRANCH;
-            fi
-        )
     fi
 
-    link_module $REPO_PATH $MODULE
+    if [ -d $REPO_PATH ]; then
+        # Link repo only if it exists
+        link_module off $REPO_PATH $MODULE;
+    fi
 }

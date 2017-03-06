@@ -24,7 +24,7 @@ function odoo_db_create {
     echov "Creating odoo database $db_name using conf file $conf_file";
 
     local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', True, 'en_US');"
+    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', ${DB_DEMO:-True}, '${DB_LANG:-en_US}');"
 
     execu python -c "\"$python_cmd\"";
     
@@ -59,7 +59,7 @@ function odoo_db_exists {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
     
     if execu python -c "\"$python_cmd\""; then
@@ -78,6 +78,7 @@ function odoo_db_dump {
     local db_dump_file=$2;
     local conf_file=$ODOO_CONF_FILE;
 
+    # determine 3-d and 4-th arguments (format and odoo_conf_file)
     if [ -f "$3" ]; then
         conf_file=$3;
     elif [ ! -z $3 ]; then

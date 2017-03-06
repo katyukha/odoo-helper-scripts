@@ -13,10 +13,23 @@ fi
 
 ohelper_require "addons";
 ohelper_require "server";
+ohelper_require "db";
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
 
+
+# Parses database name and returns single database or all databases
+# if dbname is __all__ then echoes all databases present on server
+# else echoes database name
+function tr_parse_db_name {
+    local dbname=$1;
+    if [ "$dbname" == "__all__" ]; then
+        odoo_db_list;
+    else
+        echo "$dbname";
+    fi
+}
 
 # tr_parse_addons <db> <addon1> <addon2> <addon3> ...
 # tr_parse_addons <db> all
@@ -25,12 +38,18 @@ function tr_parse_addons {
     if [ "$1" == "all" ]; then
         addons_get_installed_addons $db;
     else
-        local addons="$1"; shift;
+        local installed_addons="$(addons_get_installed_addons $db)"
+        local addons=;
         while [[ $# -gt 0 ]]; do  # while there at least one argumet left
-            addons="$addons,$1";
+            if [[ "$1" =~ ^--dir=(.*)$ ]]; then
+                addons="$addons $(join_by ' '  $(addons_list_in_directory_by_name ${BASH_REMATCH[1]}))";
+            else
+                addons="$addons $1";
+            fi
             shift;
         done
-        echo "$addons";
+        local todo_addons="$(join_by , $addons)";
+        echo $(execv python -c "\"print ','.join(set('$todo_addons'.split(',')) & set('$installed_addons'.split(',')))\"");
     fi;
 }
 
@@ -52,13 +71,22 @@ function tr_import_export_internal {
         echo -e "${BLUEC}Executing '$cmd' for (db='$db', lang='$lang').${NC} Processing addon: '$addon';";
         local addon_path=$(addons_get_addon_path $addon);
         local i18n_dir=$addon_path/i18n;
-        if [ ! -d $i18n_dir ]; then
+        local i18n_file=$i18n_dir/$file_name.po
+
+        # if export and there is no i18n dir, create it
+        if [ "$cmd" == "export" ] && [ ! -d $i18n_dir ]; then
             mkdir -p $i18n_dir;
         fi
-        odoo_py -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_dir/$file_name.po --modules=$addon;
+
+        # if import and not translation file skip this addon
+        if [ "$cmd" == "import" ] && [ ! -f $i18n_file ]; then
+            continue
+        fi
+
+        # do the work
+        odoo_py -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_file --modules=$addon;
     done
 }
-
 
 function tr_export {
     local db=$1;
@@ -83,14 +111,18 @@ function tr_import {
     local file_name=$3;
     shift; shift; shift;
 
-    tr_import_export_internal $db $lang $file_name "$opt_overwrite" import "$@";
+    for idb in $(tr_parse_db_name $db); do
+        tr_import_export_internal $idb $lang $file_name "$opt_overwrite" import "$@";
+    done
 }
 
 function tr_load {
     local db=$1;
     local lang=$2;
 
-    odoo_py -d $db --load-language=$lang --stop-after-init;
+    for idb in $(tr_parse_db_name $db); do
+        odoo_py -d $idb --load-language=$lang --stop-after-init;
+    done
 }
 
 function tr_main {
@@ -111,8 +143,17 @@ function tr_main {
             $SCRIPT_NAME tr export <db> uk_UA uk <addon1> [addon2] [addon3]...
             $SCRIPT_NAME tr export <db> uk_UA uk all
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk <addon1> [addon2] [addon3]...
+            $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk --dir=/addons/dir --dir=/addons/dir2 [addon3]...
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk all
             $SCRIPT_NAME tr load <db> uk_UA
+
+    Note2:
+        Also it is possible to call *tr import* and *tr load* commands
+        for all databases this server manages. if db name passed as arg is __all__
+
+        For example:
+            $SCRIPT_NAME tr import [--overwrite] __all__ <lang> <file_name> <addon1> [addon2] [addon3]...
+            $SCRIPT_NAME tr load __all__ <lang>
     ";
 
     if [[ $# -lt 1 ]]; then

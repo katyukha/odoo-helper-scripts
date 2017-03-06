@@ -34,15 +34,8 @@ ohelper_require 'install'
 # ----------------------------------------------------------------------------------------
 
 
-# Check environment for config
-install_preconfigure_env;
-
 declare -A CONF_OPTIONS;
 declare -A TEST_CONF_OPTIONS;
-
-# Default configs
-USE_SYSTEM_SITE_PACKAGES=on;
-
 
 function print_usage {
     echo "Bash script to instal dev version of Odoo in local environment
@@ -58,11 +51,6 @@ function print_usage {
          ODOO_BRANCH         - allow to clone specified branch. Current val is $ODOO_BRANCH
          ODOO_DOWNLOAD_ARCHIVE - (on|off) if on then only archive will be downloaded
                                  not clonned. Current value is '$DOWNLOAD_ARCHIVE'
-         ODOO_SHALLOW_CLONE  - (on|off) allow or disallow shallow clone.
-                               signifianly increases performance, but have some limitations.
-                               If ODOO_DOWNLOAD_ARCHIVE option is on, then this option
-                               has no effect
-                               Current value is: $SHALLOW_CLONE
          ODOO_DBHOST         - allow to specify Postgresql's server host.
                                Current value: $DB_HOST
          ODOO_DBUSER         - allow to specify user to connect to DB as.
@@ -74,27 +62,16 @@ function print_usage {
          -i|--install-dir <dir>        - directory to install odoo in. default: $PROJECT_ROOT_DIR
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
-         -b|--branch <branch>          - specify odoo branch to clone. default: $ODOO_BRANCH
-         --extra-utils                 - install extra python packages. (for example 'erppeek', which
-                                         is used by odoo-helper script to manage databases)
-         --install-sys-deps            - (requires sudo) (debian only) (experimental).
-                                         Attempt to install system dependencies.
-         --install-and-conf-postgres   - (requires sudo) (debian only) (experimental)
-                                         Install postgresql server and create role for Odoo.
-         --use-system-packages on|off  - allow virtualenv use system packages. (default: enabled)
+         --odoo-version <odoo version> - odoo version to install. default: $ODOO_VERSION
+         -b|--branch <branch>          - specify odoo branch to install. default: $ODOO_BRANCH
+                                         Normaly it is same as odoo version, but if You want to install odoo
+                                         from diferent branch, use this option.
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
-         --use-shallow-clone on|off    - if not set 'download-archive' then, this option may increase
-                                         download speed using --depth=1 option in git clone. this will
-                                         download all by one commit. Default: $SHALLOW_CLONE
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
-         --use-unbuffer                - if set, then 'unbuffer' command from 'expect' package will be used
-                                         otherwise standard 'exec' will be used to run odoo server
-                                         this helps to make odoo server think that it runs in terminal thus
-                                         it provides colored output.
          -y                            - Answer yes on any question. (used in apt-get commands
                                          when --install-sys-deps option supplied.)
 
@@ -104,7 +81,7 @@ function print_usage {
 
     Prerequirements:
          Next packages must be installed system-wide
-         (or use --install-sys-deps option to install them during installation process):
+         (or use --sys-deps option to install them during installation process):
              - virtualenv
              - postgresql-client
              - python-dev
@@ -118,7 +95,7 @@ function print_usage {
     Note that, it is safe enough to run this script second time with same or similar args
     if it breaks somehow. It will automaticaly detect if odoo sources were downloaded or
     virtual environment created and will not do this operations second time.
-    So for example if you use option --install-sys-deps and some dependencies cannot be installed
+    So for example if you use option --sys-deps and some dependencies cannot be installed
     you can install them manualy and retry this script with or without thi option and You will not
     wast time waiting odoo sources to be downloaded again.
 
@@ -145,29 +122,16 @@ function parse_options {
                 ODOO_REPO=$2;
                 shift;
             ;;
+            --odoo-version)
+                ODOO_VERSION=$2;
+                shift;
+            ;;
             --branch|-b)
                 ODOO_BRANCH=$2;
                 shift;
             ;;
-            --extra-utils)
-                INSTALL_EXTRA_UTILS=1;
-            ;;
-            --install-sys-deps)
-                INSTALL_SYS_DEPS=1;
-            ;;
-            --install-and-conf-postgres)
-                INSTALL_AND_CONFIGURE_POSTGRESQL=1;
-            ;;
-            --use-system-packages)
-                USE_SYSTEM_SITE_PACKAGES=$2;
-                shift
-            ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
-                shift;
-            ;;
-            --use-shallow-clone)
-                SHALLOW_CLONE=$2;
                 shift;
             ;;
             --db-host)
@@ -182,9 +146,6 @@ function parse_options {
                 DB_PASSWORD=$2;
                 shift;
             ;;
-            --use-unbuffer)
-                USE_UNBUFFER=1;
-            ;;
             -y)
                 ALWAYS_ANSWER_YES=1;
             ;;
@@ -192,16 +153,19 @@ function parse_options {
                 VERBOSE=1;
             ;;
             --conf-opt-*)
-                local opt_name=$(echo '--conf-opt-xmlrpc_port' | sed 's/--conf-opt-\(.*\)/\1/')
+                local opt_name="${key#--conf-opt-}"
                 CONF_OPTIONS[$opt_name]=$2;
                 shift;
             ;;
             --test-conf-opt-*)
-                local opt_name=$(echo '--test-conf-opt-xmlrpc_port' | sed 's/--test-conf-opt-\(.*\)/\1/')
+                local opt_name="${key#--test-conf-opt-}"
                 TEST_CONF_OPTIONS[$opt_name]=$2;
                 shift;
             ;;
             -h|--help|help)
+                # Check environment for config
+                install_preconfigure_env;
+
                 print_usage;
                 exit 0;
             ;;
@@ -214,41 +178,17 @@ function parse_options {
     done
 }
 
-function download_odoo {
-   local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.tar.gz
-   if [ ! -f $ODOO_ARCHIVE ]; then
-       wget -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
-   fi
-   tar -zxf $ODOO_ARCHIVE;
-   mv odoo-$ODOO_BRANCH $ODOO_PATH;
-}
-
 function install_odoo {
     local save_dir=`pwd`;
     cd "$PROJECT_ROOT_DIR";
 
-    # Install prerequirements if option --install-sys-deps enabled
-    if [ ! -z $INSTALL_SYS_DEPS ]; then
-        install_system_prerequirements;
-    fi
-
-    # Install and configure postgresql
-    if [ ! -z $INSTALL_AND_CONFIGURE_POSTGRESQL ]; then
-        install_and_configure_postgresql;
-    fi
-
     # if not installed odoo, install it
     if [ ! -d $ODOO_PATH ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
-            download_odoo;
+            install_download_odoo;
         else
             install_clone_odoo;
         fi
-    fi
-
-    # Install system dependencies if asked
-    if [ ! -z $INSTALL_SYS_DEPS ]; then
-        install_sys_deps;
     fi
 
     # Install virtual environment
@@ -264,17 +204,31 @@ function install_odoo {
 
 function generate_conf {
     # Generate configuration
-    local -A ODOO_CONF_OPTIONS=$CONF_OPTIONS;
+    local -A ODOO_CONF_OPTIONS;
+
+    for key in ${!CONF_OPTIONS[@]}; do
+        ODOO_CONF_OPTIONS[$key]=${CONF_OPTIONS[$key]};
+    done
+
+    # Add default values
     ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-$DB_HOST}";
     ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
     ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-$DB_USER}";
     ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-$DB_PASSWORD}";
-    install_generate_odoo_conf $ODOO_CONF_FILE;
+
+    # Generate conf
+    install_generate_odoo_conf $ODOO_CONF_FILE;  # imported from 'install' module
 }
 
 function generate_test_conf {
     # Generate test configuration configuration
-    local -A ODOO_CONF_OPTIONS=$TEST_CONF_OPTIONS;
+    local -A ODOO_CONF_OPTIONS;
+
+    for key in ${!TEST_CONF_OPTIONS[@]}; do
+        ODOO_CONF_OPTIONS[$key]=${TEST_CONF_OPTIONS[$key]};
+    done
+
+    # Add default values
     ODOO_CONF_OPTIONS[logfile]="${ODOO_CONF_OPTIONS['logfile']:-test-$LOG_FILE}";
     ODOO_CONF_OPTIONS[pidfile]="${ODOO_CONF_OPTIONS['pidfile']:-test-$ODOO_PID_FILE}";
     ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-$DB_HOST}";
@@ -286,7 +240,9 @@ function generate_test_conf {
     ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-8269}";
     ODOO_CONF_OPTIONS[xmlrpcs_port]="${ODOO_CONF_OPTIONS['xmlrpcs_port']:-8271}";
     ODOO_CONF_OPTIONS[longpolling_port]="${ODOO_CONF_OPTIONS['longpolling_port']:-8272}";
-    install_generate_odoo_conf $ODOO_TEST_CONF_FILE;
+
+    # Generate conf
+    install_generate_odoo_conf $ODOO_TEST_CONF_FILE;   # imported from 'install' module
 }
 
 #------------------------------------------------------------------------
@@ -295,6 +251,9 @@ function generate_test_conf {
 
 # Install process
 parse_options $@;
+
+# Check environment to get values not provided via command line args
+install_preconfigure_env;
 
 # Directory and file paths
 PROJECT_ROOT_DIR=${PROJECT_ROOT_DIR:-$WORKDIR/odoo-$ODOO_BRANCH};
@@ -307,8 +266,8 @@ install_odoo;
 
 # Generate and save odoo-helper project conf
 echo "`print_helper_config`" > $PROJECT_ROOT_DIR/$CONF_FILE_NAME;
-generate_conf;  # imported from 'install' module
-generate_test_conf;  # imported from 'install' module
+generate_conf;
+generate_test_conf;
 #---------------------------------------------
 
 echo -e "${GREENC}Odoo seems to be successfully installed!${NC}";

@@ -57,7 +57,7 @@ function postgres_user_create {
     local user_password="$2";
 
     if ! postgres_user_exists $user_name; then
-        sudo -u postgres -H psql -c "CREATE USER $user_name WITH CREATEDB PASSWORD '$user_password';"
+        sudo -u postgres -H psql -c "CREATE USER \"$user_name\" WITH CREATEDB PASSWORD '$user_password';"
         echov "Postgresql user $user_name was created for this Odoo instance";
     else
         echo -e "${YELLOWC}There are $user_name already exists in postgres server${NC}";

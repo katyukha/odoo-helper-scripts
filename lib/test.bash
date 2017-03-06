@@ -18,7 +18,6 @@ ohelper_require odoo;
 set -e; # fail on errors
 
 
-
 # create_tmp_dirs
 function create_tmp_dirs {
     TMP_ROOT_DIR="/tmp/odoo-tmp-`random_string 16`";
@@ -60,158 +59,83 @@ function remove_tmp_dirs {
     OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
 }
 
-# test_module_impl <module> [extra_options]
+
+# test_run_server <with_coverage 0|1> [server options]
+function test_run_server {
+    local with_coverage=$1; shift;
+    local SERVER=`get_server_script`;
+    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}]${NC}: $SERVER $@";
+    export OPENERP_SERVER=$ODOO_TEST_CONF_FILE;
+
+    # enable test coverage
+    if [ $with_coverage -eq 1 ]; then
+        if [ -z $COVERAGE_INCLUDE ]; then
+            local COVERAGE_INCLUDE="$(pwd)/*";
+        fi
+        execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
+            --include='$COVERAGE_INCLUDE' $(execv command -v $SERVER) \
+            --stop-after-init $@";
+    else
+        execu "$SERVER --stop-after-init $@";
+    fi
+
+    unset OPENERP_SERVER;
+}
+
+# test_module_impl <with_coverage 0|1> <module> [extra_options]
 # example: test_module_impl base -d test1
 function test_module_impl {
-    local module=$1
-    shift;  # all next arguments will be passed to server
+    local with_coverage=$1
+    local module=$2
+    shift; shift;  # all next arguments will be passed to server
 
     set +e; # do not fail on errors
     # Install module
-    run_server_impl -c $ODOO_TEST_CONF_FILE --init=$module --log-level=warn --stop-after-init \
-        --no-xmlrpc "$@";
+    test_run_server $with_coverage --init=$module --log-level=warn "$@";
     # Test module
-    run_server_impl -c $ODOO_TEST_CONF_FILE --update=$module --log-level=test --test-enable --stop-after-init \
-        --no-xmlrpc --workers=0 "$@";
+    test_run_server $with_coverage --update=$module \
+        --log-level=test --test-enable "$@";
     set -e; # Fail on any error
 }
 
+# Get database name or create new one. Prints database name
+# test_get_or_create_db    # get db
+# test_get_or_create_db 1  # create new db
+function test_get_or_create_db {
+    local create_test_db=$1;
 
-# test_module [--create-test-db] -m <module_name>
-# test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
-function test_module {
-    local modules="";
-    local cs_modules="";
-    local link_module_args="";
-    local test_log_file="${LOG_DIR:-.}/odoo.test.log";
-    local odoo_extra_options="";
-    local usage="
-    Usage 
-
-        $SCRIPT_NAME test_module [options] [-m <module_name>] [-m <module name>] ...
-
-    Options:
-        --create-test-db    - Creates temporary database to run tests in
-        --remove-log-file   - If set, then log file will be removed after tests finished
-        --link <repo>:[module_name]
-        --tmp-dirs          - use temporary dirs for test related downloads and addons
-        --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
-        --no-tee            - this option disable duplication of output to log file.
-                              it is implemented as workaroud of bug, when chaining 'tee' command
-                              to openerp-server removes all colors of output.
-        --reinit-base       - this option adds 'base' module to init list. this is way to reload module list in existing database
-        --fail-on-warn      - if this option passed, then tests will fail even on warnings
-    ";
-
-    # Parse command line options and run commands
-    if [[ $# -lt 1 ]]; then
-        echo "No options/commands supplied $#: $@";
-        echo "$usage";
-        exit 0;
-    fi
-
-    while [[ $# -gt 0 ]]
-    do
-        key="$1";
-        case $key in
-            -h|--help|help)
-                echo "$usage";
-                exit 0;
-            ;;
-            --create-test-db)
-                local create_test_db=1;
-            ;;
-            --remove-log-file)
-                local remove_log_file=1;
-            ;;
-            --reinit-base)
-                local reinit_base=1;
-            ;;
-            --fail-on-warn)
-                local fail_on_warn=1;
-            ;;
-            -m|--module)
-                modules="$modules $2";  # add module to module list
-                shift;
-            ;;
-            --link)
-                link_module_args=$link_module_args$'\n'$2;
-                shift;
-            ;;
-            --tmp-dirs)
-                local tmp_dirs=1
-            ;;
-            --no-rm-tmp-dirs)
-                local not_remove_tmp_dirs=1;
-            ;;
-            --no-tee)
-                local no_tee=1;
-            ;;
-            *)
-                echo "Unknown option: $key";
-                exit 1;
-            ;;
-        esac;
-        shift;
-    done;
-
-    if [ ! -z $tmp_dirs ]; then
-        create_tmp_dirs;
-    fi
-
-    # Parse --link args
-    if [ ! -z "$link_module_args" ]; then
-        for lm_arg in $link_module_args; do
-            local lm_arg_x=`echo $lm_arg | tr ':' ' '`;
-            link_module $lm_arg_x;
-        done
-    fi
-
-    # Create new test database if required
-    if [ ! -z $create_test_db ]; then
+    if [ $create_test_db -eq 1 ]; then
         local test_db_name=`random_string 24`;
-        test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
-        echo -e "Creating test database: ${YELLOWC}$test_db_name${NC}";
-        odoo_db_create $test_db_name $ODOO_TEST_CONF_FILE;
-        echov "Test database created successfully";
-        odoo_extra_options="$odoo_extra_options -d $test_db_name";
+        odoo_db_create $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
     else
         # name of test database expected to be defined in ODOO_TEST_CONF_FILE
         local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
-        odoo_extra_options="$odoo_extra_options -d $test_db_name";
     fi
-
-    # Remove log file if it is present before test, otherwise
-    # it will be appended, wich could lead to incorrect test results
-    if [ -e $test_log_file ]; then
-        rm $test_log_file;
-    fi
-
-    # Reinitialize base module, to find new addons
-    if [ ! -z $reinit_base ]; then
-        echo -e "${BLUEC}Reinitializing base module...${NC}";
-        run_server_impl -c $ODOO_TEST_CONF_FILE $odoo_extra_options --init=base --log-level=warn \
-            --stop-after-init --no-xmlrpc;
-    fi
-
-    # Test modules
-    for module in $modules; do
-        echo -e "${BLUEC}Testing module $module...${NC}";
-        if [ -z $no_tee ]; then
-            # TODO: applying tee in this way makes output not colored
-            test_module_impl $module $odoo_extra_options | tee -a $test_log_file;
-        else
-            test_module_impl $module $odoo_extra_options;
-        fi
-    done
+    echo "$test_db_name";
+}
 
 
-    # Drop test db created
-    if [ ! -z $create_test_db ]; then
-        echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
-        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE
-    fi
+# Run tests for set of addons
+# test_run_tests_for_modules <with_coverage 0|1> <test_db_name> <log_file> <module_1> [module2] ...
+function test_run_tests_for_modules {
+    local with_coverage=$1
+    local test_db_name=$2;
+    local test_log_file=$3;
+    shift; shift; shift;
 
+    local modules=$(join_by , $@);
+    echo -e "${BLUEC}Testing modules $modules...${NC}";
+    test_module_impl $with_coverage $modules --database $test_db_name \
+        2>&1 | tee -a $test_log_file;
+}
+
+
+# Parse log file
+# test_parse_log_file <test_db_name> <log_file> [fail_on_warn]
+function test_parse_log_file {
+    local test_db_name=$1;
+    local test_log_file=$2;
+    local fail_on_warn=$3;
     # remove color codes from log file
     sed -ri "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" $test_log_file;
 
@@ -231,25 +155,237 @@ function test_module {
                -e "ERROR $test_db_name" \
                -e "At least one test failed" \
                -e "invalid module names, ignored" \
+               -e "no access rules, consider adding one" \
                -e "OperationalError: FATAL" \
                "$test_log_file"; then
         res=1;
     fi
 
     # If Test is ok but there are warnings and set option 'fail-on-warn', fail this test
-    if [ $res -eq 0 ] && [ $warnings -ne 0 ] && [ ! -z $fail_on_warn ]; then
+    if [ $res -eq 0 ] && [ $warnings -ne 0 ] && [ $fail_on_warn -eq 1 ]; then
         res=1
     fi
 
-    if [ $res -eq 0 ]; then
+    return $res
+    
+}
+
+# Function to handle Keyboard Interrupt while test.
+# Primary reason for this is to clean up database if it was created for test
+function test_run_tests_handle_sigint {
+    local create_test_db=$1;
+    local test_db_name=$2
+
+    if [ $create_test_db -eq 1 ]; then
+        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE;
+    fi
+
+    exit 1;
+}
+
+
+# Run tests
+# test_run_tests <create_test_db 1|0> <fail_on_warn 1|0> <with_coverage 1|0> <modules>
+function test_run_tests {
+    local create_test_db=$1;
+    local fail_on_warn=$2;
+    local with_coverage=$3;
+    shift; shift; shift;
+
+    # Create new test database if required
+    local test_db_name="$(test_get_or_create_db $create_test_db)";
+    local test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
+
+    # Remove log file if it is present before test, otherwise
+    # it will be appended, wich could lead to incorrect test results
+    if [ -e $test_log_file ]; then
+        rm $test_log_file;
+    fi
+
+    trap "test_run_tests_handle_sigint $create_test_db $test_db_name" SIGINT;
+
+    test_run_tests_for_modules $with_coverage $test_db_name $test_log_file $@;
+
+    # Combine test coverage results
+    if [ $with_coverage -eq 1 ]; then
+        execv coverage combine;
+    fi
+
+    # Drop created test db
+    if [ $create_test_db -eq 1 ]; then
+        echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
+        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE
+    fi
+
+    if test_parse_log_file $test_db_name $test_log_file $fail_on_warn; then
         echo -e "TEST RESULT: ${GREENC}OK${NC}";
     else
         echo -e "TEST RESULT: ${REDC}FAIL${NC}";
+        return 1;
+    fi
+}
+
+
+# test_find_modules_in_directories <dir1> [dir2] ...
+# echoes list of modules found in specified directories
+function test_find_modules_in_directories {
+    # TODO: sort addons in correct order to avoid duble test runs
+    #       in cases when addon that is tested first depends on other,
+    #       which is tested next, but when it is tested, then all dependent
+    #       addons will be also tested
+    for directory in $@; do
+        # skip non directories
+        for addon in $(addons_list_in_directory_by_name $directory); do
+            echo -n " $addon";
+        done
+    done
+}
+
+# Run flake8 for modules
+# test_run_flake8 [flake8 options] <module1 path> [module2 path] .. [module n path]
+function test_run_flake8 {
+    local res=0;
+    if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $@; then
+        res=1;
+    fi
+    return $res;
+}
+
+# Run pylint tests for modules
+# test_run_pylint <module1 path> [module2 path] .. [module n path]
+# test_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
+function test_run_pylint {
+    if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
+        local pylint_disable_opt=$1;
+        local pylint_disable_arg="${BASH_REMATCH[1]}";
+        local pylint_disable=$(join_by , $pylint_disable_arg "manifest-required-author");
+        shift;
+    else
+        local pylint_disable="manifest-required-author";
+    fi
+    local pylint_rc="$ODOO_HELPER_LIB/default_config/pylint_odoo.cfg";
+    local pylint_opts="--rcfile=$pylint_rc -d $pylint_disable";
+    local res=0;
+    for path in $@; do
+        if is_odoo_module $path; then
+            local addon_dir=$(dirname $path);
+            local addon_name=$(basename $path);
+            local save_dir=$(pwd);
+            cd $addon_dir;
+            if ! execu pylint $pylint_opts $addon_name; then
+                res=1;
+            fi
+            cd $save_dir;
+        elif [ -d $path ]; then
+            for subdir in "$path"/*; do
+                if is_odoo_module $subdir; then
+                    if ! test_run_pylint "$pylint_disable_opt" $subdir; then
+                        res=1;
+                    fi
+                fi
+            done
+        fi
+    done
+    return $res
+}
+
+# test_module [--create-test-db] -m <module_name>
+# test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
+# test_module [--tmp-dirs] [--create-test-db] -d <dir with addons to test>
+function test_module {
+    local create_test_db=0;
+    local fail_on_warn=0;
+    local with_coverage=0;
+    local modules="";
+    local directories="";
+    local usage="
+    Usage 
+
+        $SCRIPT_NAME test [options] [-m <module_name>] [-m <module name>] ...
+        $SCRIPT_NAME test [options] [-d <dir with addons to test>]
+        $SCRIPT_NAME test flake8 <addon path> [addon path]
+        $SCRIPT_NAME test pylint <addon path> [addon path]
+        $SCRIPT_NAME test pylint [--disable=E111,E222,...] <addon path> [addon path]
+
+    Options:
+        --create-test-db    - Creates temporary database to run tests in
+        --fail-on-warn      - if this option passed, then tests will fail even on warnings
+        --tmp-dirs          - use temporary dirs for test related downloads and addons
+        --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
+        --coverage          - calculate code coverage (use python's *coverage* util)
+        -m|--module         - specify module to test
+        -d|--directory      - specify directory with modules to test
+    ";
+
+    # Parse command line options and run commands
+    if [[ $# -lt 1 ]]; then
+        echo "No options/commands supplied $#: $@";
+        echo "$usage";
+        exit 0;
     fi
 
-    if [ ! -z $remove_log_file ]; then
-        rm $test_log_file;
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            --create-test-db)
+                create_test_db=1;
+            ;;
+            --fail-on-warn)
+                fail_on_warn=1;
+            ;;
+            --coverage)
+                with_coverage=1;
+            ;;
+            -m|--module)
+                modules="$modules $2";  # add module to module list
+                shift;
+            ;;
+            -d|--directory)
+                modules="$modules $(test_find_modules_in_directories $2)";
+                shift;
+            ;;
+            --tmp-dirs)
+                local tmp_dirs=1
+            ;;
+            --no-rm-tmp-dirs)
+                local not_remove_tmp_dirs=1;
+            ;;
+            flake8)
+                shift;
+                test_run_flake8 $@;
+                exit;
+            ;;
+            pylint)
+                shift;
+                test_run_pylint $@;
+                exit;
+            ;;
+            *)
+                echo "Unknown option: $key";
+                exit 1;
+            ;;
+        esac;
+        shift;
+    done;
+
+    if [ ! -z $tmp_dirs ]; then
+        create_tmp_dirs;
     fi
+
+    # Run tests
+    if test_run_tests ${create_test_db:-0} ${fail_on_warn:-0} \
+            ${with_coverage:-0} $modules;
+    then
+        local res=$?;
+    else
+        local res=$?
+    fi
+    # ---------
 
     if [ ! -z $tmp_dirs ] && [ -z $not_remove_tmp_dirs ]; then
         remove_tmp_dirs;

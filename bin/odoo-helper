@@ -29,16 +29,18 @@ fi
 # Load common functions
 source $ODOO_HELPER_LIB/common.bash; 
 
-ohelper_require fetch;
-ohelper_require server;
-ohelper_require db;
-ohelper_require 'test';
-ohelper_require addons;
-ohelper_require 'install'
-ohelper_require 'git';
-ohelper_require 'odoo';
-ohelper_require 'tr';
-ohelper_require 'postgres';
+ohelper_require "fetch";
+ohelper_require "link";
+ohelper_require "server";
+ohelper_require "db";
+ohelper_require "test";
+ohelper_require "addons";
+ohelper_require "install";
+ohelper_require "git";
+ohelper_require "odoo";
+ohelper_require "tr";
+ohelper_require "postgres";
+ohelper_require "system";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -63,6 +65,7 @@ function print_usage {
         db [--help]                              - database management (list, create, drop, etc...)
         tr [--help]                              - manage translations (import, export, load, ...)
         postgres [--help]                        - manage local instance of postgresql server
+        install [--help]                         - install related stuff (sys-deps, ...)
         generate_requirements [addons dir]       - parse addons dir, find all addons that are
                                                    git repositories and print odoo-requirements.txt content
                                                    file content suitable for *fetch* subcommand.
@@ -75,11 +78,12 @@ function print_usage {
         scaffold <addon_name> [addon_path]       - shortcut for odoo.py scaffold command.
         print_config                             - print current configuration
         status                                   - show project status
-        system update [branch]                   - update odoo-helper-scripts
-        system lib-path <lib name>               - print path to lib with specified name
-                                                   this allows to use some libs of this project in external utils
+        start|stop|restart|log                   - shortcuts for server commands
+        system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
+        pip <pip arguments>                      - shortcut for *odoo-helper exec pip*
         help | --help | -h                       - display this help message
+        --version                                - display odoo-helper version and exit
     
     Global options:
         --addons-dir <addons_directory>
@@ -92,6 +96,7 @@ function print_usage {
                                                 otherwise standard 'exec' will be used to run odoo server
                                                 this helps to make odoo server think that it runs in terminal thus
                                                 it provides colored output.
+        --no-colors                           - disable colored output
         --verbose|--vv                        - show extra output
 
     Also global options may be set up using configuration files.
@@ -102,15 +107,6 @@ function print_usage {
                                           directories. First one found will be used
 
     Configuration files are simple bash scripts that sets environment variables
-
-    Available environment variables:
-        DOWNLOADS_DIR                   - Directory where all downloads hould be placed
-        ADDONS_DIR                      - directory to place addons fetched (thats one in odoo's addons_path)
-        VENV_DIR                        - Directory of virtual environment, if virtualenv is used
-                                          Note, that if VENV_DIR not set, than system will think that odoo is installed system-wide.
-        USE_COPY                        - If set, then addons will be coppied in addons dir, instead of standard symlinking
-        ODOO_BRANCH                     - used in run_server command to decide how to run it
-        ODOO_TEST_CONF_FILE             - used to run tests. this configuration file will be used for it
 ";
 }
 
@@ -130,34 +126,6 @@ function show_project_status {
         Odoo branch: ${ODOO_BRANCH:-'Not defined'}
         Server status: ${server_status}
     ";
-}
-
-# update odoo-helper-scripts
-function update_odoo_helper_scripts {
-    local scripts_branch=$1;
-
-    # update
-    local cdir=$(pwd);
-    cd $ODOO_HELPER_ROOT;
-    if [ -z $scripts_branch ]; then
-        git pull;
-    else
-        git fetch origin;
-        git checkout origin/$scripts_branch;
-    fi
-
-    # update odoo-helper bin links
-    local base_path=$(dirname $ODOO_HELPER_ROOT);
-    for oh_cmd in $ODOO_HELPER_BIN/*; do
-        if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
-            if [ "$base_path" == /opt* ]; then
-                sudo ln -s $oh_cmd /usr/local/bin/;
-            elif [ "$base_path" == $HOME/* ]; then
-                ln -s $oh_cmd $HOME/bin;
-            fi
-        fi
-    done
-    cd $cdir;
 }
 
 # function that parses commandline arguments and executes commands
@@ -181,6 +149,10 @@ function odoo_helper_main {
                 print_usage;
                 exit 0;
             ;;
+            --version)
+                echo "$ODOO_HELPER_VERSION";
+                exit 0;
+            ;;
             --downloads-dir)
                 DOWNLOADS_DIR=$2;
                 shift;
@@ -198,6 +170,9 @@ function odoo_helper_main {
             ;;
             --use-unbuffer)
                 USE_UNBUFFER=1;
+            ;;
+            --no-colors)
+                deny_colors;
             ;;
             --verbose|-vv)
                 VERBOSE=1;
@@ -223,7 +198,7 @@ function odoo_helper_main {
             link|link_module)
                 shift;
                 load_project_conf;
-                link_module "$@"
+                link_command "$@"
                 exit;
             ;;
             server)
@@ -273,6 +248,11 @@ function odoo_helper_main {
                 postgres_command "$@";
                 exit;
             ;;
+            install)
+                shift;
+                install_entry_point "$@";
+                exit;
+            ;;
             print_config)
                 shift;
                 load_project_conf;
@@ -285,22 +265,26 @@ function odoo_helper_main {
                 exit;
             ;;
             system)
-                if [ "$2" == "update" ]; then
-                    shift;
-                    shift;
-                    update_odoo_helper_scripts "$@";
-                    exit 0;
-                elif [ "$2" == "lib-path" ]; then
-                    shift;
-                    shift;
-                    oh_get_lib_path "$@"
-                    exit 0;
-                fi
+                shift;
+                system_entry_point "$@";
+                exit;
+            ;;
+            # Server shortcuts
+            start|stop|restart|log)
+                load_project_conf;
+                server "$@";
+                exit;
             ;;
             exec)
                 shift;
                 load_project_conf;
-                execu "$@";
+                execv "$@";
+                exit 0;
+            ;;
+            pip)
+                shift;
+                load_project_conf;
+                execv pip "$@";
                 exit 0;
             ;;
             *)

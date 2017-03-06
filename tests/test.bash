@@ -56,11 +56,27 @@ allow_colors;
 #
 echo -e "${YELLOWC}
 =================================================
+Install odoo-helper and odoo system prerequirements
+==================================================
+${NC}"
+
+odoo-helper install pre-requirements -y
+
+echo -e "${YELLOWC}
+=================================================
 Test install of odoo version 7.0
 Also install dependencies and configure postgresql
 ==================================================
 ${NC}"
-odoo-install --install-dir odoo-7.0 --branch 7.0 --extra-utils --install-and-conf-postgres --install-sys-deps \
+
+# Install system dependencies for odoo version 7.0
+odoo-helper install sys-deps -y 7.0;
+
+# Install postgres and create there user with name='odoo' and password='odoo'
+odoo-helper install postgres odoo odoo
+
+# Install odoo 7.0
+odoo-install -i odoo-7.0 --odoo-version 7.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371
 cd odoo-7.0
 
@@ -162,7 +178,8 @@ Also install python package 'suds' in virtual env of this odoo instance
 ========================================================================
 ${NC}"
 # Let's install odoo of version 8.0 too here.
-odoo-install --install-dir odoo-8.0 --branch 8.0 --extra-utils\
+odoo-helper install sys-deps -y 8.0;
+odoo-install --install-dir odoo-8.0 --odoo-version 8.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
 
 cd odoo-8.0
@@ -204,10 +221,30 @@ ${NC}"
 
 # got back to test root and install odoo version 9.0
 cd ../;
-odoo-install --install-dir odoo-9.0 --branch 9.0 --extra-utils\
+odoo-helper install sys-deps -y 9.0;
+odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
 
 cd odoo-9.0;
+odoo-helper server --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status
+
+
+echo -e "${YELLOWC}
+===========================
+Install and check Odoo 10.0
+===========================
+${NC}"
+
+# got back to test root and install odoo version 9.0
+cd ../;
+#odoo-helper install sys-deps -y 10.0;  # Ubuntu 12.04 have no all packages required
+odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
+
+cd odoo-10.0;
 odoo-helper server --stop-after-init;  # test that it runs
 
 # Show project status
