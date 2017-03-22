@@ -81,7 +81,9 @@ function print_usage {
         start|stop|restart|log                   - shortcuts for server commands
         system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
-        pip <pip arguments>                      - shortcut for *odoo-helper exec pip*
+        pip <pip arguments>                      - shortcut to run project-specific pip.
+                                                   It automaticaly configs pip to use OCA wheelhouse
+                                                   to install OCA addons easily.
         help | --help | -h                       - display this help message
         --version                                - display odoo-helper version and exit
     
@@ -284,7 +286,7 @@ function odoo_helper_main {
             pip)
                 shift;
                 load_project_conf;
-                execv pip "$@";
+                exec_pip "$@";
                 exit 0;
             ;;
             *)

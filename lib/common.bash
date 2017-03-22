@@ -120,6 +120,13 @@ function execu {
     execv "$unbuffer_opt $@";
 }
 
+# Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
+function exec_pip {
+    local new_findlinks="$PIP_FIND_LINKS https://wheelhouse.odoo-community.org/oca";
+    PIP_FIND_LINKS=$new_findlinks execv pip $@;
+}
+
+
 
 # Simple function to create directories passed as arguments
 # create_dirs [dir1] [dir2] ... [dir_n]
