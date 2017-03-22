@@ -60,12 +60,12 @@ function addons_get_installed_addons {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
     python_cmd="$python_cmd installed_addons=env['ir.module.module'].search([('state', '=', 'installed')]);"
     python_cmd="$python_cmd print ','.join(installed_addons.mapped('name'));"
 
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
 }
 
 # Update list of addons visible in system (for single db)
@@ -75,14 +75,14 @@ function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db');";
     python_cmd="$python_cmd env=odoo.api.Environment(reg.cursor(), 1, {});";
     python_cmd="$python_cmd res=env['ir.module.module'].update_list();";
     python_cmd="$python_cmd env.cr.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
 }
 
 
@@ -383,12 +383,12 @@ function addons_install_update {
 function addons_test_installed {
     local addons=$(join_by , $@);
     for db in $(odoo_db_list); do
-        local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$ODOO_CONF_FILE']);";
+        local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$ODOO_CONF_FILE']);";
         python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
         python_cmd="$python_cmd is_installed=bool(env['ir.module.module'].search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
         python_cmd="$python_cmd exit(not is_installed);"
 
-        if execu python -c "\"$python_cmd\"" >/dev/null 2>&1; then
+        if run_python_cmd "$python_cmd" >/dev/null 2>&1; then
             echo "$db";
         fi
     done

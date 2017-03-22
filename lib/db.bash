@@ -23,10 +23,10 @@ function odoo_db_create {
 
     echov "Creating odoo database $db_name using conf file $conf_file";
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', ${DB_DEMO:-True}, '${DB_LANG:-en_US}');"
 
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
     
     echo -e "${GREENC}Database $db_name created successfuly!${NC}";
 }
@@ -36,10 +36,10 @@ function odoo_db_drop {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.drop(cl._server.tools.config['admin_passwd'], '$db_name');"
     
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
     
     echo -e "${GREENC}Database $db_name dropt successfuly!${NC}";
 }
@@ -48,10 +48,10 @@ function odoo_db_drop {
 function odoo_db_list {
     local conf_file=${1:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd print '\n'.join(['%s'%d for d in cl.db.list()]);";
     
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
 }
 
 # odoo_db_exists <dbname> [odoo_conf_file]
@@ -59,10 +59,10 @@ function odoo_db_exists {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file', '--logfile', '/dev/null']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
     
-    if execu python -c "\"$python_cmd\""; then
+    if run_python_cmd "$python_cmd"; then
         echov "Database named '$db_name' exists!";
         return 0;
     else
@@ -90,11 +90,11 @@ function odoo_db_dump {
         fi
     fi
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd dump=cl.db.dump(cl._server.tools.config['admin_passwd'], '$db_name' $format_opt).decode('base64');";
     python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
     
-    if execu python -c "\"$python_cmd\""; then
+    if run_python_cmd "$python_cmd"; then
         echov "Database named '$db_name' dumped to '$db_dump_file'!";
         return 0;
     else
@@ -158,11 +158,11 @@ function odoo_db_restore {
     local db_dump_file=$2;
     local conf_file=${3:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd res=cl.db.restore(cl._server.tools.config['admin_passwd'], '$db_name', open('$db_dump_file', 'rb').read().encode('base64'));";
     python_cmd="$python_cmd exit(0 if res else 1);";
     
-    if execu python -c "\"$python_cmd\""; then
+    if run_python_cmd "$python_cmd"; then
         echov "Database named '$db_name' restored from '$db_dump_file'!";
         return 0;
     else
