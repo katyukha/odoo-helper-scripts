@@ -3,6 +3,7 @@
 """
 import os
 import atexit
+import pkg_resources
 
 
 import erppeek
@@ -18,9 +19,21 @@ def start_odoo_services(options=None, appname='odoo-helper'):
     Return the ``openerp`` package.
     """
     try:
-        import openerp as odoo
-    except:
+        # Odoo 10.0+
+
+        # this is required if there are addons installed via setuptools_odoo
+        pkg_resources.declare_namespace('odoo.addons')
+
+        # import odoo itself
         import odoo
+        import odoo.release  # to avoid 9.0 with odoo.py on path
+    except (ImportError, KeyError):
+        try:
+            # Odoo 9.0 and less versions
+            import openerp as odoo
+        except ImportError:
+            raise
+
     odoo._api_v7 = odoo.release.version_info < (8,)
     if not (odoo._api_v7 and odoo.osv.osv.service):
         os.putenv('TZ', 'UTC')
