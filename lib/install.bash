@@ -24,7 +24,6 @@ function install_preconfigure_env {
     DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
     DB_HOST=${ODOO_DBHOST:-localhost};
     DB_PORT=${ODOO_DBPORT:-5432};
-    VIRTUALENV_SYSTEM_SITE_PACKAGES=1;  # by default make virtualenv use system site packages
 }
 
 # create directory tree for project
@@ -331,11 +330,8 @@ function install_entry_point {
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
-        $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo)
+        $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
                                                              all options will be passed to virtualenv cmd directly
-                                                             by default, this option creates virtualenv withour system site packages,
-                                                             which is oposite to what odoo-install script do, but thus it allows to
-                                                             recreate virtualenv with any options you want.
         $SCRIPT_NAME install --help                        - show this help message
 
     ";
