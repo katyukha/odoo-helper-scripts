@@ -24,6 +24,7 @@ function install_preconfigure_env {
     DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
     DB_HOST=${ODOO_DBHOST:-localhost};
     DB_PORT=${ODOO_DBPORT:-5432};
+    VIRTUALENV_SYSTEM_SITE_PACKAGES=1;  # by default make virtualenv use system site packages
 }
 
 # create directory tree for project
@@ -189,12 +190,15 @@ function install_system_prerequirements {
 }
 
 
-# Install virtual environment
-# install_virtual_env [path]
+# Install virtual environment. All options will be passed directly to
+# virtualenv command. one exception is DEST_DIR, which this script provides.
+#
+# install_virtual_env [opts]
 function install_virtual_env {
-    local venv_path=${1:-$VENV_DIR};
-    if [ ! -z $venv_path ] &&[ ! -d $venv_path ]; then
-        virtualenv --system-site-packages $venv_path;
+    # To enable system site packages, just set env variable:
+    #   VIRTUALENV_SYSTEM_SITE_PACKAGES=1
+    if [ ! -z $VENV_DIR ] &&[ ! -d $VENV_DIR ]; then
+        virtualenv $@ $VENV_DIR;
     fi
 }
 
@@ -296,6 +300,29 @@ function odoo_run_setup_py {
 }
 
 
+# Reinstall virtual environment.
+function install_reinstall_venv {
+    if [ -z $VENV_DIR ]; then
+        echo -e "${YELLOWC}This project does not use virtualenv! Do nothing...${NC}";
+        return 0;
+    fi
+
+    if [ $1 == '--help' ] || [ $1 == '-h' ]; then
+        virtualenv --help;
+        return 0
+    fi
+
+    # Backup old venv
+    if [ -d $VENV_DIR ]; then
+        mv $VENV_DIR $PROJECT_ROOT_DIR/venv_backup_$(random_string 4);
+    fi
+
+    install_virtual_env $@;
+    install_python_prerequirements;
+    odoo_run_setup_py;
+}
+
+
 # Entry point for install subcommand
 function install_entry_point {
     local usage="Usage:
@@ -304,6 +331,11 @@ function install_entry_point {
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
+        $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo)
+                                                             all options will be passed to virtualenv cmd directly
+                                                             by default, this option creates virtualenv withour system site packages,
+                                                             which is oposite to what odoo-install script do, but thus it allows to
+                                                             recreate virtualenv with any options you want.
         $SCRIPT_NAME install --help                        - show this help message
 
     ";
@@ -333,6 +365,12 @@ function install_entry_point {
                     shift;
                 fi
                 install_sys_deps_for_odoo_version "$@";
+                exit 0;
+            ;;
+            reinstall-venv)
+                shift;
+                load_project_conf;
+                install_reinstall_venv "$@";
                 exit 0;
             ;;
             postgres)

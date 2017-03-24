@@ -8,6 +8,7 @@
   - Wrap pip with automaticaly set `PIP_FIND_LINKS` environment variable with [OCA Wheelhouse](https://wheelhouse.odoo-community.org/)
 - Added shortcut script `odoo-helper-restart` to restart server.
 - Added `odoo-helper db rename` command
+- Added `odoo-helper install reinstall-venv` option
 
 ## Version 0.1.0
 

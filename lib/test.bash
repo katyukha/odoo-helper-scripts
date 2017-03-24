@@ -89,12 +89,19 @@ function test_module_impl {
     local module=$2
     shift; shift;  # all next arguments will be passed to server
 
+    # Set correct log level (depends on odoo version)
+    if [ "$ODOO_VERSION" == "7.0" ]; then
+        local log_level='test';
+    else
+        local log_level='info';
+    fi
+
     set +e; # do not fail on errors
     # Install module
     test_run_server $with_coverage --init=$module --log-level=warn "$@";
     # Test module
     test_run_server $with_coverage --update=$module \
-        --log-level=test --test-enable "$@";
+        --log-level=$log_level --test-enable "$@";
     set -e; # Fail on any error
 }
 
