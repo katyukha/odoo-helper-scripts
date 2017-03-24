@@ -9,6 +9,7 @@
 - Added shortcut script `odoo-helper-restart` to restart server.
 - Added `odoo-helper db rename` command
 - Added `odoo-helper install reinstall-venv` option
+- `odoo-helper test`: Test only installable addons
 
 ## Version 0.1.0
 
