@@ -54,32 +54,27 @@ function addons_is_installable {
 }
 
 # Get list of installed addons
-# NOTE: Odoo 8.0+ required
 # addons_get_installed_addons <db> [conf_file]
 function addons_get_installed_addons {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
-    python_cmd="$python_cmd installed_addons=env['ir.module.module'].search([('state', '=', 'installed')]);"
+    local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
+    python_cmd="$python_cmd installed_addons=cl['ir.module.module'].search([('state', '=', 'installed')]);"
     python_cmd="$python_cmd print ','.join(installed_addons.mapped('name'));"
 
     run_python_cmd "$python_cmd";
 }
 
 # Update list of addons visible in system (for single db)
-# NOTE: Odoo 8.0+ required
 # addons_update_module_list <db> [conf_file]
 function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db');";
-    python_cmd="$python_cmd env=odoo.api.Environment(reg.cursor(), 1, {});";
-    python_cmd="$python_cmd res=env['ir.module.module'].update_list();";
-    python_cmd="$python_cmd env.cr.commit();";
+    local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
+    python_cmd="$python_cmd res=cl['ir.module.module'].update_list();";
+    python_cmd="$python_cmd cl.cursor.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
     run_python_cmd "$python_cmd";
@@ -87,7 +82,6 @@ function addons_update_module_list_db {
 
 
 # Update list of addons visible in system for db or all databases
-# NOTE: Odoo 8.0+ required
 # addons_update_module_list [db] [conf_file]
 function addons_update_module_list {
     local db=$1;

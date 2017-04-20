@@ -70,3 +70,48 @@ erppeek.start_odoo_services = start_odoo_services
 
 # look same as erppeek
 from erppeek import *
+
+
+class LocalModel(object):
+    def __init__(self, client, name):
+        self._client = client
+        self._name = name
+
+    def __getattr__(self, name):
+        def wrapper(*args, **kwargs):
+            return self._client.call_method(self._name, name, *args, **kwargs)
+        return wrapper
+
+
+class LocalClient(object):
+    """ Wrapper for local odoo instance
+    """
+    def __init__(self, db, options=None):
+        if options is None:
+            options = []
+
+        self.odoo = start_odoo_services(options)
+        if self.odoo._api_v7:
+            self.registry = self.odoo.modules.registry.RegistryManager.get(db)
+            self.cursor = self.registry.db.cursor()
+        else:
+            # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
+            # to get registry instance for db
+            self.registry = self.odoo.registry(db)
+            self.cursor = self.registry.cursor()
+
+    def call_method(self, model, method, *args, **kwargs):
+        # Simple wrapper to call local model methods for database
+        odoo = self.odoo
+
+        if odoo._api_v7:
+            return getattr(self.registry[model], method)(
+                self.cursor, odoo.SUPERUSER_ID, *args, **kwargs)
+        else:
+            # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
+            # to get registry instance for db
+            env = odoo.api.Environment(self.cursor, odoo.SUPERUSER_ID, {})
+            return getattr(env[model], method)(*args, **kwargs)
+
+    def __getitem__(self, name):
+        return LocalModel(self, name)
