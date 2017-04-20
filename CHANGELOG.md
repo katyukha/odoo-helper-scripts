@@ -10,6 +10,9 @@
 - Added `odoo-helper db rename` command
 - Added `odoo-helper install reinstall-venv` option
 - `odoo-helper test`: Test only installable addons
+- `odoo-helper addons update-list` command support odoo 7.0
+- `odoo-helper addons test-installed` command support odoo 7.0
+
 
 ## Version 0.1.0
 
