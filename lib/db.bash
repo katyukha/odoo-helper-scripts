@@ -48,7 +48,7 @@ function odoo_db_drop {
 function odoo_db_list {
     local conf_file=${1:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd print '\n'.join(['%s'%d for d in cl.db.list()]);";
     
     run_python_cmd "$python_cmd";
