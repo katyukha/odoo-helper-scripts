@@ -73,12 +73,17 @@ ${NC}"
 odoo-helper install sys-deps -y 7.0;
 
 # Install postgres and create there user with name='odoo' and password='odoo'
-odoo-helper install postgres odoo odoo
+odoo-helper install postgres odoo7 odoo
 
 # Install odoo 7.0
 odoo-install -i odoo-7.0 --odoo-version 7.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 \
+    --db-user odoo7 --db-pass odoo
 cd odoo-7.0
+
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
 
 # Now You will have odoo-7.0 installed in this directory.
 # Note, thant Odoo this odoo install uses virtual env (venv dir)
@@ -179,10 +184,16 @@ Also install python package 'suds' in virtual env of this odoo instance
 ${NC}"
 # Let's install odoo of version 8.0 too here.
 odoo-helper install sys-deps -y 8.0;
+odoo-helper postgres user-create odoo8 odoo
 odoo-install --install-dir odoo-8.0 --odoo-version 8.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo8 --db-pass odoo
 
 cd odoo-8.0
+
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
 
 # and install there for example addon 'project_sla' for 'project-service' Odoo Comutinty repository
 # Note  that odoo-helper script will automaticaly fetch branch named as server version in current install,
@@ -222,10 +233,17 @@ ${NC}"
 # got back to test root and install odoo version 9.0
 cd ../;
 odoo-helper install sys-deps -y 9.0;
+odoo-helper postgres user-create odoo9 odoo;
 odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo9 --db-pass odoo
 
 cd odoo-9.0;
+
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
+
 odoo-helper server --stop-after-init;  # test that it runs
 
 # Show project status
@@ -240,11 +258,18 @@ ${NC}"
 
 # got back to test root and install odoo version 9.0
 cd ../;
-#odoo-helper install sys-deps -y 10.0;  # Ubuntu 12.04 have no all packages required
+odoo-helper install sys-deps -y 10.0;  # Ubuntu 12.04 have no all packages required
+odoo-helper postgres user-create odoo10 odoo;
 odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo10 --db-pass odoo
 
 cd odoo-10.0;
+
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
+
 odoo-helper server --stop-after-init;  # test that it runs
 
 # Show project status

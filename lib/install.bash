@@ -20,10 +20,10 @@ function install_preconfigure_env {
     ODOO_VERSION=${ODOO_VERSION:-9.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
-    DB_USER=${ODOO_DBUSER:-odoo};
-    DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
-    DB_HOST=${ODOO_DBHOST:-localhost};
-    DB_PORT=${ODOO_DBPORT:-5432};
+    DB_USER=${DB_USER:-${ODOO_DBUSER:-odoo}};
+    DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
+    DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
+    DB_PORT=${DB_PORT:-${ODOO_DBPORT:-5432}};
 }
 
 # create directory tree for project
@@ -209,13 +209,35 @@ function install_python_prerequirements {
         setproctitle python-slugify watchdog pylint pylint-odoo coverage \
         flake8 flake8-colors setuptools-odoo;
 
-    if ! execu "python -c 'import pychart'"; then
-        execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
+    if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
+        execv pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
+    fi
+
+    # Fix odoo 7.0 setup tools dependencies, to limit their versions
+    # because new versions have api changes, since odoo 7.0 released
+    if [ "$ODOO_VERSION" == "7.0" ]; then
+        execv pip install 'vobject\<0.9.0' 'psutil\<2' 'reportlab\<=3.0';
     fi
 
     # Install PIL only for odoo versions that have no requirements txt (<8.0)
     if [ ! -f "$ODOO_PATH/requirements.txt" ]; then
-        execu pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
+
+        # Link libraries to virtualenv/lib dir
+        local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
+        if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
+            ln -s $lib_dir/libjpeg.so $VENV_DIR/lib;
+        fi
+        if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libfreetype.so ] && [ ! -f $VENV_DIR/lib/libfreetype.so ]; then
+            ln -s $lib_dir/libfreetype.so $VENV_DIR/lib;
+        fi
+        if [ ! -z $VENV_DIR ] && [ -f /usr/include/freetype2/fterrors.h ] && [ ! -d $VENV_DIR/include/freetype ]; then
+            # For ubuntu 14.04
+            ln -s /usr/include/freetype2 $VENV_DIR/include/freetype;
+        fi
+        if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libz.so ] && [ ! -f $VENV_DIR/lib/libz.so ]; then
+            ln -s $lib_dir/libz.so $VENV_DIR/lib;
+        fi
+        execv pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
     fi
 }
 
@@ -283,10 +305,29 @@ function odoo_run_setup_py {
 
     # Install dependencies via pip (it is faster if they are cached)
     if [ -f "$ODOO_PATH/requirements.txt" ]; then
-        if ! execu pip install -r $ODOO_PATH/requirements.txt; then
-            echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
-                    "This may be caused by compilation error when building one of python packages on ubuntu.";
-        fi
+        # Based on http://stackoverflow.com/questions/22250483/stop-pip-from-failing-on-single-package-when-installing-with-requirements-txt
+        # This is done to install as much deps as possible via pip. thus they are cached, and got correct versions
+        # If som package could not been installed, show a warning with name of that package
+		while read dependency; do
+			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+			if [[ $dependency_stripped == \#* ]]; then
+				# Skip comments
+				continue
+			elif [ -z "$dependency_stripped" ]; then
+				# Skip blank lines
+				continue
+            elif [[ "$dependency_stripped" =~ pyparsing* ]] && run_python_cmd "import pyparsing"; then
+                # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
+                # especialy to versions lower than that used by setuptools
+                continue
+			else
+				if execv pip install "$dependency_stripped"; then
+					echo -e "${GREENC}$dependency_stripped is installed${NC}"
+				else
+					echo -e "${YELLOWC}Could not install $dependency_stripped, skipping...${NC}"
+				fi
+			fi
+		done < "$ODOO_PATH/requirements.txt";
     fi
 
     # Install odoo
@@ -306,7 +347,7 @@ function install_reinstall_venv {
         return 0;
     fi
 
-    if [ $1 == '--help' ] || [ $1 == '-h' ]; then
+    if [ "$1" == '--help' ] || [ "$1" == '-h' ]; then
         virtualenv --help;
         return 0
     fi
