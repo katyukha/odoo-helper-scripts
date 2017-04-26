@@ -185,7 +185,7 @@ function install_system_prerequirements {
     fi
 
     with_sudo easy_install pip;
-    with_sudo pip install --upgrade pip virtualenv;
+    #with_sudo pip install --upgrade pip virtualenv;
 }
 
 
@@ -213,32 +213,6 @@ function install_python_prerequirements {
         execv pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
     fi
 
-    # Fix odoo 7.0 setup tools dependencies, to limit their versions
-    # because new versions have api changes, since odoo 7.0 released
-    if [ "$ODOO_VERSION" == "7.0" ]; then
-        execv pip install 'vobject\<0.9.0' 'psutil\<2' 'reportlab\<=3.0';
-    fi
-
-    # Install PIL only for odoo versions that have no requirements txt (<8.0)
-    if [ ! -f "$ODOO_PATH/requirements.txt" ]; then
-
-        # Link libraries to virtualenv/lib dir
-        local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
-        if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
-            ln -s $lib_dir/libjpeg.so $VENV_DIR/lib;
-        fi
-        if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libfreetype.so ] && [ ! -f $VENV_DIR/lib/libfreetype.so ]; then
-            ln -s $lib_dir/libfreetype.so $VENV_DIR/lib;
-        fi
-        if [ ! -z $VENV_DIR ] && [ -f /usr/include/freetype2/fterrors.h ] && [ ! -d $VENV_DIR/include/freetype ]; then
-            # For ubuntu 14.04
-            ln -s /usr/include/freetype2 $VENV_DIR/include/freetype;
-        fi
-        if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libz.so ] && [ ! -f $VENV_DIR/lib/libz.so ]; then
-            ln -s $lib_dir/libz.so $VENV_DIR/lib;
-        fi
-        execv pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
-    fi
 }
 
 # Generate configuration file fo odoo
@@ -290,6 +264,35 @@ function odoo_gevent_install_workaround {
     fi
 }
 
+
+function install_odoo_workaround_70 {
+    # Fix odoo 7.0 setup tools dependencies, to limit their versions
+    # because new versions have api changes, since odoo 7.0 released
+    execv pip install 'vobject\<0.9.0' 'psutil\<2' 'reportlab\<=3.0';
+
+    # Link libraries to virtualenv/lib dir
+    local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
+    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
+        ln -s $lib_dir/libjpeg.so $VENV_DIR/lib;
+    fi
+    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libfreetype.so ] && [ ! -f $VENV_DIR/lib/libfreetype.so ]; then
+        ln -s $lib_dir/libfreetype.so $VENV_DIR/lib;
+    fi
+    if [ ! -z $VENV_DIR ] && [ -f /usr/include/freetype2/fterrors.h ] && [ ! -d $VENV_DIR/include/freetype ]; then
+        # For ubuntu 14.04
+        ln -s /usr/include/freetype2 $VENV_DIR/include/freetype;
+    fi
+    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libz.so ] && [ ! -f $VENV_DIR/lib/libz.so ]; then
+        ln -s $lib_dir/libz.so $VENV_DIR/lib;
+    fi
+
+    # Force use Pillow, because PIL is too old.
+    execv pip install Pillow;
+    cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
+    sed -i -r "s/PIL/Pillow/" $ODOO_PATH/setup.py;
+    #execv pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
+}
+
 function odoo_gevent_install_workaround_cleanup {
     if [ ! -z $odoo_gevent_fix_applied ]; then
         mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
@@ -303,11 +306,15 @@ function odoo_run_setup_py {
     # Workaround for situation when setup does not install openerp-gevent script.
     odoo_gevent_install_workaround;
 
+    if [ "$ODOO_VERSION" == "7.0" ]; then
+        install_odoo_workaround_70;
+    fi
+
     # Install dependencies via pip (it is faster if they are cached)
     if [ -f "$ODOO_PATH/requirements.txt" ]; then
         # Based on http://stackoverflow.com/questions/22250483/stop-pip-from-failing-on-single-package-when-installing-with-requirements-txt
         # This is done to install as much deps as possible via pip. thus they are cached, and got correct versions
-        # If som package could not been installed, show a warning with name of that package
+        # If some package could not be installed, show a warning with name of that package
 		while read dependency; do
 			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
 			if [[ $dependency_stripped == \#* ]]; then

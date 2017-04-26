@@ -12,7 +12,7 @@ env:
     - ODOO_HELPER_ROOT=$TRAVIS_BUILD_DIR
 
 install:
-  - "sudo apt-get install -y -qq python-all-dev"
+  - "sudo apt-get install -y -qq python-all-dev libevent-dev"
 
   - "rvm use 2.3"
   - "gem install bashcov coveralls"
