@@ -173,7 +173,88 @@ function fetch_python_dep {
     execu pip install $install_opt;
 }
 
+
+# Clone git repository.
+#
+# fetch_clone_repo <url> <dest> [branch]
+function fetch_clone_repo_git {
+    local repo_url=$1; shift;
+    local repo_dest=$1; shift;
+    local repo_branch=$1; shift;
+
+    if [ ! -z $repo_branch ]; then
+        local repo_branch_opt="-b $repo_branch";
+    fi
+
+    [ -z $VERBOSE ] && local git_clone_opt=" -q "
+    if ! git clone $git_clone_opt $repo_branch_opt $repo_url $repo_dest; then
+        echo -e "${REDC}Cannot clone [git] '$repo_url to $repo_dest'!${NC}";
+    elif [ -z "$repo_branch_opt" ]; then
+        # IF repo clonned successfuly, and not branch specified then
+        # try to checkout to ODOO_VERSION branch if it exists.
+        (
+            cd $repo_dest && \
+            [ "$(git_get_branch_name)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
+            [ $(git branch --list -a "origin/${ODOO_VERSION:-$ODOO_BRANCH}") ] && \
+            git checkout -q ${ODOO_VERSION:-$ODOO_BRANCH} || true
+        )
+    fi
+}
+
+# Clone hg repository.
+#
+# fetch_clone_repo <url> <dest> [branch]
+function fetch_clone_repo_hg {
+    local repo_url=$1; shift;
+    local repo_dest=$1; shift;
+
+    # optional branch arg
+    if [ ! -z $1 ]; then
+        local repo_branch_opt="-r $1"; shift;
+    fi
+
+    if ! hg clone $repo_branch_opt $repo_url $repo_dest; then
+        echo -e "${REDC}Cannot clone [hg] '$repo_url to $repo_dest'!${NC}";
+    elif [ -z "$repo_branch_opt" ]; then
+        # IF repo clonned successfuly, and not branch specified then
+        # try to checkout to ODOO_VERSION branch if it exists.
+        (
+            cd $repo_dest && \
+            [ "$(HGPLAIN=1 hg branch)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
+            HGPLAIN=1 hg branches | grep "^${ODOO_VERSION:-$ODOO_BRANCH}\s" > /dev/null && \
+            hg update ${ODOO_VERSION:-$ODOO_BRANCH} || true
+        )
+    fi
+}
+
+# Clone repository. Supported types: git, hg
+#
+# fetch_clone_repo <type> <url> <dest> [branch]
+# fetch_clone_repo git <url> <dest> [branch]
+# fetch_clone_repo hg <url> <dest> [branch]
+function fetch_clone_repo {
+    local repo_type=$1; shift;
+    local repo_url=$1; shift;
+    local repo_dest=$1; shift;
+
+    # optional branch arg
+    if [ ! -z $1 ]; then
+        local repo_branch=$1; shift;
+    fi
+
+    echo "Clonning [$repo_type] $repo_url to $repo_dest (branch $repo_branch)";
+    if [ "$repo_type" == "git" ]; then
+        fetch_clone_repo_git $repo_url $repo_dest $repo_branch;
+    elif [ "$repo_type" == "hg" ]; then
+        fetch_clone_repo_hg $repo_url $repo_dest $repo_branch;
+    else
+        echo -e "${REDC}Unknown repo type: $repo_type ${NC}";
+    fi
+
+}
+
 # fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
+# fetch_module --hg <hg repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
 # fetch_module --requirements <requirements file>
 # fetch_module -p <python module> [-p <python module>] ...
 function fetch_module {
@@ -189,6 +270,8 @@ function fetch_module {
             -r|--repo <repo>         - git repository to get module from
             --github <user/repo>     - allows to specify repository located on github in short format
             --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
+
+            --hg <repo>              - mercurial repository to get addon from.
 
             -m|--module <module>     - module name to be fetched from repository
             -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
@@ -227,20 +310,42 @@ function fetch_module {
     local REPO_BRANCH=;
     local REPO_BRANCH_OPT=;
     local PYTHON_INSTALL=;
+    local REPO_TYPE=git;
 
     while [[ $# -gt 1 ]]
     do
         local key="$1";
         case $key in
             -r|--repo)
+                if [ ! -z $REPOSITORY ]; then
+                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    exit -1;
+                fi
                 REPOSITORY="$2";
                 shift;
             ;;
+            --hg)
+                if [ ! -z $REPOSITORY ]; then
+                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    exit -1;
+                fi
+                REPOSITORY="$2";
+                REPO_TYPE=hg;
+                shift;
+            ;;
             --github)
+                if [ ! -z $REPOSITORY ]; then
+                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    exit -1;
+                fi
                 REPOSITORY="https://github.com/$2";
                 shift;
             ;;
             --oca)
+                if [ ! -z $REPOSITORY ]; then
+                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    exit -1;
+                fi
                 REPOSITORY="https://github.com/OCA/$2";
                 # for backward compatability (if odoo version not defined,
                 # then use odoo branch
@@ -280,10 +385,6 @@ function fetch_module {
         shift
     done
 
-    if [ ! -z $REPO_BRANCH ]; then
-        REPO_BRANCH_OPT="-b $REPO_BRANCH";
-    fi
-
     if [ -z $REPOSITORY ]; then
         if [ ! -z $PYTHON_INSTALL ]; then
             return 0;
@@ -299,8 +400,8 @@ function fetch_module {
     local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
 
     local recursion_key="fetch_module";
-    if ! recursion_protection_easy_check $recursion_key "${REPO_PATH}__${MODULE:-all}"; then
-        echo -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
+    if ! recursion_protection_easy_check $recursion_key "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then
+        echo -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
         return 0
     fi
     # Conditions:
@@ -320,19 +421,7 @@ function fetch_module {
             echo "The module $MODULE already present in addons dir";
             return 0;
         else
-            [ -z $VERBOSE ] && local git_clone_opt=" -q "
-            if ! git clone $git_clone_opt $REPO_BRANCH_OPT $REPOSITORY $REPO_PATH; then
-                echo -e "${REDC}Cannot clone '$REPOSITORY to $REPO_PATH'!${NC}";
-            elif [ -z "$REPO_BRANCH_OPT" ]; then
-                # IF repo clonned successfuly, and not branch specified then
-                # try to checkout to ODOO_VERSION branch if it exists.
-                (
-                    cd $REPO_PATH && \
-                    [ "$(git_get_branch_name)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
-                    [ $(git branch --list -a "origin/${ODOO_VERSION:-$ODOO_BRANCH}") ] && \
-                    git checkout -q ${ODOO_VERSION:-$ODOO_BRANCH} || true
-                )
-            fi
+            fetch_clone_repo $REPO_TYPE $REPOSITORY $REPO_PATH $REPO_BRANCH;
         fi
     fi
 
