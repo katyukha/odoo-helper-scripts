@@ -305,6 +305,7 @@ function test_module {
     local create_test_db=0;
     local fail_on_warn=0;
     local with_coverage=0;
+    local with_coverate_report_html=;
     local modules="";
     local directories="";
     local usage="
@@ -322,6 +323,7 @@ function test_module {
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
         --coverage          - calculate code coverage (use python's *coverage* util)
+        --coverate-html     - automaticaly generate coverage html report
         -m|--module         - specify module to test
         -d|--directory      - specify directory with modules to test
     ";
@@ -349,6 +351,10 @@ function test_module {
             ;;
             --coverage)
                 with_coverage=1;
+            ;;
+            --coverage-html)
+                with_coverage=1;
+                with_coverate_report_html=1;
             ;;
             -m|--module)
                 modules="$modules $2";  # add module to module list
@@ -393,6 +399,10 @@ function test_module {
         local res=$?;
     else
         local res=$?
+    fi
+
+    if [ ! -z $with_coverate_report_html ]; then
+        execv coverage html;
     fi
     # ---------
 
