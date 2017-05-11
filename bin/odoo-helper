@@ -130,6 +130,12 @@ function show_project_status {
     ";
 }
 
+function odoo_helper_print_version {
+    echo "Version: $ODOO_HELPER_VERSION";
+    echo "Branch: $(git_get_branch_name $ODOO_HELPER_ROOT)";
+    echo "Commit: $(git_get_current_commit $ODOO_HELPER_ROOT)";
+}
+
 # function that parses commandline arguments and executes commands
 function odoo_helper_main {
     # Parse command line options and run commands
@@ -152,7 +158,7 @@ function odoo_helper_main {
                 exit 0;
             ;;
             --version)
-                echo "$ODOO_HELPER_VERSION";
+                odoo_helper_print_version;
                 exit 0;
             ;;
             --downloads-dir)
