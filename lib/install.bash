@@ -178,14 +178,14 @@ function install_system_prerequirements {
     install_sys_deps_internal git wget python-setuptools perl g++ \
         libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
-        libsasl2-dev libldap2-dev libssl-dev;
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev;
 
     if ! install_wkhtmltopdf; then
         echo "Cannot install wkhtmltopdf!!! Skipping...";
     fi
 
     with_sudo easy_install pip;
-    #with_sudo pip install --upgrade pip virtualenv;
+    with_sudo pip install --upgrade pip virtualenv cffi;
 }
 
 
@@ -207,7 +207,7 @@ function install_python_prerequirements {
     execu easy_install --upgrade setuptools;
     execu pip install --upgrade pip erppeek \
         setproctitle python-slugify watchdog pylint pylint-odoo coverage \
-        flake8 flake8-colors setuptools-odoo;
+        flake8 flake8-colors setuptools-odoo cffi;
 
     if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
         execv pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
@@ -317,24 +317,16 @@ function odoo_run_setup_py {
         # If some package could not be installed, show a warning with name of that package
 		while read dependency; do
 			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-			if [[ $dependency_stripped == \#* ]]; then
-				# Skip comments
-				continue
-			elif [ -z "$dependency_stripped" ]; then
-				# Skip blank lines
-				continue
-            elif [[ "$dependency_stripped" =~ pyparsing* ]] && run_python_cmd "import pyparsing"; then
+			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
                 # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
                 # especialy to versions lower than that used by setuptools
                 continue
 			else
-				if execv pip install "$dependency_stripped"; then
-					echo -e "${GREENC}$dependency_stripped is installed${NC}"
-				else
-					echo -e "${YELLOWC}Could not install $dependency_stripped, skipping...${NC}"
-				fi
+                # Echo dependency line unchanged to rmp file
+                echo $dependency;
 			fi
-		done < "$ODOO_PATH/requirements.txt";
+		done < "$ODOO_PATH/requirements.txt" > /tmp/odoo_install_requirements.txt;
+        execv pip install -r /tmp/odoo_install_requirements.txt;
     fi
 
     # Install odoo

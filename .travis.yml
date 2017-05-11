@@ -13,7 +13,9 @@ env:
 
 install:
   - "sudo apt-get install -y -qq python-all-dev libevent-dev"
-
+  - "echo easy_install --version"
+  - "sudo easy_install -U setuptools"
+  - "echo easy_install --version"
   - "rvm use 2.3"
   - "gem install bashcov coveralls"
   - "bash install-user.bash"
