@@ -19,7 +19,7 @@ function install_preconfigure_env {
     ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
     ODOO_VERSION=${ODOO_VERSION:-9.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
-    DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
+    DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-${DOWNLOAD_ARCHIVE:-on}};
     DB_USER=${DB_USER:-${ODOO_DBUSER:-odoo}};
     DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
     DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
