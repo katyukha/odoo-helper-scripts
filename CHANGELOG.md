@@ -14,6 +14,10 @@
 - `odoo-helper addons test-installed` command support odoo 7.0
 - `odoo-helper fetch`: added experimental support of Mercurial
 - `odoo-helper test --coverage-html` option added.
+- `odoo-helper db create` new options added:
+  - `--demo` load demo data (default: not load)
+  - `--lang <lang` choose language of database
+  - `--help` display help message
 
 
 ## Version 0.1.0

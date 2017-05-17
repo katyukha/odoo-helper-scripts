@@ -323,7 +323,7 @@ function test_module {
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
         --coverage          - calculate code coverage (use python's *coverage* util)
-        --coverate-html     - automaticaly generate coverage html report
+        --coverage-html     - automaticaly generate coverage html report
         -m|--module         - specify module to test
         -d|--directory      - specify directory with modules to test
     ";

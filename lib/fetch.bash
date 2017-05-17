@@ -180,10 +180,9 @@ function fetch_python_dep {
 function fetch_clone_repo_git {
     local repo_url=$1; shift;
     local repo_dest=$1; shift;
-    local repo_branch=$1; shift;
 
-    if [ ! -z $repo_branch ]; then
-        local repo_branch_opt="-b $repo_branch";
+    if [ ! -z $1 ]; then
+        local repo_branch_opt="-b $1";
     fi
 
     [ -z $VERBOSE ] && local git_clone_opt=" -q "

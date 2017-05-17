@@ -16,15 +16,58 @@ set -e; # fail on errors
 # functions prefix: odoo_db_*
 #-----------------------------------------------------------------------------------------
 
-# odoo_db_create <name> [odoo_conf_file]
+# odoo_db_create [options] <name> [odoo_conf_file]
 function odoo_db_create {
+    local usage="Usage:
+
+        $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
+
+        Creates database named <name>
+
+        Options:
+           --demo         - load demo-data (default: no demo-data)
+           --lang <lang>  - specified language for this db.
+                            <lang> is language code like 'en_US'...
+           --help         - display this help message
+    ";
+
+    # Parse options
+    local demo_data='False';
+    local db_lang="en_US";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --demo)
+                demo_data='True';
+                shift;
+            ;;
+            --lang)
+                db_lang=$2;
+                shift; shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
+    
+    if [ -z $db_name ]; then
+        echo -e "${REDC} dbname not specified!!!${NC}";
+        return 1;
+    fi
 
     echov "Creating odoo database $db_name using conf file $conf_file";
 
     local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', ${DB_DEMO:-True}, '${DB_LANG:-en_US}');"
+    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', '$demo_data', '$db_lang');"
 
     run_python_cmd "$python_cmd";
     
@@ -194,6 +237,7 @@ function odoo_db_command {
         $SCRIPT_NAME db list [odoo_conf_file]
         $SCRIPT_NAME db exists <name> [odoo_conf_file]
         $SCRIPT_NAME db create <name> [odoo_conf_file]
+        $SCRIPT_NAME db create --help
         $SCRIPT_NAME db drop <name> [odoo_conf_file]
         $SCRIPT_NAME db rename <old_name> <new_name> [odoo_conf_file]
         $SCRIPT_NAME db dump <name> <dump_file_path> [format [odoo_conf_file]]
