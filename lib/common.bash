@@ -144,7 +144,7 @@ function create_dirs {
 function check_command {
     for test_cmd in $@; do
         if execv "command -v $test_cmd >/dev/null 2>&1"; then
-            echo "$test_cmd";
+            echo "command -v $test_cmd";
             return 0;
         fi;
     done
