@@ -33,6 +33,16 @@ function postgres_install_postgresql {
     sudo apt-get install -y postgresql;
 }
 
+
+# Test connection to local postgres instance
+function postgres_test_connection {
+    if ! sudo -u postgres -H psql -tA -c "SELECT 1;" >/dev/null 2>&1; then
+        echo -e "${REDC}ERROR:${NC} Cannot connect to local postgres DB!";
+        return 1;
+    fi
+    return 0;
+}
+
 # Check if postgresql user exists
 # NOTE: Requires SUDO
 #
@@ -55,6 +65,10 @@ function postgres_user_exists {
 function postgres_user_create {
     local user_name="$1";
     local user_password="$2";
+
+    if ! postgres_test_connection; then
+        return 1;
+    fi
 
     if ! postgres_user_exists $user_name; then
         sudo -u postgres -H psql -c "CREATE USER \"$user_name\" WITH CREATEDB PASSWORD '$user_password';"
