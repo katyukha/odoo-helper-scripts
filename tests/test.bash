@@ -60,7 +60,8 @@ Install odoo-helper and odoo system prerequirements
 ==================================================
 ${NC}"
 
-odoo-helper install pre-requirements -y
+odoo-helper install pre-requirements -y;
+odoo-helper install postgres;
 
 #echo -e "${YELLOWC}
 #=================================================
