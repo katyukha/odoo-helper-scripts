@@ -122,8 +122,8 @@ function execu {
 
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
 function exec_pip {
-    local new_findlinks="$PIP_FIND_LINKS https://wheelhouse.odoo-community.org/oca";
-    PIP_FIND_LINKS=$new_findlinks execv pip $@;
+    local extra_index="$PIP_EXTRA_INDEX_URL https://wheelhouse.odoo-community.org/oca-simple";
+    PIP_EXTRA_INDEX_URL=$extra_index execv pip $@;
 }
 
 
