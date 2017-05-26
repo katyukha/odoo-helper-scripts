@@ -127,23 +127,7 @@ function execu {
 # exec_conf <conf> <cmd> <cmd args>
 function exec_conf {
     local conf=$1; shift;
-
-    local save_openerp_server=$OPENERP_SERVER;
-    local save_odoo_rc=$ODOO_RC;
-
-    export OPENERP_SERVER=$conf;
-    export ODOO_RC=$conf;  # for odoo 10.0+
-
-    if eval "$@"; then
-        local res=$?;
-    else
-        local res=$?;
-    fi
-
-    OPENERP_SERVER=$save_openerp_server;
-    ODOO_RC=$save_odoo_rc;
-
-    return $res;
+    OPENERP_SERVER="$conf" ODOO_RC="$conf" $@
 }
 
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
