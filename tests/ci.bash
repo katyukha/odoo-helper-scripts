@@ -27,6 +27,7 @@ if [ ! -z $CI_RUN ]; then
         echo "";
         
     fi
-    sudo apt-get install python-all-dev;
+    sudo apt-get -y install python-all-dev python-setuptools;
+    sudo easy_install -U setuptools pip;
     sudo pip install --upgrade pip pytz;
 fi
