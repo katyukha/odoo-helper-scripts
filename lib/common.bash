@@ -98,6 +98,7 @@ function execv {
     return $res
 
 }
+
 # simply pass all args to exec or unbuffer
 # depending on 'USE_UNBUFFER variable
 # Also take in account virtualenv
@@ -118,6 +119,31 @@ function execu {
     fi
 
     execv "$unbuffer_opt $@";
+}
+
+# Exec command with specified odoo config
+# This function automaticaly set's and unsets Odoo configuration variables
+#
+# exec_conf <conf> <cmd> <cmd args>
+function exec_conf {
+    local conf=$1; shift;
+
+    local save_openerp_server=$OPENERP_SERVER;
+    local save_odoo_rc=$ODOO_RC;
+
+    export OPENERP_SERVER=$conf;
+    export ODOO_RC=$conf;  # for odoo 10.0+
+
+    if eval "$@"; then
+        local res=$?;
+    else
+        local res=$?;
+    fi
+
+    OPENERP_SERVER=$save_openerp_server;
+    ODOO_RC=$save_odoo_rc;
+
+    return $res;
 }
 
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list

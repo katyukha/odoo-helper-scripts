@@ -65,21 +65,17 @@ function test_run_server {
     local with_coverage=$1; shift;
     local SERVER=`get_server_script`;
     echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}]${NC}: $SERVER $@";
-    export OPENERP_SERVER=$ODOO_TEST_CONF_FILE;
 
     # enable test coverage
     if [ $with_coverage -eq 1 ]; then
         if [ -z $COVERAGE_INCLUDE ]; then
             local COVERAGE_INCLUDE="$(pwd)/*";
         fi
-        execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
-            --include='$COVERAGE_INCLUDE' $(execv command -v $SERVER) \
-            --stop-after-init $@";
+        exec_conf $ODOO_TEST_CONF_FILE execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
+            --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init $@";
     else
-        execu "$SERVER --stop-after-init $@";
+        exec_conf $ODOO_TEST_CONF_FILE execu "$SERVER --stop-after-init $@";
     fi
-
-    unset OPENERP_SERVER;
 }
 
 # test_module_impl <with_coverage 0|1> <module> [extra_options]

@@ -18,6 +18,18 @@ ohelper_require 'fetch';
 set -e; # fail on errors
 
 
+# Get odoo addon manifest file
+# addons_get_manifest_file <addon path>
+function addons_get_manifest_file {
+    if [ -f "$1/__openerp__.py" ]; then
+        echo "$1/__openerp__.py";
+    elif [ -f "$1/__manifest__.py" ]; then
+        echo "$1/__manifest__.py";
+    else
+        return 2;
+    fi
+}
+
 # Echo path to addon specified by name
 # addons_get_addon_path <addon>
 function addons_get_addon_path {
@@ -39,18 +51,21 @@ function addons_get_addon_path {
 # addons_is_installable <addon_path>
 function addons_is_installable {
     local addon_path=$1;
-    if [ -f "$1/__openerp__.py" ]; then
-        local manifest_file="$1/__openerp__.py";
-    elif [ -f "$1/__manifest__.py" ]; then
-        local manifest_file="$1/__manifest__.py";
-    else
-        return 2
-    fi
+    local manifest_file="$(addons_get_manifest_file $addon_path)";
     if python -c "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
         return 0;
     else
         return 1;
     fi
+}
+
+# Get list of addon dependencies
+# addons_get_addon_dependencies <addon path>
+function addons_get_addon_dependencies {
+    local addon_path=$1;
+    local manifest_file="$(addons_get_manifest_file $addon_path)";
+
+    echo $(python -c "print ' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', []))");
 }
 
 # Get list of installed addons
