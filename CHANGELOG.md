@@ -18,6 +18,7 @@
   - `--demo` load demo data (default: not load)
   - `--lang <lang` choose language of database
   - `--help` display help message
+- `odoo-install --single-branch` option added. This allow to disable `single-branch` clone.
 
 
 ## Version 0.1.0

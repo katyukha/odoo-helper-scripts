@@ -127,7 +127,7 @@ function execu {
 # exec_conf <conf> <cmd> <cmd args>
 function exec_conf {
     local conf=$1; shift;
-    OPENERP_SERVER="$conf" ODOO_RC="$conf" $@
+    OPENERP_SERVER="$conf" ODOO_RC="$conf" $@;
 }
 
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list

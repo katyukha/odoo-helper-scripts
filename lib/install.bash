@@ -20,6 +20,7 @@ function install_preconfigure_env {
     ODOO_VERSION=${ODOO_VERSION:-9.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-${DOWNLOAD_ARCHIVE:-on}};
+    CLONE_SINGLE_BRANCH=${CLONE_SINGLE_BRANCH:-on};
     DB_USER=${DB_USER:-${ODOO_DBUSER:-odoo}};
     DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
     DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
@@ -46,13 +47,17 @@ function install_clone_odoo {
     local odoo_path=${1:-$ODOO_PATH};
     local odoo_branch=${2:-$ODOO_BRANCH};
     local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
+    local branch_opt=;
 
     if [ ! -z $odoo_branch ]; then
-        local branch_opt=" --branch $odoo_branch --single-branch";
+        branch_opt="$branch_opt --branch $odoo_branch";
+    fi
+
+    if [ "$CLONE_SINGLE_BRANCH" == "on" ]; then
+        branch_opt="$branch_opt --single-branch";
     fi
 
     git clone $branch_opt $odoo_repo $odoo_path;
-
 }
 
 # install_download_odoo [path [branch [repo]]]
@@ -175,8 +180,8 @@ function install_system_prerequirements {
     with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    install_sys_deps_internal git wget python-setuptools perl g++ \
-        libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
+    install_sys_deps_internal git wget python-setuptools python-pip \
+        perl g++ libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev;
 
@@ -184,8 +189,7 @@ function install_system_prerequirements {
         echo "Cannot install wkhtmltopdf!!! Skipping...";
     fi
 
-    with_sudo easy_install pip;
-    with_sudo pip install --upgrade pip virtualenv cffi;
+    with_sudo pip install --upgrade virtualenv cffi;
 }
 
 
