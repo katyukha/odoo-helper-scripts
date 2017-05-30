@@ -1,10 +1,12 @@
 sudo: required
 dist: trusty
-language: bash
+language: ruby
 
 cache:
     pip: true
     apt: true
+
+rvm: 2.3
 
 env:
   global:
@@ -12,7 +14,7 @@ env:
     - ODOO_HELPER_ROOT=$TRAVIS_BUILD_DIR
 
 install:
-  - "rvm use 2.3"
+  - "sudo apt-get install -y -qq git python-all-dev libevent-dev expect-dev libxml2-dev"
   - "gem install bashcov coveralls"
   - "bash install-user.bash"
 

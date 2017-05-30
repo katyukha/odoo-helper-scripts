@@ -91,8 +91,11 @@ function install_wkhtmltopdf {
     if ! check_command wkhtmltopdf > /dev/null; then
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
-            wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
-                 -O $wkhtmltox_path
+            local system_arch=$(dpkg --print-architecture);
+            local release=$(lsb_release -sc);
+            local release=${release:-trusty};  # try to install trusty version
+            local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2/wkhtmltox-0.12.2_linux-$release-$system_arch.deb"
+            wget -q $download_link -O $wkhtmltox_path;
         fi
         with_sudo dpkg --force-depends -i $wkhtmltox_path  # install ignoring dependencies
         with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
@@ -172,10 +175,6 @@ function install_and_configure_postgresql {
 
 # install_system_prerequirements
 function install_system_prerequirements {
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
-    fi
-
     echo "Updating package list..."
     with_sudo apt-get update || true;
 
