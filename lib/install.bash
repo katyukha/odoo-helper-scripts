@@ -213,7 +213,7 @@ function install_python_prerequirements {
         flake8 flake8-colors setuptools-odoo cffi;
 
     if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
-        execv pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
+        execv pip install Python-Chart;
     fi
 
 }
