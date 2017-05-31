@@ -74,7 +74,7 @@ function install_download_odoo {
     if [[ $ODOO_REPO == "https://github.com"* ]]; then
         local repo=${odoo_repo%.git};
         local repo_base=$(basename $repo);
-        wget -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
+        wget -q -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
         tar -zxf $odoo_archive;
         mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
         rm $odoo_archive;
@@ -140,7 +140,7 @@ function install_sys_deps_for_odoo_version {
     local odoo_version=$1;
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
-    wget $control_url -O $tmp_control;
+    wget -q $control_url -O $tmp_control;
     local sys_deps=$(install_parse_debian_control_file $tmp_control);
     install_sys_deps_internal $sys_deps;
     rm $tmp_control;
