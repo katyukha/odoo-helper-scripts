@@ -89,16 +89,24 @@ function install_wkhtmltopdf {
     fi
     # Install wkhtmltopdf
     if ! check_command wkhtmltopdf > /dev/null; then
+        # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
             local system_arch=$(dpkg --print-architecture);
             local release=$(lsb_release -sc);
-            local release=${release:-trusty};  # try to install trusty version
-            local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2/wkhtmltox-0.12.2_linux-$release-$system_arch.deb"
-            wget -q $download_link -O $wkhtmltox_path;
+            local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
+            if ! wget -q $download_link -O $wkhtmltox_path; then
+                # fallback to trusty release
+                local release=trusty;
+                local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
+                if ! wget -q $download_link -O $wkhtmltox_path; then
+                    return 1;
+                fi
+            fi
         fi
-        with_sudo dpkg --force-depends -i $wkhtmltox_path  # install ignoring dependencies
-        with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+        local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
+        install_sys_deps_internal $wkhtmltox_deps;
+        with_sudo dpkg -i $wkhtmltox_path  # install ignoring dependencies
         rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
     fi
 }
@@ -106,7 +114,7 @@ function install_wkhtmltopdf {
 
 # install_sys_deps_internal dep_1 dep_2 ... dep_n
 function install_sys_deps_internal {
-    # Odoo's debian/contol file usualy contains this in 'Depends' section 
+    # Odoo's debian/control file usualy contains this in 'Depends' section 
     # so we need to skip it before running apt-get
     if [ "$1" == '${misc:Depends}' ]; then
         shift;
