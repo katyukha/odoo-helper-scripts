@@ -55,16 +55,16 @@ allow_colors;
 # ==========
 #
 echo -e "${YELLOWC}
-=================================================
+===================================================
 Install odoo-helper and odoo system prerequirements
-==================================================
+===================================================
 ${NC}"
 
 odoo-helper install pre-requirements -y;
 odoo-helper install postgres;
 
 echo -e "${YELLOWC}
-=================================================
+==================================================
 Test install of odoo version 7.0
 Also install dependencies and configure postgresql
 ==================================================

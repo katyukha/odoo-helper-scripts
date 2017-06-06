@@ -301,7 +301,7 @@ function install_odoo_workaround_70 {
     execv pip install Pillow;
     cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
     sed -i -r "s/PIL/Pillow/" $ODOO_PATH/setup.py;
-    #execv pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
+    sed -i -r "s/pychart/Python-Chart/" $ODOO_PATH/setup.py;
 }
 
 function odoo_gevent_install_workaround_cleanup {
@@ -332,6 +332,9 @@ function odoo_run_setup_py {
                 # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
                 # especialy to versions lower than that used by setuptools
                 continue
+            elif [[ "$dependency_stripped" =~ pychart* ]]; then
+                # Pychart is not downloadable. Use Python-Chart package
+                echo "Python-Chart";
 			else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;
