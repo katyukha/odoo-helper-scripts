@@ -5,7 +5,7 @@
 - Support of Odoo 10.0
 - Support of [setuptools-odoo](https://pypi.python.org/pypi/setuptools-odoo)
   - Automaticaly install in env
-  - Wrap pip with automaticaly set `PIP_FIND_LINKS` environment variable with [OCA Wheelhouse](https://wheelhouse.odoo-community.org/)
+  - Wrap pip with automaticaly set `PIP_EXTRA_INDEX_URL` environment variable with [OCA Wheelhouse](https://wheelhouse.odoo-community.org/)
 - Added shortcut script `odoo-helper-restart` to restart server.
 - Added `odoo-helper db rename` command
 - Added `odoo-helper install reinstall-venv` option
@@ -19,6 +19,8 @@
   - `--lang <lang` choose language of database
   - `--help` display help message
 - `odoo-install --single-branch` option added. This allow to disable `single-branch` clone.
+- Added `pychart` for install
+  `pychart` package is broken on pypi, so replace it with Python-Chart
 
 
 ## Version 0.1.0

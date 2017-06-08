@@ -5,7 +5,7 @@
 SCRIPT=$0;
 SCRIPT_NAME=`basename $SCRIPT`;
 PROJECT_DIR=$(readlink -f "`dirname $SCRIPT`/..");
-TEST_TMP_DIR="$PROJECT_DIR/test-temp";
+TEST_TMP_DIR="${TEST_TMP_DIR:-$PROJECT_DIR/test-temp}";
 WORK_DIR=`pwd`;
 
 ERROR=;
@@ -54,6 +54,14 @@ allow_colors;
 # Start test
 # ==========
 #
+echo -e "${YELLOWC}
+===================================================
+Show odoo-helper-scripts version
+===================================================
+${NC}"
+odoo-helper --version;
+
+
 echo -e "${YELLOWC}
 ===================================================
 Install odoo-helper and odoo system prerequirements
@@ -199,7 +207,7 @@ echo "";
 # and install there for example addon 'project_sla' for 'project-service' Odoo Comutinty repository
 # Note  that odoo-helper script will automaticaly fetch branch named as server version in current install,
 # if another branch was not specified
-odoo-helper fetch --oca project-service -m project_sla
+odoo-helper fetch --oca project -m project_sla
 
 # and run tests for it
 odoo-helper test --create-test-db -m project_sla
@@ -272,6 +280,14 @@ echo "$(cat ./conf/odoo.conf)"
 echo "";
 
 odoo-helper server --stop-after-init;  # test that it runs
+
+# Also in odoo 10 it is possible to install addons via pip.
+# For example there are some OCA addons available for such install
+# Let's install for example mis-builder.
+# odoo-helper will automaticaly set correct pypi indexx or findlinks option
+# for pip, if it is called with this command.
+odoo-helper pip install odoo10-addon-mis-builder;
+
 
 # Show project status
 odoo-helper status

@@ -123,7 +123,7 @@ function install_sys_deps_internal {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
-    with_sudo apt-get install $opt_apt_always_yes "$@";
+    with_sudo apt-get install $opt_apt_always_yes --no-install-recommends "$@";
 }
 
 # install_parse_debian_control_file <control file>
@@ -335,6 +335,11 @@ function odoo_run_setup_py {
             elif [[ "$dependency_stripped" =~ pychart* ]]; then
                 # Pychart is not downloadable. Use Python-Chart package
                 echo "Python-Chart";
+            elif [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Install last gevent, because old gevent versions (ex. 1.0.2)
+                # cause build errors.
+                # Instead last gevent (1.1.0+) have already prebuild wheels.
+                echo "gevent";
 			else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;
