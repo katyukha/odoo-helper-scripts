@@ -16,17 +16,60 @@ set -e; # fail on errors
 # functions prefix: odoo_db_*
 #-----------------------------------------------------------------------------------------
 
-# odoo_db_create <name> [odoo_conf_file]
+# odoo_db_create [options] <name> [odoo_conf_file]
 function odoo_db_create {
+    local usage="Usage:
+
+        $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
+
+        Creates database named <name>
+
+        Options:
+           --demo         - load demo-data (default: no demo-data)
+           --lang <lang>  - specified language for this db.
+                            <lang> is language code like 'en_US'...
+           --help         - display this help message
+    ";
+
+    # Parse options
+    local demo_data='False';
+    local db_lang="en_US";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --demo)
+                demo_data='True';
+                shift;
+            ;;
+            --lang)
+                db_lang=$2;
+                shift; shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
+    
+    if [ -z $db_name ]; then
+        echo -e "${REDC} dbname not specified!!!${NC}";
+        return 1;
+    fi
 
     echov "Creating odoo database $db_name using conf file $conf_file";
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', ${DB_DEMO:-True}, '${DB_LANG:-en_US}');"
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', '$demo_data', '$db_lang');"
 
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
     
     echo -e "${GREENC}Database $db_name created successfuly!${NC}";
 }
@@ -36,10 +79,10 @@ function odoo_db_drop {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.drop(cl._server.tools.config['admin_passwd'], '$db_name');"
     
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
     
     echo -e "${GREENC}Database $db_name dropt successfuly!${NC}";
 }
@@ -48,10 +91,10 @@ function odoo_db_drop {
 function odoo_db_list {
     local conf_file=${1:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd print '\n'.join(['%s'%d for d in cl.db.list()]);";
     
-    execu python -c "\"$python_cmd\"";
+    run_python_cmd "$python_cmd";
 }
 
 # odoo_db_exists <dbname> [odoo_conf_file]
@@ -59,15 +102,31 @@ function odoo_db_exists {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file', '--logfile', '/dev/null']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
     
-    if execu python -c "\"$python_cmd\""; then
+    if run_python_cmd "$python_cmd"; then
         echov "Database named '$db_name' exists!";
         return 0;
     else
         echov "Database '$db_name' does not exists!";
         return 1;
+    fi
+}
+
+# odoo_db_rename <old_name> <new_name> [odoo_conf_file]
+function odoo_db_rename {
+    local old_db_name=$1;
+    local new_db_name=$2;
+    local conf_file=${3:-$ODOO_CONF_FILE};
+
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd cl.db.rename(cl._server.tools.config['admin_passwd'], '$old_db_name', '$new_db_name');"
+    
+    if run_python_cmd "$python_cmd"; then
+        echo -e "${GREENC}Database $old_db_name renamed to $new_db_name successfuly!${NC}";
+    else
+        echo -e "${REDC}Cannot rename databse $old_db_name to $new_db_name!${NC}";
     fi
 }
 
@@ -90,11 +149,11 @@ function odoo_db_dump {
         fi
     fi
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd dump=cl.db.dump(cl._server.tools.config['admin_passwd'], '$db_name' $format_opt).decode('base64');";
     python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
     
-    if execu python -c "\"$python_cmd\""; then
+    if run_python_cmd "$python_cmd"; then
         echov "Database named '$db_name' dumped to '$db_dump_file'!";
         return 0;
     else
@@ -158,11 +217,11 @@ function odoo_db_restore {
     local db_dump_file=$2;
     local conf_file=${3:-$ODOO_CONF_FILE};
 
-    local python_cmd="import erppeek; cl=erppeek.Client(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd res=cl.db.restore(cl._server.tools.config['admin_passwd'], '$db_name', open('$db_dump_file', 'rb').read().encode('base64'));";
     python_cmd="$python_cmd exit(0 if res else 1);";
     
-    if execu python -c "\"$python_cmd\""; then
+    if run_python_cmd "$python_cmd"; then
         echov "Database named '$db_name' restored from '$db_dump_file'!";
         return 0;
     else
@@ -178,7 +237,9 @@ function odoo_db_command {
         $SCRIPT_NAME db list [odoo_conf_file]
         $SCRIPT_NAME db exists <name> [odoo_conf_file]
         $SCRIPT_NAME db create <name> [odoo_conf_file]
+        $SCRIPT_NAME db create --help
         $SCRIPT_NAME db drop <name> [odoo_conf_file]
+        $SCRIPT_NAME db rename <old_name> <new_name> [odoo_conf_file]
         $SCRIPT_NAME db dump <name> <dump_file_path> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup <name> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup-all [format [odoo_conf_file]]
@@ -233,6 +294,11 @@ function odoo_db_command {
             exists)
                 shift;
                 odoo_db_exists "$@";
+                exit;
+            ;;
+            rename)
+                shift;
+                odoo_db_rename "$@";
                 exit;
             ;;
             -h|--help|help)

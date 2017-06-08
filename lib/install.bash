@@ -19,11 +19,12 @@ function install_preconfigure_env {
     ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
     ODOO_VERSION=${ODOO_VERSION:-9.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
-    DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-on};
-    DB_USER=${ODOO_DBUSER:-odoo};
-    DB_PASSWORD=${ODOO_DBPASSWORD:-odoo};
-    DB_HOST=${ODOO_DBHOST:-localhost};
-    DB_PORT=${ODOO_DBPORT:-5432};
+    DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-${DOWNLOAD_ARCHIVE:-on}};
+    CLONE_SINGLE_BRANCH=${CLONE_SINGLE_BRANCH:-on};
+    DB_USER=${DB_USER:-${ODOO_DBUSER:-odoo}};
+    DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
+    DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
+    DB_PORT=${DB_PORT:-${ODOO_DBPORT:-5432}};
 }
 
 # create directory tree for project
@@ -46,13 +47,17 @@ function install_clone_odoo {
     local odoo_path=${1:-$ODOO_PATH};
     local odoo_branch=${2:-$ODOO_BRANCH};
     local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
+    local branch_opt=;
 
     if [ ! -z $odoo_branch ]; then
-        local branch_opt=" --branch $odoo_branch --single-branch";
+        branch_opt="$branch_opt --branch $odoo_branch";
+    fi
+
+    if [ "$CLONE_SINGLE_BRANCH" == "on" ]; then
+        branch_opt="$branch_opt --single-branch";
     fi
 
     git clone $branch_opt $odoo_repo $odoo_path;
-
 }
 
 # install_download_odoo [path [branch [repo]]]
@@ -69,7 +74,7 @@ function install_download_odoo {
     if [[ $ODOO_REPO == "https://github.com"* ]]; then
         local repo=${odoo_repo%.git};
         local repo_base=$(basename $repo);
-        wget -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
+        wget -q -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
         tar -zxf $odoo_archive;
         mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
         rm $odoo_archive;
@@ -84,13 +89,24 @@ function install_wkhtmltopdf {
     fi
     # Install wkhtmltopdf
     if ! check_command wkhtmltopdf > /dev/null; then
+        # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
-            wget -q http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb \
-                 -O $wkhtmltox_path
+            local system_arch=$(dpkg --print-architecture);
+            local release=$(lsb_release -sc);
+            local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
+            if ! wget -q $download_link -O $wkhtmltox_path; then
+                # fallback to trusty release
+                local release=trusty;
+                local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
+                if ! wget -q $download_link -O $wkhtmltox_path; then
+                    return 1;
+                fi
+            fi
         fi
-        with_sudo dpkg --force-depends -i $wkhtmltox_path  # install ignoring dependencies
-        with_sudo apt-get -f install $opt_apt_always_yes;   # fix broken packages
+        local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
+        install_sys_deps_internal $wkhtmltox_deps;
+        with_sudo dpkg -i $wkhtmltox_path  # install ignoring dependencies
         rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
     fi
 }
@@ -98,7 +114,7 @@ function install_wkhtmltopdf {
 
 # install_sys_deps_internal dep_1 dep_2 ... dep_n
 function install_sys_deps_internal {
-    # Odoo's debian/contol file usualy contains this in 'Depends' section 
+    # Odoo's debian/control file usualy contains this in 'Depends' section 
     # so we need to skip it before running apt-get
     if [ "$1" == '${misc:Depends}' ]; then
         shift;
@@ -107,7 +123,7 @@ function install_sys_deps_internal {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
-    with_sudo apt-get install $opt_apt_always_yes "$@";
+    with_sudo apt-get install $opt_apt_always_yes --no-install-recommends "$@";
 }
 
 # install_parse_debian_control_file <control file>
@@ -124,7 +140,7 @@ function install_sys_deps_for_odoo_version {
     local odoo_version=$1;
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
-    wget $control_url -O $tmp_control;
+    wget -q $control_url -O $tmp_control;
     local sys_deps=$(install_parse_debian_control_file $tmp_control);
     install_sys_deps_internal $sys_deps;
     rm $tmp_control;
@@ -167,34 +183,32 @@ function install_and_configure_postgresql {
 
 # install_system_prerequirements
 function install_system_prerequirements {
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
-    fi
-
     echo "Updating package list..."
     with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    install_sys_deps_internal git wget python-setuptools perl g++ \
-        libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
+    install_sys_deps_internal git wget python-setuptools python-pip \
+        perl g++ libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
-        libsasl2-dev libldap2-dev libssl-dev;
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev;
 
     if ! install_wkhtmltopdf; then
         echo "Cannot install wkhtmltopdf!!! Skipping...";
     fi
 
-    with_sudo easy_install pip;
-    with_sudo pip install --upgrade pip virtualenv;
+    with_sudo pip install --upgrade virtualenv cffi;
 }
 
 
-# Install virtual environment
-# install_virtual_env [path]
+# Install virtual environment. All options will be passed directly to
+# virtualenv command. one exception is DEST_DIR, which this script provides.
+#
+# install_virtual_env [opts]
 function install_virtual_env {
-    local venv_path=${1:-$VENV_DIR};
-    if [ ! -z $venv_path ] &&[ ! -d $venv_path ]; then
-        virtualenv --system-site-packages $venv_path;
+    # To enable system site packages, just set env variable:
+    #   VIRTUALENV_SYSTEM_SITE_PACKAGES=1
+    if [ ! -z $VENV_DIR ] &&[ ! -d $VENV_DIR ]; then
+        virtualenv $@ $VENV_DIR;
     fi
 }
 
@@ -204,16 +218,12 @@ function install_python_prerequirements {
     execu easy_install --upgrade setuptools;
     execu pip install --upgrade pip erppeek \
         setproctitle python-slugify watchdog pylint pylint-odoo coverage \
-        flake8 flake8-colors;  
+        flake8 flake8-colors setuptools-odoo cffi;
 
-    if ! execu "python -c 'import pychart'"; then
-        execu pip install http://download.gna.org/pychart/PyChart-1.39.tar.gz;
+    if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
+        execv pip install Python-Chart;
     fi
 
-    # Install PIL only for odoo versions that have no requirements txt (<8.0)
-    if [ ! -f "$ODOO_PATH/requirements.txt" ]; then
-        execu pip install http://effbot.org/media/downloads/PIL-1.1.7.tar.gz;
-    fi
 }
 
 # Generate configuration file fo odoo
@@ -265,6 +275,35 @@ function odoo_gevent_install_workaround {
     fi
 }
 
+
+function install_odoo_workaround_70 {
+    # Fix odoo 7.0 setup tools dependencies, to limit their versions
+    # because new versions have api changes, since odoo 7.0 released
+    execv pip install 'vobject\<0.9.0' 'psutil\<2' 'reportlab\<=3.0';
+
+    # Link libraries to virtualenv/lib dir
+    local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
+    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
+        ln -s $lib_dir/libjpeg.so $VENV_DIR/lib;
+    fi
+    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libfreetype.so ] && [ ! -f $VENV_DIR/lib/libfreetype.so ]; then
+        ln -s $lib_dir/libfreetype.so $VENV_DIR/lib;
+    fi
+    if [ ! -z $VENV_DIR ] && [ -f /usr/include/freetype2/fterrors.h ] && [ ! -d $VENV_DIR/include/freetype ]; then
+        # For ubuntu 14.04
+        ln -s /usr/include/freetype2 $VENV_DIR/include/freetype;
+    fi
+    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libz.so ] && [ ! -f $VENV_DIR/lib/libz.so ]; then
+        ln -s $lib_dir/libz.so $VENV_DIR/lib;
+    fi
+
+    # Force use Pillow, because PIL is too old.
+    execv pip install Pillow;
+    cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
+    sed -i -r "s/PIL/Pillow/" $ODOO_PATH/setup.py;
+    sed -i -r "s/pychart/Python-Chart/" $ODOO_PATH/setup.py;
+}
+
 function odoo_gevent_install_workaround_cleanup {
     if [ ! -z $odoo_gevent_fix_applied ]; then
         mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
@@ -278,12 +317,35 @@ function odoo_run_setup_py {
     # Workaround for situation when setup does not install openerp-gevent script.
     odoo_gevent_install_workaround;
 
+    if [ "$ODOO_VERSION" == "7.0" ]; then
+        install_odoo_workaround_70;
+    fi
+
     # Install dependencies via pip (it is faster if they are cached)
     if [ -f "$ODOO_PATH/requirements.txt" ]; then
-        if ! execu pip install -r $ODOO_PATH/requirements.txt; then
-            echo -e "${YELLOWC}WARNING:${NC} error while installing requirements via pip. " \
-                    "This may be caused by compilation error when building one of python packages on ubuntu.";
-        fi
+        # Based on http://stackoverflow.com/questions/22250483/stop-pip-from-failing-on-single-package-when-installing-with-requirements-txt
+        # This is done to install as much deps as possible via pip. thus they are cached, and got correct versions
+        # If some package could not be installed, show a warning with name of that package
+		while read dependency; do
+			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
+                # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
+                # especialy to versions lower than that used by setuptools
+                continue
+            elif [[ "$dependency_stripped" =~ pychart* ]]; then
+                # Pychart is not downloadable. Use Python-Chart package
+                echo "Python-Chart";
+            elif [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Install last gevent, because old gevent versions (ex. 1.0.2)
+                # cause build errors.
+                # Instead last gevent (1.1.0+) have already prebuild wheels.
+                echo "gevent";
+			else
+                # Echo dependency line unchanged to rmp file
+                echo $dependency;
+			fi
+		done < "$ODOO_PATH/requirements.txt" > /tmp/odoo_install_requirements.txt;
+        execv pip install -r /tmp/odoo_install_requirements.txt;
     fi
 
     # Install odoo
@@ -296,6 +358,29 @@ function odoo_run_setup_py {
 }
 
 
+# Reinstall virtual environment.
+function install_reinstall_venv {
+    if [ -z $VENV_DIR ]; then
+        echo -e "${YELLOWC}This project does not use virtualenv! Do nothing...${NC}";
+        return 0;
+    fi
+
+    if [ "$1" == '--help' ] || [ "$1" == '-h' ]; then
+        virtualenv --help;
+        return 0
+    fi
+
+    # Backup old venv
+    if [ -d $VENV_DIR ]; then
+        mv $VENV_DIR $PROJECT_ROOT_DIR/venv_backup_$(random_string 4);
+    fi
+
+    install_virtual_env $@;
+    install_python_prerequirements;
+    odoo_run_setup_py;
+}
+
+
 # Entry point for install subcommand
 function install_entry_point {
     local usage="Usage:
@@ -304,6 +389,8 @@ function install_entry_point {
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
+        $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
+                                                             all options will be passed to virtualenv cmd directly
         $SCRIPT_NAME install --help                        - show this help message
 
     ";
@@ -333,6 +420,12 @@ function install_entry_point {
                     shift;
                 fi
                 install_sys_deps_for_odoo_version "$@";
+                exit 0;
+            ;;
+            reinstall-venv)
+                shift;
+                load_project_conf;
+                install_reinstall_venv "$@";
                 exit 0;
             ;;
             postgres)

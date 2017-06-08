@@ -3,5 +3,6 @@
 *.swn
 *.swo
 *.swm
+*.pyc
 /coverage/
 /venv/

@@ -65,21 +65,17 @@ function test_run_server {
     local with_coverage=$1; shift;
     local SERVER=`get_server_script`;
     echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}]${NC}: $SERVER $@";
-    export OPENERP_SERVER=$ODOO_TEST_CONF_FILE;
 
     # enable test coverage
     if [ $with_coverage -eq 1 ]; then
         if [ -z $COVERAGE_INCLUDE ]; then
             local COVERAGE_INCLUDE="$(pwd)/*";
         fi
-        execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
-            --include='$COVERAGE_INCLUDE' $(execv command -v $SERVER) \
-            --stop-after-init $@";
+        exec_conf $ODOO_TEST_CONF_FILE execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
+            --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init $@";
     else
-        execu "$SERVER --stop-after-init $@";
+        exec_conf $ODOO_TEST_CONF_FILE execu "$SERVER --stop-after-init $@";
     fi
-
-    unset OPENERP_SERVER;
 }
 
 # test_module_impl <with_coverage 0|1> <module> [extra_options]
@@ -89,12 +85,19 @@ function test_module_impl {
     local module=$2
     shift; shift;  # all next arguments will be passed to server
 
+    # Set correct log level (depends on odoo version)
+    if [ "$ODOO_VERSION" == "7.0" ]; then
+        local log_level='test';
+    else
+        local log_level='info';
+    fi
+
     set +e; # do not fail on errors
     # Install module
     test_run_server $with_coverage --init=$module --log-level=warn "$@";
     # Test module
     test_run_server $with_coverage --update=$module \
-        --log-level=test --test-enable "$@";
+        --log-level=$log_level --test-enable "$@";
     set -e; # Fail on any error
 }
 
@@ -235,8 +238,10 @@ function test_find_modules_in_directories {
     #       addons will be also tested
     for directory in $@; do
         # skip non directories
-        for addon in $(addons_list_in_directory_by_name $directory); do
-            echo -n " $addon";
+        for addon_path in $(addons_list_in_directory $directory); do
+            if addons_is_installable $addon_path; then
+                echo -n " $(basename $addon_path)";
+            fi
         done
     done
 }
@@ -296,6 +301,7 @@ function test_module {
     local create_test_db=0;
     local fail_on_warn=0;
     local with_coverage=0;
+    local with_coverate_report_html=;
     local modules="";
     local directories="";
     local usage="
@@ -313,6 +319,7 @@ function test_module {
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
         --coverage          - calculate code coverage (use python's *coverage* util)
+        --coverage-html     - automaticaly generate coverage html report
         -m|--module         - specify module to test
         -d|--directory      - specify directory with modules to test
     ";
@@ -340,6 +347,10 @@ function test_module {
             ;;
             --coverage)
                 with_coverage=1;
+            ;;
+            --coverage-html)
+                with_coverage=1;
+                with_coverate_report_html=1;
             ;;
             -m|--module)
                 modules="$modules $2";  # add module to module list
@@ -384,6 +395,10 @@ function test_module {
         local res=$?;
     else
         local res=$?
+    fi
+
+    if [ ! -z $with_coverate_report_html ]; then
+        execv coverage html;
     fi
     # ---------
 

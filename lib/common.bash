@@ -8,7 +8,7 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.1.0"
+ODOO_HELPER_VERSION="0.1.1"
 
 # if odoo-helper root conf is not loaded yet, try to load it
 # This is useful when this lib is used by external utils,
@@ -98,6 +98,7 @@ function execv {
     return $res
 
 }
+
 # simply pass all args to exec or unbuffer
 # depending on 'USE_UNBUFFER variable
 # Also take in account virtualenv
@@ -120,6 +121,22 @@ function execu {
     execv "$unbuffer_opt $@";
 }
 
+# Exec command with specified odoo config
+# This function automaticaly set's and unsets Odoo configuration variables
+#
+# exec_conf <conf> <cmd> <cmd args>
+function exec_conf {
+    local conf=$1; shift;
+    OPENERP_SERVER="$conf" ODOO_RC="$conf" $@;
+}
+
+# Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
+function exec_pip {
+    local extra_index="$PIP_EXTRA_INDEX_URL https://wheelhouse.odoo-community.org/oca-simple";
+    PIP_EXTRA_INDEX_URL=$extra_index execv pip $@;
+}
+
+
 
 # Simple function to create directories passed as arguments
 # create_dirs [dir1] [dir2] ... [dir_n]
@@ -137,7 +154,7 @@ function create_dirs {
 function check_command {
     for test_cmd in $@; do
         if execv "command -v $test_cmd >/dev/null 2>&1"; then
-            echo "$test_cmd";
+            echo "$(execv command -v $test_cmd)";
             return 0;
         fi;
     done

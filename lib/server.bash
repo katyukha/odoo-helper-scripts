@@ -46,26 +46,17 @@ function server_get_pid {
     fi
 }
 
-# Internal function to run odoo server
-function run_server_impl {
+# server_run <arg1> .. <argN>
+# all arguments will be passed to odoo server
+function server_run {
     local SERVER=`get_server_script`;
     echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
-    export OPENERP_SERVER=$ODOO_CONF_FILE;
-    export ODOO_RC=$ODOO_CONF_FILE;  # for odoo 10.0+
     if [ ! -z $SERVER_RUN_USER ]; then
         local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
         echov "Using server run opt: $sudo_opt";
     fi
 
-    execu "$sudo_opt $SERVER $@";
-    unset OPENERP_SERVER;
-    unset ODOO_RC;
-}
-
-# server_run <arg1> .. <argN>
-# all arguments will be passed to odoo server
-function server_run {
-    run_server_impl "$@";
+    exec_conf $ODOO_CONF_FILE execu "$sudo_opt $SERVER $@";
 }
 
 function server_start {
@@ -79,7 +70,7 @@ function server_start {
             exit 1;
         fi
 
-        run_server_impl --pidfile=$ODOO_PID_FILE "$@" &
+        server_run --pidfile=$ODOO_PID_FILE "$@" &
         local pid=$!;
         sleep 2;
         echo -e "${GREENC}Odoo started!${NC}";
@@ -264,8 +255,7 @@ function server {
 # odoo_py <args>
 function odoo_py {
     echov -e "${LBLUEC}Running odoo.py with arguments${NC}:  $@";
-    export OPENERP_SERVER=$ODOO_CONF_FILE;
-    execu odoo.py "$@";
-    unset OPENERP_SERVER;
+    local cmd=$(check_command odoo odoo-bin odoo.py);
+    exec_conf $ODOO_CONF_FILE execu cmd "$@";
 }
 

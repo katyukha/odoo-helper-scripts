@@ -24,6 +24,13 @@ To install (system-wide) just do folowing:
 wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
 ```
 
+or more explicit way:
+
+```bash
+wget -O /tmp/odoo-helper-install.bash;
+sudo bash /tmp/odoo-helper-install.bash;
+```
+
 After instalation You will have ```odoo-helper-scripts``` directory under ```/opt/``` directory.
 (also ```odoo-helper``` and ```odoo-install``` scripts will be linked to ```/usr/local/bin/``` dir).
 And ```/etc/odoo-helper.conf``` file will be generated with path to odoo-helper-scripts install dir.
@@ -42,6 +49,7 @@ wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/
 - Easy way to install from git repositories
     - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
     - Specific format of dependencies: [odoo_requirements.txt](#syntax-of-odoo_requirementstxt)
+- Ability to fetch addons from Mercurial repositories
 - Easy mechanism to fetch addons from any git repo
 - Easy mechanism to fetch python dependency from PyPI or any vcs
 - Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
@@ -56,6 +64,9 @@ And after install you will have available folowing scripts in your path:
 
 Each script have ```-h``` or ```--help``` option which display most relevant information
 about script and all possible options and subcommands of script
+
+***Documentaion in this readme, or in other sources, may not be up to date!!!
+So use --help options, which is available for most of commands.***
 
 Look at [complete example](#complete-example)
 

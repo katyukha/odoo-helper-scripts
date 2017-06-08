@@ -27,6 +27,11 @@ function git_get_abs_repo_path {
     echo "$(cd $1 && git rev-parse --show-toplevel)";
 }
 
+# git_get_current_commit <path>
+function git_get_current_commit {
+    (cd $1 && git rev-parse --verify --short HEAD);
+}
+
 # git_get_branch_name [repo_path]
 function git_get_branch_name {
     local cdir=`pwd`;

@@ -27,6 +27,4 @@ if [ ! -z $CI_RUN ]; then
         echo "";
         
     fi
-    sudo apt-get install python-all-dev;
-    sudo pip install --upgrade pip pytz;
 fi

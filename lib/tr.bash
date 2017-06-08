@@ -84,7 +84,7 @@ function tr_import_export_internal {
         fi
 
         # do the work
-        odoo_py -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_file --modules=$addon;
+        server_run -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_file --modules=$addon;
     done
 }
 
@@ -121,7 +121,7 @@ function tr_load {
     local lang=$2;
 
     for idb in $(tr_parse_db_name $db); do
-        odoo_py -d $idb --load-language=$lang --stop-after-init;
+        server_run -d $idb --load-language=$lang --stop-after-init;
     done
 }
 
