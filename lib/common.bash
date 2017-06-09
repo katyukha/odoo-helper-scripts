@@ -8,7 +8,7 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.1.1"
+ODOO_HELPER_VERSION="0.1.2-dev"
 
 # if odoo-helper root conf is not loaded yet, try to load it
 # This is useful when this lib is used by external utils,
@@ -180,7 +180,7 @@ function is_process_running {
 # random_string [length]
 # default length = 8
 function random_string {
-    < /dev/urandom tr -dc _A-Za-z0-9 | head -c${1:-8};
+    < /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-8};
 }
 
 # search_file_up <start path> <file name>
@@ -237,6 +237,9 @@ function print_helper_config {
     echo "REPOSITORIES_DIR=$REPOSITORIES_DIR;";
     if [ ! -z $INIT_SCRIPT ]; then
         echo "INIT_SCRIPT=$INIT_SCRIPT;";
+    fi
+    if [ ! -z $ODOO_REPO ]; then
+        echo "ODOO_REPO=$ODOO_REPO;";
     fi
 }
 

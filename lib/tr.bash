@@ -125,6 +125,67 @@ function tr_load {
     done
 }
 
+
+# Regenerate translations
+function tr_regenerate {
+    local lang=;
+    local file_name=;
+    local addons="";
+
+    local usage="
+    Usage 
+
+        $SCRIPT_NAME tr regenerate --lang <lang> --file <file> <addon1> [addon2] [addon3] ...
+
+    Options
+
+        --lang <lang code>    - language code to regenerate translations for
+        --file <filename>     - name of po file in i18n dir of addons to generate
+
+    this command automaticaly creates new temporary database with specified lang
+    and demo_data, installs there specified list of addons
+    end exports translations for specified addons
+    ";
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            --lang)
+                lang=$2;
+                shift;
+            ;;
+            --file)
+                file_name=$2;
+                shift;
+            ;;
+            *)
+                addons="$addons $key";
+            ;;
+        esac
+        shift
+    done
+
+    # Create temporary database
+    local tmp_db_name=$(random_string 24);
+    odoo_db_create --lang $lang --demo $tmp_db_name;
+    
+    # install addons
+    echo "addons_install_update install --no-restart -d $tmp_db_name $addons;"
+    addons_install_update "install" --no-restart -d $tmp_db_name $addons;
+
+    # export translations
+    tr_export $tmp_db_name $lang $file_name $addons;
+
+    # Drop temporary database
+    odoo_db_drop $tmp_db_name;
+
+}
+
 function tr_main {
     local usage="
     Usage 
@@ -134,6 +195,7 @@ function tr_main {
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> all
         $SCRIPT_NAME tr load <db> <lang>
+        $SCRIPT_NAME tr regenerate --lang <lang> --file <file> <addon1> [addon2] [addon3] ...
 
     Note:
         <file_name> here is name of file to load lang from in i18n dir of addon.
@@ -182,6 +244,11 @@ function tr_main {
             load)
                 shift;
                 tr_load "$@";
+                exit;
+            ;;
+            regenerate)
+                shift;
+                tr_regenerate $@;
                 exit;
             ;;
             *)

@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 0.1.2
+
+- `odoo-install --python` option added.
+  Because it seems that odoo 11 will support python3 this option will allow
+  to choose python interpreter to be used for odoo's virtualenv
+- `odoo-helper tr regenerate` command added. This command allows to regenerate
+  translation files for specified lang. This may be useful,
+  if new translation terms appeared after module change.
+- no `_` (underscore symbol) in random strings
+- Save Odoo repository in ``odoo-helper.conf``
+
+
 ## Version 0.1.1
 
 - Support of Odoo 10.0
