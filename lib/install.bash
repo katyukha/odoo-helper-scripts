@@ -146,6 +146,48 @@ function install_sys_deps_for_odoo_version {
     rm $tmp_control;
 }
 
+# install python requirements for specified odoo version via PIP requirements.txt
+# NOTE: not supported for odoo 7.0 and lower.
+function install_odoo_py_requirements_for_version {
+    local odoo_version=${1:-$ODOO_VERSION};
+    local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
+    local tmp_requirements=$(mktemp);
+    local tmp_requirements_post=$(mktemp);
+    if wget -q "$requirements_url" -O "$tmp_requirements"; then
+        # Preprocess requirements to avoid known bugs
+		while read dependency; do
+			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
+                # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
+                # especialy to versions lower than that used by setuptools
+                continue
+            elif [[ "$dependency_stripped" =~ pychart* ]]; then
+                # Pychart is not downloadable. Use Python-Chart package
+                echo "Python-Chart";
+            elif [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Install last gevent, because old gevent versions (ex. 1.0.2)
+                # cause build errors.
+                # Instead last gevent (1.1.0+) have already prebuild wheels.
+                echo "gevent";
+			else
+                # Echo dependency line unchanged to rmp file
+                echo $dependency;
+			fi
+		done < "$tmp_requirements" > "$tmp_requirements_post";
+        execv pip install -r "$tmp_requirements_post";
+    fi
+
+    if [ -f "$tmp_requirements" ]; then
+        rm $tmp_requirements;
+    fi
+
+    if [ -f "$tmp_requirements_post" ]; then
+        rm $tmp_requirements_post;
+    fi
+}
+
+
+
 # Get dependencies from odoo's debian/control file
 function install_sys_deps {
     local control_file=$ODOO_PATH/debian/control;
@@ -322,31 +364,7 @@ function odoo_run_setup_py {
     fi
 
     # Install dependencies via pip (it is faster if they are cached)
-    if [ -f "$ODOO_PATH/requirements.txt" ]; then
-        # Based on http://stackoverflow.com/questions/22250483/stop-pip-from-failing-on-single-package-when-installing-with-requirements-txt
-        # This is done to install as much deps as possible via pip. thus they are cached, and got correct versions
-        # If some package could not be installed, show a warning with name of that package
-		while read dependency; do
-			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
-                # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
-                # especialy to versions lower than that used by setuptools
-                continue
-            elif [[ "$dependency_stripped" =~ pychart* ]]; then
-                # Pychart is not downloadable. Use Python-Chart package
-                echo "Python-Chart";
-            elif [[ "$dependency_stripped" =~ gevent* ]]; then
-                # Install last gevent, because old gevent versions (ex. 1.0.2)
-                # cause build errors.
-                # Instead last gevent (1.1.0+) have already prebuild wheels.
-                echo "gevent";
-			else
-                # Echo dependency line unchanged to rmp file
-                echo $dependency;
-			fi
-		done < "$ODOO_PATH/requirements.txt" > /tmp/odoo_install_requirements.txt;
-        execv pip install -r /tmp/odoo_install_requirements.txt;
-    fi
+    install_odoo_py_requirements_for_version;
 
     # Install odoo
     (cd $ODOO_PATH && execu python setup.py develop $@);
@@ -387,6 +405,7 @@ function install_entry_point {
 
         $SCRIPT_NAME install pre-requirements [-y]         - install system preprequirements
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
+        $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
@@ -420,6 +439,12 @@ function install_entry_point {
                     shift;
                 fi
                 install_sys_deps_for_odoo_version "$@";
+                exit 0;
+            ;;
+            py-deps)
+                shift;
+                load_project_conf;
+                install_odoo_py_requirements_for_version $@;
                 exit 0;
             ;;
             reinstall-venv)

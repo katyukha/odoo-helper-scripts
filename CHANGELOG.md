@@ -11,6 +11,7 @@
 - no `_` (underscore symbol) in random strings
 - Save Odoo repository in ``odoo-helper.conf``
 - bugfix in command: `odoo-helper odoo-py`
+- Added command `odoo-helper install py-deps <version>`
 
 
 ## Version 0.1.1
