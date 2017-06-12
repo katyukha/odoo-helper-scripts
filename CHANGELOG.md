@@ -10,6 +10,7 @@
   if new translation terms appeared after module change.
 - no `_` (underscore symbol) in random strings
 - Save Odoo repository in ``odoo-helper.conf``
+- bugfix in command: `odoo-helper odoo-py`
 
 
 ## Version 0.1.1

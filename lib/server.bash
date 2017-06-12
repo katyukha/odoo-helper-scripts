@@ -256,6 +256,6 @@ function server {
 function odoo_py {
     echov -e "${LBLUEC}Running odoo.py with arguments${NC}:  $@";
     local cmd=$(check_command odoo odoo-bin odoo.py);
-    exec_conf $ODOO_CONF_FILE execu cmd "$@";
+    exec_conf $ODOO_CONF_FILE execu $cmd "$@";
 }
 
