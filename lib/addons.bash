@@ -377,6 +377,7 @@ function addons_install_update {
             echo -e "${LBLUEC}Update for '$db':${NC} ${GREENC}OK${NC}";
         else
             echo -e "${LBLUEC}Update for '$db':${NC} ${REDC}FAIL${NC}";
+            return 1;
         fi
     done
 

@@ -57,12 +57,22 @@ function tr_parse_addons {
 # tr_import_export_internal <db> <lang> <filename> <extra_options> <export|import> <addons>
 # note, <extra_options> may be string with one space (empty)
 function tr_import_export_internal {
+    if [[ $# -lt 6 ]]; then
+        echo -e "${REDC}ERROR:${NC} No all arguments passed to translations export/import";
+        return 1;
+    fi
+
     local db=$1;
     local lang=$2;
     local file_name=$3;
     local extra_opt=$4;
     local cmd=$5;
     shift; shift; shift; shift; shift;
+
+    if ! odoo_db_exists $db; then
+        echo -e "${REDC}ERROR:${NC} Database '$db' does not exists!";
+        return 2;
+    fi
 
     local addons_data=$(tr_parse_addons $db $@)
     local addons=;
@@ -89,6 +99,39 @@ function tr_import_export_internal {
 }
 
 function tr_export {
+    local usage="
+    Usage
+
+        $SCRIPT_NAME tr export <db> <lang> <file_name> <addon1> [addon2] [addon3]...
+        $SCRIPT_NAME tr export <db> <lang> <file_name> all
+
+    Export translations to specified files for specified lang from specified db
+    This script exports trnaslations for addons and usualy used to update *.po files
+    and add there new translation terms
+
+    Options:
+
+        --help         - show this help message
+
+    Arguments:
+
+        db        - name of database to export translations from.
+        lang      - language to export translations for.
+                    Usualy it looks like en_UA or uk_UA or ru_RU, etc
+        file name - name of trnaslation files to export translations to.
+                    Odoo have two types of translation file name.
+                    One is named like short lang code, and other as full lang code.
+                    For example: uk.po and uk_UA.po
+                    Full code is prioritized.
+        addonN    - name of addon to export transaltions for.
+                    it is possible to specify 'all' name of addon, in this case
+                    translations will be updated for all installed addons.
+    ";
+    if [[ "$1" =~ -h|--help|help ]]; then
+        echo "$usage";
+        exit 0;
+    fi
+
     local db=$1;
     local lang=$2;
     local file_name=$3;
@@ -98,12 +141,59 @@ function tr_export {
 }
 
 function tr_import {
-    # take care about 'overwrite' option
-    if [ "$1" == "--overwrite" ]; then
-        local opt_overwrite=" --i18n-overwrite ";
-        shift;
-    else
-        local opt_overwrite="  ";
+    local usage="
+    Usage
+
+        $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
+        $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> all
+        $SCRIPT_NAME tr import [--overwrite] __all__ <lang> <file_name> <addon1> [addon2] [addon3]...
+
+    Import translations from specified files for specified lang to specified db
+    This script imports trnaslations from addons and usualy used to update translations
+    in databases when there some *.po files have changed.
+
+    Options:
+
+        --overwrite    - if set, the existing translations will be overridden
+        --help         - show this help message
+
+    Arguments:
+
+        db        - name of database to import translations in.
+                    if set to __all__, then translations will be imported to all databases
+                    available for this odoo instance
+        lang      - language to import translations for.
+                    Usualy it looks like en_UA or uk_UA or ru_RU, etc
+        file name - name of trnaslation files to import translations from.
+                    Odoo have two types of translation file name.
+                    One is named like short lang code, and other as full lang code.
+                    For example: uk.po and uk_UA.po
+                    Full code is prioritized.
+        addonN    - name of addon to import transaltions from.
+                    it is possible to specify 'all' name of addon, in this case
+                    translations will be updated for all installed addons.
+    ";
+    
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            --overwrite)
+                local opt_overwrite=" --i18n-overwrite ";
+                shift;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+    if [[ "$1" =~ -h|--help|help ]]; then
+        echo "$usage";
+        exit 0;
     fi
 
     local db=$1;
@@ -117,8 +207,53 @@ function tr_import {
 }
 
 function tr_load {
-    local db=$1;
-    local lang=$2;
+    local usage="
+    Usage
+
+        $SCRIPT_NAME tr load [optiona]
+
+    Load language to database.
+
+    Options:
+
+        --lang         - language to load.
+                         Usualy it looks like en_UA or uk_UA or ru_RU, etc
+        --db           - name of database to load language for.
+        --all-db       - load language to all databases
+        --help         - show this help message
+
+    ";
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --lang)
+                local lang=$2;
+                shift;
+            ;;
+            --db)
+                local db=$2;
+                shift;
+            ;;
+            --all-db)
+                local db=__all__;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                exit 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z $db ] || [ -z $lang ]; then
+        echo -e "${REDC}ERROR:${NC} No database or language specified!";
+        return 1;
+    fi
 
     for idb in $(tr_parse_db_name $db); do
         server_run -d $idb --load-language=$lang --stop-after-init;
@@ -133,7 +268,7 @@ function tr_regenerate {
     local addons="";
 
     local usage="
-    Usage 
+    Usage
 
         $SCRIPT_NAME tr regenerate --lang <lang> --file <file> <addon1> [addon2] [addon3] ...
 
@@ -176,10 +311,10 @@ function tr_regenerate {
     
     # install addons
     echo "addons_install_update install --no-restart -d $tmp_db_name $addons;"
-    addons_install_update "install" --no-restart -d $tmp_db_name $addons;
-
-    # export translations
-    tr_export $tmp_db_name $lang $file_name $addons;
+    if addons_install_update "install" --no-restart -d $tmp_db_name $addons; then
+        # export translations
+        tr_export $tmp_db_name $lang $file_name $addons;
+    fi
 
     # Drop temporary database
     odoo_db_drop $tmp_db_name;
@@ -188,13 +323,13 @@ function tr_regenerate {
 
 function tr_main {
     local usage="
-    Usage 
+    Usage
 
         $SCRIPT_NAME tr export <db> <lang> <file_name> <addon1> [addon2] [addon3]...
         $SCRIPT_NAME tr export <db> <lang> <file_name> all
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> all
-        $SCRIPT_NAME tr load <db> <lang>
+        $SCRIPT_NAME tr load --help
         $SCRIPT_NAME tr regenerate --lang <lang> --file <file> <addon1> [addon2] [addon3] ...
 
     Note:
@@ -207,7 +342,6 @@ function tr_main {
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk <addon1> [addon2] [addon3]...
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk --dir=/addons/dir --dir=/addons/dir2 [addon3]...
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk all
-            $SCRIPT_NAME tr load <db> uk_UA
 
     Note2:
         Also it is possible to call *tr import* and *tr load* commands
@@ -215,7 +349,6 @@ function tr_main {
 
         For example:
             $SCRIPT_NAME tr import [--overwrite] __all__ <lang> <file_name> <addon1> [addon2] [addon3]...
-            $SCRIPT_NAME tr load __all__ <lang>
     ";
 
     if [[ $# -lt 1 ]]; then

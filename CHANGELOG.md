@@ -12,6 +12,7 @@
 - Save Odoo repository in ``odoo-helper.conf``
 - bugfix in command: `odoo-helper odoo-py`
 - Added command `odoo-helper install py-deps <version>`
+- `odoo-helper tr` command: better help messages, added help messages for subcommands
 
 
 ## Version 0.1.1

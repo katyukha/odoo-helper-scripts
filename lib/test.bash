@@ -64,7 +64,7 @@ function remove_tmp_dirs {
 function test_run_server {
     local with_coverage=$1; shift;
     local SERVER=`get_server_script`;
-    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}]${NC}: $SERVER $@";
+    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}][${YELLOWC}coverage:${with_coverage}${BLUEC}]${NC}: $SERVER $@";
 
     # enable test coverage
     if [ $with_coverage -eq 1 ]; then

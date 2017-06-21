@@ -255,6 +255,17 @@ echo "";
 
 odoo-helper server --stop-after-init;  # test that it runs
 
+# Create odoo 9 database
+odoo-helper db create test-9-db;
+
+# Clone addon from Mercurial repo
+odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
+odoo-helper addons update-list
+odoo-helper addons install bus_enchanced;
+
+# Drop created database
+odoo-helper db drop test-9-db;
+
 # Show project status
 odoo-helper status
 
@@ -288,6 +299,11 @@ odoo-helper server --stop-after-init;  # test that it runs
 # for pip, if it is called with this command.
 odoo-helper pip install odoo10-addon-mis-builder;
 
+
+# Install oca/partner_firstname addons and
+# regenerate Ukrainian translations for it
+odoo-helper fetch --oca partner-contact -m partner_firstname;
+odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
 
 # Show project status
 odoo-helper status
