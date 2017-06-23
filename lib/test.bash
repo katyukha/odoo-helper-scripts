@@ -127,6 +127,17 @@ function test_run_tests_for_modules {
     shift; shift; shift;
 
     local modules=$(join_by , $@);
+
+    if [ -z "$modules" ]; then
+        echo -e "${REDC}ERROR:${NC} No modules supplied";
+        return 1;
+    fi
+
+    if [ -z "$test_db_name" ]; then
+        echo -e "${REDC}ERROR:${NC} No database name supplierd!";
+        return 1;
+    fi
+
     echo -e "${BLUEC}Testing modules $modules...${NC}";
     test_module_impl $with_coverage $modules --database $test_db_name \
         2>&1 | tee -a $test_log_file;
