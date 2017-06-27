@@ -41,6 +41,7 @@ ohelper_require "odoo";
 ohelper_require "tr";
 ohelper_require "postgres";
 ohelper_require "system";
+ohelper_require "scaffold";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -75,7 +76,7 @@ function print_usage {
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
         update_odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
-        scaffold <addon_name> [addon_path]       - shortcut for odoo.py scaffold command.
+        scaffold [--help]                        - Scaffold repo, addon, model, etc
         print_config                             - print current configuration
         status                                   - show project status
         start|stop|restart|log                   - shortcuts for server commands
@@ -230,7 +231,7 @@ function odoo_helper_main {
             scaffold)
                 shift;
                 load_project_conf;
-                odoo_scaffold "$@";
+                scaffold_parse_cmd "$@";
                 exit;
             ;;
             test)

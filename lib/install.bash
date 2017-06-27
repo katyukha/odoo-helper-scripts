@@ -260,7 +260,7 @@ function install_python_prerequirements {
     execu easy_install --upgrade setuptools;
     execu pip install --upgrade pip erppeek \
         setproctitle python-slugify watchdog pylint pylint-odoo coverage \
-        flake8 flake8-colors setuptools-odoo cffi;
+        flake8 flake8-colors setuptools-odoo cffi jinja2 six;
 
     if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
         execv pip install Python-Chart;

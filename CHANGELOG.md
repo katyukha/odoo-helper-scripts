@@ -13,6 +13,10 @@
 - bugfix in command: `odoo-helper odoo-py`
 - Added command `odoo-helper install py-deps <version>`
 - `odoo-helper tr` command: better help messages, added help messages for subcommands
+- `odoo-helper scaffold` have new features and subcommands:
+  - `odoo-helper scaffold repo` create repository. place it in repo dir
+  - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
+  - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
 
 
 ## Version 0.1.1

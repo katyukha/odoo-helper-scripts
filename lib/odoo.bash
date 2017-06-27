@@ -95,7 +95,8 @@ function odoo_update_sources {
 
 }
 
-# odoo_scaffold <addon_name> [addon_path]
-function odoo_scaffold {
-    scaffold_default "$@";
+
+# Echo major odoo version
+function odoo_get_major_version {
+    echo ${ODOO_VERSION%.*};
 }
