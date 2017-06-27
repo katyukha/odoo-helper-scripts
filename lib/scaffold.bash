@@ -25,7 +25,8 @@ set -e; # fail on errors
 # Define tempalte paths
 TMPL_GITIGNORE=$ODOO_HELPER_LIB/templates/scaffold/gitignore.tmpl;
 TMPL_ADDON=$ODOO_HELPER_LIB/templates/scaffold/addon;
-TMPL_MANIFEST=$ODOO_HELPER_LIB/templates/scaffold/__manifest__.py.tmpl;
+TMPL_ADDON_MANIFEST=$ODOO_HELPER_LIB/templates/scaffold/addon__manifest__.py.tmpl;
+TMPL_ADDON_README=$ODOO_HELPER_LIB/templates/scaffold/addon__README.rst.tmpl;
 
 # Templater
 TEMPLATER=$ODOO_HELPER_LIB/pylib/jinja-cli.py
@@ -169,10 +170,24 @@ function scaffold_addon {
     cp -r $TMPL_ADDON $addon_path; 
 
     # Generate manifest file for addon
-    execv $TEMPLATER -D ODOO_VERSION=$ODOO_VERSION -D ADDON_NAME=test-addon \
-        -D "ADDON_AUTHOR=\"$(git config user.name)\"" \
+    local default_addon_author=$(git config user.name)
+    execv $TEMPLATER \
+        -D ODOO_VERSION=$ODOO_VERSION \
+        -D ADDON_NAME=$addon_name \
+        -D ADDON_AUTHOR=\"${SCAFFOLD_ADDON_AUTHOR:-$default_addon_author}\" \
+        -D ADDON_LICENCE=\"${SCAFFOLD_ADDON_LICENCE}\" \
+        -D ADDON_WEBSITE=\"${SCAFFOLD_ADDON_WEBSITE}\" \
         -D ADDON_DEPENDS="'$depends'" \
-        $TMPL_MANIFEST > $addon_path/$manifest_name;
+        $TMPL_ADDON_MANIFEST > $addon_path/$manifest_name;
+
+    execv $TEMPLATER \
+        -D ODOO_VERSION=$ODOO_VERSION \
+        -D ADDON_NAME=$addon_name \
+        -D ADDON_AUTHOR=\"${SCAFFOLD_ADDON_AUTHOR:-$default_addon_author}\" \
+        -D ADDON_LICENCE=\"${SCAFFOLD_ADDON_LICENCE}\" \
+        -D ADDON_WEBSITE=\"${SCAFFOLD_ADDON_WEBSITE}\" \
+        -D ADDON_DEPENDS="'$depends'" \
+        $TMPL_ADDON_README > $addon_path/README.rst;
 
     link_module off $addon_path;
 }
