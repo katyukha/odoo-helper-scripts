@@ -121,6 +121,10 @@ function addons_update_module_list {
 function addons_list_in_directory {
     local addons_path=${1:-$ADDONS_DIR};
     if [ -d $addons_path ]; then
+        if is_odoo_module $addons_path; then
+            echo "$(readlink -f $addons_path)";
+        fi
+
         for addon in "$addons_path"/*; do
             if is_odoo_module $addon; then
                 echo "$(readlink -f $addon)";
