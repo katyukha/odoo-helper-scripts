@@ -321,7 +321,8 @@ function odoo_gevent_install_workaround {
 function install_odoo_workaround_70 {
     # Fix odoo 7.0 setup tools dependencies, to limit their versions
     # because new versions have api changes, since odoo 7.0 released
-    execv pip install 'vobject\<0.9.0' 'psutil\<2' 'reportlab\<=3.0';
+    execv pip install 'vobject\<0.9.0' 'psutil\<2' \
+        'reportlab\<=3.0' 'Pillow\<4.0';
 
     # Link libraries to virtualenv/lib dir
     local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
@@ -340,7 +341,6 @@ function install_odoo_workaround_70 {
     fi
 
     # Force use Pillow, because PIL is too old.
-    execv pip install Pillow;
     cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
     sed -i -r "s/PIL/Pillow/" $ODOO_PATH/setup.py;
     sed -i -r "s/pychart/Python-Chart/" $ODOO_PATH/setup.py;

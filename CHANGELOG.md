@@ -11,12 +11,15 @@
 - no `_` (underscore symbol) in random strings
 - Save Odoo repository in ``odoo-helper.conf``
 - bugfix in command: `odoo-helper odoo-py`
+- Added option `odoo-helper test --coverage-report`
+- Bugfix install Pillow less than 4.0 for Odoo 7.0
 - Added command `odoo-helper install py-deps <version>`
 - `odoo-helper tr` command: better help messages, added help messages for subcommands
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
   - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
+
 
 
 ## Version 0.1.1
