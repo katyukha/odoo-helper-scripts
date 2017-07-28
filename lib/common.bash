@@ -166,7 +166,7 @@ function check_command {
 # echo if verbose is on
 function echov {
     if [ ! -z "$VERBOSE" ]; then
-        echo "$@";
+        (>&2 echo "$@");
     fi
 }
 

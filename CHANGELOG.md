@@ -16,6 +16,8 @@
 - Added command `odoo-helper install py-deps <version>`
 - `odoo-helper test -d .` do not omit `.` if it is odoo addon.
   This happens in case if `odoo-helper test` called when current dir is addon.
+- `odoo-helper test --recreate-db` option added. If this option passed,
+  and test database already exists, then it will be dropt before tests started.
 - `odoo-helper tr` command: better help messages, added help messages for subcommands
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir
