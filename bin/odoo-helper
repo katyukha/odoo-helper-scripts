@@ -29,6 +29,7 @@ fi
 # Load common functions
 source $ODOO_HELPER_LIB/common.bash; 
 
+ohelper_require "config";
 ohelper_require "fetch";
 ohelper_require "link";
 ohelper_require "server";
@@ -144,7 +145,7 @@ function odoo_helper_main {
         echo "No options/commands supplied $#: $@";
 
         # load configuration files at startup
-        load_project_conf;
+        config_load_project;
 
         print_usage;
         exit 0;
@@ -188,67 +189,67 @@ function odoo_helper_main {
             ;;
             fetch)
                 shift;
-                load_project_conf;
+                config_load_project;
                 fetch_module "$@";
                 exit
             ;;
             generate_requirements)
                 shift;
-                load_project_conf;
+                config_load_project;
                 addons_generate_requirements "$@"
                 exit;
             ;;
             update_odoo)
                 shift;
-                load_project_conf;
+                config_load_project;
                 odoo_update_sources "$@";
                 exit;
             ;;
             link|link_module)
                 shift;
-                load_project_conf;
+                config_load_project;
                 link_command "$@"
                 exit;
             ;;
             server)
                 shift;
-                load_project_conf;
+                config_load_project;
                 server "$@";
                 exit;
             ;;
             addons)
                 shift;
-                load_project_conf;
+                config_load_project;
                 addons_command "$@";
                 exit;
             ;;
             odoo-py)
                 shift;
-                load_project_conf;
+                config_load_project;
                 odoo_py "$@";
                 exit;
             ;;
             scaffold)
                 shift;
-                load_project_conf;
+                config_load_project;
                 scaffold_parse_cmd "$@";
                 exit;
             ;;
             test)
                 shift;
-                load_project_conf;
+                config_load_project;
                 test_module "$@";
                 exit;
             ;;
             db)
                 shift;
-                load_project_conf;
+                config_load_project;
                 odoo_db_command "$@";
                 exit;
             ;;
             tr)
                 shift;
-                load_project_conf;
+                config_load_project;
                 tr_main "$@";
                 exit;
             ;;
@@ -264,12 +265,12 @@ function odoo_helper_main {
             ;;
             print_config)
                 shift;
-                load_project_conf;
-                print_helper_config;
+                config_load_project;
+                config_print;
                 exit;
             ;;
             status)
-                load_project_conf;
+                config_load_project;
                 show_project_status;
                 exit;
             ;;
@@ -280,19 +281,19 @@ function odoo_helper_main {
             ;;
             # Server shortcuts
             start|stop|restart|log)
-                load_project_conf;
+                config_load_project;
                 server "$@";
                 exit;
             ;;
             exec)
                 shift;
-                load_project_conf;
+                config_load_project;
                 execv "$@";
                 exit 0;
             ;;
             pip)
                 shift;
-                load_project_conf;
+                config_load_project;
                 exec_pip "$@";
                 exit 0;
             ;;

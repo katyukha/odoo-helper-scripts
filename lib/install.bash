@@ -9,6 +9,7 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
 fi
 
 # ----------------------------------------------------------------------------------------
+ohelper_require "config";
 ohelper_require "postgres";
 
 
@@ -443,13 +444,13 @@ function install_entry_point {
             ;;
             py-deps)
                 shift;
-                load_project_conf;
+                config_load_project;
                 install_odoo_py_requirements_for_version $@;
                 exit 0;
             ;;
             reinstall-venv)
                 shift;
-                load_project_conf;
+                config_load_project;
                 install_reinstall_venv "$@";
                 exit 0;
             ;;

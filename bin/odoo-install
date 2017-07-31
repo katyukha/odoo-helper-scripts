@@ -271,7 +271,7 @@ install_preconfigure_env;
 
 # Directory and file paths
 PROJECT_ROOT_DIR=${PROJECT_ROOT_DIR:-$WORKDIR/odoo-$ODOO_BRANCH};
-config_default_vars;  # imported from common module
+config_set_defaults;  # imported from common module
 
 install_create_project_dir_tree;  # imported from 'install' module
 
@@ -279,7 +279,7 @@ install_create_project_dir_tree;  # imported from 'install' module
 install_odoo; 
 
 # Generate and save odoo-helper project conf
-echo "`print_helper_config`" > $PROJECT_ROOT_DIR/$CONF_FILE_NAME;
+echo "$(config_print)" > $PROJECT_ROOT_DIR/$CONF_FILE_NAME;
 generate_conf;
 generate_test_conf;
 #---------------------------------------------

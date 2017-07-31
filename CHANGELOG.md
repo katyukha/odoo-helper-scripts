@@ -12,7 +12,7 @@
 - Save Odoo repository in ``odoo-helper.conf``
 - bugfix in command: `odoo-helper odoo-py`
 - Added option `odoo-helper test --coverage-report`
-- Bugfix install Pillow less than 4.0 for Odoo 7.0
+- Bugfix, install Pillow less than 4.0 for Odoo 7.0
 - Added command `odoo-helper install py-deps <version>`
 - `odoo-helper test -d .` do not omit `.` if it is odoo addon.
   This happens in case if `odoo-helper test` called when current dir is addon.
