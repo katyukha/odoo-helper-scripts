@@ -19,6 +19,8 @@
 - `odoo-helper test --recreate-db` option added. If this option passed,
   and test database already exists, then it will be dropt before tests started.
 - `odoo-helper tr` command: better help messages, added help messages for subcommands
+- `odoo-helper exec` command now adds to env vars `ODOO_RC` and `OPENERP_SERVER` variables
+  with path to project's odoo config file
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.

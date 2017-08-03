@@ -288,7 +288,11 @@ function odoo_helper_main {
             exec)
                 shift;
                 config_load_project;
-                execv "$@";
+                if [ ! -z $ODOO_CONF_FILE ]; then
+                    exec_conf $ODOO_CONF_FILE execv $@;
+                else
+                    execv "$@";
+                fi
                 exit 0;
             ;;
             pip)
