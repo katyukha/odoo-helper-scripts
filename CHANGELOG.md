@@ -21,6 +21,7 @@
 - `odoo-helper tr` command: better help messages, added help messages for subcommands
 - `odoo-helper exec` command now adds to env vars `ODOO_RC` and `OPENERP_SERVER` variables
   with path to project's odoo config file
+- Added `odoo-helper install py-tools` command to install extra tools like pylint, flake8, ...
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.

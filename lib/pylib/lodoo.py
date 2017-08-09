@@ -8,16 +8,8 @@ import pkg_resources
 
 import erppeek
 
-# Based on code: https://github.com/tinyerp/erppeek
-# With PR applied: https://github.com/tinyerp/erppeek/pull/92
-def start_odoo_services(options=None, appname='odoo-helper'):
-    """Initialize the Odoo services.
-    Import the ``openerp`` package and load the Odoo services.
-    The argument `options` receives the command line arguments
-    for ``openerp``.  Example:
-      ``['-c', '/path/to/openerp-server.conf', '--without-demo', 'all']``.
-    Return the ``openerp`` package.
-    """
+
+def get_odoo_pkg():
     try:
         # Odoo 10.0+
 
@@ -33,7 +25,20 @@ def start_odoo_services(options=None, appname='odoo-helper'):
             import openerp as odoo
         except ImportError:
             raise
+    return odoo
 
+
+# Based on code: https://github.com/tinyerp/erppeek
+# With PR applied: https://github.com/tinyerp/erppeek/pull/92
+def start_odoo_services(options=None, appname='odoo-helper'):
+    """Initialize the Odoo services.
+    Import the ``openerp`` package and load the Odoo services.
+    The argument `options` receives the command line arguments
+    for ``openerp``.  Example:
+      ``['-c', '/path/to/openerp-server.conf', '--without-demo', 'all']``.
+    Return the ``openerp`` package.
+    """
+    odoo = get_odoo_pkg()
     odoo._api_v7 = odoo.release.version_info < (8,)
     if not (odoo._api_v7 and odoo.osv.osv.service):
         os.putenv('TZ', 'UTC')

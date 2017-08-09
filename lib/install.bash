@@ -255,18 +255,24 @@ function install_virtual_env {
     fi
 }
 
+# Install extra python tools
+function install_python_tools {
+    execu pip install --upgrade watchdog pylint-odoo coverage \
+        flake8 flake8-colors;
+}
+
 # install_python_prerequirements
 function install_python_prerequirements {
     # required to make odoo.py work correctly when setuptools too old
-    execu easy_install --upgrade setuptools;
+    execu easy_install --upgrade setuptools pip;
     execu pip install --upgrade pip erppeek \
-        setproctitle python-slugify watchdog pylint pylint-odoo coverage \
-        flake8 flake8-colors setuptools-odoo cffi jinja2 six;
+        setproctitle python-slugify setuptools-odoo cffi jinja2 six;
 
     if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
         execv pip install Python-Chart;
     fi
 
+    install_python_tools;
 }
 
 # Generate configuration file fo odoo
@@ -407,6 +413,7 @@ function install_entry_point {
         $SCRIPT_NAME install pre-requirements [-y]         - install system preprequirements
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
         $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
+        $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
@@ -446,6 +453,12 @@ function install_entry_point {
                 shift;
                 config_load_project;
                 install_odoo_py_requirements_for_version $@;
+                exit 0;
+            ;;
+            py-tools)
+                shift;
+                config_load_project;
+                install_python_tools;
                 exit 0;
             ;;
             reinstall-venv)
