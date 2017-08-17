@@ -163,6 +163,16 @@ function server_auto_update {
     server_start;
 }
 
+# Print ps aux output for odoo-related processes
+function server_ps {
+    local server_script=$(get_server_script);
+    if [ -z "$server_script" ]; then
+        echo -e "${REDC}ERROR${NC}: this command should be called inside odoo-helper project"
+        return 1;
+    fi
+    ps aux | grep -e "$(get_server_script)";
+}
+
 # server [options] <command> <args>
 # server [options] start <args>
 # server [options] stop <args>
@@ -182,6 +192,7 @@ function server {
         status          - status of background server
         auto-update     - automatiacly update server. (WARN: experimental feature. may be buggy)
         log             - open server log
+        ps              - print running odoo processes
         -h|--help|help  - display this message
 
     Options:
@@ -239,6 +250,11 @@ function server {
                 shift;
                 # TODO: remove backward compatability from this code
                 less ${LOG_FILE:-$LOG_DIR/odoo.log};
+                exit;
+            ;;
+            ps)
+                shift;
+                server_ps;
                 exit;
             ;;
             *)
