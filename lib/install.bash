@@ -97,17 +97,27 @@ function install_wkhtmltopdf {
             local release=$(lsb_release -sc);
             local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
             if ! wget -q $download_link -O $wkhtmltox_path; then
-                # fallback to trusty release
-                local release=trusty;
+                if [ "$(lsb_release -si)" == "Ubuntu" ]; then
+                    # fallback to trusty release for ubuntu systems
+                    local release=trusty;
+                elif [ "$(lsb_release -si)" == "Debian" ]; then
+                    local release=jessie;
+                else
+                    echoe -e "${REDC}ERROR:${NC} Cannot install wkhtmltopdf! Not supported OS";
+                    return 2;
+                fi
                 local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
                 if ! wget -q $download_link -O $wkhtmltox_path; then
+                    echoe -e "${REDC}ERROR:${NC} Cannot install wkhtmltopdf! cannot download package $download_link";
                     return 1;
                 fi
             fi
         fi
         local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
-        install_sys_deps_internal $wkhtmltox_deps;
-        with_sudo dpkg -i $wkhtmltox_path  # install ignoring dependencies
+        if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
+            echoe -e "${REDC}ERROR:${NC} Error caught while installing wkhtmlto pdf.";
+        fi
+
         rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
     fi
 }
@@ -117,9 +127,6 @@ function install_wkhtmltopdf {
 function install_sys_deps_internal {
     # Odoo's debian/control file usualy contains this in 'Depends' section 
     # so we need to skip it before running apt-get
-    if [ "$1" == '${misc:Depends}' ]; then
-        shift;
-    fi
     echo "Installing system dependencies: $@";
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
@@ -131,7 +138,20 @@ function install_sys_deps_internal {
 # parse debian control file to fetch odoo dependencies
 function install_parse_debian_control_file {
     local file_path=$1;
-    local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+    local sys_deps=;
+    local sys_deps_raw=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+
+    # Preprocess odoo dependencies
+    # TODO: create list of packages that should not be installed via apt
+    for dep in $sys_deps_raw; do
+        if [ "$dep" == '${misc:Depends}' ]; then
+            continue;
+        elif [ "$dep" == "python-pypdf" ]; then
+            continue
+        fi
+        sys_deps="$sys_deps $dep";
+    done
+
     echo "$sys_deps";
 }
 
@@ -187,25 +207,6 @@ function install_odoo_py_requirements_for_version {
     fi
 }
 
-
-
-# Get dependencies from odoo's debian/control file
-function install_sys_deps {
-    local control_file=$ODOO_PATH/debian/control;
-
-    if [ ! -f "$control_file" ] && [ ! -z $ODOO_VERSION ]; then
-        # If odoo not installed, then fetch this file from odoo repository
-        install_sys_deps_for_odoo_version $ODOO_VERSION;
-    elif [ -f "$control_file" ]; then
-        # Parse control file and install system dependencies
-        local sys_deps=$(install_parse_debian_control_file $control_file);
-        echo -e "${BLUEC}Sys deps to be installed:${NC} $sys_deps";
-        install_sys_deps_internal $sys_deps;
-    else
-        echo -e "${REDC}ERROR! Cannot find debian/control file${NC}";
-    fi
-}
-
 function install_and_configure_postgresql {
     local db_user=${1:-$DB_USER};
     local db_password=${2:-DB_PASSWORD};
@@ -230,13 +231,14 @@ function install_system_prerequirements {
     with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    install_sys_deps_internal git wget python-setuptools python-pip \
+    install_sys_deps_internal git wget lsb-release \
+        python-setuptools python-pip python-wheel \
         perl g++ libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev;
 
     if ! install_wkhtmltopdf; then
-        echo "Cannot install wkhtmltopdf!!! Skipping...";
+        echoe -e "${YELLOWC}WARNING:${NC} Cannot install wkhtmltopdf!!! Skipping...";
     fi
 
     with_sudo pip install --upgrade virtualenv cffi;

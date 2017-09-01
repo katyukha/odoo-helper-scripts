@@ -166,8 +166,14 @@ function check_command {
 # echo if verbose is on
 function echov {
     if [ ! -z "$VERBOSE" ]; then
-        (>&2 echo "$@");
+        echoe $@;
     fi
+}
+
+# echoe $@
+# echo to STDERR
+function echoe {
+    >&2 echo $@;
 }
 
 # check if process is running
