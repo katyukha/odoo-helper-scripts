@@ -330,7 +330,7 @@ function tr_main {
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> all
         $SCRIPT_NAME tr load --help
-        $SCRIPT_NAME tr regenerate --lang <lang> --file <file> <addon1> [addon2] [addon3] ...
+        $SCRIPT_NAME tr regenerate --help
 
     Note:
         <file_name> here is name of file to load lang from in i18n dir of addon.

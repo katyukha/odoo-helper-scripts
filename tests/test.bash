@@ -307,5 +307,3 @@ odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
 
 # Show project status
 odoo-helper status
-
-

@@ -9,6 +9,20 @@ Dev:
 [![Coverage Status](https://coveralls.io/repos/github/katyukha/odoo-helper-scripts/badge.svg?branch=dev)](https://coveralls.io/github/katyukha/odoo-helper-scripts?branch=dev)
 
 
+## Features
+
+- Easily manage few instances of odoo that ran on same machine
+- High usage of virtual env for isolation purpose
+- Easy way to install from git repositories
+    - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
+    - Specific format of dependencies: [odoo_requirements.txt](#syntax-of-odoo_requirementstxt)
+- Ability to fetch addons from Mercurial repositories
+- Easy mechanism to fetch addons from any git repo
+- Easy mechanism to fetch python dependency from PyPI or any vcs
+- Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
+- Supports odoo versions: 7.0, 9.0, 10.0
+- Also should work with odoo 11.0 (including python3 install)
+
 
 ## Install (user space)
 
@@ -46,19 +60,6 @@ If you wish to install from *dev* branch, you can use following command:
 ```bash
 wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s - dev
 ```
-
-
-## Features
-
-- Easily manage few instances of odoo that ran on same machine
-- High usage of virtual env for isolation purpose
-- Easy way to install from git repositories
-    - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
-    - Specific format of dependencies: [odoo_requirements.txt](#syntax-of-odoo_requirementstxt)
-- Ability to fetch addons from Mercurial repositories
-- Easy mechanism to fetch addons from any git repo
-- Easy mechanism to fetch python dependency from PyPI or any vcs
-- Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
 
 
 ## Usage
