@@ -9,11 +9,7 @@ RUN locale-gen $LANG && \
 # Install system deps (used to speed-up tests
 # avoiding install of some system  packages)
 RUN apt-get update -qq && apt-get upgrade -qq -y && \
-    apt-get install -y -qq python-all-dev gnupg2 curl wget git \
-        gawk libssl-dev zlib1g-dev libyaml-dev libsqlite3-dev sqlite3 \
-        autoconf libgmp-dev libgdbm-dev libncurses5-dev automake libtool \
-        bison pkg-config libffi-dev libgmp-dev libreadline6-dev \
-        python-setuptools python-pip postgresql expect-dev && \
+    apt-get install -y -qq gnupg2 curl wget git && \
     rm -rf /var/lib/apt/lists/*
 
 # Add user odoo

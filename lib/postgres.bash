@@ -37,7 +37,7 @@ function postgres_install_postgresql {
 # Test connection to local postgres instance
 function postgres_test_connection {
     if ! sudo -u postgres -H psql -tA -c "SELECT 1;" >/dev/null 2>&1; then
-        echo -e "${REDC}ERROR:${NC} Cannot connect to local postgres DB!";
+        echoe -e "${REDC}ERROR:${NC} Cannot connect to local postgres DB!";
         return 1;
     fi
     return 0;
@@ -72,9 +72,9 @@ function postgres_user_create {
 
     if ! postgres_user_exists $user_name; then
         sudo -u postgres -H psql -c "CREATE USER \"$user_name\" WITH CREATEDB PASSWORD '$user_password';"
-        echov "Postgresql user $user_name was created for this Odoo instance";
+        echoe -e "${GEENC}OK${NC}: Postgresql user ${BLUEC}$user_name${NC} was created for this Odoo instance";
     else
-        echo -e "${YELLOWC}There are $user_name already exists in postgres server${NC}";
+        echoe -e "${YELLOWC}There are $user_name already exists in postgres server${NC}";
     fi
 }
 

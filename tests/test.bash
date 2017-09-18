@@ -71,6 +71,11 @@ ${NC}"
 odoo-helper install pre-requirements -y;
 odoo-helper install postgres;
 
+if [ ! -z $CI_RUN ] && ! odoo-helper exec postgres_test_connection; then
+    echo -e "${YELLOWC}WARNING${NC}: Cannot connect to postgres instance. Seems that postgres not started, trying to start it now..."
+    sudo /etc/init.d/postgresql start;
+fi
+
 echo -e "${YELLOWC}
 ==================================================
 Test install of odoo version 7.0
