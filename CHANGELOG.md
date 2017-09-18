@@ -30,7 +30,7 @@
 
 
 
-## Version 0.1.1
+## Version 0.1.1 (2017-06-08)
 
 - Support of Odoo 10.0
 - Support of [setuptools-odoo](https://pypi.python.org/pypi/setuptools-odoo)
@@ -53,7 +53,7 @@
   `pychart` package is broken on pypi, so replace it with Python-Chart
 
 
-## Version 0.1.0
+## Version 0.1.0 (2017-03-06)
 
 - Added ``odoo-helper addons pull_updates`` command
 - Added basic support of Odoo 10
@@ -109,7 +109,7 @@
   - ``odoo-helper log`` for ``odoo-helper server log``
 
 
-## Version 0.0.10
+## Version 0.0.10 (2016-09-08)
 
 - Bugfixes in ``odoo-helper test`` command
 - Added ``odoo-helper addons check_updates`` command
@@ -122,7 +122,7 @@
 - Bugfixes and improvements in ``odoo-helper tr`` command
 
 
-## Version 0.0.9
+## Version 0.0.9 (2016-08-17)
 
 - Added ``odoo-helper scaffold <addon_name> [addon_path]`` shortcut command
 - Added ``odoo-helper tr`` subcommand that simplifies translation management
@@ -135,7 +135,8 @@
 - Added ``odoo-helper addons update`` and ``odoo-helper addons install`` subcommands
 - Refactored ``odoo-helper server auto-update`` and ``odoo-helper update_odoo``
 
-## Version 0.0.8
+
+## Version 0.0.8 (2016-06-08)
 
 - Bugfix in ``odoo-helper link .`` command
 - Added aditional extra_python depenencies:
@@ -146,21 +147,22 @@
 - Added experimental command ``odoo-helper db backup-all``.
 
 
-## Version 0.0.7
+## Version 0.0.7 (2016-04-18)
+
 - odoo-helper system lib-path command makes available to use some parts of this project from outside
 - Added new db commands: dump, restore, backup
 - odoo-helper addons status: bugfix in parsing git status
 - odoo-install related fixes
 
 
-## Version 0.0.6
+## Version 0.0.6 (2016-03-19)
 
 - Added 'odoo-helper exec <cmd> [args]' command
 - Added simple auto-update mechanism
 - odoo-helper addons: Added ability to list addons not under git
 
 
-## Version 0.0.5
+## Version 0.0.5 (2016-02-29)
 
 - Added support to manage server state via init script
 - Separate *repository* directory to store repositories fetched by this scripts
@@ -168,9 +170,18 @@
 - Added basic support of OCA dependency files (oca\_dependencies.txt)
 
 
-## Version 0.0.4
+## Version 0.0.4 (2016-02-17)
 
 - Added ability to specify config options on odoo-install
 - Added automatic processing of pip requirements file placed in repo.
 - Added better check if postgres installed on attempt to install it.
 
+
+## Version 0.0.3 (2015-12-16)
+
+- Added `odoo-helper status` command
+- Added `odoo-helper db` command
+
+## Version 0.0.2 (2015-12-01)
+
+- Initial release
