@@ -308,6 +308,41 @@ function addons_show_status {
 }
 
 
+# addons_install_update_interanl <cmd> <db> <todo_addons>
+# Options:
+#   cmd          - one of 'install', 'update', 'uninstall'
+#   db           - name of database
+#   todo_addons  - coma-separated list of addons
+function addons_install_update_interanl {
+    local cmd="$1"; shift;
+    local db="$1"; shift;
+    local todo_addons="$1"; shift;
+
+    if [ "$cmd" == "install" ]; then
+        server_run -d $db -i $todo_addons --stop-after-init --no-xmlrpc;
+        return $?
+    elif [ "$cmd" == "update" ]; then
+        server_run -d $db -u $todo_addons --stop-after-init --no-xmlrpc;
+        return $?
+    elif [ "$cmd" == "uninstall" ]; then
+        local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', '=', 'installed')]";
+        local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$ODOO_CONF_FILE']);";
+        python_cmd="$python_cmd cl.require_v8_api();";
+        python_cmd="$python_cmd modules=cl['ir.module.module'].search($addons_domain);";
+        python_cmd="$python_cmd modules.button_immediate_uninstall();";
+        python_cmd="$python_cmd print(', '.join(modules.mapped('name')));";
+        local addons_uninstalled=$(run_python_cmd "$python_cmd");
+        if [ -z "$addons_uninstalled" ]; then
+            echoe -e "${YELLOWC}WARNING${NC}: Nothing to uninstall";
+        else
+            echoe -e "${GREENC}OK${NC}: Following addons successfully uninstalled:\n${addons_uninstalled};";
+        fi
+    else
+        echoe -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
+        return 1;
+    fi
+}
+
 # Install or update addons
 # addons_install_update <install|update>
 function addons_install_update {
@@ -363,13 +398,6 @@ function addons_install_update {
         dbs=$(odoo_db_list);
     fi
 
-    [ "$cmd" == "install" ] && local cmd_opt="-i";
-    [ "$cmd" == "update" ]  && local cmd_opt="-u";
-
-    if [ -z $cmd_opt ]; then
-        echo -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
-    fi
-
     # Stop server if it is running
     if [ -z $no_restart_server ] && [ $(server_get_pid) -gt 0 ]; then
         server_stop;
@@ -377,10 +405,10 @@ function addons_install_update {
     fi
 
     for db in $dbs; do
-        if server_run -d $db $cmd_opt $todo_addons --stop-after-init --no-xmlrpc; then
-            echo -e "${LBLUEC}Update for '$db':${NC} ${GREENC}OK${NC}";
+        if addons_install_update_interanl $cmd $db $todo_addons; then
+            echo -e "${LBLUEC}${cmd} for '$db':${NC} ${GREENC}OK${NC}";
         else
-            echo -e "${LBLUEC}Update for '$db':${NC} ${REDC}FAIL${NC}";
+            echo -e "${LBLUEC}${cmd} for '$db':${NC} ${REDC}FAIL${NC}";
             return 1;
         fi
     done
@@ -419,6 +447,7 @@ function addons_command {
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update --help                 - update some addon[s]
         $SCRIPT_NAME addons install --help                - install some addon[s]
+        $SCRIPT_NAME addons uninstall --help              - uninstall some addon[s]
         $SCRIPT_NAME addons update-list [db]              - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons --help                        - show this help message
@@ -473,6 +502,11 @@ function addons_command {
             install)
                 shift;
                 addons_install_update "install" "$@";
+                exit 0;
+            ;;
+            uninstall)
+                shift;
+                addons_install_update "uninstall" "$@";
                 exit 0;
             ;;
             update-list)

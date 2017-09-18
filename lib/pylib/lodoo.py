@@ -99,24 +99,35 @@ class LocalClient(object):
         if self.odoo._api_v7:
             self.registry = self.odoo.modules.registry.RegistryManager.get(db)
             self.cursor = self.registry.db.cursor()
+            self._env = None
         else:
             # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
             # to get registry instance for db
             self.registry = self.odoo.registry(db)
             self.cursor = self.registry.cursor()
+            self._env = self.odoo.api.Environment(
+                self.cursor, self.odoo.SUPERUSER_ID, {})
+
+    @property
+    def env(self):
+        self.require_v8_api()
+        return self._env
+
+    def require_v8_api(self):
+        if self.odoo._api_v7:
+            raise NotImplementedError(
+                "Using *env* is not supported for this Odoo version")
 
     def call_method(self, model, method, *args, **kwargs):
-        # Simple wrapper to call local model methods for database
-        odoo = self.odoo
-
-        if odoo._api_v7:
+        """ Simple wrapper to call local model methods for database
+        """
+        if self.odoo._api_v7:
             return getattr(self.registry[model], method)(
-                self.cursor, odoo.SUPERUSER_ID, *args, **kwargs)
+                self.cursor, self.odoo.SUPERUSER_ID, *args, **kwargs)
         else:
             # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
             # to get registry instance for db
-            env = odoo.api.Environment(self.cursor, odoo.SUPERUSER_ID, {})
-            return getattr(env[model], method)(*args, **kwargs)
+            return getattr(self.env[model], method)(*args, **kwargs)
 
     def __getitem__(self, name):
         return LocalModel(self, name)

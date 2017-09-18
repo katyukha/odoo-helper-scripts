@@ -30,7 +30,7 @@ function postgres_is_installed {
 #
 # postgres_install_postgresql
 function postgres_install_postgresql {
-    sudo apt-get install -y postgresql;
+    with_sudo apt-get install -y postgresql;
 }
 
 
