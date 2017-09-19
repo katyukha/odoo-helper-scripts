@@ -101,6 +101,8 @@ function addons_update_module_list_db {
 function addons_update_module_list {
     local db=$1;
 
+    # TODO: improve performance of all databases case
+
     if [ ! -z $db ]; then
         echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
         addons_update_module_list_db $db;
@@ -395,6 +397,7 @@ function addons_install_update {
     # If no database specified, install/update addons
     # to all available databases
     if [ -z $dbs ]; then
+        # TODO: search for databases where these addons installed
         dbs=$(odoo_db_list);
     fi
 

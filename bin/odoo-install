@@ -285,5 +285,5 @@ generate_test_conf;
 #---------------------------------------------
 
 echo -e "${GREENC}Odoo seems to be successfully installed!${NC}";
-echo "Edit configuration at $ODOO_CONF_FILE";
-echo "Use odoo-helper project to manage this odoo instance";
+echo "Edit configuration at ${BLUEC}$ODOO_CONF_FILE${NC}";
+echo "Use ${YELLOWC}odoo-helper${NC} project to manage this odoo instance";

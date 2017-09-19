@@ -144,12 +144,85 @@ function install_parse_debian_control_file {
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
     for dep in $sys_deps_raw; do
-        if [ "$dep" == '${misc:Depends}' ]; then
-            continue;
-        elif [ "$dep" == "python-pypdf" ]; then
-            continue
-        fi
-        sys_deps="$sys_deps $dep";
+        case $dep in
+            '${misc:Depends}')
+                continue
+            ;;
+            python-pypdf)
+                # No supported in new releases.
+                # Odoo version <= 10.0 depends on it
+                # Will be installed by pip from requirements.txt
+                continue
+            ;;
+            python-pybabel)
+                # Dependency of Odoo 7.0
+                # Will be installed by setup.py
+                continue
+            ;;
+            python-feedparser)
+                # Seems to be pure-python dependency
+                continue
+            ;;
+            python-requests)
+                # Seems to be pure-python dependency
+                continue
+            ;;
+            python-urllib3)
+                # Seems to be pure-python dependency
+                continue
+            ;;
+            python-vobject)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-decorator)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-pydot)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-mock)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-pyparsing)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-vatnumber)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-yaml)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-xlwt)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-dateutil)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-openid)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-mako)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-jinja2)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            *)
+            sys_deps="$sys_deps $dep";
+        esac;
+
     done
 
     echo "$sys_deps";
@@ -231,7 +304,7 @@ function install_system_prerequirements {
     with_sudo apt-get update || true;
 
     echo "Installing system preprequirements...";
-    install_sys_deps_internal git wget lsb-release \
+    install_sys_deps_internal git wget lsb-release procps \
         python-setuptools python-pip python-wheel \
         perl g++ libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \

@@ -212,8 +212,10 @@ function fetch_clone_repo_hg {
         local repo_branch_opt="-r $1"; shift;
     fi
 
-    if ! hg clone $repo_branch_opt $repo_url $repo_dest; then
-        echo -e "${REDC}Cannot clone [hg] '$repo_url to $repo_dest'!${NC}";
+    if ! check_command hg; then
+        echoe -e "${REDC}ERROR${NC}: Mercurial is not installed. Install it via ${BLUEC}odoo-helper pip install Mercurial${NC}."
+    elif ! hg clone $repo_branch_opt $repo_url $repo_dest; then
+        echoe -e "${REDC}ERROR${NC}: Cannot clone [hg] ${BLUEC}$repo_url${NC} to ${BLUEC}$repo_dest${NC}!${NC}";
     elif [ -z "$repo_branch_opt" ]; then
         # IF repo clonned successfuly, and not branch specified then
         # try to checkout to ODOO_VERSION branch if it exists.
