@@ -75,7 +75,7 @@ function config_load_project {
         fi
 
         if [ -z $PROJECT_ROOT_DIR ]; then
-            echo -e "${REDC}WARNING: no project config file found${NC}";
+            echo -e "${YELLOWC}WARNING${NC}: no project config file found!";
         fi
     fi
 }

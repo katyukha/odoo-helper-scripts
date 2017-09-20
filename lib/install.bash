@@ -26,6 +26,7 @@ function install_preconfigure_env {
     DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
     DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
     DB_PORT=${DB_PORT:-${ODOO_DBPORT:-5432}};
+    VIRTUALENV_PYTHON=${VIRTUALENV_PYTHON:-python2};
 }
 
 # create directory tree for project
@@ -103,19 +104,19 @@ function install_wkhtmltopdf {
                 elif [ "$(lsb_release -si)" == "Debian" ]; then
                     local release=jessie;
                 else
-                    echoe -e "${REDC}ERROR:${NC} Cannot install wkhtmltopdf! Not supported OS";
+                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
                     return 2;
                 fi
                 local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
                 if ! wget -q $download_link -O $wkhtmltox_path; then
-                    echoe -e "${REDC}ERROR:${NC} Cannot install wkhtmltopdf! cannot download package $download_link";
+                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
                     return 1;
                 fi
             fi
         fi
         local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
-            echoe -e "${REDC}ERROR:${NC} Error caught while installing wkhtmlto pdf.";
+            echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
         fi
 
         rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
@@ -127,7 +128,7 @@ function install_wkhtmltopdf {
 function install_sys_deps_internal {
     # Odoo's debian/control file usualy contains this in 'Depends' section 
     # so we need to skip it before running apt-get
-    echo "Installing system dependencies: $@";
+    echoe -e "${BLUEC}Installing system dependencies${NC}: $@";
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
@@ -148,13 +149,11 @@ function install_parse_debian_control_file {
             '${misc:Depends}')
                 continue
             ;;
-            python-pypdf)
-                # No supported in new releases.
-                # Odoo version <= 10.0 depends on it
+            python-pypdf|python-pypdf2)
                 # Will be installed by pip from requirements.txt
                 continue
             ;;
-            python-pybabel)
+            python-pybabel|python-babel|python-babel-localedata)
                 # Dependency of Odoo 7.0
                 # Will be installed by setup.py
                 continue
@@ -211,12 +210,18 @@ function install_parse_debian_control_file {
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-mako)
+            python-mako|python-jinja2)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-jinja2)
-                # Will be installed by setup.py or requirements
+            #-----
+            python-lxml|python-libxml2|python-imaging|python-psycopg2|python-docutils|python-ldap|python-passlib|python-psutil)
+                continue
+            ;;
+            python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
+                continue
+            ;;
+            python-libxslt1|python-simplejson|python-unittest2)
                 continue
             ;;
             *)
@@ -300,18 +305,18 @@ function install_and_configure_postgresql {
 
 # install_system_prerequirements
 function install_system_prerequirements {
-    echo "Updating package list..."
+    echoe -e "${BLUEC}Updating package list...${NC}"
     with_sudo apt-get update || true;
 
-    echo "Installing system preprequirements...";
+    echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools python-pip python-wheel \
-        perl g++ libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
+        python-setuptools python-pip python-wheel libevent-dev \
+        perl g++ libpq-dev python-dev python3-dev expect-dev libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev;
 
     if ! install_wkhtmltopdf; then
-        echoe -e "${YELLOWC}WARNING:${NC} Cannot install wkhtmltopdf!!! Skipping...";
+        echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
     with_sudo pip install --upgrade virtualenv cffi;
@@ -325,15 +330,19 @@ function install_system_prerequirements {
 function install_virtual_env {
     # To enable system site packages, just set env variable:
     #   VIRTUALENV_SYSTEM_SITE_PACKAGES=1
-    if [ ! -z $VENV_DIR ] &&[ ! -d $VENV_DIR ]; then
-        virtualenv $@ $VENV_DIR;
+    if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
+        if [ -z $VIRTUALENV_PYTHON ]; then
+            virtualenv $@ $VENV_DIR;
+        else
+            VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
+        fi
     fi
 }
 
 # Install extra python tools
 function install_python_tools {
     execu pip install --upgrade watchdog pylint-odoo coverage \
-        flake8 flake8-colors;
+        flake8 flake8-colors Mercurial;
 }
 
 # install_python_prerequirements
@@ -346,8 +355,6 @@ function install_python_prerequirements {
     if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
         execv pip install Python-Chart;
     fi
-
-    install_python_tools;
 }
 
 # Generate configuration file fo odoo

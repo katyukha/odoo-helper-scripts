@@ -60,7 +60,7 @@ function odoo_db_create {
     local conf_file=${2:-$ODOO_CONF_FILE};
     
     if [ -z $db_name ]; then
-        echo -e "${REDC} dbname not specified!!!${NC}";
+        echoe -e "${REDC} dbname not specified!!!${NC}";
         return 1;
     fi
 
@@ -71,7 +71,7 @@ function odoo_db_create {
 
     run_python_cmd "$python_cmd";
     
-    echo -e "${GREENC}Database $db_name created successfuly!${NC}";
+    echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$db_name${NC} created successfuly!";
 }
 
 # odoo_db_drop <name> [odoo_conf_file]
@@ -84,7 +84,7 @@ function odoo_db_drop {
     
     run_python_cmd "$python_cmd";
     
-    echo -e "${GREENC}Database $db_name dropt successfuly!${NC}";
+    echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$db_name${NC} dropt successfuly!";
 }
 
 # odoo_db_list [odoo_conf_file]
@@ -124,9 +124,9 @@ function odoo_db_rename {
     python_cmd="$python_cmd cl.db.rename(cl._server.tools.config['admin_passwd'], '$old_db_name', '$new_db_name');"
     
     if run_python_cmd "$python_cmd"; then
-        echo -e "${GREENC}Database $old_db_name renamed to $new_db_name successfuly!${NC}";
+        echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$old_db_name${NC} renamed to ${BLUEC}$new_db_name${NC} successfuly!";
     else
-        echo -e "${REDC}Cannot rename databse $old_db_name to $new_db_name!${NC}";
+        echoe -e "${REDC}ERROR${NC}: Cannot rename databse ${BLUEC}$old_db_name${NC} to ${BLUEC}$new_db_name${NC}!";
     fi
 }
 
@@ -154,10 +154,10 @@ function odoo_db_dump {
     python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
     
     if run_python_cmd "$python_cmd"; then
-        echov "Database named '$db_name' dumped to '$db_dump_file'!";
+        echov "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
         return 0;
     else
-        echo "Database '$db_name' fails on dump!";
+        echoe "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
         return 1;
     fi
 }
@@ -168,7 +168,7 @@ function odoo_db_dump {
 # in other cases second argument is treated as format, and third (if passed) is treated as conf file
 function odoo_db_backup {
     if [ -z $BACKUP_DIR ]; then
-        echo "Backup dir is not configured. Add 'BACKUP_DIR' variable to your 'odoo-helper.conf'!";
+        echoe "${REDC}ERROR${NC}: Backup dir is not configured. Add 'BACKUP_DIR' variable to your 'odoo-helper.conf'!";
         return 1;
     fi
 
@@ -206,7 +206,7 @@ function odoo_db_backup_all {
 
     # dump databases
     for dbname in $(odoo_db_list $conf_file); do
-        echo -e "${LBLUEC}backing-up database: $dbname${NC}";
+        echoe -e "${LBLUEC}backing-up database: $dbname${NC}";
         odoo_db_backup $dbname $format $conf_file;
     done
 }
@@ -222,10 +222,10 @@ function odoo_db_restore {
     python_cmd="$python_cmd exit(0 if res else 1);";
     
     if run_python_cmd "$python_cmd"; then
-        echov "Database named '$db_name' restored from '$db_dump_file'!";
+        echov "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} restored from ${BLUEC}$db_dump_file${NC}!";
         return 0;
     else
-        echov "Database '$db_name' fails on restore from '$db_dump_file'!";
+        echoe "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on restore from ${BLUEC}$db_dump_file${NC}!";
         return 1;
     fi
 }

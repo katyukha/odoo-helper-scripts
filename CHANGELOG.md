@@ -2,9 +2,10 @@
 
 ## Version 0.1.2
 
-- `odoo-install --python` option added.
-  Because it seems that odoo 11 will support python3 this option will allow
-  to choose python interpreter to be used for odoo's virtualenv
+- `odoo-install --python` option added. Now it is possible to install Odoo 11
+  in python3 virtual environment
+- `odoo-install` system dependencies reduced. Now most of python dependencies
+  will be installed in virtualenv via pip.
 - `odoo-helper tr regenerate` command added. This command allows to regenerate
   translation files for specified lang. This may be useful,
   if new translation terms appeared after module change.
@@ -23,6 +24,7 @@
   with path to project's odoo config file
 - Added `odoo-helper install py-tools` command to install extra tools like pylint, flake8, ...
 - Added `odoo-helper server ps` command
+- Added more colors to odoo-helper output
 - Added `odoo-helper addons uninstall` command
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir

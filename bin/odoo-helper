@@ -117,17 +117,36 @@ function print_usage {
 # display project status
 function show_project_status {
     local pid=$(server_get_pid);
-    local server_status=;
+
     if [ $pid -gt 0 ]; then
-        server_status="Running ($pid)";
+        local server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
     else
-        server_status="Stopped";
+        local server_status="${REDC}Stopped${NC}";
     fi
 
-    echo "Current project:
+    if [ -z $PROJECT_ROOT_DIR ]; then
+        local project_dir="${REDC}No project found${NC}";
+    else
+        local project_dir="${GREENC}$PROJECT_ROOT_DIR${NC}";
+    fi
 
-        Project dir: ${PROJECT_ROOT_DIR:-'No project found'};
-        Odoo branch: ${ODOO_BRANCH:-'Not defined'}
+    if [ -z $ODOO_BRANCH ]; then
+        local branch="${REDC}Not defined${NC}";
+    else
+        local branch="${GREENC}$ODOO_BRANCH${NC}";
+    fi
+
+    if [ -z $ODOO_VERSION ]; then
+        local version="${REDC}Not defined${NC}";
+    else
+        local version="${GREENC}$ODOO_VERSION${NC}";
+    fi
+
+    echo -e "Current project:
+
+        Project dir: $project_dir
+        Odoo branch: $branch
+        Odoo version: $version
         Server status: ${server_status}
     ";
 }

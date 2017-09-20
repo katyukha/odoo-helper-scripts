@@ -119,16 +119,16 @@ function server_stop {
 
 function server_status {
     if [ ! -z $INIT_SCRIPT ]; then
-        echo -e "${YELLOWC}Server status via init script: $INIT_SCRIPT ${NC}";
+        echo -e "${BLUEC}Server status via init script:${YELLOWC} $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT status;
     else
         local pid=$(server_get_pid);
         if [ $pid -gt 0 ]; then
-            echo -e "${GREENC}Server process already running. PID=${pid}.${NC}";
+            echo -e "${GREENC}Server process already running. PID=${YELLOWC}${pid}${GREENC}.${NC}";
         elif [ $pid -eq -2 ]; then
             echo -e "${YELLOWC}Pid file points to unexistent process.${NC}";
         elif [ $pid -eq -1 ]; then
-            echo "Server stopped";
+            echo -e "${REDC}Server stopped${NC}";
         fi
     fi
 }
@@ -170,6 +170,7 @@ function server_ps {
         echo -e "${REDC}ERROR${NC}: this command should be called inside odoo-helper project"
         return 1;
     fi
+    echo -e "${YELLOWC}Odoo processes:${NC}";
     ps aux | grep -e "$(get_server_script)";
 }
 

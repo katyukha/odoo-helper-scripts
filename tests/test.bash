@@ -149,6 +149,10 @@ odoo-helper server start
 
 # there are also few additional server related commands:
 odoo-helper server status
+
+# list odoo processes
+odoo-helper server ps
+
 # odoo-helper server log    # note that this option runs less, so blocks for input
 odoo-helper server restart
 odoo-helper server stop
@@ -263,7 +267,9 @@ odoo-helper server --stop-after-init;  # test that it runs
 # Create odoo 9 database
 odoo-helper db create test-9-db;
 
-# Clone addon from Mercurial repo
+# Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
+# Also it is possible to install it together with other dev tools via *install py-tools* command
+odoo-helper install py-tools;
 odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
 odoo-helper addons update-list
 odoo-helper addons install bus_enchanced;
@@ -283,7 +289,7 @@ ${NC}"
 
 # got back to test root and install odoo version 9.0
 cd ../;
-odoo-helper install sys-deps -y 10.0;  # Ubuntu 12.04 have no all packages required
+odoo-helper install sys-deps -y 10.0;
 odoo-helper postgres user-create odoo10 odoo;
 odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
@@ -312,3 +318,75 @@ odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
 
 # Show project status
 odoo-helper status
+
+
+echo -e "${YELLOWC}
+====================================
+Install and check Odoo 11.0 (master)
+====================================
+${NC}"
+
+cd ../;
+odoo-helper install sys-deps -y master;
+odoo-helper postgres user-create odoo11 odoo;
+odoo-install --install-dir odoo-11.0 --odoo-version master \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo11 --db-pass odoo \
+    --python python2
+
+cd odoo-11.0;
+
+# Test python version
+odoo-helper exec python --version
+
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
+
+odoo-helper server run --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status
+odoo-helper start
+odoo-helper server ps
+odoo-helper server status
+odoo-helper stop
+
+
+echo -e "${YELLOWC}
+==========================================
+Install and check Odoo 11.0 (master) (Py3)
+==========================================
+${NC}"
+
+cd ../;
+odoo-helper install sys-deps -y master;
+odoo-helper postgres user-create odoo11-py3 odoo;
+odoo-install --install-dir odoo-11.0-py3 --odoo-version master \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo11py3 --db-pass odoo \
+    --python python3
+
+cd odoo-11.0-py3;
+
+# Test python version
+echo -e "${YELLOWC}Ensure that it is Py3${NC}";
+odoo-helper exec python --version
+if ! [[ "$(odoo-helper exec python --version 2>&1)" == "Python 3."* ]]; then
+    echo -e "${REDC}FAIL${NC}: No py3";
+    exit 3;
+fi
+
+
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
+
+odoo-helper server run --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status
+odoo-helper start
+odoo-helper server ps
+odoo-helper server status
+odoo-helper stop

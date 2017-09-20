@@ -74,7 +74,7 @@ function print_usage {
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
          --python                      - python executable to be used for virtualenv.
-                                         If not specified default 'python' executable will be used.
+                                         If not specified default 'python2' executable will be used.
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
@@ -199,17 +199,24 @@ function install_odoo {
     # if not installed odoo, install it
     if [ ! -d $ODOO_PATH ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
+            echoe -e "${BLUEC}Downloading odoo...${NC}";
             install_download_odoo;
         else
+            echoe -e "${BLUEC}Clonning odoo...${NC}";
             install_clone_odoo;
         fi
     fi
 
     # Install virtual environment
+    echoe -e "${BLUEC}Installing virtualenv...${NC}";
     install_virtual_env;
+
+    # Install python requirements
+    echoe -e "${BLUEC}Installing python pre-requirements...${NC}";
     install_python_prerequirements;
 
     # Run setup.py with gevent workaround applied.
+    echoe -e "${BLUEC}Installing odoo...${NC}";
     odoo_run_setup_py;  # imported from 'install' module
 
     # restore curenct working dir
@@ -279,11 +286,12 @@ install_create_project_dir_tree;  # imported from 'install' module
 install_odoo; 
 
 # Generate and save odoo-helper project conf
+echo -e "${BLUEC}Generating configurations...${NC}";
 echo "$(config_print)" > $PROJECT_ROOT_DIR/$CONF_FILE_NAME;
 generate_conf;
 generate_test_conf;
 #---------------------------------------------
 
 echo -e "${GREENC}Odoo seems to be successfully installed!${NC}";
-echo "Edit configuration at ${BLUEC}$ODOO_CONF_FILE${NC}";
-echo "Use ${YELLOWC}odoo-helper${NC} project to manage this odoo instance";
+echo -e "Edit configuration at ${BLUEC}$ODOO_CONF_FILE${NC}";
+echo -e "Use ${YELLOWC}odoo-helper${NC} project to manage this odoo instance";
