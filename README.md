@@ -12,20 +12,26 @@ Dev:
 ## Features
 
 - Easily manage few instances of odoo that ran on same machine
-- High usage of virtual env for isolation purpose
+- High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
 - Easy addons installation
     - Automatiacly resolve and fetch dependencies (oca\_dependencies.txt, requirements.txt)
     - Specific file format to track addon dependencies: [odoo\_requirements.txt](#syntax-of-odoo_requirementstxt)
-    - installation from git repositories
-    - installation from Mercurial repositories (experimental)
-    - installation of python dependencies from PyPI or any vcs
+    - installation from *git* repositories
+    - installation from *Mercurial* repositories (experimental)
+    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
     - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
-- Supports odoo versions: 7.0, 9.0, 10.0
-- Also should work with odoo 11.0 (including python3 install)
+- Supports odoo versions: *7.0*, *8.0*, *9.0*, *10.0*
+- Also should work with Odoo 11.0 (including python3 install)
 - OS support:
     - On Ubuntu should work nice
-    - Also should work on debian based systems, but may be some troubles with installarion of dependencies.
-    - Other linux systems - in mos cases should work, but system dependecies must be installed manualy.
+    - Also should work on debian based systems, but some troubles may happen with installation of system dependencies.
+    - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
+
+
+## Documentation note
+
+Documentaion in this readme, or in other sources, may not be up to date!!!
+So use --help options, which is available for most of commands.
 
 
 ## Install (user space)
@@ -84,9 +90,6 @@ And after install you will have available folowing scripts in your path:
 
 Each script have ```-h``` or ```--help``` option which display most relevant information
 about script and all possible options and subcommands of script
-
-***Documentaion in this readme, or in other sources, may not be up to date!!!
-So use --help options, which is available for most of commands.***
 
 Look at [complete example](#complete-example)
 
