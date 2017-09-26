@@ -26,6 +26,7 @@
 - Added `odoo-helper server ps` command
 - Added more colors to odoo-helper output
 - Added `odoo-helper addons uninstall` command
+- Added ability to test odoo-helper-scripts on various debian-based distributions via docker
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.

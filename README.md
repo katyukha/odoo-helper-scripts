@@ -13,15 +13,19 @@ Dev:
 
 - Easily manage few instances of odoo that ran on same machine
 - High usage of virtual env for isolation purpose
-- Easy way to install from git repositories
-    - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
-    - Specific format of dependencies: [odoo_requirements.txt](#syntax-of-odoo_requirementstxt)
-- Ability to fetch addons from Mercurial repositories
-- Easy mechanism to fetch addons from any git repo
-- Easy mechanism to fetch python dependency from PyPI or any vcs
-- Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
+- Easy addons installation
+    - Automatiacly resolve and fetch dependencies (oca\_dependencies.txt, requirements.txt)
+    - Specific file format to track addon dependencies: [odoo\_requirements.txt](#syntax-of-odoo_requirementstxt)
+    - installation from git repositories
+    - installation from Mercurial repositories (experimental)
+    - installation of python dependencies from PyPI or any vcs
+    - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
 - Supports odoo versions: 7.0, 9.0, 10.0
 - Also should work with odoo 11.0 (including python3 install)
+- OS support:
+    - On Ubuntu should work nice
+    - Also should work on debian based systems, but may be some troubles with installarion of dependencies.
+    - Other linux systems - in mos cases should work, but system dependecies must be installed manualy.
 
 
 ## Install (user space)
@@ -60,6 +64,15 @@ If you wish to install from *dev* branch, you can use following command:
 ```bash
 wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s - dev
 ```
+
+## Test your OS support
+
+It is possible to run basic tests via docker. For this task, odoo-helper-scripts repo
+contains script ```run_docker_test.bash```. Run ```bash run_docker_test.bash --help``` to
+see all available options for that script.
+
+For example to test, how odoo-helper-scripts will work on debian:stretch, do following:
+```cd $ODOO_HELPER_ROOT; bash run_docker_test.bash --docker-ti --docker-image debian:stretch```
 
 
 ## Usage

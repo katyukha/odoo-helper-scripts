@@ -15,7 +15,9 @@ tempfiles=( )
 # do cleanup on exit
 cleanup() {
   if [ -z $ERROR ]; then
-      rm -rf "$TEST_TMP_DIR";
+      if ! rm -rf "$TEST_TMP_DIR"; then
+          echo "Cannot remove $TEST_TMP_DIR";
+      fi
   fi
 }
 trap cleanup 0
@@ -102,38 +104,6 @@ echo "";
 # Now You will have odoo-7.0 installed in this directory.
 # Note, thant Odoo this odoo install uses virtual env (venv dir)
 # Also You will find there odoo-helper.conf config file
-
-echo -e "${YELLOWC}
-=================================
-Test database management features
-(create, list, and drop database)
-=================================
-${NC}"
-
-# create test database if it does not exists yet
-if ! odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db create my-test-odoo-database;
-fi
-
-# list all odoo databases available for this odoo instance
-odoo-helper db list
-
-# backup database
-backup_file=$(odoo-helper db backup my-test-odoo-database);
-
-# drop test database if it exists
-if odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db drop my-test-odoo-database;
-fi
-
-# restore dropped database
-odoo-helper db restore my-test-odoo-database $backup_file;
-
-# ensure that database exists
-odoo-helper db exists my-test-odoo-database
-
-# drop database egain
-odoo-helper db drop my-test-odoo-database;
 
 echo -e "${YELLOWC}
 =================================
@@ -279,6 +249,39 @@ odoo-helper db drop test-9-db;
 
 # Show project status
 odoo-helper status
+
+
+echo -e "${YELLOWC}
+=================================
+Test database management features
+(create, list, and drop database)
+=================================
+${NC}"
+
+# create test database if it does not exists yet
+if ! odoo-helper db exists my-test-odoo-database; then
+	odoo-helper db create my-test-odoo-database;
+fi
+
+# list all odoo databases available for this odoo instance
+odoo-helper db list
+
+# backup database
+backup_file=$(odoo-helper db backup my-test-odoo-database zip);
+
+# drop test database if it exists
+if odoo-helper db exists my-test-odoo-database; then
+	odoo-helper db drop my-test-odoo-database;
+fi
+
+# restore dropped database
+odoo-helper db restore my-test-odoo-database $backup_file;
+
+# ensure that database exists
+odoo-helper db exists my-test-odoo-database
+
+# drop database egain
+odoo-helper db drop my-test-odoo-database;
 
 
 echo -e "${YELLOWC}

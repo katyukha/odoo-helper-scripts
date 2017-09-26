@@ -1,6 +1,6 @@
 # Prepare for test (if running on CI)
 if [ ! -z $CI_RUN ]; then
-    echo "Running as in CI environment";
+    echo -e "\e[33m Running as in CI environment \e[0m";
     export ALWAYS_ANSWER_YES=1;
 
     if ! command -v "odoo-install" >/dev/null 2>&1 || ! command -v "odoo-helper" >/dev/null 2>&1; then
@@ -27,4 +27,7 @@ if [ ! -z $CI_RUN ]; then
         echo "";
         
     fi
+else
+    echo -e "\e[33m CI Environment not enabled \e[0m";
+
 fi

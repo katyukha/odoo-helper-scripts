@@ -49,7 +49,7 @@ function tr_parse_addons {
             shift;
         done
         local todo_addons="$(join_by , $addons)";
-        echo $(execv python -c "\"print ','.join(set('$todo_addons'.split(',')) & set('$installed_addons'.split(',')))\"");
+        echo $(execv python -c "\"print(','.join(set('$todo_addons'.split(',')) & set('$installed_addons'.split(','))))\"");
     fi;
 }
 
@@ -58,7 +58,7 @@ function tr_parse_addons {
 # note, <extra_options> may be string with one space (empty)
 function tr_import_export_internal {
     if [[ $# -lt 6 ]]; then
-        echo -e "${REDC}ERROR:${NC} No all arguments passed to translations export/import";
+        echoe -e "${REDC}ERROR:${NC} No all arguments passed to translations export/import";
         return 1;
     fi
 
@@ -70,7 +70,7 @@ function tr_import_export_internal {
     shift; shift; shift; shift; shift;
 
     if ! odoo_db_exists $db; then
-        echo -e "${REDC}ERROR:${NC} Database '$db' does not exists!";
+        echoe -e "${REDC}ERROR:${NC} Database '$db' does not exists!";
         return 2;
     fi
 
@@ -78,7 +78,7 @@ function tr_import_export_internal {
     local addons=;
     IFS=',' read -r -a addons <<< "$addons_data";
     for addon in ${addons[@]}; do
-        echo -e "${BLUEC}Executing '$cmd' for (db='$db', lang='$lang').${NC} Processing addon: '$addon';";
+        echoe -e "${BLUEC}Executing '$cmd' for (db='$db', lang='$lang').${NC} Processing addon: '$addon';";
         local addon_path=$(addons_get_addon_path $addon);
         local i18n_dir=$addon_path/i18n;
         local i18n_file=$i18n_dir/$file_name.po

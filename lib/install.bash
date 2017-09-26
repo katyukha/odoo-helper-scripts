@@ -311,9 +311,9 @@ function install_system_prerequirements {
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
         python-setuptools python-pip python-wheel libevent-dev \
-        perl g++ libpq-dev python-dev python3-dev expect-dev libjpeg-dev \
+        perl g++ libpq-dev python-dev python3-dev expect-dev tcl8.6 libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
-        libsasl2-dev libldap2-dev libssl-dev libffi-dev;
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev libyaml-dev;
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
@@ -341,7 +341,7 @@ function install_virtual_env {
 
 # Install extra python tools
 function install_python_tools {
-    execu pip install --upgrade watchdog pylint-odoo coverage \
+    execu pip install watchdog pylint-odoo coverage \
         flake8 flake8-colors Mercurial;
 }
 
@@ -350,7 +350,8 @@ function install_python_prerequirements {
     # required to make odoo.py work correctly when setuptools too old
     execu easy_install --upgrade setuptools pip;
     execu pip install --upgrade pip erppeek \
-        setproctitle python-slugify setuptools-odoo cffi jinja2 six;
+        setproctitle python-slugify setuptools-odoo cffi jinja2 six \
+        num2words;
 
     if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
         execv pip install Python-Chart;
@@ -408,11 +409,6 @@ function odoo_gevent_install_workaround {
 
 
 function install_odoo_workaround_70 {
-    # Fix odoo 7.0 setup tools dependencies, to limit their versions
-    # because new versions have api changes, since odoo 7.0 released
-    execv pip install 'vobject\<0.9.0' 'psutil\<2' \
-        'reportlab\<=3.0' 'Pillow\<4.0';
-
     # Link libraries to virtualenv/lib dir
     local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
     if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
@@ -428,6 +424,9 @@ function install_odoo_workaround_70 {
     if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libz.so ] && [ ! -f $VENV_DIR/lib/libz.so ]; then
         ln -s $lib_dir/libz.so $VENV_DIR/lib;
     fi
+
+    # Installing requirements via pip. This should improve performance
+    execv pip install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
 
     # Force use Pillow, because PIL is too old.
     cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup

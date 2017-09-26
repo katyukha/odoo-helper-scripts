@@ -65,7 +65,7 @@ function addons_get_addon_dependencies {
     local addon_path=$1;
     local manifest_file="$(addons_get_manifest_file $addon_path)";
 
-    echo $(python -c "print ' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', []))");
+    echo $(python -c "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
 }
 
 # Get list of installed addons
@@ -76,7 +76,7 @@ function addons_get_installed_addons {
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
     python_cmd="$python_cmd installed_addons=cl['ir.module.module'].search([('state', '=', 'installed')]);"
-    python_cmd="$python_cmd print ','.join(installed_addons.mapped('name'));"
+    python_cmd="$python_cmd print(','.join(installed_addons.mapped('name')));"
 
     run_python_cmd "$python_cmd";
 }
@@ -310,12 +310,12 @@ function addons_show_status {
 }
 
 
-# addons_install_update_interanl <cmd> <db> <todo_addons>
+# addons_install_update_internal <cmd> <db> <todo_addons>
 # Options:
 #   cmd          - one of 'install', 'update', 'uninstall'
 #   db           - name of database
 #   todo_addons  - coma-separated list of addons
-function addons_install_update_interanl {
+function addons_install_update_internal {
     local cmd="$1"; shift;
     local db="$1"; shift;
     local todo_addons="$1"; shift;
@@ -390,7 +390,7 @@ function addons_install_update {
     todo_addons="${todo_addons#,}";  # remove first comma
 
     if [ -z $todo_addons ]; then
-        echo "No addons specified! Exiting";
+        echoe -e "${REDC}ERROR${NC}:No addons specified! Exiting";
         return 1;
     fi
 
@@ -408,10 +408,10 @@ function addons_install_update {
     fi
 
     for db in $dbs; do
-        if addons_install_update_interanl $cmd $db $todo_addons; then
-            echo -e "${LBLUEC}${cmd} for '$db':${NC} ${GREENC}OK${NC}";
+        if addons_install_update_internal $cmd $db $todo_addons; then
+            echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${GREENC}OK${NC}";
         else
-            echo -e "${LBLUEC}${cmd} for '$db':${NC} ${REDC}FAIL${NC}";
+            echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
             return 1;
         fi
     done

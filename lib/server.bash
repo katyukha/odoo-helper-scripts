@@ -104,10 +104,10 @@ function server_stop {
                     sleep 1;
                 fi
 
-                echo "Server stopped.";
+                echoe -e "${GREENC}OK${NC}: Server stopped.";
                 rm -f $PID_FILE;
             else
-                echo "Cannot kill process.";
+                echoe -e "${REDC}ERROR${NC}: Cannot kill process.";
             fi
         else
             echo -e "${YELLOWC}Server seems not to be running!${NC}"

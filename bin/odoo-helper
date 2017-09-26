@@ -142,19 +142,23 @@ function show_project_status {
         local version="${GREENC}$ODOO_VERSION${NC}";
     fi
 
+    local python_version="${GREENC}$(execv python --version 2>&1)${NC}";
+
     echo -e "Current project:
 
         Project dir: $project_dir
         Odoo branch: $branch
         Odoo version: $version
+        Python version: $python_version
         Server status: ${server_status}
     ";
 }
 
 function odoo_helper_print_version {
-    echo "Version: $ODOO_HELPER_VERSION";
-    echo "Branch: $(git_get_branch_name $ODOO_HELPER_ROOT)";
-    echo "Commit: $(git_get_current_commit $ODOO_HELPER_ROOT)";
+    echo -e "Version: ${GREENC}$ODOO_HELPER_VERSION${NC}";
+    echo -e "Branch:  ${BLUEC}$(git_get_branch_name $ODOO_HELPER_ROOT)${NC}";
+    echo -e "Commit:  ${BLUEC}$(git_get_current_commit $ODOO_HELPER_ROOT)${NC}";
+    echo -e "Path:    ${YELLOWC}$ODOO_HELPER_ROOT${NC}";
 }
 
 # function that parses commandline arguments and executes commands
