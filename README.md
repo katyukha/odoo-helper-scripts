@@ -34,6 +34,14 @@ Documentaion in this readme, or in other sources, may not be up to date!!!
 So use --help options, which is available for most of commands.
 
 
+## Usage note
+
+This script collection is designed to simplify life of addons developer.
+This project ***is not*** designed, to install and configure production ready Odoo instances!!!
+To install Odoo in production read [Odoo official installation doc](https://www.odoo.com/documentation/10.0/setup/install.html) first.
+Also, it is possible to manage almost any Odoo intance with this project, it it will be configured right.
+
+
 ## Install (user space)
 
 To install (in user home) just do folowing:
