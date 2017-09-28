@@ -16,12 +16,16 @@ Dev:
 - Easy addons installation
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
-        - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files))
+        - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
     - Specific file format to track addon dependencies: [odoo\_requirements.txt](#syntax-of-odoo_requirementstxt)
     - installation from *git* repositories
     - installation from *Mercurial* repositories (**experimental**)
     - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
     - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
+    - works good with long recursive dependencies.
+      One of the reasons for this script collection development was,
+      ability to automaticaly install more that 50 addons,
+      that depend on each other, and where each addon have it's own git repo.
 - Supports odoo versions: *7.0*, *8.0*, *9.0*, *10.0*
 - Also should work with Odoo 11.0 (including python3 install)
 - OS support:
