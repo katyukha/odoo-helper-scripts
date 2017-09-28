@@ -116,6 +116,11 @@ function print_usage {
 
 # display project status
 function show_project_status {
+    if [ -z $PROJECT_ROOT_DIR ]; then
+        echoe -e "${REDC}ERROR${NC}: Not inside odoo-helper project!";
+        return 1;
+    fi
+
     local pid=$(server_get_pid);
 
     if [ $pid -gt 0 ]; then
