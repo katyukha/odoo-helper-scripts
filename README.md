@@ -14,24 +14,26 @@ Dev:
 - Easily manage few instances of odoo that ran on same machine
 - High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
 - Easy addons installation
-    - Automatiacly resolve and fetch dependencies (oca\_dependencies.txt, requirements.txt)
+    - Automatiacly resolve and fetch dependencies
+        - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
+        - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files))
     - Specific file format to track addon dependencies: [odoo\_requirements.txt](#syntax-of-odoo_requirementstxt)
     - installation from *git* repositories
-    - installation from *Mercurial* repositories (experimental)
+    - installation from *Mercurial* repositories (**experimental**)
     - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
     - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
 - Supports odoo versions: *7.0*, *8.0*, *9.0*, *10.0*
 - Also should work with Odoo 11.0 (including python3 install)
 - OS support:
-    - On Ubuntu should work nice
-    - Also should work on debian based systems, but some troubles may happen with installation of system dependencies.
+    - On *Ubuntu* should work nice
+    - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
 
 
 ## Documentation note
 
 Documentaion in this readme, or in other sources, may not be up to date!!!
-So use --help options, which is available for most of commands.
+So use *--help* options, which is available for most of commands.
 
 
 ## Usage note
