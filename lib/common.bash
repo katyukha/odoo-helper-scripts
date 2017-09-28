@@ -8,7 +8,8 @@ declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
 # Define version number
-ODOO_HELPER_VERSION="0.1.2-dev"
+ODOO_HELPER_VERSION="0.1.2-dev";
+ODOO_HELPER_CONFIG_VERSION="1";
 
 # if odoo-helper root conf is not loaded yet, try to load it
 # This is useful when this lib is used by external utils,

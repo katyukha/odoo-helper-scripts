@@ -278,6 +278,7 @@ install_preconfigure_env;
 
 # Directory and file paths
 PROJECT_ROOT_DIR=${PROJECT_ROOT_DIR:-$WORKDIR/odoo-$ODOO_BRANCH};
+PROJECT_CONFIG_VERSION=$ODOO_HELPER_CONFIG_VERSION;
 config_set_defaults;  # imported from common module
 
 install_create_project_dir_tree;  # imported from 'install' module
