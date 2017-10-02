@@ -86,7 +86,7 @@ function postgres_command {
         NOTE: most of commands require sudo
 
         $SCRIPT_NAME postgres user-create <user name> <password>   - Create postgres user for odoo
-        $SCRIPT_NAME addons --help                                 - show this help message
+        $SCRIPT_NAME postgres --help                                 - show this help message
 
     ";
 

@@ -66,22 +66,22 @@ function server_start {
     else
         # Check if server process is already running
         if [ $(server_get_pid) -gt 0 ]; then
-            echo -e "${REDC}Server process already running.${NC}";
+            echoe -e "${REDC}Server process already running.${NC}";
             exit 1;
         fi
 
         server_run --pidfile=$ODOO_PID_FILE "$@" &
         local pid=$!;
         sleep 2;
-        echo -e "${GREENC}Odoo started!${NC}";
-        echo -e "PID File: ${YELLOWC}$ODOO_PID_FILE${NC}."
-        echo -e "Process ID: ${YELLOWC}$pid${NC}";
+        echoe -e "${GREENC}Odoo started!${NC}";
+        echoe -e "PID File: ${YELLOWC}$ODOO_PID_FILE${NC}."
+        echoe -e "Process ID: ${YELLOWC}$pid${NC}";
     fi
 }
 
 function server_stop {
     if [ ! -z $INIT_SCRIPT ]; then
-        echo -e "${YELLOWC}Soppting server via init script: $INIT_SCRIPT ${NC}";
+        echoe -e "${YELLOWC}Soppting server via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT stop;
     else
         local pid=$(server_get_pid);
@@ -110,8 +110,8 @@ function server_stop {
                 echoe -e "${REDC}ERROR${NC}: Cannot kill process.";
             fi
         else
-            echo -e "${YELLOWC}Server seems not to be running!${NC}"
-            echo -e "${YELLOWC}Or PID file $ODOO_PID_FILE was removed${NC}";
+            echoe -e "${YELLOWC}Server seems not to be running!${NC}"
+            echoe -e "${YELLOWC}Or PID file $ODOO_PID_FILE was removed${NC}";
         fi
     fi
 
@@ -119,23 +119,23 @@ function server_stop {
 
 function server_status {
     if [ ! -z $INIT_SCRIPT ]; then
-        echo -e "${BLUEC}Server status via init script:${YELLOWC} $INIT_SCRIPT ${NC}";
+        echoe -e "${BLUEC}Server status via init script:${YELLOWC} $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT status;
     else
         local pid=$(server_get_pid);
         if [ $pid -gt 0 ]; then
-            echo -e "${GREENC}Server process already running. PID=${YELLOWC}${pid}${GREENC}.${NC}";
+            echoe -e "${GREENC}Server process already running. PID=${YELLOWC}${pid}${GREENC}.${NC}";
         elif [ $pid -eq -2 ]; then
-            echo -e "${YELLOWC}Pid file points to unexistent process.${NC}";
+            echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
         elif [ $pid -eq -1 ]; then
-            echo -e "${REDC}Server stopped${NC}";
+            echoe -e "${REDC}Server stopped${NC}";
         fi
     fi
 }
 
 function server_restart {
     if [ ! -z $INIT_SCRIPT ]; then
-        echo -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
+        echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT restart;
     else
         server_stop;
@@ -156,7 +156,7 @@ function server_auto_update {
     # Update odoo sources
     odoo_update_sources;
 
-    echo -e "${LBLUEC}update databases...${NC}";
+    echoe -e "${LBLUEC}update databases...${NC}";
     addons_install_update "update" all;
 
     # Start server

@@ -45,7 +45,7 @@ So use *--help* options, which is available for most of commands.
 This script collection is designed to simplify life of addons developer.
 This project ***is not*** designed, to install and configure production ready Odoo instances!!!
 To install Odoo in production read [Odoo official installation doc](https://www.odoo.com/documentation/10.0/setup/install.html) first.
-Also, it is possible to manage almost any Odoo intance with this project, it it will be configured right.
+Also, it is possible to manage almost any Odoo intance with this project, if it will be configured right.
 
 
 ## Install (user space)
@@ -133,9 +133,9 @@ This script simlify interaction with odoo installs (mostly done by *odoo-install
 Note, that this script becomes useful when there is *odoo-helper.conf* config file could be found.
 Config will be searched in folowing paths:
 
-- */etc/default/odoo-helper.conf*  - System wide config file. May be usefule if
+- `/etc/default/odoo-helper.conf`  - System wide config file. May be usefule if
                                      You have only one Odoo instalation in system
-- *<user home dir>/odoo-helper.conf*   - User specific config.
+- `<user home dir>/odoo-helper.conf`   - User specific config.
 - *Project specific* - this config is searched in working directory and up. first one found will be used.
                      This feature allows to use *odoo-helper* with multiple odoo instances in one system
 
