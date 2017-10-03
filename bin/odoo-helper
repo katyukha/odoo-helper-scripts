@@ -313,6 +313,11 @@ function odoo_helper_main {
                 server "$@";
                 exit;
             ;;
+            pylint|flake8)
+                config_load_project;
+                test_module "$@";
+                exit;
+            ;;
             exec)
                 shift;
                 config_load_project;

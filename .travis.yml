@@ -23,5 +23,5 @@ script:
 
 
 after_success:
-  - coveralls
+  - coveralls push
 

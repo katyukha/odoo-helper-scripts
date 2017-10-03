@@ -343,6 +343,13 @@ function test_module {
         --coverage-report   - print coverage report
         -m|--module         - specify module to test
         -d|--directory      - specify directory with modules to test
+
+    Examples:
+        $SCRIPT_NAME test -m my_cool_module        # test single addon
+        $SCRIPT_NAME test -d addon_dir             # test all addons in specified directory
+        $SCRIPT_NAME test pylint ./my_cool_module  # check addon with pylint
+        $SCRIPT_NAME test flake8 ./my_cool_module  # check addon with flake8
+        
     ";
 
     # Parse command line options and run commands
