@@ -159,7 +159,8 @@ odoo-helper test --create-test-db -m base_tags -m product_tags
 
 # If You need color output from Odoo, you may use '--use-unbuffer' option,
 # but it depends on 'expect-dev' package
-odoo-helper --use-unbuffer test --create-test-db -m base_tags -m product_tags
+cd ../repositories
+odoo-helper --use-unbuffer test --create-test-db -d ./base_tags
 # So... let's install one more odoo version
 # go back to directory containing our projects (that one, where odoo-7.0 project is placed)
 cd ../../
@@ -198,6 +199,9 @@ odoo-helper fetch -p suds  # this installs 'suds' python package
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
 
+# Or check for updates of addons
+odoo-helper --use-unbuffer addons check-updates
+
 echo -e "${YELLOWC}
 ===============================================================================
 Go back to Odoo 7.0 instance, we installed at start of test
@@ -218,13 +222,13 @@ Install and check Odoo 9.0
 ==========================
 ${NC}"
 
-# got back to test root and install odoo version 9.0
+# got back to test root and install odoo version 9.0 (clonning it)
 cd ../;
 odoo-helper install sys-deps -y 9.0;
 odoo-helper postgres user-create odoo9 odoo;
 odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo9 --db-pass odoo
+    --db-user odoo9 --db-pass odoo --download-archive off
 
 cd odoo-9.0;
 
@@ -241,8 +245,11 @@ odoo-helper db create test-9-db;
 # Also it is possible to install it together with other dev tools via *install py-tools* command
 odoo-helper install py-tools;
 odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
+odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons update-list
 odoo-helper addons install bus_enchanced;
+odoo-helper addons test-installed bus_enchanced;  # find databases where this addons is installed
+odoo-helper addons uninstall bus_enchanced;
 
 # Drop created database
 odoo-helper db drop test-9-db;
@@ -280,8 +287,11 @@ odoo-helper db restore my-test-odoo-database $backup_file;
 # ensure that database exists
 odoo-helper db exists my-test-odoo-database
 
+# rename database to my-test-db-renamed
+odoo-helper db rename my-test-odoo-database my-test-db-renamed
+
 # drop database egain
-odoo-helper db drop my-test-odoo-database;
+odoo-helper db drop my-test-db-renamed;
 
 
 echo -e "${YELLOWC}

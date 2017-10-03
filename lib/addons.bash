@@ -142,7 +142,13 @@ function addons_list_in_directory {
 #
 # addons_list_in_directory_by_name <directory to search odoo addons in>
 function addons_list_in_directory_by_name {
-    for addon_path in $(addons_list_in_directory $1); do
+    # TODO: add ability to filter only installable addons
+    local addons_dir=$1;
+    if [ -z $addons_dir ] || [ ! -d $addons_dir ]; then
+        echoe -e "${REDC}ERROR${NC}: addons directory (${YELLOWC}$addons_dir${NC}) not specified or does not exists!";
+        return 1
+    fi
+    for addon_path in $(addons_list_in_directory $addons_dir); do
         echo "$(basename $addon_path)";
     done
 }
@@ -443,10 +449,11 @@ function addons_test_installed {
 function addons_command {
     local usage="Usage:
 
-        $SCRIPT_NAME addons list_repos [addons path]      - list git repositories
-        $SCRIPT_NAME addons list_no_repo [addons path]    - list addons not under git repo
-        $SCRIPT_NAME addons check_updates [addons path]   - Check for git updates of addons and displays status
-        $SCRIPT_NAME addons pull_updates [addons path]    - Pull changes from git repos
+        $SCRIPT_NAME addons list <addons path>            - list addons in specified directory
+        $SCRIPT_NAME addons list-repos [addons path]      - list git repositories
+        $SCRIPT_NAME addons list-no-repo [addons path]    - list addons not under git repo
+        $SCRIPT_NAME addons check-updates [addons path]   - Check for git updates of addons and displays status
+        $SCRIPT_NAME addons pull-updates [addons path]    - Pull changes from git repos
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update --help                 - update some addon[s]
         $SCRIPT_NAME addons install --help                - install some addon[s]
@@ -466,24 +473,29 @@ function addons_command {
     do
         local key="$1";
         case $key in
-            list_repos)
+            list)
+                shift;
+                addons_list_in_directory_by_name $@;
+                exit 0;
+            ;;
+            list-repos|list_repos)
                 shift;
                 addons_list_repositories "$@";
                 exit 0;
             ;;
-            list_no_repo)
+            list-no-repo|list_no_repo)
                 shift;
                 addons_list_no_repository "$@";
                 exit 0;
             ;;
-            check_updates)
+            check-updates|check_updates)
                 shift;
                 ADDONS_DIR=${1:-$ADDONS_DIR};
                 addons_git_fetch_updates;
                 addons_show_status --only-git-updates;
                 exit 0;
             ;;
-            pull_updates)
+            pull-updates|pull_updates)
                 shift;
                 echo -e "${LBLUEC}Checking for updates...${NC}";
                 addons_git_fetch_updates "$@";

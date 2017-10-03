@@ -27,6 +27,7 @@
 - Added more colors to odoo-helper output
 - Added `odoo-helper addons uninstall` command
 - Added ability to test odoo-helper-scripts on various debian-based distributions via docker
+- Added `odoo-helper addons list` command, that lists odoo-addons in specified directory
 - Added automatic configuration checks.
   So, when odoo-helper-scripts provides some new configuration params after update,
   user will be notified about them and asket to update project config file
