@@ -81,6 +81,8 @@ function print_usage {
         print_config                             - print current configuration
         status                                   - show project status
         start|stop|restart|log                   - shortcuts for server commands
+        pylint                                   - shortcut for 'test pylint' command
+        flake8                                   - shortcut for 'test flake8' command
         system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
         pip <pip arguments>                      - shortcut to run project-specific pip.
