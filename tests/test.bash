@@ -15,7 +15,9 @@ tempfiles=( )
 # do cleanup on exit
 cleanup() {
   if [ -z $ERROR ]; then
-      rm -rf "$TEST_TMP_DIR";
+      if ! rm -rf "$TEST_TMP_DIR"; then
+          echo "Cannot remove $TEST_TMP_DIR";
+      fi
   fi
 }
 trap cleanup 0
@@ -71,6 +73,11 @@ ${NC}"
 odoo-helper install pre-requirements -y;
 odoo-helper install postgres;
 
+if [ ! -z $CI_RUN ] && ! odoo-helper exec postgres_test_connection; then
+    echo -e "${YELLOWC}WARNING${NC}: Cannot connect to postgres instance. Seems that postgres not started, trying to start it now..."
+    sudo /etc/init.d/postgresql start;
+fi
+
 echo -e "${YELLOWC}
 ==================================================
 Test install of odoo version 7.0
@@ -100,38 +107,6 @@ echo "";
 
 echo -e "${YELLOWC}
 =================================
-Test database management features
-(create, list, and drop database)
-=================================
-${NC}"
-
-# create test database if it does not exists yet
-if ! odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db create my-test-odoo-database;
-fi
-
-# list all odoo databases available for this odoo instance
-odoo-helper db list
-
-# backup database
-backup_file=$(odoo-helper db backup my-test-odoo-database);
-
-# drop test database if it exists
-if odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db drop my-test-odoo-database;
-fi
-
-# restore dropped database
-odoo-helper db restore my-test-odoo-database $backup_file;
-
-# ensure that database exists
-odoo-helper db exists my-test-odoo-database
-
-# drop database egain
-odoo-helper db drop my-test-odoo-database;
-
-echo -e "${YELLOWC}
-=================================
 Test 'odoo-helper server' command
 =================================
 ${NC}"
@@ -144,6 +119,10 @@ odoo-helper server start
 
 # there are also few additional server related commands:
 odoo-helper server status
+
+# list odoo processes
+odoo-helper server ps
+
 # odoo-helper server log    # note that this option runs less, so blocks for input
 odoo-helper server restart
 odoo-helper server stop
@@ -180,7 +159,8 @@ odoo-helper test --create-test-db -m base_tags -m product_tags
 
 # If You need color output from Odoo, you may use '--use-unbuffer' option,
 # but it depends on 'expect-dev' package
-odoo-helper --use-unbuffer test --create-test-db -m base_tags -m product_tags
+cd ../repositories
+odoo-helper --use-unbuffer test --create-test-db -d ./base_tags
 # So... let's install one more odoo version
 # go back to directory containing our projects (that one, where odoo-7.0 project is placed)
 cd ../../
@@ -219,6 +199,9 @@ odoo-helper fetch -p suds  # this installs 'suds' python package
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
 
+# Or check for updates of addons
+odoo-helper --use-unbuffer addons check-updates
+
 echo -e "${YELLOWC}
 ===============================================================================
 Go back to Odoo 7.0 instance, we installed at start of test
@@ -239,13 +222,13 @@ Install and check Odoo 9.0
 ==========================
 ${NC}"
 
-# got back to test root and install odoo version 9.0
+# got back to test root and install odoo version 9.0 (clonning it)
 cd ../;
 odoo-helper install sys-deps -y 9.0;
 odoo-helper postgres user-create odoo9 odoo;
 odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo9 --db-pass odoo
+    --db-user odoo9 --db-pass odoo --download-archive off
 
 cd odoo-9.0;
 
@@ -255,8 +238,60 @@ echo "";
 
 odoo-helper server --stop-after-init;  # test that it runs
 
+# Create odoo 9 database
+odoo-helper db create test-9-db;
+
+# Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
+# Also it is possible to install it together with other dev tools via *install py-tools* command
+odoo-helper install py-tools;
+odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
+odoo-helper addons list ./custom_addons;  # list addons available to odoo
+odoo-helper addons update-list
+odoo-helper addons install bus_enchanced;
+odoo-helper addons test-installed bus_enchanced;  # find databases where this addons is installed
+odoo-helper addons uninstall bus_enchanced;
+
+# Drop created database
+odoo-helper db drop test-9-db;
+
 # Show project status
 odoo-helper status
+
+
+echo -e "${YELLOWC}
+=================================
+Test database management features
+(create, list, and drop database)
+=================================
+${NC}"
+
+# create test database if it does not exists yet
+if ! odoo-helper db exists my-test-odoo-database; then
+	odoo-helper db create my-test-odoo-database;
+fi
+
+# list all odoo databases available for this odoo instance
+odoo-helper db list
+
+# backup database
+backup_file=$(odoo-helper db backup my-test-odoo-database zip);
+
+# drop test database if it exists
+if odoo-helper db exists my-test-odoo-database; then
+	odoo-helper db drop my-test-odoo-database;
+fi
+
+# restore dropped database
+odoo-helper db restore my-test-odoo-database $backup_file;
+
+# ensure that database exists
+odoo-helper db exists my-test-odoo-database
+
+# rename database to my-test-db-renamed
+odoo-helper db rename my-test-odoo-database my-test-db-renamed
+
+# drop database egain
+odoo-helper db drop my-test-db-renamed;
 
 
 echo -e "${YELLOWC}
@@ -267,7 +302,7 @@ ${NC}"
 
 # got back to test root and install odoo version 9.0
 cd ../;
-odoo-helper install sys-deps -y 10.0;  # Ubuntu 12.04 have no all packages required
+odoo-helper install sys-deps -y 10.0;
 odoo-helper postgres user-create odoo10 odoo;
 odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
@@ -289,7 +324,49 @@ odoo-helper server --stop-after-init;  # test that it runs
 odoo-helper pip install odoo10-addon-mis-builder;
 
 
+# Install oca/partner_firstname addons and
+# regenerate Ukrainian translations for it
+odoo-helper fetch --oca partner-contact -m partner_firstname;
+odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
+
 # Show project status
 odoo-helper status
 
 
+echo -e "${YELLOWC}
+=================================
+Install and check Odoo 11.0 (Py3)
+=================================
+${NC}"
+
+cd ../;
+odoo-helper install sys-deps -y 11.0;
+odoo-helper postgres user-create odoo11 odoo;
+odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo11 --db-pass odoo \
+    --python python3
+
+cd odoo-11.0;
+
+# Test python version
+echo -e "${YELLOWC}Ensure that it is Py3${NC}";
+odoo-helper exec python --version
+if ! [[ "$(odoo-helper exec python --version 2>&1)" == "Python 3."* ]]; then
+    echo -e "${REDC}FAIL${NC}: No py3";
+    exit 3;
+fi
+
+
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
+
+odoo-helper server run --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status
+odoo-helper start
+odoo-helper server ps
+odoo-helper server status
+odoo-helper stop

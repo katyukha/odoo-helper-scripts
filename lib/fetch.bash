@@ -46,7 +46,7 @@ function fetch_requirements {
     # recursion protection
     local recursion_key=fetch_odoo_requirements;
     if ! recursion_protection_easy_check $recursion_key $REQUIREMENTS_FILE; then
-        echo -e "${YELLOWC}WARN${NC}: File $REQUIREMENTS_FILE already had been processed. skipping...";
+        echoe -e "${YELLOWC}WARN${NC}: File $REQUIREMENTS_FILE already had been processed. skipping...";
         return 0
     fi
 
@@ -56,9 +56,9 @@ function fetch_requirements {
         while read -r line; do
             if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
                 if fetch_module $line; then
-                    echo -e "Line ${GREENC}OK${NC}: $line";
+                    echoe -e "Line ${GREENC}OK${NC}: $line";
                 else
-                    echo -e "Line ${GREENC}FAIL${NC}: $line";
+                    echoe -e "Line ${REDC}FAIL${NC}: $line";
                 fi
             fi
         done < $REQUIREMENTS_FILE;
@@ -79,7 +79,7 @@ function fetch_pip_requirements {
     # Check recursion
     local recursion_key=fetch_pip_requirements;
     if ! recursion_protection_easy_check $recursion_key $pip_requirements; then
-        echo -e "${YELLOWC}WARN${NC}: File $pip_requirements already had been processed. skipping...";
+        echoe -e "${YELLOWC}WARN${NC}: File $pip_requirements already had been processed. skipping...";
         return 0
     fi
 
@@ -116,7 +116,7 @@ function fetch_oca_requirements {
     # Check recursion
     local recursion_key=fetch_oca_requirements;
     if ! recursion_protection_easy_check $recursion_key $oca_requirements; then
-        echo -e "${YELLOWC}WARN${NC}: File $oca_requirements already had been processed. skipping...";
+        echoe -e "${YELLOWC}WARN${NC}: File $oca_requirements already had been processed. skipping...";
         return 0
     fi
 
@@ -212,16 +212,18 @@ function fetch_clone_repo_hg {
         local repo_branch_opt="-r $1"; shift;
     fi
 
-    if ! hg clone $repo_branch_opt $repo_url $repo_dest; then
-        echo -e "${REDC}Cannot clone [hg] '$repo_url to $repo_dest'!${NC}";
+    if ! check_command hg; then
+        echoe -e "${REDC}ERROR${NC}: Mercurial is not installed. Install it via ${BLUEC}odoo-helper pip install Mercurial${NC}."
+    elif ! execv hg clone $repo_branch_opt $repo_url $repo_dest; then
+        echoe -e "${REDC}ERROR${NC}: Cannot clone [hg] ${BLUEC}$repo_url${NC} to ${BLUEC}$repo_dest${NC}!${NC}";
     elif [ -z "$repo_branch_opt" ]; then
         # IF repo clonned successfuly, and not branch specified then
         # try to checkout to ODOO_VERSION branch if it exists.
         (
             cd $repo_dest && \
             [ "$(HGPLAIN=1 hg branch)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
-            HGPLAIN=1 hg branches | grep "^${ODOO_VERSION:-$ODOO_BRANCH}\s" > /dev/null && \
-            hg update ${ODOO_VERSION:-$ODOO_BRANCH} || true
+            HGPLAIN=1 execv hg branches | grep "^${ODOO_VERSION:-$ODOO_BRANCH}\s" > /dev/null && \
+            execv hg update ${ODOO_VERSION:-$ODOO_BRANCH} || true
         )
     fi
 }
@@ -241,13 +243,13 @@ function fetch_clone_repo {
         local repo_branch=$1; shift;
     fi
 
-    echo "Clonning [$repo_type] $repo_url to $repo_dest (branch $repo_branch)";
+    echoe -e "${BLUEC}Clonning [${YELLOWC}$repo_type${BLUEC}]:${NC} ${YELLOWC}$repo_url${BLUEC} to ${YELLOWC}$repo_dest${BLUEC} (branch ${YELLOWC}$repo_branch${BLUEC})${NC}";
     if [ "$repo_type" == "git" ]; then
         fetch_clone_repo_git $repo_url $repo_dest $repo_branch;
     elif [ "$repo_type" == "hg" ]; then
         fetch_clone_repo_hg $repo_url $repo_dest $repo_branch;
     else
-        echo -e "${REDC}Unknown repo type: $repo_type ${NC}";
+        echoe -e "${REDC}ERROR${NC}:Unknown repo type: ${YELLOWC}$repo_type${NC}";
     fi
 
 }
@@ -317,7 +319,7 @@ function fetch_module {
         case $key in
             -r|--repo)
                 if [ ! -z $REPOSITORY ]; then
-                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     exit -1;
                 fi
                 REPOSITORY="$2";
@@ -325,7 +327,7 @@ function fetch_module {
             ;;
             --hg)
                 if [ ! -z $REPOSITORY ]; then
-                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     exit -1;
                 fi
                 REPOSITORY="$2";
@@ -334,7 +336,7 @@ function fetch_module {
             ;;
             --github)
                 if [ ! -z $REPOSITORY ]; then
-                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     exit -1;
                 fi
                 REPOSITORY="https://github.com/$2";
@@ -342,7 +344,7 @@ function fetch_module {
             ;;
             --oca)
                 if [ ! -z $REPOSITORY ]; then
-                    echo -e "${REDC}Attempt to specify multiple repos on one call... ${NC}";
+                    echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     exit -1;
                 fi
                 REPOSITORY="https://github.com/OCA/$2";
@@ -400,7 +402,7 @@ function fetch_module {
 
     local recursion_key="fetch_module";
     if ! recursion_protection_easy_check $recursion_key "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then
-        echo -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
+        echoe -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
         return 0
     fi
     # Conditions:
@@ -417,7 +419,7 @@ function fetch_module {
     # Clone
     if [ ! -d $REPO_PATH ]; then
         if [ ! -z $MODULE ] && [ -d "$ADDONS_DIR/$MODULE" ]; then
-            echo "The module $MODULE already present in addons dir";
+            echoe -e "${YELLOWC}WARNING${NC}: The module ${BLUEC}$MODULE${NC} already present in addons dir";
             return 0;
         else
             fetch_clone_repo $REPO_TYPE $REPOSITORY $REPO_PATH $REPO_BRANCH;

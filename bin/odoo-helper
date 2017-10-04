@@ -29,6 +29,7 @@ fi
 # Load common functions
 source $ODOO_HELPER_LIB/common.bash; 
 
+ohelper_require "config";
 ohelper_require "fetch";
 ohelper_require "link";
 ohelper_require "server";
@@ -41,6 +42,7 @@ ohelper_require "odoo";
 ohelper_require "tr";
 ohelper_require "postgres";
 ohelper_require "system";
+ohelper_require "scaffold";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -75,10 +77,12 @@ function print_usage {
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
         update_odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
-        scaffold <addon_name> [addon_path]       - shortcut for odoo.py scaffold command.
+        scaffold [--help]                        - Scaffold repo, addon, model, etc
         print_config                             - print current configuration
         status                                   - show project status
         start|stop|restart|log                   - shortcuts for server commands
+        pylint                                   - shortcut for 'test pylint' command
+        flake8                                   - shortcut for 'test flake8' command
         system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
         pip <pip arguments>                      - shortcut to run project-specific pip.
@@ -114,26 +118,54 @@ function print_usage {
 
 # display project status
 function show_project_status {
-    local pid=$(server_get_pid);
-    local server_status=;
-    if [ $pid -gt 0 ]; then
-        server_status="Running ($pid)";
-    else
-        server_status="Stopped";
+    if [ -z $PROJECT_ROOT_DIR ]; then
+        echoe -e "${REDC}ERROR${NC}: Not inside odoo-helper project!";
+        return 1;
     fi
 
-    echo "Current project:
+    local pid=$(server_get_pid);
 
-        Project dir: ${PROJECT_ROOT_DIR:-'No project found'};
-        Odoo branch: ${ODOO_BRANCH:-'Not defined'}
+    if [ $pid -gt 0 ]; then
+        local server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
+    else
+        local server_status="${REDC}Stopped${NC}";
+    fi
+
+    if [ -z $PROJECT_ROOT_DIR ]; then
+        local project_dir="${REDC}No project found${NC}";
+    else
+        local project_dir="${GREENC}$PROJECT_ROOT_DIR${NC}";
+    fi
+
+    if [ -z $ODOO_BRANCH ]; then
+        local branch="${REDC}Not defined${NC}";
+    else
+        local branch="${GREENC}$ODOO_BRANCH${NC}";
+    fi
+
+    if [ -z $ODOO_VERSION ]; then
+        local version="${REDC}Not defined${NC}";
+    else
+        local version="${GREENC}$ODOO_VERSION${NC}";
+    fi
+
+    local python_version="${GREENC}$(execv python --version 2>&1)${NC}";
+
+    echo -e "Current project:
+
+        Project dir: $project_dir
+        Odoo branch: $branch
+        Odoo version: $version
+        Python version: $python_version
         Server status: ${server_status}
     ";
 }
 
 function odoo_helper_print_version {
-    echo "Version: $ODOO_HELPER_VERSION";
-    echo "Branch: $(git_get_branch_name $ODOO_HELPER_ROOT)";
-    echo "Commit: $(git_get_current_commit $ODOO_HELPER_ROOT)";
+    echo -e "Version: ${GREENC}$ODOO_HELPER_VERSION${NC}";
+    echo -e "Branch:  ${BLUEC}$(git_get_branch_name $ODOO_HELPER_ROOT)${NC}";
+    echo -e "Commit:  ${BLUEC}$(git_get_current_commit $ODOO_HELPER_ROOT)${NC}";
+    echo -e "Path:    ${YELLOWC}$ODOO_HELPER_ROOT${NC}";
 }
 
 # function that parses commandline arguments and executes commands
@@ -143,7 +175,7 @@ function odoo_helper_main {
         echo "No options/commands supplied $#: $@";
 
         # load configuration files at startup
-        load_project_conf;
+        config_load_project;
 
         print_usage;
         exit 0;
@@ -187,67 +219,67 @@ function odoo_helper_main {
             ;;
             fetch)
                 shift;
-                load_project_conf;
+                config_load_project;
                 fetch_module "$@";
                 exit
             ;;
             generate_requirements)
                 shift;
-                load_project_conf;
+                config_load_project;
                 addons_generate_requirements "$@"
                 exit;
             ;;
             update_odoo)
                 shift;
-                load_project_conf;
+                config_load_project;
                 odoo_update_sources "$@";
                 exit;
             ;;
             link|link_module)
                 shift;
-                load_project_conf;
+                config_load_project;
                 link_command "$@"
                 exit;
             ;;
             server)
                 shift;
-                load_project_conf;
+                config_load_project;
                 server "$@";
                 exit;
             ;;
             addons)
                 shift;
-                load_project_conf;
+                config_load_project;
                 addons_command "$@";
                 exit;
             ;;
             odoo-py)
                 shift;
-                load_project_conf;
+                config_load_project;
                 odoo_py "$@";
                 exit;
             ;;
             scaffold)
                 shift;
-                load_project_conf;
-                odoo_scaffold "$@";
+                config_load_project;
+                scaffold_parse_cmd "$@";
                 exit;
             ;;
             test)
                 shift;
-                load_project_conf;
+                config_load_project;
                 test_module "$@";
                 exit;
             ;;
             db)
                 shift;
-                load_project_conf;
+                config_load_project;
                 odoo_db_command "$@";
                 exit;
             ;;
             tr)
                 shift;
-                load_project_conf;
+                config_load_project;
                 tr_main "$@";
                 exit;
             ;;
@@ -263,12 +295,12 @@ function odoo_helper_main {
             ;;
             print_config)
                 shift;
-                load_project_conf;
-                print_helper_config;
+                config_load_project;
+                config_print;
                 exit;
             ;;
             status)
-                load_project_conf;
+                config_load_project;
                 show_project_status;
                 exit;
             ;;
@@ -279,19 +311,28 @@ function odoo_helper_main {
             ;;
             # Server shortcuts
             start|stop|restart|log)
-                load_project_conf;
+                config_load_project;
                 server "$@";
+                exit;
+            ;;
+            pylint|flake8)
+                config_load_project;
+                test_module "$@";
                 exit;
             ;;
             exec)
                 shift;
-                load_project_conf;
-                execv "$@";
+                config_load_project;
+                if [ ! -z $ODOO_CONF_FILE ]; then
+                    exec_conf $ODOO_CONF_FILE execv $@;
+                else
+                    execv "$@";
+                fi
                 exit 0;
             ;;
             pip)
                 shift;
-                load_project_conf;
+                config_load_project;
                 exec_pip "$@";
                 exit 0;
             ;;

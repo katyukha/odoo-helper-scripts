@@ -1,6 +1,45 @@
 # Changelog
 
-## Version 0.1.1
+## Version 0.1.2 (2017-10-04)
+
+- `odoo-install --python` option added. Now it is possible to install Odoo 11
+  in python3 virtual environment
+- `odoo-install` system dependencies reduced. Now most of python dependencies
+  will be installed in virtualenv via pip.
+- `odoo-helper tr regenerate` command added. This command allows to regenerate
+  translation files for specified lang. This may be useful,
+  if new translation terms appeared after module change.
+- no `_` (underscore symbol) in random strings
+- Save Odoo repository in ``odoo-helper.conf``
+- bugfix in command: `odoo-helper odoo-py`
+- Added option `odoo-helper test --coverage-report`
+- Bugfix, install Pillow less than 4.0 for Odoo 7.0
+- Added command `odoo-helper install py-deps <version>`
+- `odoo-helper test -d .` do not omit `.` if it is odoo addon.
+  This happens in case if `odoo-helper test` called when current dir is addon.
+- `odoo-helper test --recreate-db` option added. If this option passed,
+  and test database already exists, then it will be dropt before tests started.
+- `odoo-helper tr` command: better help messages, added help messages for subcommands
+- `odoo-helper exec` command now adds to env vars `ODOO_RC` and `OPENERP_SERVER` variables
+  with path to project's odoo config file
+- Added `odoo-helper install py-tools` command to install extra tools like pylint, flake8, ...
+- Added `odoo-helper server ps` command
+- Added more colors to odoo-helper output
+- Added `odoo-helper addons uninstall` command
+- Added ability to test odoo-helper-scripts on various debian-based distributions via docker
+- Added `odoo-helper addons list` command, that lists odoo-addons in specified directory
+- Added aliases `odoo-helper flake8` and `odoo-helper pylint`
+- Added automatic configuration checks.
+  So, when odoo-helper-scripts provides some new configuration params after update,
+  user will be notified about them and asket to update project config file
+- `odoo-helper scaffold` have new features and subcommands:
+  - `odoo-helper scaffold repo` create repository. place it in repo dir
+  - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
+  - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
+
+
+
+## Version 0.1.1 (2017-06-08)
 
 - Support of Odoo 10.0
 - Support of [setuptools-odoo](https://pypi.python.org/pypi/setuptools-odoo)
@@ -23,7 +62,7 @@
   `pychart` package is broken on pypi, so replace it with Python-Chart
 
 
-## Version 0.1.0
+## Version 0.1.0 (2017-03-06)
 
 - Added ``odoo-helper addons pull_updates`` command
 - Added basic support of Odoo 10
@@ -79,7 +118,7 @@
   - ``odoo-helper log`` for ``odoo-helper server log``
 
 
-## Version 0.0.10
+## Version 0.0.10 (2016-09-08)
 
 - Bugfixes in ``odoo-helper test`` command
 - Added ``odoo-helper addons check_updates`` command
@@ -92,7 +131,7 @@
 - Bugfixes and improvements in ``odoo-helper tr`` command
 
 
-## Version 0.0.9
+## Version 0.0.9 (2016-08-17)
 
 - Added ``odoo-helper scaffold <addon_name> [addon_path]`` shortcut command
 - Added ``odoo-helper tr`` subcommand that simplifies translation management
@@ -105,7 +144,8 @@
 - Added ``odoo-helper addons update`` and ``odoo-helper addons install`` subcommands
 - Refactored ``odoo-helper server auto-update`` and ``odoo-helper update_odoo``
 
-## Version 0.0.8
+
+## Version 0.0.8 (2016-06-08)
 
 - Bugfix in ``odoo-helper link .`` command
 - Added aditional extra_python depenencies:
@@ -116,21 +156,22 @@
 - Added experimental command ``odoo-helper db backup-all``.
 
 
-## Version 0.0.7
+## Version 0.0.7 (2016-04-18)
+
 - odoo-helper system lib-path command makes available to use some parts of this project from outside
 - Added new db commands: dump, restore, backup
 - odoo-helper addons status: bugfix in parsing git status
 - odoo-install related fixes
 
 
-## Version 0.0.6
+## Version 0.0.6 (2016-03-19)
 
 - Added 'odoo-helper exec <cmd> [args]' command
 - Added simple auto-update mechanism
 - odoo-helper addons: Added ability to list addons not under git
 
 
-## Version 0.0.5
+## Version 0.0.5 (2016-02-29)
 
 - Added support to manage server state via init script
 - Separate *repository* directory to store repositories fetched by this scripts
@@ -138,9 +179,18 @@
 - Added basic support of OCA dependency files (oca\_dependencies.txt)
 
 
-## Version 0.0.4
+## Version 0.0.4 (2016-02-17)
 
 - Added ability to specify config options on odoo-install
 - Added automatic processing of pip requirements file placed in repo.
 - Added better check if postgres installed on attempt to install it.
 
+
+## Version 0.0.3 (2015-12-16)
+
+- Added `odoo-helper status` command
+- Added `odoo-helper db` command
+
+## Version 0.0.2 (2015-12-01)
+
+- Initial release

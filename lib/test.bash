@@ -64,7 +64,7 @@ function remove_tmp_dirs {
 function test_run_server {
     local with_coverage=$1; shift;
     local SERVER=`get_server_script`;
-    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}]${NC}: $SERVER $@";
+    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}][${YELLOWC}coverage:${with_coverage}${BLUEC}]${NC}: $SERVER $@";
 
     # enable test coverage
     if [ $with_coverage -eq 1 ]; then
@@ -105,7 +105,8 @@ function test_module_impl {
 # test_get_or_create_db    # get db
 # test_get_or_create_db 1  # create new db
 function test_get_or_create_db {
-    local create_test_db=$1;
+    local recreate_db=$1;
+    local create_test_db=$2;
 
     if [ $create_test_db -eq 1 ]; then
         local test_db_name=`random_string 24`;
@@ -113,6 +114,10 @@ function test_get_or_create_db {
     else
         # name of test database expected to be defined in ODOO_TEST_CONF_FILE
         local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
+    fi
+
+    if [ $recreate_db -eq 1 ] && odoo_db_exists $test_db_name; then
+        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
     fi
     echo "$test_db_name";
 }
@@ -127,6 +132,17 @@ function test_run_tests_for_modules {
     shift; shift; shift;
 
     local modules=$(join_by , $@);
+
+    if [ -z "$modules" ]; then
+        echo -e "${REDC}ERROR:${NC} No modules supplied";
+        return 1;
+    fi
+
+    if [ -z "$test_db_name" ]; then
+        echo -e "${REDC}ERROR:${NC} No database name supplierd!";
+        return 1;
+    fi
+
     echo -e "${BLUEC}Testing modules $modules...${NC}";
     test_module_impl $with_coverage $modules --database $test_db_name \
         2>&1 | tee -a $test_log_file;
@@ -188,20 +204,21 @@ function test_run_tests_handle_sigint {
 
 
 # Run tests
-# test_run_tests <create_test_db 1|0> <fail_on_warn 1|0> <with_coverage 1|0> <modules>
+# test_run_tests <recreate_db 1|0> <create_test_db 1|0> <fail_on_warn 1|0> <with_coverage 1|0> <modules>
 function test_run_tests {
-    local create_test_db=$1;
-    local fail_on_warn=$2;
-    local with_coverage=$3;
-    shift; shift; shift;
+    local recreate_db=$1;
+    local create_test_db=$2;
+    local fail_on_warn=$3;
+    local with_coverage=$4;
+    shift; shift; shift; shift;
 
     # Create new test database if required
-    local test_db_name="$(test_get_or_create_db $create_test_db)";
+    local test_db_name="$(test_get_or_create_db $recreate_db $create_test_db)";
     local test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
 
     # Remove log file if it is present before test, otherwise
     # it will be appended, wich could lead to incorrect test results
-    if [ -e $test_log_file ]; then
+    if [ ! -z "$test_log_file" ] && [ -e "$test_log_file" ]; then
         rm $test_log_file;
     fi
 
@@ -299,9 +316,11 @@ function test_run_pylint {
 # test_module [--tmp-dirs] [--create-test-db] -d <dir with addons to test>
 function test_module {
     local create_test_db=0;
+    local recreate_db=0;
     local fail_on_warn=0;
     local with_coverage=0;
-    local with_coverate_report_html=;
+    local with_coverage_report_html=;
+    local with_coverage_report=;
     local modules="";
     local directories="";
     local usage="
@@ -315,13 +334,22 @@ function test_module {
 
     Options:
         --create-test-db    - Creates temporary database to run tests in
+        --recreate-db       - Recreate test database if it already exists
         --fail-on-warn      - if this option passed, then tests will fail even on warnings
         --tmp-dirs          - use temporary dirs for test related downloads and addons
         --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
         --coverage          - calculate code coverage (use python's *coverage* util)
         --coverage-html     - automaticaly generate coverage html report
+        --coverage-report   - print coverage report
         -m|--module         - specify module to test
         -d|--directory      - specify directory with modules to test
+
+    Examples:
+        $SCRIPT_NAME test -m my_cool_module        # test single addon
+        $SCRIPT_NAME test -d addon_dir             # test all addons in specified directory
+        $SCRIPT_NAME test pylint ./my_cool_module  # check addon with pylint
+        $SCRIPT_NAME test flake8 ./my_cool_module  # check addon with flake8
+        
     ";
 
     # Parse command line options and run commands
@@ -342,6 +370,9 @@ function test_module {
             --create-test-db)
                 create_test_db=1;
             ;;
+            --recreate-db)
+                recreate_db=1;
+            ;;
             --fail-on-warn)
                 fail_on_warn=1;
             ;;
@@ -350,7 +381,11 @@ function test_module {
             ;;
             --coverage-html)
                 with_coverage=1;
-                with_coverate_report_html=1;
+                with_coverage_report_html=1;
+            ;;
+            --coverage-report)
+                with_coverage=1;
+                with_coverage_report=1;
             ;;
             -m|--module)
                 modules="$modules $2";  # add module to module list
@@ -389,16 +424,20 @@ function test_module {
     fi
 
     # Run tests
-    if test_run_tests ${create_test_db:-0} ${fail_on_warn:-0} \
-            ${with_coverage:-0} $modules;
+    if test_run_tests ${recreate_db:-0} ${create_test_db:-0} \
+        ${fail_on_warn:-0} ${with_coverage:-0} $modules;
     then
         local res=$?;
     else
         local res=$?
     fi
 
-    if [ ! -z $with_coverate_report_html ]; then
+    if [ ! -z "$with_coverage_report_html" ]; then
         execv coverage html;
+    fi
+
+    if [ ! -z "$with_coverage_report" ]; then
+        execv coverage report;  # --skip-covered;
     fi
     # ---------
 

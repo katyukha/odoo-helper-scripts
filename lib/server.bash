@@ -66,22 +66,22 @@ function server_start {
     else
         # Check if server process is already running
         if [ $(server_get_pid) -gt 0 ]; then
-            echo -e "${REDC}Server process already running.${NC}";
+            echoe -e "${REDC}Server process already running.${NC}";
             exit 1;
         fi
 
         server_run --pidfile=$ODOO_PID_FILE "$@" &
         local pid=$!;
         sleep 2;
-        echo -e "${GREENC}Odoo started!${NC}";
-        echo -e "PID File: ${YELLOWC}$ODOO_PID_FILE${NC}."
-        echo -e "Process ID: ${YELLOWC}$pid${NC}";
+        echoe -e "${GREENC}Odoo started!${NC}";
+        echoe -e "PID File: ${YELLOWC}$ODOO_PID_FILE${NC}."
+        echoe -e "Process ID: ${YELLOWC}$pid${NC}";
     fi
 }
 
 function server_stop {
     if [ ! -z $INIT_SCRIPT ]; then
-        echo -e "${YELLOWC}Soppting server via init script: $INIT_SCRIPT ${NC}";
+        echoe -e "${YELLOWC}Soppting server via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT stop;
     else
         local pid=$(server_get_pid);
@@ -104,14 +104,14 @@ function server_stop {
                     sleep 1;
                 fi
 
-                echo "Server stopped.";
+                echoe -e "${GREENC}OK${NC}: Server stopped.";
                 rm -f $PID_FILE;
             else
-                echo "Cannot kill process.";
+                echoe -e "${REDC}ERROR${NC}: Cannot kill process.";
             fi
         else
-            echo -e "${YELLOWC}Server seems not to be running!${NC}"
-            echo -e "${YELLOWC}Or PID file $ODOO_PID_FILE was removed${NC}";
+            echoe -e "${YELLOWC}Server seems not to be running!${NC}"
+            echoe -e "${YELLOWC}Or PID file $ODOO_PID_FILE was removed${NC}";
         fi
     fi
 
@@ -119,23 +119,23 @@ function server_stop {
 
 function server_status {
     if [ ! -z $INIT_SCRIPT ]; then
-        echo -e "${YELLOWC}Server status via init script: $INIT_SCRIPT ${NC}";
+        echoe -e "${BLUEC}Server status via init script:${YELLOWC} $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT status;
     else
         local pid=$(server_get_pid);
         if [ $pid -gt 0 ]; then
-            echo -e "${GREENC}Server process already running. PID=${pid}.${NC}";
+            echoe -e "${GREENC}Server process already running. PID=${YELLOWC}${pid}${GREENC}.${NC}";
         elif [ $pid -eq -2 ]; then
-            echo -e "${YELLOWC}Pid file points to unexistent process.${NC}";
+            echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
         elif [ $pid -eq -1 ]; then
-            echo "Server stopped";
+            echoe -e "${REDC}Server stopped${NC}";
         fi
     fi
 }
 
 function server_restart {
     if [ ! -z $INIT_SCRIPT ]; then
-        echo -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
+        echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT restart;
     else
         server_stop;
@@ -156,11 +156,22 @@ function server_auto_update {
     # Update odoo sources
     odoo_update_sources;
 
-    echo -e "${LBLUEC}update databases...${NC}";
+    echoe -e "${LBLUEC}update databases...${NC}";
     addons_install_update "update" all;
 
     # Start server
     server_start;
+}
+
+# Print ps aux output for odoo-related processes
+function server_ps {
+    local server_script=$(get_server_script);
+    if [ -z "$server_script" ]; then
+        echo -e "${REDC}ERROR${NC}: this command should be called inside odoo-helper project"
+        return 1;
+    fi
+    echo -e "${YELLOWC}Odoo processes:${NC}";
+    ps aux | grep -e "$(get_server_script)";
 }
 
 # server [options] <command> <args>
@@ -182,6 +193,7 @@ function server {
         status          - status of background server
         auto-update     - automatiacly update server. (WARN: experimental feature. may be buggy)
         log             - open server log
+        ps              - print running odoo processes
         -h|--help|help  - display this message
 
     Options:
@@ -241,6 +253,11 @@ function server {
                 less ${LOG_FILE:-$LOG_DIR/odoo.log};
                 exit;
             ;;
+            ps)
+                shift;
+                server_ps;
+                exit;
+            ;;
             *)
                 # all nex options have to be passed to the server
                 break;
@@ -256,6 +273,6 @@ function server {
 function odoo_py {
     echov -e "${LBLUEC}Running odoo.py with arguments${NC}:  $@";
     local cmd=$(check_command odoo odoo-bin odoo.py);
-    exec_conf $ODOO_CONF_FILE execu cmd "$@";
+    exec_conf $ODOO_CONF_FILE execu $cmd "$@";
 }
 

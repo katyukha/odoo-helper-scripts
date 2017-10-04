@@ -15,7 +15,7 @@ set -e; # fail on errors
 
 # git_is_git_repo <repo_path>
 function git_is_git_repo {
-    if [ -d ${1}/.git ] || (cd $1 && git rev-parse --git-dir > /dev/null 2>&1); then
+    if [ -d ${1}/.git ] || (cd ${1} && git rev-parse --git-dir > /dev/null 2>&1); then
         return 0;   # it is git repository
     else
         return 1;   # It is not git repository

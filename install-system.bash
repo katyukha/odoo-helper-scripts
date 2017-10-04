@@ -12,8 +12,9 @@ ODOO_HELPER_BRANCH=${1:-master}
 
 set -e;  # Fail on each error
 
+# Install git if not installed yet
 if ! command -v git >/dev/null 2>&1; then
-    apt-get install -y git;
+    apt-get install -y git wget;
 fi
 
 # define vars

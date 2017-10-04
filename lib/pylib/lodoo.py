@@ -8,16 +8,8 @@ import pkg_resources
 
 import erppeek
 
-# Based on code: https://github.com/tinyerp/erppeek
-# With PR applied: https://github.com/tinyerp/erppeek/pull/92
-def start_odoo_services(options=None, appname='odoo-helper'):
-    """Initialize the Odoo services.
-    Import the ``openerp`` package and load the Odoo services.
-    The argument `options` receives the command line arguments
-    for ``openerp``.  Example:
-      ``['-c', '/path/to/openerp-server.conf', '--without-demo', 'all']``.
-    Return the ``openerp`` package.
-    """
+
+def get_odoo_pkg():
     try:
         # Odoo 10.0+
 
@@ -33,7 +25,20 @@ def start_odoo_services(options=None, appname='odoo-helper'):
             import openerp as odoo
         except ImportError:
             raise
+    return odoo
 
+
+# Based on code: https://github.com/tinyerp/erppeek
+# With PR applied: https://github.com/tinyerp/erppeek/pull/92
+def start_odoo_services(options=None, appname='odoo-helper'):
+    """Initialize the Odoo services.
+    Import the ``openerp`` package and load the Odoo services.
+    The argument `options` receives the command line arguments
+    for ``openerp``.  Example:
+      ``['-c', '/path/to/openerp-server.conf', '--without-demo', 'all']``.
+    Return the ``openerp`` package.
+    """
+    odoo = get_odoo_pkg()
     odoo._api_v7 = odoo.release.version_info < (8,)
     if not (odoo._api_v7 and odoo.osv.osv.service):
         os.putenv('TZ', 'UTC')
@@ -94,24 +99,35 @@ class LocalClient(object):
         if self.odoo._api_v7:
             self.registry = self.odoo.modules.registry.RegistryManager.get(db)
             self.cursor = self.registry.db.cursor()
+            self._env = None
         else:
             # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
             # to get registry instance for db
             self.registry = self.odoo.registry(db)
             self.cursor = self.registry.cursor()
+            self._env = self.odoo.api.Environment(
+                self.cursor, self.odoo.SUPERUSER_ID, {})
+
+    @property
+    def env(self):
+        self.require_v8_api()
+        return self._env
+
+    def require_v8_api(self):
+        if self.odoo._api_v7:
+            raise NotImplementedError(
+                "Using *env* is not supported for this Odoo version")
 
     def call_method(self, model, method, *args, **kwargs):
-        # Simple wrapper to call local model methods for database
-        odoo = self.odoo
-
-        if odoo._api_v7:
+        """ Simple wrapper to call local model methods for database
+        """
+        if self.odoo._api_v7:
             return getattr(self.registry[model], method)(
-                self.cursor, odoo.SUPERUSER_ID, *args, **kwargs)
+                self.cursor, self.odoo.SUPERUSER_ID, *args, **kwargs)
         else:
             # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
             # to get registry instance for db
-            env = odoo.api.Environment(self.cursor, odoo.SUPERUSER_ID, {})
-            return getattr(env[model], method)(*args, **kwargs)
+            return getattr(self.env[model], method)(*args, **kwargs)
 
     def __getitem__(self, name):
         return LocalModel(self, name)

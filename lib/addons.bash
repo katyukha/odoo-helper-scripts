@@ -65,7 +65,7 @@ function addons_get_addon_dependencies {
     local addon_path=$1;
     local manifest_file="$(addons_get_manifest_file $addon_path)";
 
-    echo $(python -c "print ' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', []))");
+    echo $(python -c "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
 }
 
 # Get list of installed addons
@@ -76,7 +76,7 @@ function addons_get_installed_addons {
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
     python_cmd="$python_cmd installed_addons=cl['ir.module.module'].search([('state', '=', 'installed')]);"
-    python_cmd="$python_cmd print ','.join(installed_addons.mapped('name'));"
+    python_cmd="$python_cmd print(','.join(installed_addons.mapped('name')));"
 
     run_python_cmd "$python_cmd";
 }
@@ -101,6 +101,8 @@ function addons_update_module_list_db {
 function addons_update_module_list {
     local db=$1;
 
+    # TODO: improve performance of all databases case
+
     if [ ! -z $db ]; then
         echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
         addons_update_module_list_db $db;
@@ -121,6 +123,10 @@ function addons_update_module_list {
 function addons_list_in_directory {
     local addons_path=${1:-$ADDONS_DIR};
     if [ -d $addons_path ]; then
+        if is_odoo_module $addons_path; then
+            echo "$(readlink -f $addons_path)";
+        fi
+
         for addon in "$addons_path"/*; do
             if is_odoo_module $addon; then
                 echo "$(readlink -f $addon)";
@@ -136,7 +142,13 @@ function addons_list_in_directory {
 #
 # addons_list_in_directory_by_name <directory to search odoo addons in>
 function addons_list_in_directory_by_name {
-    for addon_path in $(addons_list_in_directory $1); do
+    # TODO: add ability to filter only installable addons
+    local addons_dir=$1;
+    if [ -z $addons_dir ] || [ ! -d $addons_dir ]; then
+        echoe -e "${REDC}ERROR${NC}: addons directory (${YELLOWC}$addons_dir${NC}) not specified or does not exists!";
+        return 1
+    fi
+    for addon_path in $(addons_list_in_directory $addons_dir); do
         echo "$(basename $addon_path)";
     done
 }
@@ -304,6 +316,41 @@ function addons_show_status {
 }
 
 
+# addons_install_update_internal <cmd> <db> <todo_addons>
+# Options:
+#   cmd          - one of 'install', 'update', 'uninstall'
+#   db           - name of database
+#   todo_addons  - coma-separated list of addons
+function addons_install_update_internal {
+    local cmd="$1"; shift;
+    local db="$1"; shift;
+    local todo_addons="$1"; shift;
+
+    if [ "$cmd" == "install" ]; then
+        server_run -d $db -i $todo_addons --stop-after-init --no-xmlrpc;
+        return $?
+    elif [ "$cmd" == "update" ]; then
+        server_run -d $db -u $todo_addons --stop-after-init --no-xmlrpc;
+        return $?
+    elif [ "$cmd" == "uninstall" ]; then
+        local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', '=', 'installed')]";
+        local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$ODOO_CONF_FILE']);";
+        python_cmd="$python_cmd cl.require_v8_api();";
+        python_cmd="$python_cmd modules=cl['ir.module.module'].search($addons_domain);";
+        python_cmd="$python_cmd modules.button_immediate_uninstall();";
+        python_cmd="$python_cmd print(', '.join(modules.mapped('name')));";
+        local addons_uninstalled=$(run_python_cmd "$python_cmd");
+        if [ -z "$addons_uninstalled" ]; then
+            echoe -e "${YELLOWC}WARNING${NC}: Nothing to uninstall";
+        else
+            echoe -e "${GREENC}OK${NC}: Following addons successfully uninstalled:\n${addons_uninstalled};";
+        fi
+    else
+        echoe -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
+        return 1;
+    fi
+}
+
 # Install or update addons
 # addons_install_update <install|update>
 function addons_install_update {
@@ -349,21 +396,15 @@ function addons_install_update {
     todo_addons="${todo_addons#,}";  # remove first comma
 
     if [ -z $todo_addons ]; then
-        echo "No addons specified! Exiting";
+        echoe -e "${REDC}ERROR${NC}:No addons specified! Exiting";
         return 1;
     fi
 
     # If no database specified, install/update addons
     # to all available databases
     if [ -z $dbs ]; then
+        # TODO: search for databases where these addons installed
         dbs=$(odoo_db_list);
-    fi
-
-    [ "$cmd" == "install" ] && local cmd_opt="-i";
-    [ "$cmd" == "update" ]  && local cmd_opt="-u";
-
-    if [ -z $cmd_opt ]; then
-        echo -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
     fi
 
     # Stop server if it is running
@@ -373,10 +414,11 @@ function addons_install_update {
     fi
 
     for db in $dbs; do
-        if server_run -d $db $cmd_opt $todo_addons --stop-after-init --no-xmlrpc; then
-            echo -e "${LBLUEC}Update for '$db':${NC} ${GREENC}OK${NC}";
+        if addons_install_update_internal $cmd $db $todo_addons; then
+            echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${GREENC}OK${NC}";
         else
-            echo -e "${LBLUEC}Update for '$db':${NC} ${REDC}FAIL${NC}";
+            echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
+            return 1;
         fi
     done
 
@@ -407,13 +449,15 @@ function addons_test_installed {
 function addons_command {
     local usage="Usage:
 
-        $SCRIPT_NAME addons list_repos [addons path]      - list git repositories
-        $SCRIPT_NAME addons list_no_repo [addons path]    - list addons not under git repo
-        $SCRIPT_NAME addons check_updates [addons path]   - Check for git updates of addons and displays status
-        $SCRIPT_NAME addons pull_updates [addons path]    - Pull changes from git repos
+        $SCRIPT_NAME addons list <addons path>            - list addons in specified directory
+        $SCRIPT_NAME addons list-repos [addons path]      - list git repositories
+        $SCRIPT_NAME addons list-no-repo [addons path]    - list addons not under git repo
+        $SCRIPT_NAME addons check-updates [addons path]   - Check for git updates of addons and displays status
+        $SCRIPT_NAME addons pull-updates [addons path]    - Pull changes from git repos
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update --help                 - update some addon[s]
         $SCRIPT_NAME addons install --help                - install some addon[s]
+        $SCRIPT_NAME addons uninstall --help              - uninstall some addon[s]
         $SCRIPT_NAME addons update-list [db]              - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons --help                        - show this help message
@@ -429,24 +473,29 @@ function addons_command {
     do
         local key="$1";
         case $key in
-            list_repos)
+            list)
+                shift;
+                addons_list_in_directory_by_name $@;
+                exit 0;
+            ;;
+            list-repos|list_repos)
                 shift;
                 addons_list_repositories "$@";
                 exit 0;
             ;;
-            list_no_repo)
+            list-no-repo|list_no_repo)
                 shift;
                 addons_list_no_repository "$@";
                 exit 0;
             ;;
-            check_updates)
+            check-updates|check_updates)
                 shift;
                 ADDONS_DIR=${1:-$ADDONS_DIR};
                 addons_git_fetch_updates;
                 addons_show_status --only-git-updates;
                 exit 0;
             ;;
-            pull_updates)
+            pull-updates|pull_updates)
                 shift;
                 echo -e "${LBLUEC}Checking for updates...${NC}";
                 addons_git_fetch_updates "$@";
@@ -468,6 +517,11 @@ function addons_command {
             install)
                 shift;
                 addons_install_update "install" "$@";
+                exit 0;
+            ;;
+            uninstall)
+                shift;
+                addons_install_update "uninstall" "$@";
                 exit 0;
             ;;
             update-list)

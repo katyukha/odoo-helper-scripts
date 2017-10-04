@@ -1,7 +1,55 @@
 # Odoo helper scripts collection
 
+Master: 
 [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=master)](https://travis-ci.org/katyukha/odoo-helper-scripts)
 [![Coverage Status](https://coveralls.io/repos/github/katyukha/odoo-helper-scripts/badge.svg?branch=master)](https://coveralls.io/github/katyukha/odoo-helper-scripts?branch=master)
+
+Dev:
+[![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=dev)](https://travis-ci.org/katyukha/odoo-helper-scripts)
+[![Coverage Status](https://coveralls.io/repos/github/katyukha/odoo-helper-scripts/badge.svg?branch=dev)](https://coveralls.io/github/katyukha/odoo-helper-scripts?branch=dev)
+
+
+## Features
+
+- Easily manage few instances of odoo that ran on same machine
+- High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
+- Easy addons installation
+    - Automatiacly resolve and fetch dependencies
+        - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
+        - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
+    - Specific file format to track addon dependencies: [odoo\_requirements.txt](#syntax-of-odoo_requirementstxt)
+    - installation from *git* repositories
+    - installation from *Mercurial* repositories (**experimental**)
+    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
+    - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
+    - works good with long recursive dependencies.
+      One of the reasons for this script collection development was,
+      ability to automaticaly install more that 50 addons,
+      that depend on each other, and where each addon have it's own git repo.
+- Supported odoo versions:
+    - *7.0* (some functionality may not work),
+    - *8.0*
+    - *9.0*
+    - *10.0*
+    - *11.0* (experimental, *python3* and *python2*)
+- OS support:
+    - On *Ubuntu* should work nice
+    - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
+    - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
+
+
+## Documentation note
+
+Documentaion in this readme, or in other sources, may not be up to date!!!
+So use *--help* options, which is available for most of commands.
+
+
+## Usage note
+
+This script collection is designed to simplify life of addons developer.
+This project ***is not*** designed, to install and configure production ready Odoo instances!!!
+To install Odoo in production read [Odoo official installation doc](https://www.odoo.com/documentation/10.0/setup/install.html) first.
+Also, it is possible to manage almost any Odoo intance with this project, if it will be configured right.
 
 
 ## Install (user space)
@@ -41,18 +89,14 @@ If you wish to install from *dev* branch, you can use following command:
 wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s - dev
 ```
 
+## Test your OS support
 
-## Features
+It is possible to run basic tests via docker. For this task, odoo-helper-scripts repo
+contains script ```run_docker_test.bash```. Run ```bash run_docker_test.bash --help``` to
+see all available options for that script.
 
-- Easily manage few instances of odoo that ran on same machine
-- High usage of virtual env for isolation purpose
-- Easy way to install from git repositories
-    - Automatiacly resolve dependencies (oca_dependencies.txt, requirements.txt)
-    - Specific format of dependencies: [odoo_requirements.txt](#syntax-of-odoo_requirementstxt)
-- Ability to fetch addons from Mercurial repositories
-- Easy mechanism to fetch addons from any git repo
-- Easy mechanism to fetch python dependency from PyPI or any vcs
-- Supports fetching dependencies for addons (incuding OCA dependencies and PIP requirements)
+For example to test, how odoo-helper-scripts will work on debian:stretch, do following:
+```cd $ODOO_HELPER_ROOT; bash run_docker_test.bash --docker-ti --docker-image debian:stretch```
 
 
 ## Usage
@@ -64,9 +108,6 @@ And after install you will have available folowing scripts in your path:
 
 Each script have ```-h``` or ```--help``` option which display most relevant information
 about script and all possible options and subcommands of script
-
-***Documentaion in this readme, or in other sources, may not be up to date!!!
-So use --help options, which is available for most of commands.***
 
 Look at [complete example](#complete-example)
 
@@ -96,9 +137,9 @@ This script simlify interaction with odoo installs (mostly done by *odoo-install
 Note, that this script becomes useful when there is *odoo-helper.conf* config file could be found.
 Config will be searched in folowing paths:
 
-- */etc/default/odoo-helper.conf*  - System wide config file. May be usefule if
+- `/etc/default/odoo-helper.conf`  - System wide config file. May be usefule if
                                      You have only one Odoo instalation in system
-- *<user home dir>/odoo-helper.conf*   - User specific config.
+- `<user home dir>/odoo-helper.conf`   - User specific config.
 - *Project specific* - this config is searched in working directory and up. first one found will be used.
                      This feature allows to use *odoo-helper* with multiple odoo instances in one system
 

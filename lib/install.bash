@@ -9,6 +9,7 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
 fi
 
 # ----------------------------------------------------------------------------------------
+ohelper_require "config";
 ohelper_require "postgres";
 
 
@@ -25,6 +26,7 @@ function install_preconfigure_env {
     DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
     DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
     DB_PORT=${DB_PORT:-${ODOO_DBPORT:-5432}};
+    VIRTUALENV_PYTHON=${VIRTUALENV_PYTHON:-python2};
 }
 
 # create directory tree for project
@@ -96,17 +98,27 @@ function install_wkhtmltopdf {
             local release=$(lsb_release -sc);
             local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
             if ! wget -q $download_link -O $wkhtmltox_path; then
-                # fallback to trusty release
-                local release=trusty;
+                if [ "$(lsb_release -si)" == "Ubuntu" ]; then
+                    # fallback to trusty release for ubuntu systems
+                    local release=trusty;
+                elif [ "$(lsb_release -si)" == "Debian" ]; then
+                    local release=jessie;
+                else
+                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
+                    return 2;
+                fi
                 local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
                 if ! wget -q $download_link -O $wkhtmltox_path; then
+                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
                     return 1;
                 fi
             fi
         fi
         local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
-        install_sys_deps_internal $wkhtmltox_deps;
-        with_sudo dpkg -i $wkhtmltox_path  # install ignoring dependencies
+        if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
+            echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
+        fi
+
         rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
     fi
 }
@@ -116,10 +128,7 @@ function install_wkhtmltopdf {
 function install_sys_deps_internal {
     # Odoo's debian/control file usualy contains this in 'Depends' section 
     # so we need to skip it before running apt-get
-    if [ "$1" == '${misc:Depends}' ]; then
-        shift;
-    fi
-    echo "Installing system dependencies: $@";
+    echoe -e "${BLUEC}Installing system dependencies${NC}: $@";
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
@@ -130,7 +139,105 @@ function install_sys_deps_internal {
 # parse debian control file to fetch odoo dependencies
 function install_parse_debian_control_file {
     local file_path=$1;
-    local sys_deps=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+    local sys_deps=;
+    local sys_deps_raw=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+
+    # Preprocess odoo dependencies
+    # TODO: create list of packages that should not be installed via apt
+    for dep in $sys_deps_raw; do
+        case $dep in
+            '${misc:Depends}')
+                continue
+            ;;
+            '${python3:Depends}')
+                continue
+            ;;
+            python-pypdf|python-pypdf2|python3-pypdf2)
+                # Will be installed by pip from requirements.txt
+                continue
+            ;;
+            python-pybabel|python-babel|python-babel-localedata|python3-babel)
+                # Will be installed by setup.py or pip
+                continue
+            ;;
+            python-feedparser|python3-feedparser)
+                # Seems to be pure-python dependency
+                continue
+            ;;
+            python-requests|python3-requests)
+                # Seems to be pure-python dependency
+                continue
+            ;;
+            python-urllib3)
+                # Seems to be pure-python dependency
+                continue
+            ;;
+            python-vobject|python3-vobject)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-decorator|python3-decorator)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-pydot|python3-pydot)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-mock|python3-mock)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-pyparsing|python3-pyparsing)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-vatnumber|python3-vatnumber)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-yaml|python3-yaml)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-xlwt|python3-xlwt)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-dateutil|python3-dateutil)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-openid|python3-openid)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            python-mako|python-jinja2|python3-mako|python3-jinja2)
+                # Will be installed by setup.py or requirements
+                continue
+            ;;
+            #-----
+            python-lxml|python-libxml2|python-imaging|python-psycopg2|python-docutils|python-ldap|python-passlib|python-psutil)
+                continue
+            ;;
+            python3-lxml|python3-pil|python3-psycopg2|python3-docutils|python3-ldap|python3-passlib|python3-psutil)
+                continue
+            ;;
+            python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
+                continue
+            ;;
+            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text)
+                continue
+            ;;
+            python-libxslt1|python-simplejson|python-unittest2)
+                continue
+            ;;
+            *)
+            sys_deps="$sys_deps $dep";
+        esac;
+
+    done
+
     echo "$sys_deps";
 }
 
@@ -146,20 +253,43 @@ function install_sys_deps_for_odoo_version {
     rm $tmp_control;
 }
 
-# Get dependencies from odoo's debian/control file
-function install_sys_deps {
-    local control_file=$ODOO_PATH/debian/control;
+# install python requirements for specified odoo version via PIP requirements.txt
+# NOTE: not supported for odoo 7.0 and lower.
+function install_odoo_py_requirements_for_version {
+    local odoo_version=${1:-$ODOO_VERSION};
+    local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
+    local tmp_requirements=$(mktemp);
+    local tmp_requirements_post=$(mktemp);
+    if wget -q "$requirements_url" -O "$tmp_requirements"; then
+        # Preprocess requirements to avoid known bugs
+		while read dependency; do
+			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
+                # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
+                # especialy to versions lower than that used by setuptools
+                continue
+            elif [[ "$dependency_stripped" =~ pychart* ]]; then
+                # Pychart is not downloadable. Use Python-Chart package
+                echo "Python-Chart";
+            elif [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Install last gevent, because old gevent versions (ex. 1.0.2)
+                # cause build errors.
+                # Instead last gevent (1.1.0+) have already prebuild wheels.
+                echo "gevent";
+			else
+                # Echo dependency line unchanged to rmp file
+                echo $dependency;
+			fi
+		done < "$tmp_requirements" > "$tmp_requirements_post";
+        execv pip install -r "$tmp_requirements_post";
+    fi
 
-    if [ ! -f "$control_file" ] && [ ! -z $ODOO_VERSION ]; then
-        # If odoo not installed, then fetch this file from odoo repository
-        install_sys_deps_for_odoo_version $ODOO_VERSION;
-    elif [ -f "$control_file" ]; then
-        # Parse control file and install system dependencies
-        local sys_deps=$(install_parse_debian_control_file $control_file);
-        echo -e "${BLUEC}Sys deps to be installed:${NC} $sys_deps";
-        install_sys_deps_internal $sys_deps;
-    else
-        echo -e "${REDC}ERROR! Cannot find debian/control file${NC}";
+    if [ -f "$tmp_requirements" ]; then
+        rm $tmp_requirements;
+    fi
+
+    if [ -f "$tmp_requirements_post" ]; then
+        rm $tmp_requirements_post;
     fi
 }
 
@@ -183,17 +313,18 @@ function install_and_configure_postgresql {
 
 # install_system_prerequirements
 function install_system_prerequirements {
-    echo "Updating package list..."
+    echoe -e "${BLUEC}Updating package list...${NC}"
     with_sudo apt-get update || true;
 
-    echo "Installing system preprequirements...";
-    install_sys_deps_internal git wget python-setuptools python-pip \
-        perl g++ libpq-dev python-dev expect-dev libevent-dev libjpeg-dev \
+    echoe -e "${BLUEC}Installing system preprequirements...${NC}";
+    install_sys_deps_internal git wget lsb-release procps \
+        python-setuptools python-pip python-wheel libevent-dev \
+        perl g++ libpq-dev python-dev python3-dev expect-dev tcl8.6 libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
-        libsasl2-dev libldap2-dev libssl-dev libffi-dev;
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev libyaml-dev;
 
     if ! install_wkhtmltopdf; then
-        echo "Cannot install wkhtmltopdf!!! Skipping...";
+        echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
     with_sudo pip install --upgrade virtualenv cffi;
@@ -207,23 +338,32 @@ function install_system_prerequirements {
 function install_virtual_env {
     # To enable system site packages, just set env variable:
     #   VIRTUALENV_SYSTEM_SITE_PACKAGES=1
-    if [ ! -z $VENV_DIR ] &&[ ! -d $VENV_DIR ]; then
-        virtualenv $@ $VENV_DIR;
+    if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
+        if [ -z $VIRTUALENV_PYTHON ]; then
+            virtualenv $@ $VENV_DIR;
+        else
+            VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
+        fi
     fi
+}
+
+# Install extra python tools
+function install_python_tools {
+    execu pip install watchdog pylint-odoo coverage \
+        flake8 flake8-colors Mercurial;
 }
 
 # install_python_prerequirements
 function install_python_prerequirements {
     # required to make odoo.py work correctly when setuptools too old
-    execu easy_install --upgrade setuptools;
+    execu easy_install --upgrade setuptools pip;
     execu pip install --upgrade pip erppeek \
-        setproctitle python-slugify watchdog pylint pylint-odoo coverage \
-        flake8 flake8-colors setuptools-odoo cffi;
+        setproctitle python-slugify setuptools-odoo cffi jinja2 six \
+        num2words;
 
     if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
         execv pip install Python-Chart;
     fi
-
 }
 
 # Generate configuration file fo odoo
@@ -277,10 +417,6 @@ function odoo_gevent_install_workaround {
 
 
 function install_odoo_workaround_70 {
-    # Fix odoo 7.0 setup tools dependencies, to limit their versions
-    # because new versions have api changes, since odoo 7.0 released
-    execv pip install 'vobject\<0.9.0' 'psutil\<2' 'reportlab\<=3.0';
-
     # Link libraries to virtualenv/lib dir
     local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
     if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
@@ -297,8 +433,10 @@ function install_odoo_workaround_70 {
         ln -s $lib_dir/libz.so $VENV_DIR/lib;
     fi
 
+    # Installing requirements via pip. This should improve performance
+    execv pip install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
+
     # Force use Pillow, because PIL is too old.
-    execv pip install Pillow;
     cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
     sed -i -r "s/PIL/Pillow/" $ODOO_PATH/setup.py;
     sed -i -r "s/pychart/Python-Chart/" $ODOO_PATH/setup.py;
@@ -322,31 +460,7 @@ function odoo_run_setup_py {
     fi
 
     # Install dependencies via pip (it is faster if they are cached)
-    if [ -f "$ODOO_PATH/requirements.txt" ]; then
-        # Based on http://stackoverflow.com/questions/22250483/stop-pip-from-failing-on-single-package-when-installing-with-requirements-txt
-        # This is done to install as much deps as possible via pip. thus they are cached, and got correct versions
-        # If some package could not be installed, show a warning with name of that package
-		while read dependency; do
-			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
-                # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
-                # especialy to versions lower than that used by setuptools
-                continue
-            elif [[ "$dependency_stripped" =~ pychart* ]]; then
-                # Pychart is not downloadable. Use Python-Chart package
-                echo "Python-Chart";
-            elif [[ "$dependency_stripped" =~ gevent* ]]; then
-                # Install last gevent, because old gevent versions (ex. 1.0.2)
-                # cause build errors.
-                # Instead last gevent (1.1.0+) have already prebuild wheels.
-                echo "gevent";
-			else
-                # Echo dependency line unchanged to rmp file
-                echo $dependency;
-			fi
-		done < "$ODOO_PATH/requirements.txt" > /tmp/odoo_install_requirements.txt;
-        execv pip install -r /tmp/odoo_install_requirements.txt;
-    fi
+    install_odoo_py_requirements_for_version;
 
     # Install odoo
     (cd $ODOO_PATH && execu python setup.py develop $@);
@@ -387,6 +501,8 @@ function install_entry_point {
 
         $SCRIPT_NAME install pre-requirements [-y]         - install system preprequirements
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
+        $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
+        $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
@@ -422,9 +538,21 @@ function install_entry_point {
                 install_sys_deps_for_odoo_version "$@";
                 exit 0;
             ;;
+            py-deps)
+                shift;
+                config_load_project;
+                install_odoo_py_requirements_for_version $@;
+                exit 0;
+            ;;
+            py-tools)
+                shift;
+                config_load_project;
+                install_python_tools;
+                exit 0;
+            ;;
             reinstall-venv)
                 shift;
-                load_project_conf;
+                config_load_project;
                 install_reinstall_venv "$@";
                 exit 0;
             ;;
