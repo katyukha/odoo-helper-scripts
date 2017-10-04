@@ -26,8 +26,12 @@ Dev:
       One of the reasons for this script collection development was,
       ability to automaticaly install more that 50 addons,
       that depend on each other, and where each addon have it's own git repo.
-- Supports odoo versions: *7.0*, *8.0*, *9.0*, *10.0*
-- Also should work with Odoo 11.0 (including python3 install)
+- Supported odoo versions:
+    - *7.0* (some functionality may not work),
+    - *8.0*
+    - *9.0*
+    - *10.0*
+    - *11.0* (experimental, *python3* and *python2*)
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.

@@ -334,53 +334,20 @@ odoo-helper status
 
 
 echo -e "${YELLOWC}
-====================================
-Install and check Odoo 11.0 (master)
-====================================
+=================================
+Install and check Odoo 11.0 (Py3)
+=================================
 ${NC}"
 
 cd ../;
-odoo-helper install sys-deps -y master;
+odoo-helper install sys-deps -y 11.0;
 odoo-helper postgres user-create odoo11 odoo;
-odoo-install --install-dir odoo-11.0 --odoo-version master \
+odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
     --db-user odoo11 --db-pass odoo \
-    --python python2
-
-cd odoo-11.0;
-
-# Test python version
-odoo-helper exec python --version
-
-echo "Generated odoo config:"
-echo "$(cat ./conf/odoo.conf)"
-echo "";
-
-odoo-helper server run --stop-after-init;  # test that it runs
-
-# Show project status
-odoo-helper status
-odoo-helper start
-odoo-helper server ps
-odoo-helper server status
-odoo-helper stop
-
-
-echo -e "${YELLOWC}
-==========================================
-Install and check Odoo 11.0 (master) (Py3)
-==========================================
-${NC}"
-
-cd ../;
-odoo-helper install sys-deps -y master;
-odoo-helper postgres user-create odoo11-py3 odoo;
-odoo-install --install-dir odoo-11.0-py3 --odoo-version master \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo11py3 --db-pass odoo \
     --python python3
 
-cd odoo-11.0-py3;
+cd odoo-11.0;
 
 # Test python version
 echo -e "${YELLOWC}Ensure that it is Py3${NC}";

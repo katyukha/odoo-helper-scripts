@@ -149,20 +149,22 @@ function install_parse_debian_control_file {
             '${misc:Depends}')
                 continue
             ;;
-            python-pypdf|python-pypdf2)
+            '${python3:Depends}')
+                continue
+            ;;
+            python-pypdf|python-pypdf2|python3-pypdf2)
                 # Will be installed by pip from requirements.txt
                 continue
             ;;
-            python-pybabel|python-babel|python-babel-localedata)
-                # Dependency of Odoo 7.0
-                # Will be installed by setup.py
+            python-pybabel|python-babel|python-babel-localedata|python3-babel)
+                # Will be installed by setup.py or pip
                 continue
             ;;
-            python-feedparser)
+            python-feedparser|python3-feedparser)
                 # Seems to be pure-python dependency
                 continue
             ;;
-            python-requests)
+            python-requests|python3-requests)
                 # Seems to be pure-python dependency
                 continue
             ;;
@@ -170,47 +172,47 @@ function install_parse_debian_control_file {
                 # Seems to be pure-python dependency
                 continue
             ;;
-            python-vobject)
+            python-vobject|python3-vobject)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-decorator)
+            python-decorator|python3-decorator)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-pydot)
+            python-pydot|python3-pydot)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-mock)
+            python-mock|python3-mock)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-pyparsing)
+            python-pyparsing|python3-pyparsing)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-vatnumber)
+            python-vatnumber|python3-vatnumber)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-yaml)
+            python-yaml|python3-yaml)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-xlwt)
+            python-xlwt|python3-xlwt)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-dateutil)
+            python-dateutil|python3-dateutil)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-openid)
+            python-openid|python3-openid)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
-            python-mako|python-jinja2)
+            python-mako|python-jinja2|python3-mako|python3-jinja2)
                 # Will be installed by setup.py or requirements
                 continue
             ;;
@@ -218,7 +220,13 @@ function install_parse_debian_control_file {
             python-lxml|python-libxml2|python-imaging|python-psycopg2|python-docutils|python-ldap|python-passlib|python-psutil)
                 continue
             ;;
+            python3-lxml|python3-pil|python3-psycopg2|python3-docutils|python3-ldap|python3-passlib|python3-psutil)
+                continue
+            ;;
             python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
+                continue
+            ;;
+            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text)
                 continue
             ;;
             python-libxslt1|python-simplejson|python-unittest2)
