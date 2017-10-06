@@ -7,10 +7,6 @@ ODOO_HELPER_COMMON_IMPORTED=1;
 declare -A ODOO_HELPER_IMPORTED_MODULES;
 ODOO_HELPER_IMPORTED_MODULES[common]=1
 
-# Define version number
-ODOO_HELPER_VERSION="0.1.2";
-ODOO_HELPER_CONFIG_VERSION="1";
-
 # if odoo-helper root conf is not loaded yet, try to load it
 # This is useful when this lib is used by external utils,
 # making possible to write things like:
@@ -76,6 +72,9 @@ function ohelper_require {
         source $(oh_get_lib_path $mod_name);
     fi
 }
+
+# Import version info
+ohelper_require "version";
 
 
 # Simple function to exec command in virtual environment if required
