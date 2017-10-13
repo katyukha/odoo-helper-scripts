@@ -32,7 +32,7 @@ if [ ! -z $CI_RUN ]; then
         echo $(cat /etc/odoo-helper.conf);
     fi
     if [ -f $HOME/odoo-helper.conf ]; then
-        echo "Content of odoo-helper global config";
+        echo "Content of odoo-helper home config";
         echo $(cat $HOME/odoo-helper.conf);
     fi
 else

@@ -60,12 +60,12 @@ allow_colors;
 # oh_get_lib_path <lib name>
 function oh_get_lib_path {
     local mod_name=$1;
-    local mod_path="$ODOO_HELPER_LIB/$mod_name.bash"
+    local mod_path=$ODOO_HELPER_LIB/$mod_name.bash;
     if [ -f $mod_path ]; then
         echo "$mod_path";
     else
         >&2 echo -e "${REDC}ERROR${NC}: module ${YELLOWC}${mod_name}${NC} could not been loaded." \
-                    "Looking for module in ${BLUEC}${ODOO_HELPER_LIB}${NC}";
+                    "Looking for module in '${BLUEC}${ODOO_HELPER_LIB}${NC}'";
         return 1;
     fi
 }
@@ -80,6 +80,6 @@ function ohelper_require {
     fi
 }
 
-# Import version info
+# Import version info and utils
 ohelper_require "version";
 ohelper_require "utils";

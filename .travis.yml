@@ -11,17 +11,22 @@ rvm: 2.3
 env:
   global:
     - CI_RUN=1
-    - ODOO_HELPER_ROOT=$TRAVIS_BUILD_DIR
+    - ODOO_HELPER_INSTALL_PATH=$TRAVIS_BUILD_DIR
 
 install:
-  - "sudo apt-get install -y -qq git python-all-dev libevent-dev expect-dev libxml2-dev"
-  - "gem install bashcov coveralls"
+  #- "sudo apt-get install -y -qq git python-all-dev libevent-dev expect-dev libxml2-dev"
+  - "gem install bashcov:1.5.1 coveralls:0.8.13 codecov"
   - "bash install-user.bash"
 
 script:
   - "bashcov tests/test.bash"
+  #- "bashcov -r coveralls:Coveralls::SimpleCov::Formatter -r codecov:SimpleCov::Formatter::Codecov -- tests/test.bash"
 
 
 after_success:
+  - env
+  - coveralls version
+  - coveralls help
+  - coveralls
   - coveralls push
 

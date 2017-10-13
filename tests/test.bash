@@ -93,8 +93,8 @@ odoo-helper install postgres odoo7 odoo
 
 # Install odoo 7.0
 odoo-install -i odoo-7.0 --odoo-version 7.0 \
-	--conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 \
-	--db-user odoo7 --db-pass odoo
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 \
+    --db-user odoo7 --db-pass odoo
 cd odoo-7.0
 
 echo "Generated odoo config:"
@@ -267,7 +267,7 @@ ${NC}"
 
 # create test database if it does not exists yet
 if ! odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db create my-test-odoo-database;
+    odoo-helper db create my-test-odoo-database;
 fi
 
 # list all odoo databases available for this odoo instance
@@ -278,7 +278,7 @@ backup_file=$(odoo-helper db backup my-test-odoo-database zip);
 
 # drop test database if it exists
 if odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db drop my-test-odoo-database;
+    odoo-helper db drop my-test-odoo-database;
 fi
 
 # restore dropped database

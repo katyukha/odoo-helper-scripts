@@ -152,6 +152,10 @@ function install_parse_debian_control_file {
             '${python3:Depends}')
                 continue
             ;;
+            \$\{*)
+                # Skip dependencies stared with ${
+                continue
+            ;;
             python-pypdf|python-pypdf2|python3-pypdf2)
                 # Will be installed by pip from requirements.txt
                 continue

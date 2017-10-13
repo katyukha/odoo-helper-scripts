@@ -24,7 +24,7 @@ if [ -f "$ODOO_HELPER_USER_CONF" ]; then
 fi
 
 # Configure paths
-INSTALL_PATH=${ODOO_HELPER_ROOT:-$HOME/odoo-helper-scripts};
+INSTALL_PATH=${ODOO_HELPER_INSTALL_PATH:-$HOME/odoo-helper-scripts};
 ODOO_HELPER_LIB=${ODOO_HELPER_LIB:-$INSTALL_PATH/lib};
 ODOO_HELPER_BIN=${ODOO_HELPER_BIN:-$INSTALL_PATH/bin};
 
