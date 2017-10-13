@@ -27,6 +27,14 @@ if [ ! -z $CI_RUN ]; then
         echo "";
         
     fi
+    if [ -f /etc/odoo-helper.conf ]; then
+        echo "Content of odoo-helper global config";
+        echo $(cat /etc/odoo-helper.conf);
+    fi
+    if [ -f $HOME/odoo-helper.conf ]; then
+        echo "Content of odoo-helper global config";
+        echo $(cat $HOME/odoo-helper.conf);
+    fi
 else
     echo -e "\e[33m CI Environment not enabled \e[0m";
 

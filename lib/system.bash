@@ -67,16 +67,16 @@ function system_entry_point {
             update)
                 shift;
                 system_update_odoo_helper_scripts "$@";
-                exit 0;
+                exit;
             ;;
             lib-path)
                 shift;
                 oh_get_lib_path "$@"
-                exit 0;
+                exit;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                exit;
             ;;
             *)
                 echo "Unknown option / command $key";
