@@ -349,6 +349,9 @@ odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
 # Show project status
 odoo-helper status
 
+# Print odoo helper configuration
+odoo-helper print-config
+
 
 echo -e "${YELLOWC}
 =================================

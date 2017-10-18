@@ -78,7 +78,7 @@ function print_usage {
         update_odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
         scaffold [--help]                        - Scaffold repo, addon, model, etc
-        print_config                             - print current configuration
+        print-config                             - print current configuration
         status                                   - show project status
         start|stop|restart|log                   - shortcuts for server commands
         pylint                                   - shortcut for 'test pylint' command
@@ -178,7 +178,7 @@ function odoo_helper_main {
         config_load_project;
 
         print_usage;
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -187,11 +187,11 @@ function odoo_helper_main {
         case $key in
             -h|--help|help)
                 print_usage;
-                exit 0;
+                return 0;
             ;;
             --version)
                 odoo_helper_print_version;
-                exit 0;
+                return 0;
             ;;
             --downloads-dir)
                 DOWNLOADS_DIR=$2;
@@ -221,104 +221,104 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 fetch_module "$@";
-                exit
+                return
             ;;
             generate_requirements)
                 shift;
                 config_load_project;
                 addons_generate_requirements "$@"
-                exit;
+                return;
             ;;
             update_odoo)
                 shift;
                 config_load_project;
                 odoo_update_sources "$@";
-                exit;
+                return;
             ;;
             link|link_module)
                 shift;
                 config_load_project;
                 link_command "$@"
-                exit;
+                return;
             ;;
             server)
                 shift;
                 config_load_project;
                 server "$@";
-                exit;
+                return;
             ;;
             addons)
                 shift;
                 config_load_project;
                 addons_command "$@";
-                exit;
+                return;
             ;;
             odoo-py)
                 shift;
                 config_load_project;
                 odoo_py "$@";
-                exit;
+                return;
             ;;
             scaffold)
                 shift;
                 config_load_project;
                 scaffold_parse_cmd "$@";
-                exit;
+                return;
             ;;
             test)
                 shift;
                 config_load_project;
                 test_module "$@";
-                exit;
+                return;
             ;;
             db)
                 shift;
                 config_load_project;
                 odoo_db_command "$@";
-                exit;
+                return;
             ;;
             tr)
                 shift;
                 config_load_project;
                 tr_main "$@";
-                exit;
+                return;
             ;;
             postgres)
                 shift;
                 postgres_command "$@";
-                exit;
+                return;
             ;;
             install)
                 shift;
                 install_entry_point "$@";
-                exit;
+                return;
             ;;
-            print_config)
+            print-config)
                 shift;
                 config_load_project;
                 config_print;
-                exit;
+                return;
             ;;
             status)
                 config_load_project;
                 show_project_status;
-                exit;
+                return;
             ;;
             system)
                 shift;
                 system_entry_point "$@";
-                exit;
+                return;
             ;;
             # Server shortcuts
             start|stop|restart|log)
                 config_load_project;
                 server "$@";
-                exit;
+                return;
             ;;
             pylint|flake8)
                 config_load_project;
                 test_module "$@";
-                exit;
+                return;
             ;;
             exec)
                 shift;
@@ -328,17 +328,17 @@ function odoo_helper_main {
                 else
                     execv "$@";
                 fi
-                exit 0;
+                return 0;
             ;;
             pip)
                 shift;
                 config_load_project;
                 exec_pip "$@";
-                exit 0;
+                return 0;
             ;;
             *)
                 echo "Unknown option global option /command $key";
-                exit 1;
+                return 1;
             ;;
         esac;
         shift;

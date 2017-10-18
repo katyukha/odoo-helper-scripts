@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.1.3
+
+- use [codecov](https://codecov.io) for code coverage
+- renamed command `odoo-helper print_config` to `odoo-helper print-config`
+
+
 ## Version 0.1.2 (2017-10-04)
 
 - `odoo-install --python` option added. Now it is possible to install Odoo 11
