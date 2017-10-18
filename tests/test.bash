@@ -189,8 +189,20 @@ echo "";
 # if another branch was not specified
 odoo-helper fetch --oca project -m project_sla
 
+# create test database
+odoo-helper db create --demo odoo8-odoo-test
+
 # and run tests for it
-odoo-helper test --create-test-db -m project_sla
+odoo-helper test -m project_sla
+
+# Install py-tools to get coverage reports
+odoo-helper install py-tools
+
+# or run tests with test-coverage enabled
+odoo-helper test --coverage-report -m project_sla
+
+# Also we may generate html coverage report too
+odoo-helper test --coverage-html -m project_sla
 
 
 # also if you want to install python packages in current installation environment, you may use command:
@@ -328,6 +340,11 @@ odoo-helper pip install odoo10-addon-mis-builder;
 # regenerate Ukrainian translations for it
 odoo-helper fetch --oca partner-contact -m partner_firstname;
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
+
+# Check partner_first_name addon with pylint and flake8
+odoo-helper install py-tools
+odoo-helper pylint ./repositories/partner-contact/partner_firstname || true;
+odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
 
 # Show project status
 odoo-helper status
