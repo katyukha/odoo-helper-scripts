@@ -92,10 +92,6 @@ function print_usage {
         --version                                - display odoo-helper version and exit
     
     Global options:
-        --addons-dir <addons_directory>
-        --downloads-dir <downloads_directory>
-        --virtual-env <virtual_env_dir>       - optional, if specified, python dependencies
-                                                will be installed in that virtual env
         --use-copy                            - if set, then downloaded modules, repositories will
                                                 be copied instead of being symlinked
         --use-unbuffer                        - if set, then 'unbuffer' command from 'expect' package will be used
@@ -192,18 +188,6 @@ function odoo_helper_main {
             --version)
                 odoo_helper_print_version;
                 return 0;
-            ;;
-            --downloads-dir)
-                DOWNLOADS_DIR=$2;
-                shift;
-            ;;
-            --addons-dir)
-                ADDONS_DIR=$2;
-                shift;
-            ;;
-            --virtual-env)
-                VENV_DIR=$2;
-                shift;
             ;;
             --use-copy)
                 USE_COPY=1;

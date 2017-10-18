@@ -4,6 +4,12 @@
 
 - use [codecov](https://codecov.io) for code coverage
 - renamed command `odoo-helper print_config` to `odoo-helper print-config`
+- Removed old unused options
+  - `odoo-helper --addons-dir <addons_directory>`
+  - `odoo-helper --downloads-dir <downloads_directory>`
+  - `odoo-helper --virtual-env <virtual_env_dir>`
+  - `odoo-helper test --tmp-dirs`
+  - `odoo-helper test --no-rm-tmp-dirs`
 
 
 ## Version 0.1.2 (2017-10-04)

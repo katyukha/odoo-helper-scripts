@@ -18,48 +18,6 @@ ohelper_require odoo;
 set -e; # fail on errors
 
 
-# create_tmp_dirs
-function create_tmp_dirs {
-    TMP_ROOT_DIR="/tmp/odoo-tmp-`random_string 16`";
-    echov "Temporary dir created: $TMP_ROOT_DIR";
-
-    OLD_ADDONS_DIR=$ADDONS_DIR;
-    OLD_DOWNLOADS_DIR=$DOWNLOADS_DIR;
-    OLD_REPOSITORIES_DIR=$REPOSITORIES_DIR;
-    OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
-
-    ADDONS_DIR=$TMP_ROOT_DIR/addons;
-    DOWNLOADS_DIR=$TMP_ROOT_DIR/downloads;
-    REPOSITORIES_DIR=$TMP_ROOT_DIR/repositories;
-    ODOO_TEST_CONF_FILE=$TMP_ROOT_DIR/odoo.test.conf;
-    
-    mkdir -p $ADDONS_DIR;
-    mkdir -p $DOWNLOADS_DIR;
-    mkdir -p $REPOSITORIES_DIR;
-    sed -r "s@addons_path(.*)@addons_path\1,$ADDONS_DIR@" $OLD_ODOO_TEST_CONF_FILE > $ODOO_TEST_CONF_FILE
-}
-
-# remove_tmp_dirs
-function remove_tmp_dirs {
-    if [ -z $TMP_ROOT_DIR ]; then
-        exit -1;  # no tmp root was created
-    fi
-
-    ADDONS_DIR=$OLD_ADDONS_DIR;
-    DOWNLOADS_DIR=$OLD_DOWNLOADS_DIR;
-    REPOSITORIES_DIR=$OLD_REPOSITORIES_DIR;
-    ODOO_TEST_CONF_FILE=$OLD_ODOO_TEST_CONF_FILE;
-    rm -rf $TMP_ROOT_DIR;
-
-    echov "Temporary dir removed: $TMP_ROOT_DIR";
-    TMP_ROOT_DIR=;
-    OLD_ADDONS_DIR=;
-    OLD_DOWNLOADS_DIR=;
-    OLD_REPOSITORIES_DIR=;
-    OLD_ODOO_TEST_CONF_FILE=$ODOO_TEST_CONF_FILE;
-}
-
-
 # test_run_server <with_coverage 0|1> [server options]
 function test_run_server {
     local with_coverage=$1; shift;
@@ -312,8 +270,6 @@ function test_run_pylint {
 }
 
 # test_module [--create-test-db] -m <module_name>
-# test_module [--tmp-dirs] [--create-test-db] -m <module name> -m <module name>
-# test_module [--tmp-dirs] [--create-test-db] -d <dir with addons to test>
 function test_module {
     local create_test_db=0;
     local recreate_db=0;
@@ -336,8 +292,6 @@ function test_module {
         --create-test-db    - Creates temporary database to run tests in
         --recreate-db       - Recreate test database if it already exists
         --fail-on-warn      - if this option passed, then tests will fail even on warnings
-        --tmp-dirs          - use temporary dirs for test related downloads and addons
-        --no-rm-tmp-dirs    - not remove temporary directories that was created for this test
         --coverage          - calculate code coverage (use python's *coverage* util)
         --coverage-html     - automaticaly generate coverage html report
         --coverage-report   - print coverage report
@@ -395,12 +349,6 @@ function test_module {
                 modules="$modules $(test_find_modules_in_directories $2)";
                 shift;
             ;;
-            --tmp-dirs)
-                local tmp_dirs=1
-            ;;
-            --no-rm-tmp-dirs)
-                local not_remove_tmp_dirs=1;
-            ;;
             flake8)
                 shift;
                 test_run_flake8 $@;
@@ -419,10 +367,6 @@ function test_module {
         shift;
     done;
 
-    if [ ! -z $tmp_dirs ]; then
-        create_tmp_dirs;
-    fi
-
     # Run tests
     if test_run_tests ${recreate_db:-0} ${create_test_db:-0} \
         ${fail_on_warn:-0} ${with_coverage:-0} $modules;
@@ -440,10 +384,6 @@ function test_module {
         execv coverage report;  # --skip-covered;
     fi
     # ---------
-
-    if [ ! -z $tmp_dirs ] && [ -z $not_remove_tmp_dirs ]; then
-        remove_tmp_dirs;
-    fi
 
     return $res;
 }
