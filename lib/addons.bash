@@ -333,7 +333,7 @@ function addons_install_update_internal {
         server_run -d $db -u $todo_addons --stop-after-init --no-xmlrpc;
         return $?
     elif [ "$cmd" == "uninstall" ]; then
-        local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', '=', 'installed')]";
+        local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
         local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$ODOO_CONF_FILE']);";
         python_cmd="$python_cmd cl.require_v8_api();";
         python_cmd="$python_cmd modules=cl['ir.module.module'].search($addons_domain);";

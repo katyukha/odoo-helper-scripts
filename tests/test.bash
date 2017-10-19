@@ -199,10 +199,10 @@ odoo-helper test -m project_sla
 odoo-helper install py-tools
 
 # or run tests with test-coverage enabled
-odoo-helper test --coverage-report -m project_sla
+(cd ./repositories/project; odoo-helper test --coverage-report -m project_sla || true);
 
 # Also we may generate html coverage report too
-odoo-helper test --coverage-html -m project_sla
+(cd ./repositories/project; odoo-helper test --coverage-html -m project_sla || true);
 
 
 # also if you want to install python packages in current installation environment, you may use command:
