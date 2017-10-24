@@ -4,6 +4,7 @@
 
 - use [codecov](https://codecov.io) for code coverage
 - renamed command `odoo-helper print_config` to `odoo-helper print-config`
+- Added `odoo-helper test --coverage-skip-covered` option
 - Removed old unused options
   - `odoo-helper --addons-dir <addons_directory>`
   - `odoo-helper --downloads-dir <downloads_directory>`

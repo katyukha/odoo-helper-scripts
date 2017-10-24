@@ -277,6 +277,7 @@ function test_module {
     local with_coverage=0;
     local with_coverage_report_html=;
     local with_coverage_report=;
+    local with_coverage_skip_covered=;
     local modules="";
     local directories="";
     local usage="
@@ -289,14 +290,15 @@ function test_module {
         $SCRIPT_NAME test pylint [--disable=E111,E222,...] <addon path> [addon path]
 
     Options:
-        --create-test-db    - Creates temporary database to run tests in
-        --recreate-db       - Recreate test database if it already exists
-        --fail-on-warn      - if this option passed, then tests will fail even on warnings
-        --coverage          - calculate code coverage (use python's *coverage* util)
-        --coverage-html     - automaticaly generate coverage html report
-        --coverage-report   - print coverage report
-        -m|--module         - specify module to test
-        -d|--directory      - specify directory with modules to test
+        --create-test-db         - Creates temporary database to run tests in
+        --recreate-db            - Recreate test database if it already exists
+        --fail-on-warn           - if this option passed, then tests will fail even on warnings
+        --coverage               - calculate code coverage (use python's *coverage* util)
+        --coverage-html          - automaticaly generate coverage html report
+        --coverage-report        - print coverage report
+        --coverage-skip-covered  - skip covered files in coverage report
+        -m|--module              - specify module to test
+        -d|--directory           - specify directory with modules to test
 
     Examples:
         $SCRIPT_NAME test -m my_cool_module        # test single addon
@@ -341,6 +343,9 @@ function test_module {
                 with_coverage=1;
                 with_coverage_report=1;
             ;;
+            --coverage-skip-covered)
+                with_coverage_skip_covered=1
+            ;;
             -m|--module)
                 modules="$modules $2";  # add module to module list
                 shift;
@@ -377,11 +382,19 @@ function test_module {
     fi
 
     if [ ! -z "$with_coverage_report_html" ]; then
-        execv coverage html;
+        if [ ! -z $with_coverage_skip_covered ]; then
+            execv coverage html --skip-covered;
+        else
+            execv coverage html;
+        fi
     fi
 
     if [ ! -z "$with_coverage_report" ]; then
-        execv coverage report;  # --skip-covered;
+        if [ ! -z $with_coverage_skip_covered ]; then
+            execv coverage report --skip-covered;
+        else
+            execv coverage report;
+        fi
     fi
     # ---------
 

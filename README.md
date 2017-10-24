@@ -41,7 +41,7 @@ Dev:
 ## Documentation note
 
 Documentaion in this readme, or in other sources, may not be up to date!!!
-So use *--help* options, which is available for most of commands.
+So use *--help* option, which is available for most of commands.
 
 
 ## Usage note
@@ -75,7 +75,7 @@ wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/
 or more explicit way:
 
 ```bash
-wget -O /tmp/odoo-helper-install.bash;
+wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
 sudo bash /tmp/odoo-helper-install.bash;
 ```
 
