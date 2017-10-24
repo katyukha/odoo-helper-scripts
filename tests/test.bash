@@ -228,6 +228,9 @@ odoo-helper fetch --github gisce/aeroo -n aeroo
 odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
 odoo-helper generate_requirements
 
+# Update install python requirements for addons (those that are in requirements.txt)
+odoo-helper addons update-py-deps
+
 echo -e "${YELLOWC}
 ==========================
 Install and check Odoo 9.0 

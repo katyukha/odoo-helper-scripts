@@ -13,6 +13,7 @@ ohelper_require 'db';
 ohelper_require 'server';
 ohelper_require 'odoo';
 ohelper_require 'fetch';
+ohelper_require 'utils';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -250,7 +251,7 @@ function addons_show_status {
         case $key in
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             --addons-dir)
                 local addons_dir=$2;
@@ -268,7 +269,7 @@ function addons_show_status {
             ;;
             *)
                 echo "Unknown option: $key";
-                exit 1;
+                return 1;
             ;;
         esac;
         shift;
@@ -384,7 +385,7 @@ function addons_install_update {
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 todo_addons="$todo_addons,$1";
@@ -446,6 +447,22 @@ function addons_test_installed {
 }
 
 
+# This functions walk through addons found in custom_addons dir, and searches
+# for requirements.txt file there. if such file is present,
+# install depenencies listed there
+#
+# just call as: addons_update_py_deps
+function addons_update_py_deps {
+    for addon in $(addons_list_in_directory); do
+        if [ -f "$addon/requirements.txt" ]; then
+            echoe -e "${BLUEC}Installing dependencies for $(basename $addon)... ${NC}";
+            exec_pip install -r $addon/requirements.txt;
+        fi
+    done
+}
+
+
+
 function addons_command {
     local usage="Usage:
 
@@ -460,13 +477,14 @@ function addons_command {
         $SCRIPT_NAME addons uninstall --help              - uninstall some addon[s]
         $SCRIPT_NAME addons update-list [db]              - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
+        $SCRIPT_NAME addons update-py-deps                - update python dependencies of addons
         $SCRIPT_NAME addons --help                        - show this help message
 
     ";
 
     if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -476,24 +494,24 @@ function addons_command {
             list)
                 shift;
                 addons_list_in_directory_by_name $@;
-                exit 0;
+                return 0;
             ;;
             list-repos|list_repos)
                 shift;
                 addons_list_repositories "$@";
-                exit 0;
+                return 0;
             ;;
             list-no-repo|list_no_repo)
                 shift;
                 addons_list_no_repository "$@";
-                exit 0;
+                return 0;
             ;;
             check-updates|check_updates)
                 shift;
                 ADDONS_DIR=${1:-$ADDONS_DIR};
                 addons_git_fetch_updates;
                 addons_show_status --only-git-updates;
-                exit 0;
+                return 0;
             ;;
             pull-updates|pull_updates)
                 shift;
@@ -502,50 +520,55 @@ function addons_command {
                 echo -e "${LBLUEC}Applying updates...${NC}";
                 addons_git_pull_updates "$@";
                 echo -e "${GREENC}DONE${NC}";
-                exit 0;
+                return 0;
             ;;
             status|show_status)
                 shift;
                 addons_show_status "$@";
-                exit 0;
+                return 0;
             ;;
             update)
                 shift;
                 addons_install_update "update" "$@";
-                exit 0;
+                return 0;
             ;;
             install)
                 shift;
                 addons_install_update "install" "$@";
-                exit 0;
+                return 0;
             ;;
             uninstall)
                 shift;
                 addons_install_update "uninstall" "$@";
-                exit 0;
+                return 0;
             ;;
             update-list)
                 shift;
                 addons_update_module_list "$@";
-                exit 0;
+                return 0;
             ;;
             test-installed)
                 shift;
                 addons_test_installed $@;
-                exit 0;
+                return 0;
+            ;;
+            update-py-deps)
+                shift;
+                addons_update_py_deps;
+                return;
             ;;
             generate_requirements)
                 shift;
                 addons_generate_requirements "$@";
-                exit 0;
+                return 0;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 echo "Unknown option / command $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift
