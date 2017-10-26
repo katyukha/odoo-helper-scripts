@@ -355,6 +355,15 @@ odoo-helper status
 # Print odoo helper configuration
 odoo-helper print-config
 
+# Update odoo source code
+odoo-helper server auto-update
+
+# Pull odoo addons update
+odoo-helper addons pull-updates
+
+# Update odoo base addon
+odoo-helper addons update base
+
 
 echo -e "${YELLOWC}
 =================================
