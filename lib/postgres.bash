@@ -78,6 +78,33 @@ function postgres_user_create {
     fi
 }
 
+# Connect to database via psql
+#
+# postgres_psql [database]
+function postgres_psql {
+    echoe -e "${BLUEC}Prepare psql cmd...${NC}"
+    local dbname=$1;
+    local pghost=$(odoo_get_conf_val db_host);
+    local pgport=$(odoo_get_conf_val db_port);
+    local pguser=$(odoo_get_conf_val db_user);
+    local pgpass=$(odoo_get_conf_val db_password);
+
+    local cmd="psql -U $pguser -h $pghost";
+
+    if [ ! -z "$pgport" ] && [ "$pgport" != 'False' ]; then
+        cmd="$cmd -p $pgport";
+    fi
+
+    if [ ! -z "$dbname" ]; then
+        cmd="$cmd -d $dbname";
+    else
+        cmd="$cmd -d postgres";
+    fi
+
+    echoe -e "${BLUEC}Connection to psql via: '$cmd'${NC}"
+    PGPASSWORD=$pgpass $cmd;
+}
+
 # Parse command line args
 function postgres_command {
     local usage="Usage:
@@ -86,7 +113,9 @@ function postgres_command {
         NOTE: most of commands require sudo
 
         $SCRIPT_NAME postgres user-create <user name> <password>   - Create postgres user for odoo
-        $SCRIPT_NAME postgres --help                                 - show this help message
+        $SCRIPT_NAME postgres psql [database]                      - Run psql connected to specified DB
+                                                                     It automaticaly uses credentials used by odoo
+        $SCRIPT_NAME postgres --help                               - show this help message
 
     ";
 
@@ -103,6 +132,11 @@ function postgres_command {
                 shift;
                 postgres_user_create "$@";
                 exit 0;
+            ;;
+            psql)
+                shift;
+                config_load_project;
+                postgres_psql $@;
             ;;
             -h|--help|help)
                 echo "$usage";

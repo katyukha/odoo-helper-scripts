@@ -7,6 +7,7 @@
 - Added `odoo-helper test --coverage-skip-covered` option
 - Added `odoo-helper addons update-py-deps` command
 - Added aliase `odoo-helper-log`
+- Added `odoo-helper postgres psql` command
 - Removed old unused options
   - `odoo-helper --addons-dir <addons_directory>`
   - `odoo-helper --downloads-dir <downloads_directory>`
