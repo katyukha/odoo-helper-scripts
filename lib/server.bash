@@ -148,7 +148,11 @@ function server_restart {
 # Update odoo sources
 function server_auto_update {
     # Stop odoo server
-    server_stop;
+    if [ $(server_get_pid) -gt 0 ]; then
+        echoe -e "${BLUEC}Stopping server...${NC}";
+        server_stop;
+        local need_start=1;
+    fi
 
     # Do database backup
     odoo_db_backup_all zip;
@@ -156,11 +160,14 @@ function server_auto_update {
     # Update odoo sources
     odoo_update_sources;
 
-    echoe -e "${LBLUEC}update databases...${NC}";
+    echoe -e "${BLUEC}update databases...${NC}";
     addons_install_update "update" all;
 
-    # Start server
-    server_start;
+    # Start server again if it was stopped
+    if [ ! -z $need_start ]; then
+        echoe -e "${BLUEC}Starting server...${NC}";
+        server_start;
+    fi
 }
 
 # Print ps aux output for odoo-related processes
