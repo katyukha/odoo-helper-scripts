@@ -93,8 +93,8 @@ odoo-helper install postgres odoo7 odoo
 
 # Install odoo 7.0
 odoo-install -i odoo-7.0 --odoo-version 7.0 \
-	--conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 \
-	--db-user odoo7 --db-pass odoo
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 \
+    --db-user odoo7 --db-pass odoo
 cd odoo-7.0
 
 echo "Generated odoo config:"
@@ -189,8 +189,20 @@ echo "";
 # if another branch was not specified
 odoo-helper fetch --oca project -m project_sla
 
+# create test database
+odoo-helper db create --demo odoo8-odoo-test
+
 # and run tests for it
-odoo-helper test --create-test-db -m project_sla
+odoo-helper test -m project_sla
+
+# Install py-tools to get coverage reports
+odoo-helper install py-tools
+
+# or run tests with test-coverage enabled
+(cd ./repositories/project; odoo-helper test --coverage-report -m project_sla || true);
+
+# Also we may generate html coverage report too
+(cd ./repositories/project; odoo-helper test --coverage-html -m project_sla || true);
 
 
 # also if you want to install python packages in current installation environment, you may use command:
@@ -215,6 +227,9 @@ cd ../odoo-7.0
 odoo-helper fetch --github gisce/aeroo -n aeroo
 odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
 odoo-helper generate_requirements
+
+# Update install python requirements for addons (those that are in requirements.txt)
+odoo-helper addons update-py-deps
 
 echo -e "${YELLOWC}
 ==========================
@@ -267,7 +282,7 @@ ${NC}"
 
 # create test database if it does not exists yet
 if ! odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db create my-test-odoo-database;
+    odoo-helper db create my-test-odoo-database;
 fi
 
 # list all odoo databases available for this odoo instance
@@ -278,7 +293,7 @@ backup_file=$(odoo-helper db backup my-test-odoo-database zip);
 
 # drop test database if it exists
 if odoo-helper db exists my-test-odoo-database; then
-	odoo-helper db drop my-test-odoo-database;
+    odoo-helper db drop my-test-odoo-database;
 fi
 
 # restore dropped database
@@ -329,8 +344,25 @@ odoo-helper pip install odoo10-addon-mis-builder;
 odoo-helper fetch --oca partner-contact -m partner_firstname;
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
 
+# Check partner_first_name addon with pylint and flake8
+odoo-helper install py-tools
+odoo-helper pylint ./repositories/partner-contact/partner_firstname || true;
+odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
+
 # Show project status
 odoo-helper status
+
+# Print odoo helper configuration
+odoo-helper print-config
+
+# Update odoo source code
+odoo-helper server auto-update
+
+# Pull odoo addons update
+odoo-helper addons pull-updates
+
+# Update odoo base addon
+odoo-helper addons update base
 
 
 echo -e "${YELLOWC}

@@ -2,11 +2,11 @@
 
 Master: 
 [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=master)](https://travis-ci.org/katyukha/odoo-helper-scripts)
-[![Coverage Status](https://coveralls.io/repos/github/katyukha/odoo-helper-scripts/badge.svg?branch=master)](https://coveralls.io/github/katyukha/odoo-helper-scripts?branch=master)
+[![Coverage Status](https://codecov.io/gh/katyukha/odoo-helper-scripts/branch/master/graph/badge.svg)](https://codecov.io/gh/katyukha/odoo-helper-scripts)
 
 Dev:
 [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=dev)](https://travis-ci.org/katyukha/odoo-helper-scripts)
-[![Coverage Status](https://coveralls.io/repos/github/katyukha/odoo-helper-scripts/badge.svg?branch=dev)](https://coveralls.io/github/katyukha/odoo-helper-scripts?branch=dev)
+[![Coverage Status](https://codecov.io/gh/katyukha/odoo-helper-scripts/branch/dev/graph/badge.svg)](https://codecov.io/gh/katyukha/odoo-helper-scripts/branch/dev)
 
 
 ## Features
@@ -41,7 +41,7 @@ Dev:
 ## Documentation note
 
 Documentaion in this readme, or in other sources, may not be up to date!!!
-So use *--help* options, which is available for most of commands.
+So use *--help* option, which is available for most of commands.
 
 
 ## Usage note
@@ -75,7 +75,7 @@ wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/
 or more explicit way:
 
 ```bash
-wget -O /tmp/odoo-helper-install.bash;
+wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
 sudo bash /tmp/odoo-helper-install.bash;
 ```
 

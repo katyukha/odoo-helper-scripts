@@ -78,7 +78,7 @@ function tr_import_export_internal {
     local addons=;
     IFS=',' read -r -a addons <<< "$addons_data";
     for addon in ${addons[@]}; do
-        echoe -e "${BLUEC}Executing '$cmd' for (db='$db', lang='$lang').${NC} Processing addon: '$addon';";
+        echoe -e "${BLUEC}Executing ${YELLOWC}$cmd${BLUEC} for (db=${YELLOWC}$db${BLUEC}, lang=${YELLOWC}$lang${BLUEC}).${NC} Processing addon: ${YELLOWC}$addon${NC};";
         local addon_path=$(addons_get_addon_path $addon);
         local i18n_dir=$addon_path/i18n;
         local i18n_file=$i18n_dir/$file_name.po
@@ -310,7 +310,6 @@ function tr_regenerate {
     odoo_db_create --lang $lang --demo $tmp_db_name;
     
     # install addons
-    echo "addons_install_update install --no-restart -d $tmp_db_name $addons;"
     if addons_install_update "install" --no-restart -d $tmp_db_name $addons; then
         # export translations
         tr_export $tmp_db_name $lang $file_name $addons;

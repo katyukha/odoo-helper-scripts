@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 0.1.3 (2017-10-28)
+
+- use [codecov](https://codecov.io) for code coverage
+- renamed command `odoo-helper print_config` to `odoo-helper print-config`
+- Added `odoo-helper test --coverage-skip-covered` option
+- Added `odoo-helper addons update-py-deps` command
+- Added aliase `odoo-helper-log`
+- Added `odoo-helper postgres psql` command
+- Removed old unused options
+  - `odoo-helper --addons-dir <addons_directory>`
+  - `odoo-helper --downloads-dir <downloads_directory>`
+  - `odoo-helper --virtual-env <virtual_env_dir>`
+  - `odoo-helper test --tmp-dirs`
+  - `odoo-helper test --no-rm-tmp-dirs`
+
+
 ## Version 0.1.2 (2017-10-04)
 
 - `odoo-install --python` option added. Now it is possible to install Odoo 11
