@@ -67,7 +67,7 @@ function odoo_db_create {
     echov -e "${BLUEC}Creating odoo database ${YELLOWC}$db_name${BLUEC} using conf file ${YELLOWC}$conf_file${NC}";
 
     local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', '$demo_data', '$db_lang');"
+    python_cmd="$python_cmd cl.db.create_database(cl._server.tools.config['admin_passwd'], '$db_name', $demo_data, '$db_lang');"
 
     run_python_cmd "$python_cmd";
     
