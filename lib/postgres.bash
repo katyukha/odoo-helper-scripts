@@ -105,16 +105,40 @@ function postgres_psql {
     PGPASSWORD=$pgpass $cmd;
 }
 
+# Configure local postgresql instance to be faster but less safe
+#
+# postgres_config_local_speed_unsafe
+function postgres_config_speedify_unsafe {
+    local postgres_config="$(sudo -u postgres psql -qSt -c 'SHOW config_file')";
+
+    # Stop postgres
+    sudo service postgresql stop
+
+	# Disable fsync, etc
+	sudo sed -ri "s/#fsync = on/fsync = off/g" $postgres_config;
+	sudo sed -ri "s/#synchronous_commit = on/synchronous_commit = off/g" $postgres_config;
+	sudo sed -ri "s/#full_page_writes = on/full_page_writes = off/g" $postgres_config;
+	sudo sed -ri "s/#work_mem = 4MB/work_mem = 8MB/g" $postgres_config;
+
+    # Start postgres
+    sudo service postgresql start
+}
+
 # Parse command line args
 function postgres_command {
     local usage="Usage:
 
-        NOTE: this subcommand manages local postgres instance!
+        NOTE: subcommands tagged by [local] applicable only to local postgres instance!
+        NOTE: subcommands tagged by [sudo] require sudo. (they will use sudo automaticaly)
         NOTE: most of commands require sudo
 
-        $SCRIPT_NAME postgres user-create <user name> <password>   - Create postgres user for odoo
         $SCRIPT_NAME postgres psql [database]                      - Run psql connected to specified DB
+        $SCRIPT_NAME postgres user-create <user name> <password>   - [local][sudo] Create postgres user for odoo
                                                                      It automaticaly uses credentials used by odoo
+        $SCRIPT_NAME postgres speedify                             - [local][sudo] Modify local postgres config
+                                                                     to make it faster. But also makes postgres unsafe.
+                                                                     Usualy this is normal for dev machines,
+                                                                     but not for production
         $SCRIPT_NAME postgres --help                               - show this help message
 
     ";
@@ -131,20 +155,25 @@ function postgres_command {
             user-create)
                 shift;
                 postgres_user_create "$@";
-                exit 0;
+                return;
             ;;
+            speedify)
+                postgres_config_speedify_unsafe;
+                return;
+			;;
             psql)
                 shift;
                 config_load_project;
                 postgres_psql $@;
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 echo "Unknown option / command $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift

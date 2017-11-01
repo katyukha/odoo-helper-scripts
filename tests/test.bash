@@ -78,6 +78,14 @@ if [ ! -z $CI_RUN ] && ! odoo-helper exec postgres_test_connection; then
     sudo /etc/init.d/postgresql start;
 fi
 
+
+echo -e "${YELLOWC}
+===================================================
+Run odoo-helper postgres speedify
+===================================================
+${NC}"
+odoo-helper postgres speedify
+
 echo -e "${YELLOWC}
 ==================================================
 Test install of odoo version 7.0
