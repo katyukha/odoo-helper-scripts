@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.1.4
+
+- Added command `odoo-helper odoo`
+- Added command `odoo-helper odoo recompute`, that allows to recompute stored fields
+- Command `odoo-helper db exists` now have it's own help message
+- Command `odoo-helper db exists` added option `-q` to disable output
+
 ## Version 0.1.3 (2017-10-28)
 
 - use [codecov](https://codecov.io) for code coverage

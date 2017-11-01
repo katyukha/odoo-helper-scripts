@@ -97,8 +97,44 @@ function odoo_db_list {
     run_python_cmd "$python_cmd";
 }
 
-# odoo_db_exists <dbname> [odoo_conf_file]
+# odoo_db_exists [options] <dbname> [odoo_conf_file]
 function odoo_db_exists {
+    local usage=" Test if database exists
+
+    Usage:
+
+        $SCRIPT_NAME db exists [options] <dbname> [conf file] - test if db exists
+        $SCRIPT_NAME db exists --help                         - show this help message
+
+    Options:
+
+        -q|--quite    do not show messages
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -q|--quite)
+                local opt_quite=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
@@ -106,10 +142,10 @@ function odoo_db_exists {
     python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
     
     if run_python_cmd "$python_cmd"; then
-        echoe -e "Database named ${YELLOWC}$db_name${NC} exists!";
+        [ -z $opt_quite ] && echoe -e "Database named ${YELLOWC}$db_name${NC} exists!" || true;
         return 0;
     else
-        echoe -e "Database ${YELLOWC}$db_name${NC} does not exists!";
+        [ -z $opt_quite ] && echoe -e "Database ${YELLOWC}$db_name${NC} does not exists!" || true;
         return 1;
     fi
 }

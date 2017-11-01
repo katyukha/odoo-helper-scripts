@@ -100,3 +100,120 @@ function odoo_update_sources {
 function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }
+
+function odoo_recompute_stored_fields {
+    local usage="Recompute stored fields
+
+    Usage:
+
+        $SCRIPT_NAME odoo recompute <options>            - recompute stored fields for database
+        $SCRIPT_NAME odoo recompute --help               - show this help message
+
+    Options:
+
+        -d|--dbname <dbname>    - name of database to recompute stored fields on
+        -m|--model <model name> - name of model (in 'model.name.x' format)
+                                  to recompute stored fields on
+        -f|--field <field name> - name of field to be recomputed.
+                                  could be specified multiple times,
+                                  to recompute few fields at once
+
+    Note: this command works only for Odoo ${YELLOWC}8.0+${NC}
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    local dbname=;
+    local model=;
+    local fields=;
+    local conf_file=$ODOO_CONF_FILE;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -d|--dbname)
+                dbname=$2;
+                shift;
+            ;;
+            -m|--model)
+                model=$2;
+                shift;
+            ;;
+            -f|--field)
+                fields="'$2',$fields";
+                shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z $dbname ]; then
+        echoe -e "${REDC}ERROR${NC}: database not specified!";
+        return 1;
+    fi
+
+    if ! odoo_db_exists -q $dbname; then
+        echoe -e "${REDC}ERROR${NC}: database ${YELLOWC}${dbname}${NC} does not exists!";
+        return 2;
+    fi
+
+    if [ -z $model ]; then
+        echoe -e "${REDC}ERROR${NC}: model not specified!";
+        return 3;
+    fi
+
+    if [ -z $fields ]; then
+        echoe -e "${REDC}ERROR${NC}: not fields specified!";
+        return 4;
+    fi
+
+    local python_cmd="import lodoo; cl=lodoo.LocalClient('$dbname', ['-c', '$conf_file']);";
+    python_cmd="$python_cmd cl.recompute_fields('model', [$fields]);"
+}
+
+function odoo_command {
+    local usage="Usage:
+
+        $SCRIPT_NAME odoo recompute --help                - recompute stored fields for database
+        $SCRIPT_NAME odoo --help                          - show this help message
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            recompute)
+                shift;
+                odoo_recompute_stored_fields $@;
+                return 0;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+}

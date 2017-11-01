@@ -118,6 +118,18 @@ class LocalClient(object):
             raise NotImplementedError(
                 "Using *env* is not supported for this Odoo version")
 
+    def recompute_fields(self, model, fields):
+        """ Recompute specifed model fields
+
+            This usualy applicable for stored, field, that was not recomputed
+            due to errors in compute method for example.
+        """
+        model = self.env[model]
+        for field in fields:
+            self.env.add_todo(model._fields['type'], model.search([]))
+        model.recompute()
+        env.cr.commit()
+
     def call_method(self, model, method, *args, **kwargs):
         """ Simple wrapper to call local model methods for database
         """
