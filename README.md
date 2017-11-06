@@ -186,7 +186,7 @@ Fore example:
 
 ```
 --github katyukha/base_tags --module base_tags -b master
---oca project-service -m project_sla -b 7.0
+--oca project-service -m project_sla
 ```
 
 For details run ```odoo-helper fetch --help```
@@ -200,18 +200,18 @@ For details run ```odoo-helper fetch --help```
 # all odoo-helper dependencies installed.
 odoo-helper install pre-requirements
 
-# Install system dependencies for odoo version 7.0
+# Install system dependencies for odoo version 10.0
 # This option requires sudo.
-odoo-helper install sys-deps 7.0;
+odoo-helper install sys-deps 10.0;
 
 # Install postgres and create there user with name='odoo' and password='odoo'
 odoo-helper install postgres odoo odoo
 
-# Install odoo 7.0 into 'odoo-7.0' directory
-odoo-install -i odoo-7.0 --odoo-version 7.0
-cd odoo-7.0
+# Install odoo 10.0 into 'odoo-10.0' directory
+odoo-install -i odoo-10.0 --odoo-version 10.0
+cd odoo-10.0
 
-# Now You have odoo-7.0 installed in this directory.
+# Now You have odoo-10.0 installed in this directory.
 # Note, that this odoo installation uses virtual env (venv dir)
 # Also You will find there odoo-helper.conf config file
 
@@ -227,6 +227,7 @@ odoo-helper server start
 # there are also few additional server related commands:
 odoo-helper server status
 odoo-helper server log
+odoo-helper server ps
 odoo-helper server restart
 odoo-helper server stop
 
@@ -236,24 +237,33 @@ odoo-helper log
 odoo-helper restart
 odoo-helper stop
 
-# Let's install base_tags addon into this odoo installation
-odoo-helper fetch --github katyukha/base_tags --branch master
+# Let's install fetch module contract from OCA repository 'contract'
+# Here branch will be detected automatically
+odoo-helper fetch --oca contract
+
+# Or alternatively
+odoo-helper fetch --github OCA/contract --branch 10.0
 
 # Now look at custom_addons/ dir, there will be placed links to addons
-# from https://github.com/katyukha/base_tags repository
+# from https://github.com/OCA/contract repository
 # But repository itself is placed in repositories/ directory
-# By default no branch specified when You fetch module,
-# but there are -b or --branch option which can be used to specify which branch to fetch
 
 # Now let's run tests for these just installed modules
-odoo-helper test --create-test-db -m base_tags -m product_tags
+odoo-helper test --create-test-db -m contract
 
 # this will create test database (it will be dropt after test finished) and 
 # run tests for modules 'base_tags' and 'product_tags'
 
+# Or we can run tests of whole directory, odoo-helper-scripts
+# will automaticaly detect installable addons and test it
+odoo-helper test -d ./repositories/contract
+
+# This will use standard test database, that will not be dropt after tests,
+# so we do not need to recreate database on each test run, which saves time
+
 # If You need color output from Odoo, you may use '--use-unbuffer' option,
 # but it depends on 'expect-dev' package.
-odoo-helper --use-unbuffer test --create-test-db -m base_tags -m product_tags
+odoo-helper --use-unbuffer test -m contract
 
 # The one cool thing of odoo-helper script, you may not remeber paths to odoo instalation,
 # and if you change directory to another inside your odoo project, everything will continue to work.
@@ -262,7 +272,7 @@ odoo-helper server status
 dooo-helper server restart
 
 # So... let's install one more odoo version
-# go back to directory containing our projects (that one, where odoo-7.0 project is placed)
+# go back to directory containing our projects (that one, where odoo-10.0 project is placed)
 cd ../../
 
 # Let's install odoo of version 8.0 here too.
@@ -285,8 +295,8 @@ odoo-helper test --create-test-db -m project_sla
 # also if you want to install python packages in current installation environment, you may use command:
 odoo-helper fetch -p suds  # this installs 'suds' python package
 
-# and as one more example, let's install aeroo-reports with dependancy to aeroolib in odoo 7.0
-cd ../odoo-7.0
+# and as one more example, let's install aeroo-reports with dependancy to aeroolib in odoo 10.0
+cd ../odoo-10.0
 odoo-helper fetch --github gisce/aeroo -n aeroo
 odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
 
