@@ -69,7 +69,7 @@ function tr_import_export_internal {
     local cmd=$5;
     shift; shift; shift; shift; shift;
 
-    if ! odoo_db_exists $db; then
+    if ! odoo_db_exists -q $db; then
         echoe -e "${REDC}ERROR:${NC} Database '$db' does not exists!";
         return 2;
     fi
