@@ -79,30 +79,25 @@ function postgres_user_create {
 }
 
 # Connect to database via psql
+# Automaticaly pass connection parametrs
 #
-# postgres_psql [database]
+# postgres_psql ....
 function postgres_psql {
     echoe -e "${BLUEC}Prepare psql cmd...${NC}"
-    local dbname=$1;
     local pghost=$(odoo_get_conf_val db_host);
     local pgport=$(odoo_get_conf_val db_port);
     local pguser=$(odoo_get_conf_val db_user);
     local pgpass=$(odoo_get_conf_val db_password);
+    local default_db=$(odoo_get_conf_val db_name);
+          default_db=${default_db:-postgres};
 
-    local cmd="psql -U $pguser -h $pghost";
-
-    if [ ! -z "$pgport" ] && [ "$pgport" != 'False' ]; then
-        cmd="$cmd -p $pgport";
-    fi
-
-    if [ ! -z "$dbname" ]; then
-        cmd="$cmd -d $dbname";
-    else
-        cmd="$cmd -d postgres";
+    if [ -z "$pgport" ] || [ "$pgport" == 'False' ]; then
+        pgport=;
     fi
 
     echoe -e "${BLUEC}Connection to psql via: '$cmd'${NC}"
-    PGPASSWORD=$pgpass $cmd;
+    PGPASSWORD=$pgpass PGDATABASE=$default_db PGHOST=$pghost \
+        PGPORT=$pgport PGUSER=$pguser psql $@;
 }
 
 # Configure local postgresql instance to be faster but less safe
@@ -132,7 +127,8 @@ function postgres_command {
         NOTE: subcommands tagged by [sudo] require sudo. (they will use sudo automaticaly)
         NOTE: most of commands require sudo
 
-        $SCRIPT_NAME postgres psql [database]                      - Run psql connected to specified DB
+        $SCRIPT_NAME postgres psql [psql options]                  - Run psql with odoo connection params
+        $SCRIPT_NAME postgres psql -d <database> [psql options]    - Run psql connected to specified database
         $SCRIPT_NAME postgres user-create <user name> <password>   - [local][sudo] Create postgres user for odoo
                                                                      It automaticaly uses credentials used by odoo
         $SCRIPT_NAME postgres speedify                             - [local][sudo] Modify local postgres config

@@ -313,6 +313,10 @@ odoo-helper db exists my-test-odoo-database
 # rename database to my-test-db-renamed
 odoo-helper db rename my-test-odoo-database my-test-db-renamed
 
+# Run psql and list all databases visible for odoo user
+# This command will automaticaly pass connection params from odoo config
+odoo-helper postgres psql -c "\l"
+
 # drop database egain
 odoo-helper db drop my-test-db-renamed;
 
