@@ -125,10 +125,20 @@ class LocalClient(object):
             due to errors in compute method for example.
         """
         model = self.env[model]
+        records = model.search([])
         for field in fields:
-            self.env.add_todo(model._fields['type'], model.search([]))
+            self.env.add_todo(model._fields[field], records)
         model.recompute()
-        env.cr.commit()
+        self.env.cr.commit()
+
+    def recompute_parent_store(self, model):
+        """ Recompute parent store
+
+            some times parent left/right was not recomputed after update.
+            this method can fix it
+        """
+        self.env[model]._parent_store_compute()
+        self.env.cr.commit()
 
     def call_method(self, model, method, *args, **kwargs):
         """ Simple wrapper to call local model methods for database

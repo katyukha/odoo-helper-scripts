@@ -116,7 +116,10 @@ function odoo_recompute_stored_fields {
                                   to recompute stored fields on
         -f|--field <field name> - name of field to be recomputed.
                                   could be specified multiple times,
-                                  to recompute few fields at once
+                                  to recompute few fields at once.
+                                  NOTE: this applicable only for new-style-fields in Odoo 8.0, 9.0
+        --parent-store          - recompute parent left and parent right fot selected model
+                                  conflicts wiht --field option
 
     Note: this command works only for Odoo ${YELLOWC}8.0+${NC}
 
@@ -130,6 +133,7 @@ function odoo_recompute_stored_fields {
     local dbname=;
     local model=;
     local fields=;
+    local parent_store=;
     local conf_file=$ODOO_CONF_FILE;
     while [[ $# -gt 0 ]]
     do
@@ -146,6 +150,9 @@ function odoo_recompute_stored_fields {
             -f|--field)
                 fields="'$2',$fields";
                 shift;
+            ;;
+            --parent-store)
+                parent_store=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -174,13 +181,19 @@ function odoo_recompute_stored_fields {
         return 3;
     fi
 
-    if [ -z $fields ]; then
-        echoe -e "${REDC}ERROR${NC}: not fields specified!";
+    if [ -z $fields ] && [ -z $parent_store ]; then
+        echoe -e "${REDC}ERROR${NC}: no fields nor --parent-store option specified!";
         return 4;
     fi
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient('$dbname', ['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.recompute_fields('model', [$fields]);"
+    if [ -z $parent_store ]; then
+        python_cmd="$python_cmd cl.recompute_fields('$model', [$fields]);"
+    else
+        python_cmd="$python_cmd cl.recompute_parent_store('$model');"
+    fi
+
+    run_python_cmd "$python_cmd";
 }
 
 function odoo_command {

@@ -317,6 +317,13 @@ odoo-helper db rename my-test-odoo-database my-test-db-renamed
 # This command will automaticaly pass connection params from odoo config
 odoo-helper postgres psql -c "\l"
 
+# recompute parent-store for ir.ui.menu
+odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu --parent-store
+
+# recompute 'web_icon_data' field on ir.ui.menu
+odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu -f web_icon_data
+
+
 # drop database egain
 odoo-helper db drop my-test-db-renamed;
 
