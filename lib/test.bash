@@ -50,13 +50,16 @@ function test_module_impl {
         local log_level='info';
     fi
 
-    set +e; # do not fail on errors
     # Install module
-    test_run_server $with_coverage --init=$module --log-level=warn "$@";
+    if ! test_run_server $with_coverage --init=$module --log-level=warn "$@"; then
+        return $?;
+    fi
+
     # Test module
-    test_run_server $with_coverage --update=$module \
-        --log-level=$log_level --test-enable "$@";
-    set -e; # Fail on any error
+    if ! test_run_server $with_coverage --update=$module \
+        --log-level=$log_level --test-enable "$@"; then
+        return $?;
+    fi
 }
 
 # Get database name or create new one. Prints database name
