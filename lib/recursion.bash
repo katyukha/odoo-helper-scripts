@@ -53,9 +53,6 @@ function recursion_protection_check {
     local obj_name=$(__recursion_get_obj_name $key);
     local res="$(eval echo \"\${${obj_name}[$value]}\")"
 
-    #if [ "$key" == "fetch_oca_requirements" ]; then
-        #echo "X: $key; Y: $value; Z: $res";
-    #fi
     if [ -z "${res:-}" ]; then
         eval "${obj_name}['$value']=1";
         return 0;

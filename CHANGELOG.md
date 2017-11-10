@@ -6,7 +6,7 @@
 - Added command `odoo-helper odoo recompute`, that allows to recompute stored fields
 - Command `odoo-helper db exists` now have it's own help message
 - Command `odoo-helper db exists` added option `-q` to disable output
-- Added command `odoo-helper postgres seedify`
+- Added command `odoo-helper postgres speedify`
 
 ## Version 0.1.3 (2017-10-28)
 
