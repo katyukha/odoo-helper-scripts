@@ -63,6 +63,7 @@ function print_usage {
         link [--help]                            - link module to custom_addons dir
         server [--help]                          - manage local odoo server (run, start, stop, etc)
         addons [--help]                          - addons related helpers
+        odoo [--help]                            - Odoo utils.
         test [--help]                            - test addon
         db [--help]                              - database management (list, create, drop, etc...)
         tr [--help]                              - manage translations (import, export, load, ...)
@@ -235,6 +236,12 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 addons_command "$@";
+                return;
+            ;;
+            odoo)
+                shift;
+                config_load_project;
+                odoo_command "$@";
                 return;
             ;;
             odoo-py)

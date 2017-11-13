@@ -50,13 +50,16 @@ function test_module_impl {
         local log_level='info';
     fi
 
-    set +e; # do not fail on errors
     # Install module
-    test_run_server $with_coverage --init=$module --log-level=warn "$@";
+    if ! test_run_server $with_coverage --init=$module --log-level=warn "$@"; then
+        return $?;
+    fi
+
     # Test module
-    test_run_server $with_coverage --update=$module \
-        --log-level=$log_level --test-enable "$@";
-    set -e; # Fail on any error
+    if ! test_run_server $with_coverage --update=$module \
+        --log-level=$log_level --test-enable "$@"; then
+        return $?;
+    fi
 }
 
 # Get database name or create new one. Prints database name
@@ -74,7 +77,7 @@ function test_get_or_create_db {
         local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
     fi
 
-    if [ $recreate_db -eq 1 ] && odoo_db_exists $test_db_name; then
+    if [ $recreate_db -eq 1 ] && odoo_db_exists -q $test_db_name; then
         odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
     fi
     echo "$test_db_name";

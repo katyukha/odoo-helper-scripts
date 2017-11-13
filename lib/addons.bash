@@ -438,6 +438,8 @@ function addons_test_installed {
         local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$ODOO_CONF_FILE']);";
         python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
         python_cmd="$python_cmd is_installed=bool(env['ir.module.module'].search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
+        # returns 0 (OK) if addon is installed in database
+        # returns 1 (False) if addon is not installed in database
         python_cmd="$python_cmd exit(not is_installed);"
 
         if run_python_cmd "$python_cmd" >/dev/null 2>&1; then

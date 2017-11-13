@@ -78,6 +78,14 @@ if [ ! -z $CI_RUN ] && ! odoo-helper exec postgres_test_connection; then
     sudo /etc/init.d/postgresql start;
 fi
 
+
+echo -e "${YELLOWC}
+===================================================
+Run odoo-helper postgres speedify
+===================================================
+${NC}"
+odoo-helper postgres speedify
+
 echo -e "${YELLOWC}
 ==================================================
 Test install of odoo version 7.0
@@ -304,6 +312,17 @@ odoo-helper db exists my-test-odoo-database
 
 # rename database to my-test-db-renamed
 odoo-helper db rename my-test-odoo-database my-test-db-renamed
+
+# Run psql and list all databases visible for odoo user
+# This command will automaticaly pass connection params from odoo config
+odoo-helper postgres psql -c "\l"
+
+# recompute parent-store for ir.ui.menu
+odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu --parent-store
+
+# recompute 'web_icon_data' field on ir.ui.menu
+odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu -f web_icon_data
+
 
 # drop database egain
 odoo-helper db drop my-test-db-renamed;

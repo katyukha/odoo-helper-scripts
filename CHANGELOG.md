@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.1.4 (2017-11-13)
+
+- Added command `odoo-helper odoo`
+- Added command `odoo-helper odoo recompute`, that allows to recompute stored fields.
+  Also this command allow to recompute parents (left/right)
+- Command `odoo-helper db exists` now have it's own help message
+- Command `odoo-helper db exists` added option `-q` to disable output
+- Added command `odoo-helper postgres speedify`
+
 ## Version 0.1.3 (2017-10-28)
 
 - use [codecov](https://codecov.io) for code coverage
