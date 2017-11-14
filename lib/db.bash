@@ -79,12 +79,17 @@ function odoo_db_drop {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
+    if ! odoo_db_exists -q $db_name; then
+        echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+        return 1;
+    fi
+
     local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.drop(cl._server.tools.config['admin_passwd'], '$db_name');"
     
     run_python_cmd "$python_cmd";
     
-    echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$db_name${NC} dropt successfuly!";
+    echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
 }
 
 # odoo_db_list [odoo_conf_file]

@@ -71,7 +71,7 @@ function test_get_or_create_db {
 
     if [ $create_test_db -eq 1 ]; then
         local test_db_name=`random_string 24`;
-        odoo_db_create $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
+        odoo_db_create --demo $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
     else
         # name of test database expected to be defined in ODOO_TEST_CONF_FILE
         local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
