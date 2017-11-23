@@ -72,6 +72,10 @@ function exec_pip {
     PIP_EXTRA_INDEX_URL=$extra_index execv pip $@;
 }
 
+# Exec npm for this project
+function exec_npm {
+    execu npm $@;
+}
 
 
 # Simple function to create directories passed as arguments

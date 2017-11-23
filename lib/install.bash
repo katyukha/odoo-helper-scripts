@@ -89,6 +89,7 @@ function install_wkhtmltopdf {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
+
     # Install wkhtmltopdf
     if ! check_command wkhtmltopdf > /dev/null; then
         # if wkhtmltox is not installed yet
@@ -331,7 +332,7 @@ function install_system_prerequirements {
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
-    with_sudo pip install --upgrade virtualenv cffi;
+    with_sudo pip install --upgrade virtualenv;
 }
 
 
@@ -348,13 +349,21 @@ function install_virtual_env {
         else
             VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
         fi
+        exec_pip install nodeenv;
+        execv nodeenv --python-virtualenv;  # Install node environment
     fi
 }
+
 
 # Install extra python tools
 function install_python_tools {
     execu pip install watchdog pylint-odoo coverage \
         flake8 flake8-colors Mercurial;
+}
+
+# Install extra javascript tools
+function install_js_tools {
+    execu npm install -g jshint phantomjs-prebuilt;
 }
 
 # install_python_prerequirements
@@ -507,6 +516,7 @@ function install_entry_point {
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
         $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
         $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
+        $SCRIPT_NAME install js-tools                      - install javascript tools (jshint, phantomjs)
         $SCRIPT_NAME install postgres [user] [password]    - install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
@@ -531,7 +541,7 @@ function install_entry_point {
                     shift;
                 fi
                 install_system_prerequirements;
-                exit 0;
+                return 0;
             ;;
             sys-deps)
                 shift;
@@ -540,38 +550,44 @@ function install_entry_point {
                     shift;
                 fi
                 install_sys_deps_for_odoo_version "$@";
-                exit 0;
+                return 0;
             ;;
             py-deps)
                 shift;
                 config_load_project;
                 install_odoo_py_requirements_for_version $@;
-                exit 0;
+                return 0;
             ;;
             py-tools)
                 shift;
                 config_load_project;
                 install_python_tools;
-                exit 0;
+                return 0;
+            ;;
+            js-tools)
+                shift;
+                config_load_project;
+                install_js_tools;
+                return 0;
             ;;
             reinstall-venv)
                 shift;
                 config_load_project;
                 install_reinstall_venv "$@";
-                exit 0;
+                return 0;
             ;;
             postgres)
                 shift;
                 install_and_configure_postgresql "$@";
-                exit 0;
+                return 0;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 echo "Unknown option / command $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift

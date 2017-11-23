@@ -96,7 +96,7 @@ function odoo_update_sources {
 }
 
 
-# Echo major odoo version
+# Echo major odoo version (10, 11, ...)
 function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }

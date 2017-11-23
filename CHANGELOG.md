@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 0.1.5
+
+- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) together with
+  [virtualenv](https://virtualenv.pypa.io/en/stable/) to be able to install
+  js dependencies in virtual environment. Examples of such dependencies are
+  [jshint](http://jshint.com/about/) that used by
+  [pylint_odoo](https://github.com/OCA/pylint-odoo) to check javascript files and
+  [phantomjs](ihttp://phantomjs.org/) used to run test tours.
+- Added command `odoo-helper install js-tools`
+- Added command `odoo-helper npm` - shortcut to run npm for current project
+
+
 ## Version 0.1.4 (2017-11-13)
 
 - Added command `odoo-helper odoo`
@@ -8,6 +20,7 @@
 - Command `odoo-helper db exists` now have it's own help message
 - Command `odoo-helper db exists` added option `-q` to disable output
 - Added command `odoo-helper postgres speedify`
+
 
 ## Version 0.1.3 (2017-10-28)
 

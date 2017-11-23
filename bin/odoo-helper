@@ -89,6 +89,7 @@ function print_usage {
         pip <pip arguments>                      - shortcut to run project-specific pip.
                                                    It automaticaly configs pip to use OCA wheelhouse
                                                    to install OCA addons easily.
+        npm <npm arguments>                      - Run npm installed in current project's environment
         help | --help | -h                       - display this help message
         --version                                - display odoo-helper version and exit
     
@@ -325,6 +326,12 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 exec_pip "$@";
+                return 0;
+            ;;
+            npm)
+                shift;
+                config_load_project;
+                exec_npm "$@";
                 return 0;
             ;;
             *)
