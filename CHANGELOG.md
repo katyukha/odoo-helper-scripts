@@ -10,6 +10,8 @@
   [phantomjs](ihttp://phantomjs.org/) used to run test tours.
 - Added command `odoo-helper install js-tools`
 - Added command `odoo-helper npm` - shortcut to run npm for current project
+- Improved command `odoo-helper test pylint`, now most of pylint options will
+  be forwarded directly to pylint.
 
 
 ## Version 0.1.4 (2017-11-13)

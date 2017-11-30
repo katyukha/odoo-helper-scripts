@@ -53,7 +53,7 @@ function addons_get_addon_path {
 function addons_is_installable {
     local addon_path=$1;
     local manifest_file="$(addons_get_manifest_file $addon_path)";
-    if python -c "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
+    if run_python_cmd "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
         return 0;
     else
         return 1;

@@ -22,6 +22,8 @@ function system_update_odoo_helper_scripts {
     local cdir=$(pwd);
     cd $ODOO_HELPER_ROOT;
     if [ -z $scripts_branch ]; then
+        # TODO: if there is no configured branch to pull from, git shows
+        #       message, that it does not know from where to pull
         git pull;
     else
         git fetch -q origin;
