@@ -14,6 +14,7 @@
   be forwarded directly to pylint.
 - `wkhtmltopdf` install refactored, added separate command `install wkhtmltopdf`,
   start using wkhtmltopdf downloads from [github](https://github.com/wkhtmltopdf/wkhtmltopdf/releases/tag/0.12.2.1)
+- Autodetect python version
 
 
 ## Version 0.1.4 (2017-11-13)

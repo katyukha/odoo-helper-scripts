@@ -49,7 +49,7 @@ function tr_parse_addons {
             shift;
         done
         local todo_addons="$(join_by , $addons)";
-        echo $(execv python -c "\"print(','.join(set('$todo_addons'.split(',')) & set('$installed_addons'.split(','))))\"");
+        echo $(run_python_cmd "print(','.join(set('$todo_addons'.split(',')) & set('$installed_addons'.split(','))))");
     fi;
 }
 

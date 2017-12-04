@@ -13,6 +13,8 @@ fi
 
 set -e; # fail on errors
 
+ohelper_require "odoo";
+
 # Simple function to exec command in virtual environment if required
 function execv {
     if [ ! -z $VENV_DIR ]; then
@@ -69,7 +71,7 @@ function exec_conf {
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
 function exec_pip {
     local extra_index="$PIP_EXTRA_INDEX_URL https://wheelhouse.odoo-community.org/oca-simple";
-    PIP_EXTRA_INDEX_URL=$extra_index execv pip $@;
+    PIP_EXTRA_INDEX_URL=$extra_index exec_py -m pip $@;
 }
 
 # Exec npm for this project
@@ -196,12 +198,19 @@ function join_by {
     echo "$*";
 }
 
+# Exec python
+#
+function exec_py {
+    local python_exec="$(odoo_get_python_version)";
+    execu $python_exec "$@";
+}
+
 # Run python code
 #
 # run_python_cmd <code>
 function run_python_cmd {
     local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
     python_cmd="$python_cmd $1";
-    execu python -c "\"$python_cmd\"";
+    exec_py -c "\"$python_cmd\"";
 }
 

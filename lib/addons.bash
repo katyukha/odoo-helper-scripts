@@ -66,7 +66,7 @@ function addons_get_addon_dependencies {
     local addon_path=$1;
     local manifest_file="$(addons_get_manifest_file $addon_path)";
 
-    echo $(python -c "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
+    echo $(run_python_cmd "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
 }
 
 # Get list of installed addons

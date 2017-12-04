@@ -101,6 +101,21 @@ function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }
 
+# Get python interpreter to run odoo with
+# Returns one of: python2, python3, python
+# Default: python
+function odoo_get_python_version {
+    if [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -ge 11 ]; then
+        echo "python3";
+    elif [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -lt 11 ]; then
+        echo "python2";
+    else
+        echoe -e "${REDC}ERROR${NC}: odoo version not specified, using default python executable";
+        echo "python";
+    fi
+}
+
+
 function odoo_recompute_stored_fields {
     local usage="Recompute stored fields
 

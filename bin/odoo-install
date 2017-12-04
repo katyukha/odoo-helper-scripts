@@ -73,9 +73,6 @@ function print_usage {
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
-         --python                      - python executable to be used for virtualenv.
-                                         If not specified default 'python2' executable will be used.
-                                         Default: $VIRTUALENV_PYTHON
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
@@ -159,10 +156,6 @@ function parse_options {
             ;;
             -y)
                 ALWAYS_ANSWER_YES=1;
-            ;;
-            --python)
-                VIRTUALENV_PYTHON="$2";
-                shift;
             ;;
             --verbose|-vv)
                 VERBOSE=1;

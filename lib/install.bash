@@ -11,6 +11,7 @@ fi
 # ----------------------------------------------------------------------------------------
 ohelper_require "config";
 ohelper_require "postgres";
+ohelper_require "odoo";
 
 
 set -e; # fail on errors
@@ -26,7 +27,6 @@ function install_preconfigure_env {
     DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
     DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
     DB_PORT=${DB_PORT:-${ODOO_DBPORT:-5432}};
-    VIRTUALENV_PYTHON=${VIRTUALENV_PYTHON:-python2};
 }
 
 # create directory tree for project
@@ -292,7 +292,7 @@ function install_odoo_py_requirements_for_version {
                 echo $dependency;
 			fi
 		done < "$tmp_requirements" > "$tmp_requirements_post";
-        execv pip install -r "$tmp_requirements_post";
+        exec_pip install -r "$tmp_requirements_post";
     fi
 
     if [ -f "$tmp_requirements" ]; then
@@ -341,7 +341,6 @@ function install_system_prerequirements {
     with_sudo pip install --upgrade virtualenv;
 }
 
-
 # Install virtual environment. All options will be passed directly to
 # virtualenv command. one exception is DEST_DIR, which this script provides.
 #
@@ -351,7 +350,7 @@ function install_virtual_env {
     #   VIRTUALENV_SYSTEM_SITE_PACKAGES=1
     if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
         if [ -z $VIRTUALENV_PYTHON ]; then
-            virtualenv $@ $VENV_DIR;
+            VIRTUALENV_PYTHON=$(odoo_get_python_version) virtualenv $@ $VENV_DIR;
         else
             VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
         fi
@@ -363,7 +362,7 @@ function install_virtual_env {
 
 # Install extra python tools
 function install_python_tools {
-    execu pip install watchdog pylint-odoo coverage \
+    exec_pip install watchdog pylint-odoo coverage \
         flake8 flake8-colors Mercurial;
 }
 
@@ -375,13 +374,13 @@ function install_js_tools {
 # install_python_prerequirements
 function install_python_prerequirements {
     # required to make odoo.py work correctly when setuptools too old
-    execu easy_install --upgrade setuptools pip;
-    execu pip install --upgrade pip erppeek \
+    exec_py -m easy_install --upgrade setuptools pip;
+    exec_py -m pip install --upgrade pip erppeek \
         setproctitle python-slugify setuptools-odoo cffi jinja2 six \
         num2words;
 
-    if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
-        execv pip install Python-Chart;
+    if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
+        exec_pip install Python-Chart;
     fi
 }
 
@@ -453,7 +452,7 @@ function install_odoo_workaround_70 {
     fi
 
     # Installing requirements via pip. This should improve performance
-    execv pip install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
+    exec_pip install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
 
     # Force use Pillow, because PIL is too old.
     cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
@@ -482,7 +481,7 @@ function odoo_run_setup_py {
     install_odoo_py_requirements_for_version;
 
     # Install odoo
-    (cd $ODOO_PATH && execu python setup.py develop $@);
+    (cd $ODOO_PATH && exec_py setup.py develop $@);
 
      
     # Workaround for situation when setup does not install openerp-gevent script.
