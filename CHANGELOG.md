@@ -12,6 +12,8 @@
 - Added command `odoo-helper npm` - shortcut to run npm for current project
 - Improved command `odoo-helper test pylint`, now most of pylint options will
   be forwarded directly to pylint.
+- `wkhtmltopdf` install refactored, added separate command `install wkhtmltopdf`,
+  start using wkhtmltopdf downloads from [github](https://github.com/wkhtmltopdf/wkhtmltopdf/releases/tag/0.12.2.1)
 
 
 ## Version 0.1.4 (2017-11-13)

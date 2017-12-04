@@ -95,9 +95,11 @@ function install_wkhtmltopdf {
         # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
+            echoe -e "${BLUEC}Installing wkhtmltopdf...${NC}";
             local system_arch=$(dpkg --print-architecture);
             local release=$(lsb_release -sc);
-            local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
+            local w_version="0.12.2.1";
+            local download_link="https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$w_version/wkhtmltox-${w_version}_linux-${release}-${system_arch}.deb"
             if ! wget -q $download_link -O $wkhtmltox_path; then
                 if [ "$(lsb_release -si)" == "Ubuntu" ]; then
                     # fallback to trusty release for ubuntu systems
@@ -121,6 +123,10 @@ function install_wkhtmltopdf {
         fi
 
         rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
+
+        echoe -e "${GREENC}OK${NC}:${YELLOWC}wkhtmltopdf${NC} installed successfully!";
+    else
+        echoe -e "${GREENC}OK${NC}:${YELLOWC}wkhtmltopdf${NC} seems to be installed!";
     fi
 }
 
@@ -512,12 +518,13 @@ function install_reinstall_venv {
 function install_entry_point {
     local usage="Usage:
 
-        $SCRIPT_NAME install pre-requirements [-y]         - install system preprequirements
-        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
+        $SCRIPT_NAME install pre-requirements [-y]         - [sudo] install system preprequirements
+        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - [sudo] install system dependencies for odoo version
         $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
         $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
         $SCRIPT_NAME install js-tools                      - install javascript tools (jshint, phantomjs)
-        $SCRIPT_NAME install postgres [user] [password]    - install postgres.
+        $SCRIPT_NAME install wkhtmltopdf                   - [sudo] install wkhtmtopdf
+        $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
                                                              all options will be passed to virtualenv cmd directly
@@ -569,6 +576,11 @@ function install_entry_point {
                 config_load_project;
                 install_js_tools;
                 return 0;
+            ;;
+            wkhtmltopdf)
+                shift;
+                install_wkhtmltopdf $@;
+                return
             ;;
             reinstall-venv)
                 shift;
