@@ -372,12 +372,7 @@ function install_python_tools {
 
 # Install extra javascript tools
 function install_js_tools {
-    exec_npm install -g jshint;
-    if ! exec_npm install -g phantomjs-prebuilt; then
-        # Some times phantom install fails with access errors.
-        # Especialy on docker images. this workaround seems to be working...
-        exec_npm install -g phantomjs-prebuilt --unsafe-permissions;
-    fi
+    exec_npm install -g jshint phantomjs-prebuilt;
 }
 
 # install_python_prerequirements
