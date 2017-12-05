@@ -13,6 +13,7 @@ Dev:
 
 - Easily manage few instances of odoo that ran on same machine
 - High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
+- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install node, phantom, etc
 - Easy addons installation
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))

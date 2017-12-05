@@ -163,6 +163,10 @@ function install_parse_debian_control_file {
                 # Skip dependencies stared with ${
                 continue
             ;;
+            node-less)
+                # Will be installed into virtual env via node-env
+                continue
+            ;;
             python-pypdf|python-pypdf2|python3-pypdf2)
                 # Will be installed by pip from requirements.txt
                 continue
@@ -388,7 +392,7 @@ function install_python_prerequirements {
 # Now it is less compiler. install if it is not installed yet
 function install_js_prerequirements {
     if ! check_command lessc > /dev/null; then
-        npm install -g less;
+        execu npm install -g less;
     fi
 }
 

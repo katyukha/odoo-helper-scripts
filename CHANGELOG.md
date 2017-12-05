@@ -19,6 +19,7 @@
 - `odoo-helper generate_requirements` renamed to `odoo-helper generate-requirements`
 - `odoo-helper update_odoo` renamed to `odoo-helper update-odoo`
 - `odoo-helper install reinstall-venv` option simplified. now it does not recieve any arguments
+- do not install `node-less` as system dependency
 
 ## Version 0.1.4 (2017-11-13)
 
