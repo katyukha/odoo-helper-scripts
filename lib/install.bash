@@ -277,9 +277,9 @@ function install_odoo_py_requirements_for_version {
     local tmp_requirements_post=$(mktemp);
     if wget -q "$requirements_url" -O "$tmp_requirements"; then
         # Preprocess requirements to avoid known bugs
-		while read dependency; do
-			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
+        while read dependency; do
+            dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            if [[ "$dependency_stripped" =~ pyparsing* ]]; then
                 # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
                 # especialy to versions lower than that used by setuptools
                 continue
@@ -291,11 +291,11 @@ function install_odoo_py_requirements_for_version {
                 # cause build errors.
                 # Instead last gevent (1.1.0+) have already prebuild wheels.
                 echo "gevent";
-			else
+            else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;
-			fi
-		done < "$tmp_requirements" > "$tmp_requirements_post";
+            fi
+        done < "$tmp_requirements" > "$tmp_requirements_post";
         exec_pip install -r "$tmp_requirements_post";
     fi
 
@@ -335,7 +335,7 @@ function install_system_prerequirements {
     install_sys_deps_internal git wget lsb-release procps \
         python-setuptools python-pip python-wheel libevent-dev \
         perl g++ libpq-dev python-dev python3-dev expect-dev tcl8.6 libjpeg-dev \
-        libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
+        libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev libyaml-dev;
 
     if ! install_wkhtmltopdf; then
@@ -372,7 +372,12 @@ function install_python_tools {
 
 # Install extra javascript tools
 function install_js_tools {
-    execu npm install -g jshint phantomjs-prebuilt;
+    exec_npm install -g jshint;
+    if ! exec_npm install -g phantomjs-prebuilt; then
+        # Some times phantom install fails with access errors.
+        # Especialy on docker images. this workaround seems to be working...
+        exec_npm install -g phantomjs-prebuilt --unsafe-permissions;
+    fi
 }
 
 # install_python_prerequirements
