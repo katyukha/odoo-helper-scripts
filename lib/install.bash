@@ -384,6 +384,14 @@ function install_python_prerequirements {
     fi
 }
 
+# Install javascript pre-requirements.
+# Now it is less compiler. install if it is not installed yet
+function install_js_prerequirements {
+    if ! check_command lessc > /dev/null; then
+        npm install -g less;
+    fi
+}
+
 # Generate configuration file fo odoo
 # this function looks into ODOO_CONF_OPTIONS environment variable,
 # which should be associative array with options to be written to file
@@ -490,6 +498,27 @@ function odoo_run_setup_py {
 }
 
 
+# Install odoo intself.
+# Require that odoo is downloaded and directory tree structure created
+function install_odoo_install {
+    # Install virtual environment
+    echoe -e "${BLUEC}Installing virtualenv...${NC}";
+    install_virtual_env;
+
+    # Install python requirements
+    echoe -e "${BLUEC}Installing python pre-requirements...${NC}";
+    install_python_prerequirements;
+
+    # Install js requirements
+    echoe -e "${BLUEC}Installing js pre-requirements...${NC}";
+    install_js_prerequirements;
+
+    # Run setup.py with gevent workaround applied.
+    echoe -e "${BLUEC}Installing odoo...${NC}";
+    odoo_run_setup_py;  # imported from 'install' module
+}
+
+
 # Reinstall virtual environment.
 function install_reinstall_venv {
     if [ -z $VENV_DIR ]; then
@@ -497,19 +526,13 @@ function install_reinstall_venv {
         return 0;
     fi
 
-    if [ "$1" == '--help' ] || [ "$1" == '-h' ]; then
-        virtualenv --help;
-        return 0
-    fi
-
     # Backup old venv
     if [ -d $VENV_DIR ]; then
         mv $VENV_DIR $PROJECT_ROOT_DIR/venv_backup_$(random_string 4);
     fi
 
-    install_virtual_env $@;
-    install_python_prerequirements;
-    odoo_run_setup_py;
+    # Install odoo
+    install_odoo_install;
 }
 
 
@@ -525,7 +548,7 @@ function install_entry_point {
         $SCRIPT_NAME install wkhtmltopdf                   - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
                                                              and if user/password specified, create it
-        $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
+        $SCRIPT_NAME install reinstall-venv                - reinstall virtual environment
                                                              all options will be passed to virtualenv cmd directly
         $SCRIPT_NAME install --help                        - show this help message
 

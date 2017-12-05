@@ -18,7 +18,7 @@
 - Removed `odoo-install --python` option
 - `odoo-helper generate_requirements` renamed to `odoo-helper generate-requirements`
 - `odoo-helper update_odoo` renamed to `odoo-helper update-odoo`
-
+- `odoo-helper install reinstall-venv` option simplified. now it does not recieve any arguments
 
 ## Version 0.1.4 (2017-11-13)
 

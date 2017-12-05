@@ -201,17 +201,8 @@ function install_odoo {
         fi
     fi
 
-    # Install virtual environment
-    echoe -e "${BLUEC}Installing virtualenv...${NC}";
-    install_virtual_env;
-
-    # Install python requirements
-    echoe -e "${BLUEC}Installing python pre-requirements...${NC}";
-    install_python_prerequirements;
-
-    # Run setup.py with gevent workaround applied.
-    echoe -e "${BLUEC}Installing odoo...${NC}";
-    odoo_run_setup_py;  # imported from 'install' module
+    # Install odoo
+    install_odoo_install;
 
     # restore curenct working dir
     cd $save_dir;
