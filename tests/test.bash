@@ -395,8 +395,7 @@ odoo-helper install sys-deps -y 11.0;
 odoo-helper postgres user-create odoo11 odoo;
 odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo11 --db-pass odoo \
-    --python python3
+    --db-user odoo11 --db-pass odoo
 
 cd odoo-11.0;
 
@@ -421,3 +420,14 @@ odoo-helper start
 odoo-helper server ps
 odoo-helper server status
 odoo-helper stop
+
+echo -e "${YELLOWC}
+==========================================
+Test how translation-related commands work
+==========================================
+${NC}"
+odoo-helper db create --demo test-11-db;
+odoo-helper tr load --lang uk_UA --db test-11-db;
+odoo-helper tr export test-11-db uk_UA uk-test test-11-db web;
+odoo-helper tr import test-11-db uk_UA uk-test test-11-db web;
+odoo-helper db drop test-11-db;

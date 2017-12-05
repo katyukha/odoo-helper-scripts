@@ -69,14 +69,14 @@ function print_usage {
         tr [--help]                              - manage translations (import, export, load, ...)
         postgres [--help]                        - manage local instance of postgresql server
         install [--help]                         - install related stuff (sys-deps, ...)
-        generate_requirements [addons dir]       - parse addons dir, find all addons that are
+        generate-requirements [addons dir]       - parse addons dir, find all addons that are
                                                    git repositories and print odoo-requirements.txt content
                                                    file content suitable for *fetch* subcommand.
                                                    for example:
-                                                       $SCRIPT_NAME generate_requirements > odoo_requirements.txt
+                                                       $SCRIPT_NAME generate-requirements > odoo_requirements.txt
                                                    and you can use generated file for fetch subcommand:
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
-        update_odoo                              - update odoo source code
+        update-odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
         scaffold [--help]                        - Scaffold repo, addon, model, etc
         print-config                             - print current configuration
@@ -209,13 +209,13 @@ function odoo_helper_main {
                 fetch_module "$@";
                 return
             ;;
-            generate_requirements)
+            generate-requirements|generate_requirements)
                 shift;
                 config_load_project;
                 addons_generate_requirements "$@"
                 return;
             ;;
-            update_odoo)
+            update-odoo|update_odoo)
                 shift;
                 config_load_project;
                 odoo_update_sources "$@";
