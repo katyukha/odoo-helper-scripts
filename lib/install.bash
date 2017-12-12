@@ -83,6 +83,14 @@ function install_download_odoo {
     fi
 }
 
+# get download link for wkhtmltopdf install
+function install_wkhtmltopdf_get_dw_link {
+    local version=$1; shift;
+    local os_release_name=$2; shift;
+    local system_arch=$(dpkg --print-architecture);
+
+    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox-${version}_linux-${os_release_name}-${system_arch}.deb"
+}
 
 # install_wkhtmltopdf
 function install_wkhtmltopdf {
@@ -96,11 +104,12 @@ function install_wkhtmltopdf {
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
             echoe -e "${BLUEC}Installing wkhtmltopdf...${NC}";
-            local system_arch=$(dpkg --print-architecture);
+            #local system_arch=$(dpkg --print-architecture);
             local release=$(lsb_release -sc);
             local w_version="0.12.2.1";
-            local download_link="https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$w_version/wkhtmltox-${w_version}_linux-${release}-${system_arch}.deb"
+            local download_link=$(install_wkhtmltopdf_get_dw_link $w_version $release);
             if ! wget -q $download_link -O $wkhtmltox_path; then
+                local old_release=$release;
                 if [ "$(lsb_release -si)" == "Ubuntu" ]; then
                     # fallback to trusty release for ubuntu systems
                     local release=trusty;
@@ -110,7 +119,9 @@ function install_wkhtmltopdf {
                     echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
                     return 2;
                 fi
-                local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
+
+                echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf of ${BLUEC}${w_version}${NC} for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
+                local download_link=$(install_wkhtmltopdf_get_dw_link $w_version $release);
                 if ! wget -q $download_link -O $wkhtmltox_path; then
                     echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
                     return 1;

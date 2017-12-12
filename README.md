@@ -13,7 +13,7 @@ Dev:
 
 - Easily manage few instances of odoo that ran on same machine
 - High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
-- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install node, phantom, etc
+- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install node, phantom, etc in isolated *virtualenv*
 - Easy addons installation
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
@@ -32,7 +32,7 @@ Dev:
     - *8.0*
     - *9.0*
     - *10.0*
-    - *11.0* (experimental, *python3* and *python2*)
+    - *11.0* (experimental)
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
