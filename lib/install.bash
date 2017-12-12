@@ -84,12 +84,45 @@ function install_download_odoo {
 }
 
 # get download link for wkhtmltopdf install
+#
+# install_wkhtmltopdf_get_dw_link <os_release_name> [wkhtmltopdf version]
 function install_wkhtmltopdf_get_dw_link {
-    local version=$1; shift;
-    local os_release_name=$2; shift;
+    local os_release_name=$1;
+    local version=${2:-0.12.2.1};
     local system_arch=$(dpkg --print-architecture);
 
     echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox-${version}_linux-${os_release_name}-${system_arch}.deb"
+}
+
+
+# Download wkhtmltopdf to specified path
+#
+# install_wkhtmltopdf_download <path>
+function install_wkhtmltopdf_download {
+    local wkhtmltox_path=$1;
+    local release=$(lsb_release -sc);
+    local download_link=$(install_wkhtmltopdf_get_dw_link $release);
+
+    if ! wget -q -T 2 $download_link -O $wkhtmltox_path; then
+        local old_release=$release;
+
+        if [ "$(lsb_release -si)" == "Ubuntu" ]; then
+            # fallback to trusty release for ubuntu systems
+            local release=trusty;
+        elif [ "$(lsb_release -si)" == "Debian" ]; then
+            local release=jessie;
+        else
+            echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
+            return 2;
+        fi
+
+        echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf of ${BLUEC}${w_version}${NC} for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
+        local download_link=$(install_wkhtmltopdf_get_dw_link $release);
+        if ! wget -q -T 2 $download_link -O $wkhtmltox_path; then
+            echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
+            return 1;
+        fi
+    fi
 }
 
 # install_wkhtmltopdf
@@ -103,31 +136,10 @@ function install_wkhtmltopdf {
         # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
-            echoe -e "${BLUEC}Installing wkhtmltopdf...${NC}";
-            #local system_arch=$(dpkg --print-architecture);
-            local release=$(lsb_release -sc);
-            local w_version="0.12.2.1";
-            local download_link=$(install_wkhtmltopdf_get_dw_link $w_version $release);
-            if ! wget -q $download_link -O $wkhtmltox_path; then
-                local old_release=$release;
-                if [ "$(lsb_release -si)" == "Ubuntu" ]; then
-                    # fallback to trusty release for ubuntu systems
-                    local release=trusty;
-                elif [ "$(lsb_release -si)" == "Debian" ]; then
-                    local release=jessie;
-                else
-                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
-                    return 2;
-                fi
-
-                echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf of ${BLUEC}${w_version}${NC} for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
-                local download_link=$(install_wkhtmltopdf_get_dw_link $w_version $release);
-                if ! wget -q $download_link -O $wkhtmltox_path; then
-                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
-                    return 1;
-                fi
-            fi
+            echoe -e "${BLUEC}Downloading wkhtmltopdf...${NC}";
+            install_wkhtmltopdf_download $wkhtmltox_path;
         fi
+        echoe -e "${BLUEC}Installing wkhtmltopdf...${NC}";
         local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
@@ -353,7 +365,7 @@ function install_system_prerequirements {
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
-    with_sudo pip install --upgrade virtualenv;
+    with_sudo pip install 'virtualenv>=15.1.0';
 }
 
 # Install virtual environment. All options will be passed directly to
