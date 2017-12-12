@@ -76,7 +76,7 @@ function install_download_odoo {
     if [[ $ODOO_REPO == "https://github.com"* ]]; then
         local repo=${odoo_repo%.git};
         local repo_base=$(basename $repo);
-        wget -q -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
+        wget -q -T 2 -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
         tar -zxf $odoo_archive;
         mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
         rm $odoo_archive;
@@ -285,7 +285,7 @@ function install_sys_deps_for_odoo_version {
     local odoo_version=$1;
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
-    wget -q $control_url -O $tmp_control;
+    wget -q -T 2 $control_url -O $tmp_control;
     local sys_deps=$(install_parse_debian_control_file $tmp_control);
     install_sys_deps_internal $sys_deps;
     rm $tmp_control;
@@ -298,7 +298,7 @@ function install_odoo_py_requirements_for_version {
     local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
     local tmp_requirements=$(mktemp);
     local tmp_requirements_post=$(mktemp);
-    if wget -q "$requirements_url" -O "$tmp_requirements"; then
+    if wget -q -T 2 "$requirements_url" -O "$tmp_requirements"; then
         # Preprocess requirements to avoid known bugs
         while read dependency; do
             dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
@@ -356,8 +356,8 @@ function install_system_prerequirements {
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools python-pip python-wheel libevent-dev \
-        perl g++ libpq-dev python-dev python3-dev expect-dev tcl8.6 libjpeg-dev \
+        python-setuptools libevent-dev perl g++ libpq-dev \
+        python-dev python3-dev expect-dev tcl8.6 libjpeg-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev libyaml-dev;
 
@@ -365,7 +365,7 @@ function install_system_prerequirements {
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
-    with_sudo pip install 'virtualenv>=15.1.0';
+    with_sudo easy_install 'virtualenv>=15.1.0';
 }
 
 # Install virtual environment. All options will be passed directly to
@@ -373,8 +373,6 @@ function install_system_prerequirements {
 #
 # install_virtual_env [opts]
 function install_virtual_env {
-    # To enable system site packages, just set env variable:
-    #   VIRTUALENV_SYSTEM_SITE_PACKAGES=1
     if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
         if [ -z $VIRTUALENV_PYTHON ]; then
             VIRTUALENV_PYTHON=$(odoo_get_python_version) virtualenv $@ $VENV_DIR;

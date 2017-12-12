@@ -70,7 +70,7 @@ function odoo_update_sources_archive {
     echo -e "${LBLUEC}Downloading new sources archive...${NC}"
     local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
     # TODO: use odoo-repo variable here
-    wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
+    wget -T 2 $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
     rm -r $ODOO_PATH;
     (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
 
