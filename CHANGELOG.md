@@ -23,6 +23,14 @@
 - `odoo-helper install js-tools` automatialy install `eslint` instead of `jshint`
   Starting from version 1.6.0 [pylint_odoo](https://pypi.python.org/pypi/pylint-odoo/) user `eslint`
 - removed unuseful `odoo-install -y`, it does not run apt, so there is no interactive y/n questions
+- pylint default config: enabled *redefined-outer-name* check
+- `odoo-helper status`: print versions of fllowing tools used in current project.
+  - NodeJS
+  - npm
+  - Less.JS
+  - Pylint
+  - Flake8
+  - ESLint
 
 ## Version 0.1.4 (2017-11-13)
 

@@ -147,15 +147,44 @@ function show_project_status {
         local version="${GREENC}$ODOO_VERSION${NC}";
     fi
 
-    local python_version="${GREENC}$(execv python --version 2>&1)${NC}";
+    local python_version="${BLUEC}$(execv python --version 2>&1)${NC}";
+    local node_version="${BLUEC}$(execv node --version 2>&1)${NC}";
+    local npm_version="${BLUEC}$(execv npm --version 2>&1)${NC}";
+    local lessc_version="${BLUEC}$(execv lessc --version 2>&1)${NC}";
+
+    if check_command flake8 2>&1 >/dev/null; then
+        local flake8_version="${BLUEC}$(execv flake8 --version 2>&1)${NC}";
+    else
+        local flake8_version="${REDC}Not installed${NC}"
+    fi
+
+    if check_command pylint 2>&1 >/dev/null; then
+        local pylint_version="${BLUEC}$(test_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
+    else
+        local pylint_version="${REDC}Not installed${NC}"
+    fi
+
+    if check_command eslint 2>&1 >/dev/null; then
+        local eslint_version="${BLUEC}$(execv eslint --version 2>&1)${NC}";
+    else
+        local eslint_version="${REDC}Not installed${NC}"
+    fi
 
     echo -e "Current project:
 
         Project dir: $project_dir
         Odoo branch: $branch
         Odoo version: $version
-        Python version: $python_version
         Server status: ${server_status}
+
+        Python: $python_version
+        NodeJS: $node_version
+        npm: $npm_version
+        Less.js: $lessc_version
+
+        Flake8: $flake8_version
+        Pylint: $pylint_version
+        ESLint: $eslint_version
     ";
 }
 
