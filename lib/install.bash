@@ -393,7 +393,7 @@ function install_python_tools {
 
 # Install extra javascript tools
 function install_js_tools {
-    exec_npm install -g jshint phantomjs-prebuilt;
+    exec_npm install -g eslint phantomjs-prebuilt;
 }
 
 # install_python_prerequirements
