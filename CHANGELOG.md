@@ -20,6 +20,9 @@
 - `odoo-helper update_odoo` renamed to `odoo-helper update-odoo`
 - `odoo-helper install reinstall-venv` option simplified. now it does not recieve any arguments
 - do not install `node-less` as system dependency
+- `odoo-helper install js-tools` automatialy install `eslint` instead of `jshint`
+  Starting from version 1.6.0 [pylint_odoo](https://pypi.python.org/pypi/pylint-odoo/) user `eslint`
+- removed unuseful `odoo-install -y`, it does not run apt, so there is no interactive y/n questions
 
 ## Version 0.1.4 (2017-11-13)
 
