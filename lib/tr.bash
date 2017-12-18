@@ -377,7 +377,7 @@ function tr_translation_rate {
     # install addons
     if addons_install_update "install" --no-restart -d $tmp_db_name $addons; then
         # export translations to dev-null, to create records in 'ir.translation'
-        local trans_tmp_dir=$ODOO_PATH/tmp;
+        local trans_tmp_dir=$ODOO_PATH/addons/tmp;
         mkdir -p $trans_tmp_dir;
         local trans_file=$trans_tmp_dir/x-odoo-trans-${tmp_db_name}.po;
         if server_run -d $tmp_db_name -l $lang --i18n-export=$trans_file --modules=$addons_cs; then

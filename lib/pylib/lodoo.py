@@ -164,7 +164,7 @@ class LocalClient(object):
                 addon_data['rate'] = 1.0 - (float(trans_fail) /
                                               float(trans_total))
             else:
-                addon_date['rate'] = 0.0
+                addon_data['rate'] = 0.0
 
             addon_data['rate'] *= 100.0
 
@@ -184,17 +184,17 @@ class LocalClient(object):
     def print_translation_rate(self, translation_rate):
         """ Print translation rate computed by `compute_translation_rate`
         """
-        print ("%20s | %10s | %15s | %10s" % (
+        print ("%-40s | %10s | %15s | %10s" % (
                'Addon', 'Total', 'Untranslated', 'Rate'))
-        print ("-" * (20 + 3 + 10 + 3 + 15 + 3 + 10))
+        print ("-" * (40 + 3 + 10 + 3 + 15 + 3 + 10))
 
         for addon, rate_data in translation_rate['by_addon'].items():
-            print("%20s | %10d | %15d | %7.2f" % (
+            print("%-40s | %10d | %15d | %7.2f" % (
                   addon, rate_data['terms_total'],
                   rate_data['terms_untranslated'],
                   rate_data['rate']))
-        print ("-" * (20 + 3 + 10 + 3 + 15 + 3 + 10))
-        print("%20s | %10d | %15d | %7.2f" % (
+        print ("-" * (40 + 3 + 10 + 3 + 15 + 3 + 10))
+        print("%-40s | %10d | %15d | %7.2f" % (
               'TOTAL', translation_rate['terms_total'],
               translation_rate['terms_untranslated'],
               translation_rate['total_rate'],
