@@ -129,7 +129,7 @@ function tr_export {
     ";
     if [[ "$1" =~ -h|--help|help ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     local db=$1;
@@ -180,7 +180,7 @@ function tr_import {
         case $key in
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             --overwrite)
                 local opt_overwrite=" --i18n-overwrite ";
@@ -193,7 +193,7 @@ function tr_import {
     done
     if [[ "$1" =~ -h|--help|help ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     local db=$1;
@@ -241,7 +241,7 @@ function tr_load {
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 break;
@@ -288,7 +288,7 @@ function tr_regenerate {
         case $key in
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             --lang)
                 lang=$2;
@@ -320,6 +320,98 @@ function tr_regenerate {
 
 }
 
+# Compute and print translation rate
+function tr_translation_rate {
+    local lang=;
+    local min_total_rate="None";
+    local min_addon_rate="None";
+    local addons="";
+    local res=0;
+
+    local usage="
+    Usage
+
+        $SCRIPT_NAME tr rate --lang <lang> <addon1> [addon2] [addon3] ...
+
+    Options
+
+        --lang <lang code>       - language code to regenerate translations for
+        --min-total-rate <rate>  - minimal translation rate to pass. (optional)
+        --min-addon-rate <rate>  - minimal translation rate per addon. (optional)
+
+    compute translation rate for specified langauage and addons
+    ";
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            --lang)
+                lang=$2;
+                shift;
+            ;;
+            --min-total-rate)
+                min_total_rate=$2;
+                shift;
+            ;;
+            --min-addon-rate)
+                min_addon_rate=$2;
+                shift;
+            ;;
+            *)
+                addons="$addons $key";
+            ;;
+        esac
+        shift
+    done
+
+    # Create temporary database
+    local tmp_db_name=$(random_string 24);
+    odoo_db_create --lang $lang --demo $tmp_db_name;
+
+    local addons_cs=$(join_by , $addons);  # coma-separated
+    # install addons
+    if addons_install_update "install" --no-restart -d $tmp_db_name $addons; then
+        # export translations to dev-null, to create records in 'ir.translation'
+        local trans_file=/tmp/x-odoo-trans-${tmp_db_name}.po;
+        if server_run -d $tmp_db_name -l $lang --i18n-export=$trans_file --modules=$addons_cs; then
+            if ! server_run -d $tmp_db_name -l $lang --i18n-import=$trans_file --modules=$addons_cs; then
+                echoe -e "${REDC}ERROR${NC}: cannot import generated translations";
+                rm $trans_file;
+                res=11;
+            else
+                rm $trans_file;
+
+                # Compute translation rate and print it
+                local python_cmd="import lodoo; cl=lodoo.LocalClient('$tmp_db_name', ['-c', '$ODOO_CONF_FILE']);";
+                python_cmd="$python_cmd trans_rate = cl.compute_translation_rate('$lang', '$addons'.split());";
+                python_cmd="$python_cmd cl.print_translation_rate(trans_rate);";
+                python_cmd="$python_cmd exit_code = cl.assert_translation_rate(trans_rate, min_total_rate=$min_total_rate, min_addon_rate=$min_addon_rate);";
+                python_cmd="$python_cmd exit(exit_code);";
+
+                if ! run_python_cmd "$python_cmd"; then
+                    res=1;
+                fi
+            fi
+        else
+            echoe -e "${REDC}ERROR${NC}: Cannoc export translations!";
+            res=12;
+        fi
+    else
+        echoe -e "${REDC}ERROR${NC}: Cannot install addons: $addons";
+        res=13;
+    fi
+
+    # Drop temporary database
+    odoo_db_drop $tmp_db_name;
+
+    return $res;
+}
+
 function tr_main {
     local usage="
     Usage
@@ -330,6 +422,7 @@ function tr_main {
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> all
         $SCRIPT_NAME tr load --help
         $SCRIPT_NAME tr regenerate --help
+        $SCRIPT_NAME tr rate --help
 
     Note:
         <file_name> here is name of file to load lang from in i18n dir of addon.
@@ -352,7 +445,7 @@ function tr_main {
 
     if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -361,31 +454,36 @@ function tr_main {
         case $key in
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             export)
                 shift;
                 tr_export "$@";
-                exit;
+                return;
             ;;
             import)
                 shift;
                 tr_import "$@";
-                exit;
+                return;
             ;;
             load)
                 shift;
                 tr_load "$@";
-                exit;
+                return;
             ;;
             regenerate)
                 shift;
                 tr_regenerate $@;
-                exit;
+                return;
+            ;;
+            rate)
+                shift;
+                tr_translation_rate $@;
+                return $?;
             ;;
             *)
                 echo "Unknown option / command $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift

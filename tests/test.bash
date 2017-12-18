@@ -362,6 +362,7 @@ odoo-helper pip install odoo10-addon-mis-builder;
 # regenerate Ukrainian translations for it
 odoo-helper fetch --oca partner-contact -m partner_firstname;
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
+odoo-helper tr rate --lang uk_UA partner_firstname;
 
 # Check partner_first_name addon with pylint and flake8
 odoo-helper install py-tools

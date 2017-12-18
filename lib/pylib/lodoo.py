@@ -140,6 +140,80 @@ class LocalClient(object):
         self.env[model]._parent_store_compute()
         self.env.cr.commit()
 
+    def compute_translation_rate(self, lang, addons):
+        trans = self.env['ir.translation'].search([
+            ('module', 'in', addons),
+            ('lang', '=', lang),
+        ])
+        bad_translations = trans.filtered(
+            lambda r: not r.value or
+                      not r.value.strip() or
+                      r.src == r.value or
+                      r.source == r.value)
+
+        rate_by_addon = {}
+        for addon in addons:
+            addon_data = rate_by_addon[addon] = {}
+
+            addon_data['terms_total'] = trans_total = len(trans.filtered(
+                lambda r: r.module == addon))
+            addon_data['terms_untranslated'] = trans_fail = len(
+                bad_translations.filtered(lambda r: r.module == addon))
+
+            if trans_total:
+                addon_data['rate'] = 1.0 - (float(trans_fail) /
+                                              float(trans_total))
+            else:
+                addon_date['rate'] = 0.0
+
+            addon_data['rate'] *= 100.0
+
+        if trans:
+            total_rate = 1.0 - float(len(bad_translations)) / float(len(trans))
+        else:
+            total_rate = 0.0
+
+        total_rate *= 100.0
+        return {
+            'total_rate': total_rate,
+            'terms_total': len(trans),
+            'terms_untranslated': len(bad_translations),
+            'by_addon': rate_by_addon,
+        }
+
+    def print_translation_rate(self, translation_rate):
+        """ Print translation rate computed by `compute_translation_rate`
+        """
+        print ("%20s | %10s | %15s | %10s" % (
+               'Addon', 'Total', 'Untranslated', 'Rate'))
+        print ("-" * (20 + 3 + 10 + 3 + 15 + 3 + 10))
+
+        for addon, rate_data in translation_rate['by_addon'].items():
+            print("%20s | %10d | %15d | %7.2f" % (
+                  addon, rate_data['terms_total'],
+                  rate_data['terms_untranslated'],
+                  rate_data['rate']))
+        print ("-" * (20 + 3 + 10 + 3 + 15 + 3 + 10))
+        print("%20s | %10d | %15d | %7.2f" % (
+              'TOTAL', translation_rate['terms_total'],
+              translation_rate['terms_untranslated'],
+              translation_rate['total_rate'],
+        ))
+
+    def assert_translation_rate(self, rate, min_total_rate=None,
+                                min_addon_rate=None):
+        """ Check translation rate, and return number, that can be used as exit
+            code
+        """
+        if min_total_rate is not None and rate['total_rate'] < min_total_rate:
+            return 1;
+
+        if min_addon_rate is not None:
+            for addon, rate_data in rate['by_addon'].items():
+                if rate_data['rate'] < min_addon_rate:
+                    return 2;
+        return 0;
+
     def call_method(self, model, method, *args, **kwargs):
         """ Simple wrapper to call local model methods for database
         """
