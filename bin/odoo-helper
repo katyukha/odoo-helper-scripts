@@ -170,18 +170,21 @@ function show_project_status {
         local eslint_version="${REDC}Not installed${NC}"
     fi
 
-    echo -e "Current project:
+    echo -e "
+    Current project:
 
         Project dir: $project_dir
         Odoo branch: $branch
         Odoo version: $version
         Server status: ${server_status}
 
+    Tools versions:
         Python: $python_version
         NodeJS: $node_version
         npm: $npm_version
         Less.js: $lessc_version
 
+    CI Tools versions:
         Flake8: $flake8_version
         Pylint: $pylint_version
         ESLint: $eslint_version
