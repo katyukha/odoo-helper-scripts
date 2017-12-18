@@ -357,9 +357,9 @@ function install_system_prerequirements {
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
         python-setuptools libevent-dev perl g++ libpq-dev \
-        python-dev python3-dev expect-dev tcl8.6 libjpeg-dev \
+        python-dev python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
-        libsasl2-dev libldap2-dev libssl-dev libffi-dev libyaml-dev;
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev;
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
@@ -384,6 +384,12 @@ function install_virtual_env {
     fi
 }
 
+# Install bin tools
+#
+# At this moment just installs expect-dev package, that provides 'unbuffer' tool
+function install_bin_tools {
+    install_sys_deps_internal expect-dev tcl8.6;
+}
 
 # Install extra python tools
 function install_python_tools {
@@ -570,6 +576,8 @@ function install_entry_point {
         $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
         $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
         $SCRIPT_NAME install js-tools                      - install javascript tools (jshint, phantomjs)
+        $SCRIPT_NAME install bin-tools [-y]                - [sudo] install binary tools. at this moment it is *unbuffer*,
+                                                             which is in *expect-dev* package
         $SCRIPT_NAME install wkhtmltopdf                   - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
                                                              and if user/password specified, create it
@@ -615,13 +623,22 @@ function install_entry_point {
             py-tools)
                 shift;
                 config_load_project;
-                install_python_tools;
+                install_python_tools $@;
                 return 0;
             ;;
             js-tools)
                 shift;
                 config_load_project;
-                install_js_tools;
+                install_js_tools $@;
+                return 0;
+            ;;
+            bin-tools)
+                shift;
+                if [ "$1" == "-y" ]; then
+                    ALWAYS_ANSWER_YES=1;
+                    shift;
+                fi
+                install_bin_tools $@;
                 return 0;
             ;;
             wkhtmltopdf)

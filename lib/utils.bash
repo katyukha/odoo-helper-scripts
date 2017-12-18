@@ -44,7 +44,8 @@ function execu {
     # Check unbuffer option
     if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
         echo -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
-        echo -e "It could be installed by installing package *expect-dev*";
+        echo -e "It could be installed via package *expect-dev*";
+        echo -e "Or by command *odoo-helper install bin-tools*";
         echo -e "Using standard behavior${NC}";
         USE_UNBUFFER=;
     fi

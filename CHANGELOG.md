@@ -25,6 +25,7 @@
 - removed unuseful `odoo-install -y`, it does not run apt, so there is no interactive y/n questions
 - pylint default config: enabled *redefined-outer-name* check
 - experimental `odoo-helper tr rate` command, which computes translation rate for addons. Useful in CI.
+- added command `odoo-helper install bin-tools`
 - `odoo-helper status`: print versions of fllowing tools used in current project.
   - NodeJS
   - npm

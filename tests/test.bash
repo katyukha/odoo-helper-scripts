@@ -71,6 +71,7 @@ Install odoo-helper and odoo system prerequirements
 ${NC}"
 
 odoo-helper install pre-requirements -y;
+odoo-helper install bin-tools -y;
 odoo-helper install postgres;
 
 if [ ! -z $CI_RUN ] && ! odoo-helper exec postgres_test_connection; then
