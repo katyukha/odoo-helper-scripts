@@ -184,17 +184,27 @@ class LocalClient(object):
     def print_translation_rate(self, translation_rate):
         """ Print translation rate computed by `compute_translation_rate`
         """
-        print ("%-40s | %10s | %15s | %10s" % (
-               'Addon', 'Total', 'Untranslated', 'Rate'))
-        print ("-" * (40 + 3 + 10 + 3 + 15 + 3 + 10))
+        name_col_width = max([len(i) for i in translation_rate['by_addon']])
 
+        header_format_str = "%%-%ds | %%10s | %%15s | %%+10s" % name_col_width
+        row_format_str = "%%-%ds | %%10s | %%15s | %%7.2f" % name_col_width
+        spacer_str = "-" * (name_col_width + 3 + 10 + 3 + 15 + 3 + 10)
+
+        # Print header
+        print (header_format_str % (
+               'Addon', 'Total', 'Untranslated', 'Rate'))
+        print (spacer_str)
+
+        # Print translation rate by addon
         for addon, rate_data in translation_rate['by_addon'].items():
-            print("%-40s | %10d | %15d | %7.2f" % (
+            print(row_format_str % (
                   addon, rate_data['terms_total'],
                   rate_data['terms_untranslated'],
                   rate_data['rate']))
-        print ("-" * (40 + 3 + 10 + 3 + 15 + 3 + 10))
-        print("%-40s | %10d | %15d | %7.2f" % (
+
+        # Print total translation rate
+        print (spacer_str)
+        print(row_format_str % (
               'TOTAL', translation_rate['terms_total'],
               translation_rate['terms_untranslated'],
               translation_rate['total_rate'],
