@@ -116,7 +116,7 @@ function install_wkhtmltopdf_download {
             return 2;
         fi
 
-        echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf of ${BLUEC}${w_version}${NC} for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
+        echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
         local download_link=$(install_wkhtmltopdf_get_dw_link $release);
         if ! wget -q -T 2 $download_link -O $wkhtmltox_path; then
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
