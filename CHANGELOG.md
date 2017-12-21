@@ -26,6 +26,10 @@
 - pylint default config: enabled *redefined-outer-name* check
 - experimental `odoo-helper tr rate` command, which computes translation rate for addons. Useful in CI.
 - added command `odoo-helper install bin-tools`
+- do not use [OCA simple](https://wheelhouse.odoo-community.org/) PyPI index by defautl.
+  So to use [OCA simple](https://wheelhouse.odoo-community.org/) PyPI index, pass *--oca* argument to
+  `odoo-helper pip` command. For example: 
+  `odoo-helper --oca pip install odoo10-addon-mis-builder` will use [OCA simple](https://wheelhouse.odoo-community.org/) index.
 - `odoo-helper status`: print versions of fllowing tools used in current project.
   - NodeJS
   - npm

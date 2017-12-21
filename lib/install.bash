@@ -170,6 +170,7 @@ function install_sys_deps_internal {
 function install_parse_debian_control_file {
     local file_path=$1;
     local sys_deps=;
+    # TODO: use python-debian instead of perl (https://stackoverflow.com/questions/31410224/installing-dependencies-of-debian-control-file
     local sys_deps_raw=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
 
     # Preprocess odoo dependencies

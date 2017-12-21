@@ -86,9 +86,9 @@ function print_usage {
         flake8                                   - shortcut for 'test flake8' command
         system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
-        pip <pip arguments>                      - shortcut to run project-specific pip.
-                                                   It automaticaly configs pip to use OCA wheelhouse
-                                                   to install OCA addons easily.
+        pip [--oca] <pip arguments>              - shortcut to run project-specific pip.
+                                                   if option *--oca* is specified, then OCA wheelhouse
+                                                   will be used to install OCA addons.
         npm <npm arguments>                      - Run npm installed in current project's environment
         help | --help | -h                       - display this help message
         --version                                - display odoo-helper version and exit
