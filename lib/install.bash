@@ -170,8 +170,14 @@ function install_sys_deps_internal {
 function install_parse_debian_control_file {
     local file_path=$1;
     local sys_deps=;
-    # TODO: use python-debian instead of perl (https://stackoverflow.com/questions/31410224/installing-dependencies-of-debian-control-file
-    local sys_deps_raw=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+
+    local python_cmd="import re; RE_DEPS=re.compile(r'.*Depends:(?P<deps>(\n [^,]+,)+).*', re.MULTILINE | re.DOTALL);";
+    python_cmd="$python_cmd m = RE_DEPS.match(open('$file_path').read());";
+    python_cmd="$python_cmd deps = m and m.groupdict().get('deps', '');";
+    python_cmd="$python_cmd deps = deps.replace(',', '').replace(' ', '').split('\n');";
+    python_cmd="$python_cmd print('\n'.join(filter(lambda l: l and not l.startswith('\\\${'), deps)))";
+
+    local sys_deps_raw=$(run_python_cmd "$python_cmd");
 
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
@@ -357,7 +363,7 @@ function install_system_prerequirements {
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools libevent-dev perl g++ libpq-dev \
+        python-setuptools libevent-dev g++ libpq-dev \
         python-dev python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev;
