@@ -190,8 +190,8 @@ function odoo_db_dump {
         fi
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd dump=cl.db.dump(cl._server.tools.config['admin_passwd'], '$db_name' $format_opt).decode('base64');";
+    local python_cmd="import lodoo, base64; cl=lodoo.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd dump=base64.b64decode(cl.db.dump(cl._server.tools.config['admin_passwd'], '$db_name' $format_opt));";
     python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
     
     if run_python_cmd "$python_cmd"; then
@@ -258,8 +258,8 @@ function odoo_db_restore {
     local db_dump_file=$2;
     local conf_file=${3:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$conf_file']);";
-    python_cmd="$python_cmd res=cl.db.restore(cl._server.tools.config['admin_passwd'], '$db_name', open('$db_dump_file', 'rb').read().encode('base64'));";
+    local python_cmd="import lodoo, base64; cl=lodoo.Client(['-c', '$conf_file']);";
+    python_cmd="$python_cmd res=base64.b64encode(cl.db.restore(cl._server.tools.config['admin_passwd'], '$db_name', open('$db_dump_file', 'rb').read()));";
     python_cmd="$python_cmd exit(0 if res else 1);";
     
     if run_python_cmd "$python_cmd"; then
