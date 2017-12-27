@@ -3,10 +3,8 @@
 """
 import os
 import atexit
+import functools
 import pkg_resources
-
-
-import erppeek
 
 
 def get_odoo_pkg():
@@ -70,13 +68,6 @@ def start_odoo_services(options=None, appname='odoo-helper'):
     return odoo
 
 
-# Monkeypatch erppeeks start services to be compatible with odoo 10.0
-erppeek.start_odoo_services = start_odoo_services
-
-# look same as erppeek
-from erppeek import *
-
-
 class LocalModel(object):
     def __init__(self, client, name):
         self._client = client
@@ -88,14 +79,11 @@ class LocalModel(object):
         return wrapper
 
 
-class LocalClient(object):
-    """ Wrapper for local odoo instance
-    """
-    def __init__(self, db, options=None):
-        if options is None:
-            options = []
+class LocalRegistry(object):
+    def __init__(self, client, dbname):
+        self._client = client
+        self._dbname = dbname
 
-        self.odoo = start_odoo_services(options)
         if self.odoo._api_v7:
             self.registry = self.odoo.modules.registry.RegistryManager.get(db)
             self.cursor = self.registry.db.cursor()
@@ -107,6 +95,10 @@ class LocalClient(object):
             self.cursor = self.registry.cursor()
             self._env = self.odoo.api.Environment(
                 self.cursor, self.odoo.SUPERUSER_ID, {})
+
+    @property
+    def odoo(self):
+        return self._client.odoo
 
     @property
     def env(self):
@@ -237,3 +229,61 @@ class LocalClient(object):
 
     def __getitem__(self, name):
         return LocalModel(self, name)
+
+class LocalDBService(object):
+    def __init__(self, client):
+        self._client = client
+        self._dispatch = None
+
+    @property
+    def odoo(self):
+        return self._client.odoo
+
+    @property
+    def dispatch(self):
+        if self._dispatch is None:
+            if self.odoo._api_v7:
+                self._dispatch = self.odoo.netsvc.ExportService.getService('db').dispatch
+            else:   # Odoo v8
+                self._dispatch = functools.partial(self.odoo.http.dispatch_rpc, 'db')
+        return self._dispatch
+
+    def __getattr__(self, name):
+        def db_service_method(*args):
+            return self.dispatch(name, args)
+        return db_service_method
+
+
+class LocalClient(object):
+    """ Wrapper for local odoo instance
+    """
+    def __init__(self, options=None):
+        if options is None:
+            options = []
+
+        self._options = options
+
+        self._odoo = None
+        self._registries = {}
+        self._db_service = None
+
+    @property
+    def odoo(self):
+        if self._odoo is None:
+            self._odoo = start_odoo_services(self._options)
+        return self._odoo
+
+    @property
+    def db(self):
+        if self._db_service is None:
+            self._db_service = LocalDBService(self)
+        return self._db_service
+
+    def get_registry(self, dbname):
+        registry = self._registries.get(dbname, None)
+        if registry is None:
+            registry = self._registries[dbname] = LocalRegistry(self, dbname)
+        return registry
+
+    def __getitem__(self, name):
+        return self.get_registry(name)

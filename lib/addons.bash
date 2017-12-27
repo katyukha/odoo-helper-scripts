@@ -31,6 +31,17 @@ function addons_get_manifest_file {
     fi
 }
 
+# Get value of specified key from manifest
+#
+# addons_get_manifest_key <addon> <key>
+#function addons_get_manifest_key {
+    #local addon_path=$1;
+    #local key=$2;
+
+    #local manifest_file="$(addons_get_manifest_file $addon_path)";
+    #run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', None))"
+#}
+
 # Echo path to addon specified by name
 # addons_get_addon_path <addon>
 function addons_get_addon_path {
@@ -75,8 +86,8 @@ function addons_get_installed_addons {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
-    python_cmd="$python_cmd installed_addons=cl['ir.module.module'].search([('state', '=', 'installed')]);"
+    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    python_cmd="$python_cmd installed_addons=cl['$db']['ir.module.module'].search([('state', '=', 'installed')]);"
     python_cmd="$python_cmd print(','.join(installed_addons.mapped('name')));"
 
     run_python_cmd "$python_cmd";
@@ -88,9 +99,9 @@ function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
-    python_cmd="$python_cmd res=cl['ir.module.module'].update_list();";
-    python_cmd="$python_cmd cl.cursor.commit();";
+    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    python_cmd="$python_cmd res=cl['$db']['ir.module.module'].update_list();";
+    python_cmd="$python_cmd cl['$db'].cursor.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
     run_python_cmd "$python_cmd";
@@ -335,9 +346,9 @@ function addons_install_update_internal {
         return $?
     elif [ "$cmd" == "uninstall" ]; then
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
-        local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$ODOO_CONF_FILE']);";
-        python_cmd="$python_cmd cl.require_v8_api();";
-        python_cmd="$python_cmd modules=cl['ir.module.module'].search($addons_domain);";
+        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE']);";
+        python_cmd="$python_cmd db=cl['$db']; db.require_v8_api();";
+        python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
         python_cmd="$python_cmd modules.button_immediate_uninstall();";
         python_cmd="$python_cmd print(', '.join(modules.mapped('name')));";
         local addons_uninstalled=$(run_python_cmd "$python_cmd");

@@ -37,6 +37,8 @@
   - Pylint
   - Flake8
   - ESLint
+- Do not require [erppeek](https://github.com/tinyerp/erppeek).
+  This project seems to be abandoned.
 
 ## Version 0.1.4 (2017-11-13)
 

@@ -389,10 +389,10 @@ function tr_translation_rate {
                 rm $trans_file;
 
                 # Compute translation rate and print it
-                local python_cmd="import lodoo; cl=lodoo.LocalClient('$tmp_db_name', ['-c', '$ODOO_CONF_FILE']);";
-                python_cmd="$python_cmd trans_rate = cl.compute_translation_rate('$lang', '$addons'.split());";
-                python_cmd="$python_cmd cl.print_translation_rate(trans_rate);";
-                python_cmd="$python_cmd exit_code = cl.assert_translation_rate(trans_rate, min_total_rate=$min_total_rate, min_addon_rate=$min_addon_rate);";
+                local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
+                python_cmd="$python_cmd trans_rate = db.compute_translation_rate('$lang', '$addons'.split());";
+                python_cmd="$python_cmd db.print_translation_rate(trans_rate);";
+                python_cmd="$python_cmd exit_code = db.assert_translation_rate(trans_rate, min_total_rate=$min_total_rate, min_addon_rate=$min_addon_rate);";
                 python_cmd="$python_cmd exit(exit_code);";
 
                 if ! run_python_cmd "$python_cmd"; then

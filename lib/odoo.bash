@@ -201,11 +201,11 @@ function odoo_recompute_stored_fields {
         return 4;
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient('$dbname', ['-c', '$conf_file']);";
+    local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$conf_file'])['$dbname'];";
     if [ -z $parent_store ]; then
-        python_cmd="$python_cmd cl.recompute_fields('$model', [$fields]);"
+        python_cmd="$python_cmd db.recompute_fields('$model', [$fields]);"
     else
-        python_cmd="$python_cmd cl.recompute_parent_store('$model');"
+        python_cmd="$python_cmd db.recompute_parent_store('$model');"
     fi
 
     run_python_cmd "$python_cmd";

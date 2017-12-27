@@ -413,7 +413,7 @@ function install_js_tools {
 function install_python_prerequirements {
     # required to make odoo.py work correctly when setuptools too old
     exec_py -m easy_install --upgrade setuptools pip;
-    exec_py -m pip install --upgrade pip erppeek \
+    exec_py -m pip install --upgrade pip \
         setproctitle python-slugify setuptools-odoo cffi jinja2 six \
         num2words;
 
