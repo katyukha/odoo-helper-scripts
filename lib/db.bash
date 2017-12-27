@@ -259,7 +259,7 @@ function odoo_db_restore {
     local conf_file=${3:-$ODOO_CONF_FILE};
 
     local python_cmd="import lodoo, base64; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd res=base64.b64encode(cl.db.restore(cl.odoo.tools.config['admin_passwd'], '$db_name', open('$db_dump_file', 'rb').read()));";
+    python_cmd="$python_cmd res=cl.db.restore(cl.odoo.tools.config['admin_passwd'], '$db_name', base64.b64encode(open('$db_dump_file', 'rb').read()));";
     python_cmd="$python_cmd exit(0 if res else 1);";
     
     if run_python_cmd "$python_cmd"; then
