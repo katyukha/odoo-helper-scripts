@@ -162,7 +162,7 @@ function odoo_db_rename {
     local conf_file=${3:-$ODOO_CONF_FILE};
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.rename(cl._server.tools.config['admin_passwd'], '$old_db_name', '$new_db_name');"
+    python_cmd="$python_cmd cl.db.rename(cl.odoo.tools.config['admin_passwd'], '$old_db_name', '$new_db_name');"
     
     if run_python_cmd "$python_cmd"; then
         echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$old_db_name${NC} renamed to ${BLUEC}$new_db_name${NC} successfuly!";

@@ -85,13 +85,13 @@ class LocalRegistry(object):
         self._dbname = dbname
 
         if self.odoo._api_v7:
-            self.registry = self.odoo.modules.registry.RegistryManager.get(db)
+            self.registry = self.odoo.modules.registry.RegistryManager.get(self._dbname)
             self.cursor = self.registry.db.cursor()
             self._env = None
         else:
             # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
             # to get registry instance for db
-            self.registry = self.odoo.registry(db)
+            self.registry = self.odoo.registry(self._dbname)
             self.cursor = self.registry.cursor()
             self._env = self.odoo.api.Environment(
                 self.cursor, self.odoo.SUPERUSER_ID, {})
@@ -229,6 +229,7 @@ class LocalRegistry(object):
 
     def __getitem__(self, name):
         return LocalModel(self, name)
+
 
 class LocalDBService(object):
     def __init__(self, client):
