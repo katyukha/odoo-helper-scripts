@@ -293,7 +293,7 @@ function install_sys_deps_for_odoo_version {
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
     wget -q -T 2 $control_url -O $tmp_control;
-    local sys_deps=$(install_parse_debian_control_file $tmp_control);
+    local sys_deps=$(ODOO_VERSION=$odoo_version install_parse_debian_control_file $tmp_control);
     install_sys_deps_internal $sys_deps;
     rm $tmp_control;
 }

@@ -110,7 +110,7 @@ function odoo_get_python_version {
     elif [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -lt 11 ]; then
         echo "python2";
     else
-        echoe -e "${REDC}ERROR${NC}: odoo version not specified, using default python executable";
+        echoe -e "${YELLOWC}WARNING${NC}: odoo version not specified, using default python executable";
         echo "python";
     fi
 }
