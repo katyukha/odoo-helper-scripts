@@ -39,6 +39,12 @@
   - ESLint
 - Do not require [erppeek](https://github.com/tinyerp/erppeek).
   This project seems to be abandoned.
+- Do not force install following python packages: *six*, *num2words*
+- Python package *setproctitle* will be installed by `odoo-helper install py-tools` command.
+  (previously it was installed as python-prerequirement for Odoo)
+- Do not upgrade *pip* and *setuptools* when installing Odoo in fresh virtualenv,
+  virtualenv versions >= 15.1.0 automaticaly installs last pip and setuptools,
+  so there is not need to reinstall them
 
 ## Version 0.1.4 (2017-11-13)
 

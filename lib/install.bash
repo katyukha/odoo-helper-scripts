@@ -400,7 +400,7 @@ function install_bin_tools {
 
 # Install extra python tools
 function install_python_tools {
-    exec_pip install watchdog pylint-odoo coverage \
+    exec_pip install setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors Mercurial;
 }
 
@@ -411,11 +411,9 @@ function install_js_tools {
 
 # install_python_prerequirements
 function install_python_prerequirements {
-    # required to make odoo.py work correctly when setuptools too old
-    exec_py -m easy_install --upgrade setuptools pip;
-    exec_py -m pip install --upgrade pip \
-        setproctitle python-slugify setuptools-odoo cffi jinja2 six \
-        num2words;
+    # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
+    # setuptools, so we do not need to upgrade them
+    exec_pip install python-slugify setuptools-odoo cffi jinja2;
 
     if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
         exec_pip install Python-Chart;
