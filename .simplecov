@@ -1,9 +1,7 @@
 require 'simplecov'
-#require 'coveralls'
 require 'codecov'
 
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
   SimpleCov::Formatter::HTMLFormatter,
-#  Coveralls::SimpleCov::Formatter,
   SimpleCov::Formatter::Codecov
-]
+])
