@@ -5,6 +5,8 @@ language: ruby
 cache:
     pip: true
     apt: true
+    directories:
+        - $HOME/.cache/pip
 
 rvm: 2.3
 
