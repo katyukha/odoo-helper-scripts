@@ -17,7 +17,7 @@ env:
     - TEST_TMP_DIR=/tmp/odoo-helper-tests
 
 install:
-  - "gem install bashcov codecov"
+  - "gem install bashcov codecov simplecov-console"
   - "bash install-user.bash"
 
 script:
