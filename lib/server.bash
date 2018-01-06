@@ -68,7 +68,7 @@ function server_start {
         # Check if server process is already running
         if [ $(server_get_pid) -gt 0 ]; then
             echoe -e "${REDC}Server process already running.${NC}";
-            exit 1;
+            return 1;
         fi
 
         server_run --pidfile=$ODOO_PID_FILE "$@" &
@@ -215,7 +215,7 @@ function server {
         case $key in
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             --use-test-conf)
                 ODOO_CONF_FILE=$ODOO_TEST_CONF_FILE;
@@ -228,43 +228,43 @@ function server {
             run)
                 shift;
                 server_run "$@";
-                exit;
+                return;
             ;;
             start)
                 shift;
                 server_start "$@";
-                exit;
+                return;
             ;;
             stop)
                 shift;
                 server_stop "$@";
-                exit;
+                return;
             ;;
             restart)
                 shift;
                 server_restart "$@";
-                exit;
+                return;
             ;;
             status)
                 shift;
                 server_status "$@";
-                exit
+                return
             ;;
             auto-update)
                 shift;
                 server_auto_update "$@";
-                exit;
+                return;
             ;;
             log)
                 shift;
                 # TODO: remove backward compatability from this code
                 less ${LOG_FILE:-$LOG_DIR/odoo.log};
-                exit;
+                return;
             ;;
             ps)
                 shift;
                 server_ps;
-                exit;
+                return;
             ;;
             *)
                 # all nex options have to be passed to the server
@@ -274,7 +274,6 @@ function server {
         shift;
     done;
     server_run "$@";
-    exit;
 }
 
 # odoo_py <args>

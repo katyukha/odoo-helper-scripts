@@ -48,7 +48,7 @@ function odoo_db_create {
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 break;
@@ -290,7 +290,7 @@ function odoo_db_command {
 
     if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -300,55 +300,55 @@ function odoo_db_command {
             list)
                 shift;
                 odoo_db_list "$@";
-                exit;
+                return;
             ;;
             create)
                 shift;
                 odoo_db_create "$@";
-                exit;
+                return;
             ;;
             drop)
                 shift;
                 odoo_db_drop "$@";
-                exit;
+                return;
             ;;
             dump)
                 shift;
                 odoo_db_dump "$@";
-                exit;
+                return;
             ;;
             backup)
                 shift;
                 odoo_db_backup "$@";
-                exit;
+                return;
             ;;
             backup-all)
                 shift;
                 odoo_db_backup_all "$@";
-                exit;
+                return;
             ;;
             restore)
                 shift;
                 odoo_db_restore "$@";
-                exit;
+                return;
             ;;
             exists)
                 shift;
                 odoo_db_exists "$@";
-                exit;
+                return;
             ;;
             rename)
                 shift;
                 odoo_db_rename "$@";
-                exit;
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 echo "Unknown option / command $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift

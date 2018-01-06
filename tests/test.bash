@@ -377,6 +377,9 @@ odoo-helper server --stop-after-init;  # test that it runs
 # for pip, if it is called with this command.
 odoo-helper pip install odoo10-addon-mis-builder;
 
+# Also there is odoo-helper npm command
+odoo-helper npm help
+
 # Install extra js tools
 odoo-helper install js-tools;
 
@@ -498,3 +501,6 @@ odoo-helper-db --help
 odoo-helper-fetch --help
 odoo-helper-server --help
 odoo-helper-test --help
+
+# There is also shortcut for odoo.py command
+odoo-helper odoo-py --help
