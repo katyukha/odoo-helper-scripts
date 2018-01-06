@@ -294,6 +294,9 @@ odoo-helper db drop test-9-db;
 # Show project status
 odoo-helper status
 
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions
+
 
 echo -e "${YELLOWC}
 =================================
@@ -392,6 +395,9 @@ odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
 # Show project status
 odoo-helper status
 
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions
+
 # Print odoo helper configuration
 odoo-helper print-config
 
@@ -464,6 +470,9 @@ odoo-helper server ps
 odoo-helper server status
 odoo-helper stop
 
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions
+
 echo -e "${YELLOWC}
 ==========================================
 Test how translation-related commands work
@@ -482,6 +491,8 @@ Test shortcuts
 ==========================================
 ${NC}"
 
+odoo-helper --help
+odoo-install --help
 odoo-helper-addons --help
 odoo-helper-db --help
 odoo-helper-fetch --help
