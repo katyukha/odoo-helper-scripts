@@ -474,3 +474,16 @@ odoo-helper tr load --lang uk_UA --db test-11-db;
 odoo-helper tr export test-11-db uk_UA uk-test test-11-db web;
 odoo-helper tr import test-11-db uk_UA uk-test test-11-db web;
 odoo-helper db drop test-11-db;
+
+
+echo -e "${YELLOWC}
+==========================================
+Test shortcuts
+==========================================
+${NC}"
+
+odoo-helper-addons --help
+odoo-helper-db --help
+odoo-helper-fetch --help
+odoo-helper-server --help
+odoo-helper-test --help

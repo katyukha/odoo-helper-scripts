@@ -7,4 +7,6 @@ SimpleCov.start do
         SimpleCov::Formatter::Codecov,
         SimpleCov::Formatter::Console
     ])
+    add_filter ".git/"
+    add_filter "run_docker_test.bash"
 end
