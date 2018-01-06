@@ -45,6 +45,7 @@
 - Do not upgrade *pip* and *setuptools* when installing Odoo in fresh virtualenv,
   virtualenv versions >= 15.1.0 automaticaly installs last pip and setuptools,
   so there is not need to reinstall them
+- List command `odoo-helper addons generate-requirements` in help message for addons subcommand
 
 ## Version 0.1.4 (2017-11-13)
 

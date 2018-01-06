@@ -569,6 +569,9 @@ function install_reinstall_venv {
 
     # Install odoo
     install_odoo_install;
+
+    # Update python dependencies for addons
+    addons_update_py_deps;
 }
 
 

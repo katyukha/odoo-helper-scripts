@@ -237,9 +237,6 @@ odoo-helper fetch --github gisce/aeroo -n aeroo
 odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
 odoo-helper generate_requirements
 
-# Update install python requirements for addons (those that are in requirements.txt)
-odoo-helper addons update-py-deps
-
 echo -e "${YELLOWC}
 ==========================
 Install and check Odoo 9.0 
@@ -262,6 +259,9 @@ echo "";
 
 odoo-helper server --stop-after-init;  # test that it runs
 
+# Update odoo source code (here odoo source is under git)
+odoo-helper server auto-update
+
 # Create odoo 9 database
 odoo-helper db create test-9-db;
 
@@ -273,7 +273,20 @@ odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons update-list
 odoo-helper addons install bus_enchanced;
 odoo-helper addons test-installed bus_enchanced;  # find databases where this addons is installed
+odoo-helper addons update bus_enchanced;
 odoo-helper addons uninstall bus_enchanced;
+
+# Update python dependencies of addons
+odoo-helper addons update-py-deps
+
+# List addon repositories
+odoo-helper addons list-repos;
+
+# List addons without repositories
+odoo-helper addons list-no-repo;
+
+# Generate requirements
+odoo-helper addons generate-requirements;
 
 # Drop created database
 odoo-helper db drop test-9-db;
@@ -299,6 +312,9 @@ odoo-helper db list
 
 # backup database
 backup_file=$(odoo-helper db backup my-test-odoo-database zip);
+
+# Also it is possible to backup SQL only (without filesystem)
+backup_file_sql=$(odoo-helper db backup my-test-odoo-database sql);
 
 # drop test database if it exists
 if odoo-helper db exists my-test-odoo-database; then
@@ -358,6 +374,9 @@ odoo-helper server --stop-after-init;  # test that it runs
 # for pip, if it is called with this command.
 odoo-helper pip install odoo10-addon-mis-builder;
 
+# Install extra js tools
+odoo-helper install js-tools;
+
 
 # Install oca/partner_firstname addons and
 # regenerate Ukrainian translations for it
@@ -376,7 +395,7 @@ odoo-helper status
 # Print odoo helper configuration
 odoo-helper print-config
 
-# Update odoo source code
+# Update odoo source code (here odoo source is archive)
 odoo-helper server auto-update
 
 # Pull odoo addons update
@@ -384,6 +403,28 @@ odoo-helper addons pull-updates
 
 # Update odoo base addon
 odoo-helper addons update base
+
+# Fetch OCA account-financial-reporting, which seems to have
+# complicated enough dependencies for this test
+odoo-helper fetch --oca account-financial-reporting
+
+# Clone repository explicitly and link it
+(cd repositories && git clone -b 10.0 https://github.com/OCA/contract && odoo-helper link contract)
+
+# Update addons list
+odoo-helper addons update-list
+
+
+# Generate requirements and fetch them again
+odoo-helper addons generate-requirements > /tmp/odoo-requirements.txt
+odoo-helper fetch --requirements /tmp/odoo-requirements.txt
+
+# Try to reinstall virtualenv and run server
+odoo-helper install reinstall-venv;
+odoo-helper server status
+odoo-helper start
+odoo-helper server status
+odoo-helper stop
 
 
 echo -e "${YELLOWC}

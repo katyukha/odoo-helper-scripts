@@ -357,6 +357,7 @@ function addons_install_update_internal {
         else
             echoe -e "${GREENC}OK${NC}: Following addons successfully uninstalled:\n${addons_uninstalled};";
         fi
+        return 0;
     else
         echoe -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
         return 1;
@@ -491,6 +492,7 @@ function addons_command {
         $SCRIPT_NAME addons update-list [db]              - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons update-py-deps                - update python dependencies of addons
+        $SCRIPT_NAME addons generate-requirements         - generate odoo_requirements.txt for this instance
         $SCRIPT_NAME addons --help                        - show this help message
 
     ";
@@ -570,7 +572,7 @@ function addons_command {
                 addons_update_py_deps;
                 return;
             ;;
-            generate_requirements)
+            generate-requirements)
                 shift;
                 addons_generate_requirements "$@";
                 return 0;
