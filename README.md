@@ -32,7 +32,7 @@ Dev:
     - *8.0*
     - *9.0*
     - *10.0*
-    - *11.0* (experimental)
+    - *11.0*
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
