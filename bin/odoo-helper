@@ -147,7 +147,7 @@ function show_project_ci_tools_versions {
         local eslint_version="${REDC}Not installed${NC}"
     fi
 
-    if run_python_cmd "import pylint_odoo" 2>&1 >/dev/null; then
+    if run_python_cmd "import pylint_odoo" >/dev/null 2>&1 ; then
         local pylint_odoo_version=$(run_python_cmd "import pkg_resources; print(pkg_resources.get_distribution('pylint_odoo').version)");
         pylint_odoo_version="${BLUEC}${pylint_odoo_version}${NC}";
     else
