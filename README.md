@@ -18,7 +18,7 @@ Dev:
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
         - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
-    - Specific file format to track addon dependencies: [odoo\_requirements.txt](#syntax-of-odoo_requirementstxt)
+    - Specific file format to track addon dependencies: [odoo\_requirements.txt](docs/odoo-requirements-txt.md)
     - installation from *git* repositories
     - installation from *Mercurial* repositories (**experimental**)
     - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)

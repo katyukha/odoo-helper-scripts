@@ -21,7 +21,7 @@
 - `odoo-helper install reinstall-venv` option simplified. now it does not recieve any arguments
 - do not install `node-less` as system dependency
 - `odoo-helper install js-tools` automatialy install `eslint` instead of `jshint`
-  Starting from version 1.6.0 [pylint_odoo](https://pypi.python.org/pypi/pylint-odoo/) user `eslint`
+  Starting from version 1.6.0 [pylint_odoo](https://pypi.python.org/pypi/pylint-odoo/) uses `eslint`
 - removed unuseful `odoo-install -y`, it does not run apt, so there is no interactive y/n questions
 - pylint default config: enabled *redefined-outer-name* check
 - experimental `odoo-helper tr rate` command, which computes translation rate for addons. Useful in CI.
@@ -104,7 +104,7 @@
 - Added aliases `odoo-helper flake8` and `odoo-helper pylint`
 - Added automatic configuration checks.
   So, when odoo-helper-scripts provides some new configuration params after update,
-  user will be notified about them and asket to update project config file
+  user will be notified about them and asked to update project config file
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
