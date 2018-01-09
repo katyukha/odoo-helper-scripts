@@ -30,13 +30,14 @@
   So to use [OCA simple](https://wheelhouse.odoo-community.org/) PyPI index, pass *--oca* argument to
   `odoo-helper pip` command. For example: 
   `odoo-helper --oca pip install odoo10-addon-mis-builder` will use [OCA simple](https://wheelhouse.odoo-community.org/) index.
-- `odoo-helper status`: print versions of fllowing tools used in current project.
+- `odoo-helper status`: print versions of following tools used in current project.
   - NodeJS
   - npm
   - Less.JS
   - Pylint
   - Flake8
   - ESLint
+  - Pylint Odoo
 - Do not require [erppeek](https://github.com/tinyerp/erppeek).
   This project seems to be abandoned.
 - Do not force install following python packages: *six*, *num2words*
@@ -46,6 +47,8 @@
   virtualenv versions >= 15.1.0 automaticaly installs last pip and setuptools,
   so there is not need to reinstall them
 - List command `odoo-helper addons generate-requirements` in help message for addons subcommand
+- Bugfix in processing OCA depenencies: handle cases, when file ends without newline
+
 
 ## Version 0.1.4 (2017-11-13)
 
@@ -109,8 +112,6 @@
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
   - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
-- Bugfix in processing OCA depenencies: handle cases, when file ends without newline
-
 
 
 ## Version 0.1.1 (2017-06-08)
