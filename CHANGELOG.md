@@ -109,6 +109,7 @@
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
   - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
+- Bugfix in processing OCA depenencies: handle cases, when file ends without newline
 
 
 

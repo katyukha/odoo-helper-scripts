@@ -120,7 +120,11 @@ function fetch_oca_requirements {
         return 0
     fi
 
-    while read -ra line; do
+    local is_read_finished=0;
+    while true; do
+       if ! read -ra line; then
+           is_read_finished=1;
+       fi
        if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
            local opt=""; #"--name ${line[0]}";
 
@@ -142,6 +146,9 @@ function fetch_oca_requirements {
            else
                echo -e "Line ${GREENC}FAIL${NC}: $opt";
            fi
+       fi
+       if [ $is_read_finished -ne 0 ]; then
+           break;
        fi
     done < $oca_requirements;
 }
