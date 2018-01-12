@@ -13,6 +13,8 @@ fi
 
 set -e; # fail on errors
 
+ohelper_require "odoo";
+
 # Simple function to exec command in virtual environment if required
 function execv {
     if [ ! -z $VENV_DIR ]; then
@@ -42,7 +44,8 @@ function execu {
     # Check unbuffer option
     if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
         echo -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
-        echo -e "It could be installed by installing package *expect-dev*";
+        echo -e "It could be installed via package *expect-dev*";
+        echo -e "Or by command *odoo-helper install bin-tools*";
         echo -e "Using standard behavior${NC}";
         USE_UNBUFFER=;
     fi
@@ -68,10 +71,19 @@ function exec_conf {
 
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
 function exec_pip {
-    local extra_index="$PIP_EXTRA_INDEX_URL https://wheelhouse.odoo-community.org/oca-simple";
-    PIP_EXTRA_INDEX_URL=$extra_index execv pip $@;
+    if [ ! -z $1 ] && [ "$1" == "--oca" ]; then
+        shift;
+        local extra_index="$PIP_EXTRA_INDEX_URL https://wheelhouse.odoo-community.org/oca-simple";
+        PIP_EXTRA_INDEX_URL=$extra_index exec_py -m pip $@;
+    else
+        exec_py -m pip $@;
+    fi
 }
 
+# Exec npm for this project
+function exec_npm {
+    execu npm $@;
+}
 
 
 # Simple function to create directories passed as arguments
@@ -192,12 +204,19 @@ function join_by {
     echo "$*";
 }
 
+# Exec python
+#
+function exec_py {
+    local python_exec="$(odoo_get_python_version)";
+    execu $python_exec "$@";
+}
+
 # Run python code
 #
 # run_python_cmd <code>
 function run_python_cmd {
     local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
     python_cmd="$python_cmd $1";
-    execu python -c "\"$python_cmd\"";
+    exec_py -c "\"$python_cmd\"";
 }
 

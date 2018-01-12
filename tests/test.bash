@@ -71,6 +71,7 @@ Install odoo-helper and odoo system prerequirements
 ${NC}"
 
 odoo-helper install pre-requirements -y;
+odoo-helper install bin-tools -y;
 odoo-helper install postgres;
 
 if [ ! -z $CI_RUN ] && ! odoo-helper exec postgres_test_connection; then
@@ -236,9 +237,6 @@ odoo-helper fetch --github gisce/aeroo -n aeroo
 odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
 odoo-helper generate_requirements
 
-# Update install python requirements for addons (those that are in requirements.txt)
-odoo-helper addons update-py-deps
-
 echo -e "${YELLOWC}
 ==========================
 Install and check Odoo 9.0 
@@ -261,6 +259,9 @@ echo "";
 
 odoo-helper server --stop-after-init;  # test that it runs
 
+# Update odoo source code (here odoo source is under git)
+odoo-helper server auto-update
+
 # Create odoo 9 database
 odoo-helper db create test-9-db;
 
@@ -272,13 +273,29 @@ odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons update-list
 odoo-helper addons install bus_enchanced;
 odoo-helper addons test-installed bus_enchanced;  # find databases where this addons is installed
+odoo-helper addons update bus_enchanced;
 odoo-helper addons uninstall bus_enchanced;
+
+# Update python dependencies of addons
+odoo-helper addons update-py-deps
+
+# List addon repositories
+odoo-helper addons list-repos;
+
+# List addons without repositories
+odoo-helper addons list-no-repo;
+
+# Generate requirements
+odoo-helper addons generate-requirements;
 
 # Drop created database
 odoo-helper db drop test-9-db;
 
 # Show project status
 odoo-helper status
+
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions
 
 
 echo -e "${YELLOWC}
@@ -298,6 +315,9 @@ odoo-helper db list
 
 # backup database
 backup_file=$(odoo-helper db backup my-test-odoo-database zip);
+
+# Also it is possible to backup SQL only (without filesystem)
+backup_file_sql=$(odoo-helper db backup my-test-odoo-database sql);
 
 # drop test database if it exists
 if odoo-helper db exists my-test-odoo-database; then
@@ -357,11 +377,18 @@ odoo-helper server --stop-after-init;  # test that it runs
 # for pip, if it is called with this command.
 odoo-helper pip install odoo10-addon-mis-builder;
 
+# Also there is odoo-helper npm command
+odoo-helper npm help
+
+# Install extra js tools
+odoo-helper install js-tools;
+
 
 # Install oca/partner_firstname addons and
 # regenerate Ukrainian translations for it
 odoo-helper fetch --oca partner-contact -m partner_firstname;
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
+odoo-helper tr rate --lang uk_UA partner_firstname;
 
 # Check partner_first_name addon with pylint and flake8
 odoo-helper install py-tools
@@ -371,10 +398,13 @@ odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
 # Show project status
 odoo-helper status
 
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions
+
 # Print odoo helper configuration
 odoo-helper print-config
 
-# Update odoo source code
+# Update odoo source code (here odoo source is archive)
 odoo-helper server auto-update
 
 # Pull odoo addons update
@@ -382,6 +412,28 @@ odoo-helper addons pull-updates
 
 # Update odoo base addon
 odoo-helper addons update base
+
+# Fetch OCA account-financial-reporting, which seems to have
+# complicated enough dependencies for this test
+odoo-helper fetch --oca account-financial-reporting
+
+# Clone repository explicitly and link it
+(cd repositories && git clone -b 10.0 https://github.com/OCA/contract && odoo-helper link contract)
+
+# Update addons list
+odoo-helper addons update-list
+
+
+# Generate requirements and fetch them again
+odoo-helper addons generate-requirements > /tmp/odoo-requirements.txt
+odoo-helper fetch --requirements /tmp/odoo-requirements.txt
+
+# Try to reinstall virtualenv and run server
+odoo-helper install reinstall-venv;
+odoo-helper server status
+odoo-helper start
+odoo-helper server status
+odoo-helper stop
 
 
 echo -e "${YELLOWC}
@@ -395,8 +447,7 @@ odoo-helper install sys-deps -y 11.0;
 odoo-helper postgres user-create odoo11 odoo;
 odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo11 --db-pass odoo \
-    --python python3
+    --db-user odoo11 --db-pass odoo
 
 cd odoo-11.0;
 
@@ -421,3 +472,35 @@ odoo-helper start
 odoo-helper server ps
 odoo-helper server status
 odoo-helper stop
+
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions
+
+echo -e "${YELLOWC}
+==========================================
+Test how translation-related commands work
+==========================================
+${NC}"
+odoo-helper db create --demo test-11-db;
+odoo-helper tr load --lang uk_UA --db test-11-db;
+odoo-helper tr export test-11-db uk_UA uk-test test-11-db web;
+odoo-helper tr import test-11-db uk_UA uk-test test-11-db web;
+odoo-helper db drop test-11-db;
+
+
+echo -e "${YELLOWC}
+==========================================
+Test shortcuts
+==========================================
+${NC}"
+
+odoo-helper --help
+odoo-install --help
+odoo-helper-addons --help
+odoo-helper-db --help
+odoo-helper-fetch --help
+odoo-helper-server --help
+odoo-helper-test --help
+
+# There is also shortcut for odoo.py command
+odoo-helper odoo-py --help

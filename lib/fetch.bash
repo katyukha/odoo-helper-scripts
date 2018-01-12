@@ -96,7 +96,7 @@ function fetch_pip_requirements {
     # -e ./lib/python-project
     #
     local req_dir=$(dirname $pip_requirements);
-    (cd $req_dir && execu pip install -r $pip_requirements);
+    (cd $req_dir && exec_pip install -r $pip_requirements);
 }
 
 # fetch_oca_requirements <filepath>
@@ -120,7 +120,11 @@ function fetch_oca_requirements {
         return 0
     fi
 
-    while read -ra line; do
+    local is_read_finished=0;
+    while true; do
+       if ! read -ra line; then
+           is_read_finished=1;
+       fi
        if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
            local opt=""; #"--name ${line[0]}";
 
@@ -142,6 +146,9 @@ function fetch_oca_requirements {
            else
                echo -e "Line ${GREENC}FAIL${NC}: $opt";
            fi
+       fi
+       if [ $is_read_finished -ne 0 ]; then
+           break;
        fi
     done < $oca_requirements;
 }
@@ -170,7 +177,7 @@ function fetch_python_dep {
         local install_opt="$1";
     fi
 
-    execu pip install $install_opt;
+    exec_pip install $install_opt;
 }
 
 

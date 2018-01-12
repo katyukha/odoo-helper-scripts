@@ -31,6 +31,17 @@ function addons_get_manifest_file {
     fi
 }
 
+# Get value of specified key from manifest
+#
+# addons_get_manifest_key <addon> <key>
+#function addons_get_manifest_key {
+    #local addon_path=$1;
+    #local key=$2;
+
+    #local manifest_file="$(addons_get_manifest_file $addon_path)";
+    #run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', None))"
+#}
+
 # Echo path to addon specified by name
 # addons_get_addon_path <addon>
 function addons_get_addon_path {
@@ -53,7 +64,7 @@ function addons_get_addon_path {
 function addons_is_installable {
     local addon_path=$1;
     local manifest_file="$(addons_get_manifest_file $addon_path)";
-    if python -c "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
+    if run_python_cmd "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
         return 0;
     else
         return 1;
@@ -66,7 +77,7 @@ function addons_get_addon_dependencies {
     local addon_path=$1;
     local manifest_file="$(addons_get_manifest_file $addon_path)";
 
-    echo $(python -c "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
+    echo $(run_python_cmd "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
 }
 
 # Get list of installed addons
@@ -75,8 +86,8 @@ function addons_get_installed_addons {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
-    python_cmd="$python_cmd installed_addons=cl['ir.module.module'].search([('state', '=', 'installed')]);"
+    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    python_cmd="$python_cmd installed_addons=cl['$db']['ir.module.module'].search([('state', '=', 'installed')]);"
     python_cmd="$python_cmd print(','.join(installed_addons.mapped('name')));"
 
     run_python_cmd "$python_cmd";
@@ -88,9 +99,9 @@ function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$conf_file']);";
-    python_cmd="$python_cmd res=cl['ir.module.module'].update_list();";
-    python_cmd="$python_cmd cl.cursor.commit();";
+    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    python_cmd="$python_cmd res=cl['$db']['ir.module.module'].update_list();";
+    python_cmd="$python_cmd cl['$db'].cursor.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
     run_python_cmd "$python_cmd";
@@ -335,9 +346,9 @@ function addons_install_update_internal {
         return $?
     elif [ "$cmd" == "uninstall" ]; then
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
-        local python_cmd="import lodoo; cl=lodoo.LocalClient('$db', ['-c', '$ODOO_CONF_FILE']);";
-        python_cmd="$python_cmd cl.require_v8_api();";
-        python_cmd="$python_cmd modules=cl['ir.module.module'].search($addons_domain);";
+        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE']);";
+        python_cmd="$python_cmd db=cl['$db']; db.require_v8_api();";
+        python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
         python_cmd="$python_cmd modules.button_immediate_uninstall();";
         python_cmd="$python_cmd print(', '.join(modules.mapped('name')));";
         local addons_uninstalled=$(run_python_cmd "$python_cmd");
@@ -346,6 +357,7 @@ function addons_install_update_internal {
         else
             echoe -e "${GREENC}OK${NC}: Following addons successfully uninstalled:\n${addons_uninstalled};";
         fi
+        return 0;
     else
         echoe -e "${REDC}ERROR: Wrong command '$cmd'${NC}";
         return 1;
@@ -436,8 +448,8 @@ function addons_test_installed {
     local addons=$(join_by , $@);
     for db in $(odoo_db_list); do
         local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$ODOO_CONF_FILE']);";
-        python_cmd="$python_cmd odoo=cl._server; reg=odoo.registry('$db'); env=odoo.api.Environment(reg.cursor(), 1, {});";
-        python_cmd="$python_cmd is_installed=bool(env['ir.module.module'].search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
+        python_cmd="$python_cmd Module=cl['$db'].env['ir.module.module'];";
+        python_cmd="$python_cmd is_installed=bool(Module.search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
         # returns 0 (OK) if addon is installed in database
         # returns 1 (False) if addon is not installed in database
         python_cmd="$python_cmd exit(not is_installed);"
@@ -480,6 +492,7 @@ function addons_command {
         $SCRIPT_NAME addons update-list [db]              - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons update-py-deps                - update python dependencies of addons
+        $SCRIPT_NAME addons generate-requirements         - generate odoo_requirements.txt for this instance
         $SCRIPT_NAME addons --help                        - show this help message
 
     ";
@@ -559,7 +572,7 @@ function addons_command {
                 addons_update_py_deps;
                 return;
             ;;
-            generate_requirements)
+            generate-requirements)
                 shift;
                 addons_generate_requirements "$@";
                 return 0;

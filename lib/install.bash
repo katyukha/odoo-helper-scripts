@@ -11,6 +11,7 @@ fi
 # ----------------------------------------------------------------------------------------
 ohelper_require "config";
 ohelper_require "postgres";
+ohelper_require "odoo";
 
 
 set -e; # fail on errors
@@ -26,7 +27,6 @@ function install_preconfigure_env {
     DB_PASSWORD=${DB_PASSWORD:-${ODOO_DBPASSWORD:-odoo}};
     DB_HOST=${DB_HOST:-${ODOO_DBHOST:-localhost}};
     DB_PORT=${DB_PORT:-${ODOO_DBPORT:-5432}};
-    VIRTUALENV_PYTHON=${VIRTUALENV_PYTHON:-python2};
 }
 
 # create directory tree for project
@@ -76,50 +76,80 @@ function install_download_odoo {
     if [[ $ODOO_REPO == "https://github.com"* ]]; then
         local repo=${odoo_repo%.git};
         local repo_base=$(basename $repo);
-        wget -q -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
+        wget -q -T 2 -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
         tar -zxf $odoo_archive;
         mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
         rm $odoo_archive;
     fi
 }
 
+# get download link for wkhtmltopdf install
+#
+# install_wkhtmltopdf_get_dw_link <os_release_name> [wkhtmltopdf version]
+function install_wkhtmltopdf_get_dw_link {
+    local os_release_name=$1;
+    local version=${2:-0.12.2.1};
+    local system_arch=$(dpkg --print-architecture);
+
+    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox-${version}_linux-${os_release_name}-${system_arch}.deb"
+}
+
+
+# Download wkhtmltopdf to specified path
+#
+# install_wkhtmltopdf_download <path>
+function install_wkhtmltopdf_download {
+    local wkhtmltox_path=$1;
+    local release=$(lsb_release -sc);
+    local download_link=$(install_wkhtmltopdf_get_dw_link $release);
+
+    if ! wget -q -T 2 $download_link -O $wkhtmltox_path; then
+        local old_release=$release;
+
+        if [ "$(lsb_release -si)" == "Ubuntu" ]; then
+            # fallback to trusty release for ubuntu systems
+            local release=trusty;
+        elif [ "$(lsb_release -si)" == "Debian" ]; then
+            local release=jessie;
+        else
+            echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
+            return 2;
+        fi
+
+        echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
+        local download_link=$(install_wkhtmltopdf_get_dw_link $release);
+        if ! wget -q -T 2 $download_link -O $wkhtmltox_path; then
+            echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
+            return 1;
+        fi
+    fi
+}
 
 # install_wkhtmltopdf
 function install_wkhtmltopdf {
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
         local opt_apt_always_yes="-y";
     fi
+
     # Install wkhtmltopdf
     if ! check_command wkhtmltopdf > /dev/null; then
         # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
-            local system_arch=$(dpkg --print-architecture);
-            local release=$(lsb_release -sc);
-            local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
-            if ! wget -q $download_link -O $wkhtmltox_path; then
-                if [ "$(lsb_release -si)" == "Ubuntu" ]; then
-                    # fallback to trusty release for ubuntu systems
-                    local release=trusty;
-                elif [ "$(lsb_release -si)" == "Debian" ]; then
-                    local release=jessie;
-                else
-                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
-                    return 2;
-                fi
-                local download_link="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-$release-$system_arch.deb";
-                if ! wget -q $download_link -O $wkhtmltox_path; then
-                    echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
-                    return 1;
-                fi
-            fi
+            echoe -e "${BLUEC}Downloading wkhtmltopdf...${NC}";
+            install_wkhtmltopdf_download $wkhtmltox_path;
         fi
+        echoe -e "${BLUEC}Installing wkhtmltopdf...${NC}";
         local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
         fi
 
         rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
+
+        echoe -e "${GREENC}OK${NC}:${YELLOWC}wkhtmltopdf${NC} installed successfully!";
+    else
+        echoe -e "${GREENC}OK${NC}:${YELLOWC}wkhtmltopdf${NC} seems to be installed!";
     fi
 }
 
@@ -140,7 +170,14 @@ function install_sys_deps_internal {
 function install_parse_debian_control_file {
     local file_path=$1;
     local sys_deps=;
-    local sys_deps_raw=$(perl -ne 'next if /^#/; $p=(s/^Depends:\s*/ / or (/^ / and $p)); s/,|\n|\([^)]+\)//mg; print if $p' < $file_path);
+
+    local python_cmd="import re; RE_DEPS=re.compile(r'.*Depends:(?P<deps>(\n [^,]+,)+).*', re.MULTILINE | re.DOTALL);";
+    python_cmd="$python_cmd m = RE_DEPS.match(open('$file_path').read());";
+    python_cmd="$python_cmd deps = m and m.groupdict().get('deps', '');";
+    python_cmd="$python_cmd deps = deps.replace(',', '').replace(' ', '').split('\n');";
+    python_cmd="$python_cmd print('\n'.join(filter(lambda l: l and not l.startswith('\\\${'), deps)))";
+
+    local sys_deps_raw=$(run_python_cmd "$python_cmd");
 
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
@@ -154,6 +191,10 @@ function install_parse_debian_control_file {
             ;;
             \$\{*)
                 # Skip dependencies stared with ${
+                continue
+            ;;
+            node-less)
+                # Will be installed into virtual env via node-env
                 continue
             ;;
             python-pypdf|python-pypdf2|python3-pypdf2)
@@ -251,8 +292,8 @@ function install_sys_deps_for_odoo_version {
     local odoo_version=$1;
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
-    wget -q $control_url -O $tmp_control;
-    local sys_deps=$(install_parse_debian_control_file $tmp_control);
+    wget -q -T 2 $control_url -O $tmp_control;
+    local sys_deps=$(ODOO_VERSION=$odoo_version install_parse_debian_control_file $tmp_control);
     install_sys_deps_internal $sys_deps;
     rm $tmp_control;
 }
@@ -264,11 +305,11 @@ function install_odoo_py_requirements_for_version {
     local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
     local tmp_requirements=$(mktemp);
     local tmp_requirements_post=$(mktemp);
-    if wget -q "$requirements_url" -O "$tmp_requirements"; then
+    if wget -q -T 2 "$requirements_url" -O "$tmp_requirements"; then
         # Preprocess requirements to avoid known bugs
-		while read dependency; do
-			dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-			if [[ "$dependency_stripped" =~ pyparsing* ]]; then
+        while read dependency; do
+            dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            if [[ "$dependency_stripped" =~ pyparsing* ]]; then
                 # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
                 # especialy to versions lower than that used by setuptools
                 continue
@@ -280,12 +321,12 @@ function install_odoo_py_requirements_for_version {
                 # cause build errors.
                 # Instead last gevent (1.1.0+) have already prebuild wheels.
                 echo "gevent";
-			else
+            else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;
-			fi
-		done < "$tmp_requirements" > "$tmp_requirements_post";
-        execv pip install -r "$tmp_requirements_post";
+            fi
+        done < "$tmp_requirements" > "$tmp_requirements_post";
+        exec_pip install -r "$tmp_requirements_post";
     fi
 
     if [ -f "$tmp_requirements" ]; then
@@ -322,51 +363,68 @@ function install_system_prerequirements {
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools python-pip python-wheel libevent-dev \
-        perl g++ libpq-dev python-dev python3-dev expect-dev tcl8.6 libjpeg-dev \
-        libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev \
-        libsasl2-dev libldap2-dev libssl-dev libffi-dev libyaml-dev;
+        python-setuptools libevent-dev g++ libpq-dev \
+        python-dev python3-dev libjpeg-dev libyaml-dev \
+        libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev;
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
-    with_sudo pip install --upgrade virtualenv cffi;
+    with_sudo easy_install 'virtualenv>=15.1.0';
 }
-
 
 # Install virtual environment. All options will be passed directly to
 # virtualenv command. one exception is DEST_DIR, which this script provides.
 #
 # install_virtual_env [opts]
 function install_virtual_env {
-    # To enable system site packages, just set env variable:
-    #   VIRTUALENV_SYSTEM_SITE_PACKAGES=1
     if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
         if [ -z $VIRTUALENV_PYTHON ]; then
-            virtualenv $@ $VENV_DIR;
+            VIRTUALENV_PYTHON=$(odoo_get_python_version) virtualenv $@ $VENV_DIR;
         else
             VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
         fi
+        exec_pip install nodeenv;
+        execv nodeenv --python-virtualenv;  # Install node environment
     fi
+}
+
+# Install bin tools
+#
+# At this moment just installs expect-dev package, that provides 'unbuffer' tool
+function install_bin_tools {
+    install_sys_deps_internal expect-dev tcl8.6;
 }
 
 # Install extra python tools
 function install_python_tools {
-    execu pip install watchdog pylint-odoo coverage \
+    exec_pip install setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors Mercurial;
+}
+
+# Install extra javascript tools
+function install_js_tools {
+    exec_npm install -g eslint phantomjs-prebuilt;
 }
 
 # install_python_prerequirements
 function install_python_prerequirements {
-    # required to make odoo.py work correctly when setuptools too old
-    execu easy_install --upgrade setuptools pip;
-    execu pip install --upgrade pip erppeek \
-        setproctitle python-slugify setuptools-odoo cffi jinja2 six \
-        num2words;
+    # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
+    # setuptools, so we do not need to upgrade them
+    exec_pip install python-slugify setuptools-odoo cffi jinja2;
 
-    if ! execv "python -c 'import pychart' >/dev/null 2>&1" ; then
-        execv pip install Python-Chart;
+    if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
+        exec_pip install Python-Chart;
+    fi
+}
+
+# Install javascript pre-requirements.
+# Now it is less compiler. install if it is not installed yet
+function install_js_prerequirements {
+    if ! check_command lessc > /dev/null; then
+        execu npm install -g less;
     fi
 }
 
@@ -438,7 +496,7 @@ function install_odoo_workaround_70 {
     fi
 
     # Installing requirements via pip. This should improve performance
-    execv pip install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
+    exec_pip install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
 
     # Force use Pillow, because PIL is too old.
     cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
@@ -467,12 +525,33 @@ function odoo_run_setup_py {
     install_odoo_py_requirements_for_version;
 
     # Install odoo
-    (cd $ODOO_PATH && execu python setup.py develop $@);
+    (cd $ODOO_PATH && exec_py setup.py develop $@);
 
      
     # Workaround for situation when setup does not install openerp-gevent script.
     # (Restore modified setup.py)
     odoo_gevent_install_workaround_cleanup;
+}
+
+
+# Install odoo intself.
+# Require that odoo is downloaded and directory tree structure created
+function install_odoo_install {
+    # Install virtual environment
+    echoe -e "${BLUEC}Installing virtualenv...${NC}";
+    install_virtual_env;
+
+    # Install python requirements
+    echoe -e "${BLUEC}Installing python pre-requirements...${NC}";
+    install_python_prerequirements;
+
+    # Install js requirements
+    echoe -e "${BLUEC}Installing js pre-requirements...${NC}";
+    install_js_prerequirements;
+
+    # Run setup.py with gevent workaround applied.
+    echoe -e "${BLUEC}Installing odoo...${NC}";
+    odoo_run_setup_py;  # imported from 'install' module
 }
 
 
@@ -483,19 +562,16 @@ function install_reinstall_venv {
         return 0;
     fi
 
-    if [ "$1" == '--help' ] || [ "$1" == '-h' ]; then
-        virtualenv --help;
-        return 0
-    fi
-
     # Backup old venv
     if [ -d $VENV_DIR ]; then
         mv $VENV_DIR $PROJECT_ROOT_DIR/venv_backup_$(random_string 4);
     fi
 
-    install_virtual_env $@;
-    install_python_prerequirements;
-    odoo_run_setup_py;
+    # Install odoo
+    install_odoo_install;
+
+    # Update python dependencies for addons
+    addons_update_py_deps;
 }
 
 
@@ -503,13 +579,17 @@ function install_reinstall_venv {
 function install_entry_point {
     local usage="Usage:
 
-        $SCRIPT_NAME install pre-requirements [-y]         - install system preprequirements
-        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - install system dependencies for odoo version
+        $SCRIPT_NAME install pre-requirements [-y]         - [sudo] install system preprequirements
+        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - [sudo] install system dependencies for odoo version
         $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
         $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
-        $SCRIPT_NAME install postgres [user] [password]    - install postgres.
+        $SCRIPT_NAME install js-tools                      - install javascript tools (jshint, phantomjs)
+        $SCRIPT_NAME install bin-tools [-y]                - [sudo] install binary tools. at this moment it is *unbuffer*,
+                                                             which is in *expect-dev* package
+        $SCRIPT_NAME install wkhtmltopdf                   - [sudo] install wkhtmtopdf
+        $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
                                                              and if user/password specified, create it
-        $SCRIPT_NAME install reinstall-venv [opts|--help]  - reinstall virtual environment (with python requirements and odoo).
+        $SCRIPT_NAME install reinstall-venv                - reinstall virtual environment
                                                              all options will be passed to virtualenv cmd directly
         $SCRIPT_NAME install --help                        - show this help message
 
@@ -531,7 +611,7 @@ function install_entry_point {
                     shift;
                 fi
                 install_system_prerequirements;
-                exit 0;
+                return 0;
             ;;
             sys-deps)
                 shift;
@@ -540,38 +620,58 @@ function install_entry_point {
                     shift;
                 fi
                 install_sys_deps_for_odoo_version "$@";
-                exit 0;
+                return 0;
             ;;
             py-deps)
                 shift;
                 config_load_project;
                 install_odoo_py_requirements_for_version $@;
-                exit 0;
+                return 0;
             ;;
             py-tools)
                 shift;
                 config_load_project;
-                install_python_tools;
-                exit 0;
+                install_python_tools $@;
+                return 0;
+            ;;
+            js-tools)
+                shift;
+                config_load_project;
+                install_js_tools $@;
+                return 0;
+            ;;
+            bin-tools)
+                shift;
+                if [ "$1" == "-y" ]; then
+                    ALWAYS_ANSWER_YES=1;
+                    shift;
+                fi
+                install_bin_tools $@;
+                return 0;
+            ;;
+            wkhtmltopdf)
+                shift;
+                install_wkhtmltopdf $@;
+                return
             ;;
             reinstall-venv)
                 shift;
                 config_load_project;
                 install_reinstall_venv "$@";
-                exit 0;
+                return 0;
             ;;
             postgres)
                 shift;
                 install_and_configure_postgresql "$@";
-                exit 0;
+                return 0;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             *)
                 echo "Unknown option / command $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift

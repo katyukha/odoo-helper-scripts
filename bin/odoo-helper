@@ -69,14 +69,14 @@ function print_usage {
         tr [--help]                              - manage translations (import, export, load, ...)
         postgres [--help]                        - manage local instance of postgresql server
         install [--help]                         - install related stuff (sys-deps, ...)
-        generate_requirements [addons dir]       - parse addons dir, find all addons that are
+        generate-requirements [addons dir]       - parse addons dir, find all addons that are
                                                    git repositories and print odoo-requirements.txt content
                                                    file content suitable for *fetch* subcommand.
                                                    for example:
-                                                       $SCRIPT_NAME generate_requirements > odoo_requirements.txt
+                                                       $SCRIPT_NAME generate-requirements > odoo_requirements.txt
                                                    and you can use generated file for fetch subcommand:
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
-        update_odoo                              - update odoo source code
+        update-odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
         scaffold [--help]                        - Scaffold repo, addon, model, etc
         print-config                             - print current configuration
@@ -86,9 +86,10 @@ function print_usage {
         flake8                                   - shortcut for 'test flake8' command
         system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
-        pip <pip arguments>                      - shortcut to run project-specific pip.
-                                                   It automaticaly configs pip to use OCA wheelhouse
-                                                   to install OCA addons easily.
+        pip [--oca] <pip arguments>              - shortcut to run project-specific pip.
+                                                   if option *--oca* is specified, then OCA wheelhouse
+                                                   will be used to install OCA addons.
+        npm <npm arguments>                      - Run npm installed in current project's environment
         help | --help | -h                       - display this help message
         --version                                - display odoo-helper version and exit
     
@@ -113,12 +114,88 @@ function print_usage {
 ";
 }
 
+function show_project_tools_versions {
+    local python_version="${BLUEC}$(execv python --version 2>&1)${NC}";
+    local node_version="${BLUEC}$(execv node --version 2>&1)${NC}";
+    local npm_version="${BLUEC}$(execv npm --version 2>&1)${NC}";
+    local lessc_version="${BLUEC}$(execv lessc --version 2>&1)${NC}";
+    echo -e "
+    Tools versions:
+        Python: $python_version
+        NodeJS: $node_version
+        npm: $npm_version
+        Less.js: $lessc_version
+    ";
+}
+
+function show_project_ci_tools_versions {
+    if check_command flake8 2>&1 >/dev/null; then
+        local flake8_version="${BLUEC}$(execv flake8 --version 2>&1)${NC}";
+    else
+        local flake8_version="${REDC}Not installed${NC}"
+    fi
+
+    if check_command pylint 2>&1 >/dev/null; then
+        local pylint_version="${BLUEC}$(test_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
+    else
+        local pylint_version="${REDC}Not installed${NC}"
+    fi
+
+    if check_command eslint 2>&1 >/dev/null; then
+        local eslint_version="${BLUEC}$(execv eslint --version 2>&1)${NC}";
+    else
+        local eslint_version="${REDC}Not installed${NC}"
+    fi
+
+    if run_python_cmd "import pylint_odoo" >/dev/null 2>&1 ; then
+        local pylint_odoo_version=$(run_python_cmd "import pkg_resources; print(pkg_resources.get_distribution('pylint_odoo').version)");
+        pylint_odoo_version="${BLUEC}${pylint_odoo_version}${NC}";
+    else
+        local pylint_odoo_version="${REDC}Not installed${NC}";
+    fi
+
+    echo -e "
+    CI Tools versions:
+        Flake8:      $flake8_version
+        Pylint:      $pylint_version
+        Pylint Odoo: $pylint_odoo_version
+        ESLint:      $eslint_version
+    ";
+}
+
 # display project status
 function show_project_status {
+    local usage="
+    Show odoo-helper project status
+
+         $SCRIPT_NAME status [--tools-versions] [--ci-tools-versions]
+    ";
+
     if [ -z $PROJECT_ROOT_DIR ]; then
         echoe -e "${REDC}ERROR${NC}: Not inside odoo-helper project!";
         return 1;
     fi
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            --tools-versions)
+                local opt_show_tools_versions=1;
+            ;;
+            --ci-tools-versions)
+                local opt_show_ci_tools_versions=1;
+            ;;
+            *)
+                echo "Unknown option $key";
+                return 1;
+            ;;
+        esac;
+        shift;
+    done;
 
     local pid=$(server_get_pid);
 
@@ -146,16 +223,22 @@ function show_project_status {
         local version="${GREENC}$ODOO_VERSION${NC}";
     fi
 
-    local python_version="${GREENC}$(execv python --version 2>&1)${NC}";
-
-    echo -e "Current project:
+    echo -e "
+    Current project:
 
         Project dir: $project_dir
         Odoo branch: $branch
         Odoo version: $version
-        Python version: $python_version
         Server status: ${server_status}
     ";
+
+    if [ ! -z $opt_show_tools_versions ]; then
+        show_project_tools_versions;
+    fi
+
+    if [ ! -z $opt_show_ci_tools_versions ]; then
+        show_project_ci_tools_versions;
+    fi
 }
 
 function odoo_helper_print_version {
@@ -208,13 +291,13 @@ function odoo_helper_main {
                 fetch_module "$@";
                 return
             ;;
-            generate_requirements)
+            generate-requirements|generate_requirements)
                 shift;
                 config_load_project;
                 addons_generate_requirements "$@"
                 return;
             ;;
-            update_odoo)
+            update-odoo|update_odoo)
                 shift;
                 config_load_project;
                 odoo_update_sources "$@";
@@ -291,8 +374,9 @@ function odoo_helper_main {
                 return;
             ;;
             status)
+                shift;
                 config_load_project;
-                show_project_status;
+                show_project_status $@;
                 return;
             ;;
             system)
@@ -325,6 +409,12 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 exec_pip "$@";
+                return 0;
+            ;;
+            npm)
+                shift;
+                config_load_project;
+                exec_npm "$@";
                 return 0;
             ;;
             *)

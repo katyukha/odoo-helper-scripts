@@ -22,6 +22,8 @@ function system_update_odoo_helper_scripts {
     local cdir=$(pwd);
     cd $ODOO_HELPER_ROOT;
     if [ -z $scripts_branch ]; then
+        # TODO: if there is no configured branch to pull from, git shows
+        #       message, that it does not know from where to pull
         git pull;
     else
         git fetch -q origin;
@@ -57,7 +59,7 @@ function system_entry_point {
 
     if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -67,20 +69,20 @@ function system_entry_point {
             update)
                 shift;
                 system_update_odoo_helper_scripts "$@";
-                exit;
+                return;
             ;;
             lib-path)
                 shift;
                 oh_get_lib_path "$@"
-                exit;
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit;
+                return;
             ;;
             *)
                 echo "Unknown option / command $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift

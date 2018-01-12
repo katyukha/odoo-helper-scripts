@@ -73,13 +73,9 @@ function print_usage {
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
-         --python                      - python executable to be used for virtualenv.
-                                         If not specified default 'python2' executable will be used.
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
-         -y                            - Answer yes on any question. (used in apt-get commands
-                                         when --install-sys-deps option supplied.)
 
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xml_rpc_port 9999'
          --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xml_rpc_port 9998'
@@ -156,13 +152,6 @@ function parse_options {
                 DB_PASSWORD=$2;
                 shift;
             ;;
-            -y)
-                ALWAYS_ANSWER_YES=1;
-            ;;
-            --python)
-                VIRTUALENV_PYTHON="$2";
-                shift;
-            ;;
             --verbose|-vv)
                 VERBOSE=1;
             ;;
@@ -207,17 +196,8 @@ function install_odoo {
         fi
     fi
 
-    # Install virtual environment
-    echoe -e "${BLUEC}Installing virtualenv...${NC}";
-    install_virtual_env;
-
-    # Install python requirements
-    echoe -e "${BLUEC}Installing python pre-requirements...${NC}";
-    install_python_prerequirements;
-
-    # Run setup.py with gevent workaround applied.
-    echoe -e "${BLUEC}Installing odoo...${NC}";
-    odoo_run_setup_py;  # imported from 'install' module
+    # Install odoo
+    install_odoo_install;
 
     # restore curenct working dir
     cd $save_dir;

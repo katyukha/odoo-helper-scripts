@@ -1,5 +1,55 @@
 # Changelog
 
+## Version 0.1.5 (2018-01-12)
+
+- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) together with
+  [virtualenv](https://virtualenv.pypa.io/en/stable/) to be able to install
+  js dependencies in virtual environment. Examples of such dependencies are
+  [jshint](http://jshint.com/about/) that used by
+  [pylint_odoo](https://github.com/OCA/pylint-odoo) to check javascript files and
+  [phantomjs](ihttp://phantomjs.org/) used to run test tours.
+- Added command `odoo-helper install js-tools`
+- Added command `odoo-helper npm` - shortcut to run npm for current project
+- Improved command `odoo-helper test pylint`, now most of pylint options will
+  be forwarded directly to pylint.
+- `wkhtmltopdf` install refactored, added separate command `install wkhtmltopdf`,
+  start using wkhtmltopdf downloads from [github](https://github.com/wkhtmltopdf/wkhtmltopdf/releases/tag/0.12.2.1)
+- Autodetect python version
+- Removed `odoo-install --python` option
+- `odoo-helper generate_requirements` renamed to `odoo-helper generate-requirements`
+- `odoo-helper update_odoo` renamed to `odoo-helper update-odoo`
+- `odoo-helper install reinstall-venv` option simplified. now it does not recieve any arguments
+- do not install `node-less` as system dependency
+- `odoo-helper install js-tools` automatialy install `eslint` instead of `jshint`
+  Starting from version 1.6.0 [pylint_odoo](https://pypi.python.org/pypi/pylint-odoo/) uses `eslint`
+- removed unuseful `odoo-install -y`, it does not run apt, so there is no interactive y/n questions
+- pylint default config: enabled *redefined-outer-name* check
+- experimental `odoo-helper tr rate` command, which computes translation rate for addons. Useful in CI.
+- added command `odoo-helper install bin-tools`
+- do not use [OCA simple](https://wheelhouse.odoo-community.org/) PyPI index by defautl.
+  So to use [OCA simple](https://wheelhouse.odoo-community.org/) PyPI index, pass *--oca* argument to
+  `odoo-helper pip` command. For example: 
+  `odoo-helper --oca pip install odoo10-addon-mis-builder` will use [OCA simple](https://wheelhouse.odoo-community.org/) index.
+- `odoo-helper status`: print versions of following tools used in current project.
+  - NodeJS
+  - npm
+  - Less.JS
+  - Pylint
+  - Flake8
+  - ESLint
+  - Pylint Odoo
+- Do not require [erppeek](https://github.com/tinyerp/erppeek).
+  This project seems to be abandoned.
+- Do not force install following python packages: *six*, *num2words*
+- Python package *setproctitle* will be installed by `odoo-helper install py-tools` command.
+  (previously it was installed as python-prerequirement for Odoo)
+- Do not upgrade *pip* and *setuptools* when installing Odoo in fresh virtualenv,
+  virtualenv versions >= 15.1.0 automaticaly installs last pip and setuptools,
+  so there is not need to reinstall them
+- List command `odoo-helper addons generate-requirements` in help message for addons subcommand
+- Bugfix in processing OCA depenencies: handle cases, when file ends without newline
+
+
 ## Version 0.1.4 (2017-11-13)
 
 - Added command `odoo-helper odoo`
@@ -8,6 +58,7 @@
 - Command `odoo-helper db exists` now have it's own help message
 - Command `odoo-helper db exists` added option `-q` to disable output
 - Added command `odoo-helper postgres speedify`
+
 
 ## Version 0.1.3 (2017-10-28)
 
@@ -56,12 +107,11 @@
 - Added aliases `odoo-helper flake8` and `odoo-helper pylint`
 - Added automatic configuration checks.
   So, when odoo-helper-scripts provides some new configuration params after update,
-  user will be notified about them and asket to update project config file
+  user will be notified about them and asked to update project config file
 - `odoo-helper scaffold` have new features and subcommands:
   - `odoo-helper scaffold repo` create repository. place it in repo dir
   - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
   - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
-
 
 
 ## Version 0.1.1 (2017-06-08)

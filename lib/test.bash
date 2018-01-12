@@ -71,7 +71,7 @@ function test_get_or_create_db {
 
     if [ $create_test_db -eq 1 ]; then
         local test_db_name=`random_string 24`;
-        odoo_db_create $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
+        odoo_db_create --demo $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
     else
         # name of test database expected to be defined in ODOO_TEST_CONF_FILE
         local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
@@ -238,16 +238,35 @@ function test_run_flake8 {
 # test_run_pylint <module1 path> [module2 path] .. [module n path]
 # test_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
 function test_run_pylint {
-    if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
-        local pylint_disable_opt=$1;
-        local pylint_disable_arg="${BASH_REMATCH[1]}";
-        local pylint_disable=$(join_by , $pylint_disable_arg "manifest-required-author");
-        shift;
-    else
-        local pylint_disable="manifest-required-author";
-    fi
     local pylint_rc="$ODOO_HELPER_LIB/default_config/pylint_odoo.cfg";
-    local pylint_opts="--rcfile=$pylint_rc -d $pylint_disable";
+    local pylint_opts="--rcfile=$pylint_rc";
+    local pylint_disable="manifest-required-author";
+
+    # specify valid odoo version for pylint manifest version check
+    pylint_opts="$pylint_opts --valid_odoo_versions=$ODOO_VERSION";
+
+    # Pre-process commandline arguments to be forwarded to pylint
+    while [[ "$1" =~ ^--[a-zA-Z0-9\-]+(=[a-zA-Z0-9,-.]+)? ]]; do
+        if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
+            local pylint_disable_opt=$1;
+            local pylint_disable_arg="${BASH_REMATCH[1]}";
+            pylint_disable=$(join_by , $pylint_disable_arg "manifest-required-author");
+        elif [[ "$1" =~ --help|--long-help|--version ]]; then
+            local show_help=1;
+            pylint_opts="$pylint_opts $1"
+        else
+            pylint_opts="$pylint_opts $1"
+        fi
+        shift;
+    done
+    local pylint_opts="$pylint_opts -d $pylint_disable";
+
+    # Show help if requested
+    if [ ! -z $show_help ]; then
+        execu pylint $pylint_opts;
+        return;
+    fi
+
     local res=0;
     for path in $@; do
         if is_odoo_module $path; then
@@ -283,6 +302,7 @@ function test_module {
     local with_coverage_skip_covered=;
     local modules="";
     local directories="";
+    local res=;
     local usage="
     Usage 
 
@@ -315,7 +335,7 @@ function test_module {
     if [[ $# -lt 1 ]]; then
         echo "No options/commands supplied $#: $@";
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -324,7 +344,7 @@ function test_module {
         case $key in
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             --create-test-db)
                 create_test_db=1;
@@ -360,16 +380,16 @@ function test_module {
             flake8)
                 shift;
                 test_run_flake8 $@;
-                exit;
+                return;
             ;;
             pylint)
                 shift;
                 test_run_pylint $@;
-                exit;
+                return;
             ;;
             *)
                 echo "Unknown option: $key";
-                exit 1;
+                return 1;
             ;;
         esac;
         shift;
@@ -379,9 +399,9 @@ function test_module {
     if test_run_tests ${recreate_db:-0} ${create_test_db:-0} \
         ${fail_on_warn:-0} ${with_coverage:-0} $modules;
     then
-        local res=$?;
+        res=0;
     else
-        local res=$?
+        res=1
     fi
 
     if [ ! -z "$with_coverage_report_html" ]; then

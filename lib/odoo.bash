@@ -70,7 +70,7 @@ function odoo_update_sources_archive {
     echo -e "${LBLUEC}Downloading new sources archive...${NC}"
     local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
     # TODO: use odoo-repo variable here
-    wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
+    wget -T 2 $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
     rm -r $ODOO_PATH;
     (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
 
@@ -96,10 +96,25 @@ function odoo_update_sources {
 }
 
 
-# Echo major odoo version
+# Echo major odoo version (10, 11, ...)
 function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }
+
+# Get python interpreter to run odoo with
+# Returns one of: python2, python3, python
+# Default: python
+function odoo_get_python_version {
+    if [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -ge 11 ]; then
+        echo "python3";
+    elif [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -lt 11 ]; then
+        echo "python2";
+    else
+        echoe -e "${YELLOWC}WARNING${NC}: odoo version not specified, using default python executable";
+        echo "python";
+    fi
+}
+
 
 function odoo_recompute_stored_fields {
     local usage="Recompute stored fields
@@ -186,11 +201,11 @@ function odoo_recompute_stored_fields {
         return 4;
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient('$dbname', ['-c', '$conf_file']);";
+    local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$conf_file'])['$dbname'];";
     if [ -z $parent_store ]; then
-        python_cmd="$python_cmd cl.recompute_fields('$model', [$fields]);"
+        python_cmd="$python_cmd db.recompute_fields('$model', [$fields]);"
     else
-        python_cmd="$python_cmd cl.recompute_parent_store('$model');"
+        python_cmd="$python_cmd db.recompute_parent_store('$model');"
     fi
 
     run_python_cmd "$python_cmd";
