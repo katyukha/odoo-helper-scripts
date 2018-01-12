@@ -5,7 +5,13 @@ must be just set of options for ```odoo-helper fetch``` command:
 
 ```
 -r|--repo <git repository>  [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
+
+--github <github username/reponame> [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
+
+--oca <OCA reponame> [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
+
 --requirements <requirements file>
+
 -p|--python <python module>
 
 ```

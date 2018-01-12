@@ -119,4 +119,4 @@ Also there are some aliases for common commands:
     - odoo-helper-server
     - odoo-helper-test
 
-For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*
+For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*)

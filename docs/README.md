@@ -13,7 +13,7 @@ sudo odoo-helper install sys-deps 11.0  # install global system dependencies for
 odoo-install --odoo-version 11.0        # no sudo required
 ```
 
-After this you wil have odoo and it's dependencies installed into *odoo-11.0* directory.
+After this you will have odoo and it's dependencies installed into *odoo-11.0* directory.
 
 This installation also creates *odoo-helper.conf* file inside project, which allows to use
 *odoo-helper* script to simplify interaction with this odoo installation.
