@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.1.6
+
+- Improve `odoo-helper addons update-py-deps` command, now it aloso updates repository level dependencies
+  (those, mentioned in repository's `requirements.txt`)
+
 ## Version 0.1.5 (2018-01-12)
 
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) together with

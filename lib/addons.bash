@@ -464,12 +464,20 @@ function addons_test_installed {
 # This functions walk through addons found in custom_addons dir, and searches
 # for requirements.txt file there. if such file is present,
 # install depenencies listed there
+# Also it checks for repository-level requirements.txt
 #
 # just call as: addons_update_py_deps
 function addons_update_py_deps {
+    for repo in $(addons_list_repositories); do
+        if git_is_git_repo $repo && [ -f $repo/requirements.txt ]; then
+            echoe -e "${BLUEC}Installing dependencies for ${YELLOWC}$(git_get_abs_repo_path $repo)${BLUEC} repository...${NC}";
+            exec_pip install -r $repo/requirements.txt;
+        fi
+    done
+
     for addon in $(addons_list_in_directory); do
         if [ -f "$addon/requirements.txt" ]; then
-            echoe -e "${BLUEC}Installing dependencies for $(basename $addon)... ${NC}";
+            echoe -e "${BLUEC}Installing dependencies for ${YELLOWC}$(basename $addon)${BLUEC}... ${NC}";
             exec_pip install -r $addon/requirements.txt;
         fi
     done
