@@ -36,9 +36,9 @@ function system_update_odoo_helper_scripts {
     local base_path=$(dirname $ODOO_HELPER_ROOT);
     for oh_cmd in $ODOO_HELPER_BIN/*; do
         if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
-            if [ "$base_path" == /opt* ]; then
+            if [[ "$base_path" == /opt* ]]; then
                 with_sudo ln -s $oh_cmd /usr/local/bin/;
-            elif [ "$base_path" == $HOME/* ]; then
+            elif [[ "$base_path" == $HOME/* ]]; then
                 ln -s $oh_cmd $HOME/bin;
             fi
         fi

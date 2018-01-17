@@ -201,7 +201,7 @@ function addons_list_no_repository {
 function addons_generate_requirements {
     local req_addons_dir=${1:-$ADDONS_DIR};
     for repo in $(addons_list_repositories $req_addons_dir); do
-      echo "-r $(git_get_remote_url $repo) -b $(git_get_branch_name $repo)";
+      echo "--repo $(git_get_remote_url $repo) --branch $(git_get_branch_name $repo)";
     done
 }
 
