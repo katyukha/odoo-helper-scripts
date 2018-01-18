@@ -34,13 +34,13 @@ function addons_get_manifest_file {
 # Get value of specified key from manifest
 #
 # addons_get_manifest_key <addon> <key>
-#function addons_get_manifest_key {
-    #local addon_path=$1;
-    #local key=$2;
+function addons_get_manifest_key {
+    local addon_path=$1;
+    local key=$2;
 
-    #local manifest_file="$(addons_get_manifest_file $addon_path)";
-    #run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', None))"
-#}
+    local manifest_file="$(addons_get_manifest_file $addon_path)";
+    run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', None))"
+}
 
 # Echo path to addon specified by name
 # addons_get_addon_path <addon>
@@ -143,7 +143,7 @@ function addons_list_in_directory {
             if is_odoo_module $addon; then
                 echo "$(readlink -f $addon)";
             fi
-        done
+        done | sort
     fi
 }
 

@@ -43,6 +43,7 @@ ohelper_require "tr";
 ohelper_require "postgres";
 ohelper_require "system";
 ohelper_require "scaffold";
+ohelper_require "doc-utils";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -76,6 +77,7 @@ function print_usage {
                                                        $SCRIPT_NAME generate-requirements > odoo_requirements.txt
                                                    and you can use generated file for fetch subcommand:
                                                        $SCRIPT_NAME fetch --requirements odoo_requirements.txt
+        doc-utils [--help]                       - subcommand that contains doc utlities
         update-odoo                              - update odoo source code
         odoo-py [args]                           - run project-specific odoo.py script
         scaffold [--help]                        - Scaffold repo, addon, model, etc
@@ -295,6 +297,12 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 addons_generate_requirements "$@"
+                return;
+            ;;
+            doc-utils)
+                shift;
+                config_load_project;
+                doc_utils_command $@;
                 return;
             ;;
             update-odoo|update_odoo)

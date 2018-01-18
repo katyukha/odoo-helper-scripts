@@ -435,6 +435,9 @@ odoo-helper start
 odoo-helper server status
 odoo-helper stop
 
+# Test doc-utils. List all addons available for this Odoo instance (all listed in custom addons)
+odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo
+
 
 echo -e "${YELLOWC}
 =================================

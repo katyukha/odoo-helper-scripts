@@ -4,6 +4,8 @@
 
 - Improve `odoo-helper addons update-py-deps` command, now it aloso updates repository level dependencies
   (those, mentioned in repository's `requirements.txt`)
+- Added `odoo-helper doc-utils` command. Have following subcommands
+  - `odoo-helper doc-utils addons-list` command to print info about addons in repo in [Markdown](https://en.wikipedia.org/wiki/Markdown) format
 
 ## Version 0.1.5 (2018-01-12)
 
