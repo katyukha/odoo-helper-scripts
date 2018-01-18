@@ -106,7 +106,11 @@ function doc_utils_addons_list_addon_info {
             elif [ "$field_type" == "system" ] && [ "$field_name" == "name" ]; then
                 local t_res=$(basename $addon);
             elif [ "$field_type" == "system" ] && [ "$field_name" == "git_repo" ]; then
-                local t_res=$(git_get_remote_url $addon);
+                if git_is_git_repo $addon; then
+                    local t_res=$(git_get_remote_url $addon);
+                else
+                    local t_res="Not in git repository";
+                fi
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
             fi
