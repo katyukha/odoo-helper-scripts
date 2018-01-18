@@ -20,11 +20,17 @@ set -e; # fail on errors
 
 
 # Internal function to print info about single addon
-# doc_utils_addons_list_addon_info_header <field 1> [field 2] ... [field n]
+# doc_utils_addons_list_addon_info_header <format> <field 1> [field 2] ... [field n]
 function doc_utils_addons_list_addon_info_header {
+    local format=$1; shift;
     local field_regex="([^-]+)-(.+)"
 
-    local result="|"
+    if [ "$format" == "md" ]; then
+        local result="|"
+    elif [ "$format" == "csv" ]; then
+        local result="";
+    fi
+
     for field in $@; do
         if ! [[ $field =~ $field_regex ]]; then
             echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
@@ -33,33 +39,42 @@ function doc_utils_addons_list_addon_info_header {
             local field_name=${BASH_REMATCH[2]};
 
             if [ "$field_type" == "manifest" ]; then
-                result="${result} ${field_name^} |";
+                local t_name="${field_name^}";
             elif [ "$field_type" == "system" ] && [ "$field_name" == "name" ]; then
-                result="${result} System Name |";
+                local t_name="System Name";
             elif [ "$field_type" == "system" ] && [ "$field_name" == "git_repo" ]; then
-                result="${result} Git URL |";
+                local t_name="Git URL";
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
+                continue
             fi
+
+            if [ "$format" == "md" ]; then
+                result="${result} ${t_name} |";
+            elif [ "$format" == "csv" ]; then
+                result="${result}${t_name};";
+            fi
+
         fi
     done
 
-    result="$result\n|";
-
-    for field in $@; do
-        if ! [[ $field =~ $field_regex ]]; then
-            echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
-        else
-            result="${result}---|";
-        fi
-    done
+    if [ "$format" == "md" ]; then
+        result="$result\n|";
+        for field in $@; do
+            if ! [[ $field =~ $field_regex ]]; then
+                echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
+            else
+                result="${result}---|";
+            fi
+        done
+    fi
     echo "$result";
 
 }
 
 
 # Internal function to print info about single addon
-# doc_utils_addons_list_addon_info <addon path> <field 1> [field 2] ... [field n]
+# doc_utils_addons_list_addon_info <format> <addon path> <field 1> [field 2] ... [field n]
 function doc_utils_addons_list_addon_info {
     # Field names is space separated list of names of fields to display.
     # field name consist of two parts: <field-type>-<field-name>
@@ -71,9 +86,14 @@ function doc_utils_addons_list_addon_info {
     #    - git_repo
     local field_regex="([^-]+)-(.+)"
 
-    local addon=$1; shift
+    local format=$1; shift;
+    local addon=$1; shift;
 
-    local result="|"
+    if [ "$format" == "md" ]; then
+        local result="|"
+    elif [ "$format" == "csv" ]; then
+        local result="";
+    fi
     for field in $@; do
         if ! [[ $field =~ $field_regex ]]; then
             echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
@@ -83,13 +103,17 @@ function doc_utils_addons_list_addon_info {
 
             if [ "$field_type" == "manifest" ]; then
                 local t_res=$(addons_get_manifest_key $addon $field_name | tr '\n' ' ');
-                result="${result} ${t_res}|";
             elif [ "$field_type" == "system" ] && [ "$field_name" == "name" ]; then
-                result="${result} $(basename $addon) |";
+                local t_res=$(basename $addon);
             elif [ "$field_type" == "system" ] && [ "$field_name" == "git_repo" ]; then
-                result="${result} $(git_get_remote_url $addon) |";
+                local t_res=$(git_get_remote_url $addon);
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
+            fi
+            if [ "$format" == "md" ]; then
+                result="${result} ${t_res} |";
+            elif [ "$format" == "csv" ]; then
+                result="${result}${t_res};";
             fi
         fi
     done
@@ -109,6 +133,7 @@ function doc_utils_addons_list {
         --git-repo                 - display git repository
         --sys-name                 - display system name
         --no-header                - do not display header
+        --format <md|csv>          - output format. default: md
 
     Description
         Prints list of addons in specified dierectory in markdown format.
@@ -134,6 +159,7 @@ function doc_utils_addons_list {
     local field_names=;
 
     local addons_path=;
+    local format="md";
 
     while [[ $# -gt 0 ]]
     do
@@ -152,6 +178,10 @@ function doc_utils_addons_list {
             --no-header)
                 local no_header=1;
             ;;
+            --format)
+                local format=$2;
+                shift;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -169,13 +199,13 @@ function doc_utils_addons_list {
     field_names=${field_names:-"system-name manifest-name manifest-version manifest-summary"};
 
     if [ -z $no_header ]; then
-        result="$(doc_utils_addons_list_addon_info_header $field_names)";
+        result="$(doc_utils_addons_list_addon_info_header $format $field_names)";
     else
         result=;
     fi
 
     for addon in $(addons_list_in_directory $addons_path); do
-        local addon_info=$(doc_utils_addons_list_addon_info $addon $field_names);
+        local addon_info=$(doc_utils_addons_list_addon_info $format $addon $field_names);
         if [ -z "$result" ]; then
             result=$addon_info;
         else

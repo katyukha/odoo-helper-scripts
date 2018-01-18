@@ -438,6 +438,9 @@ odoo-helper stop
 # Test doc-utils. List all addons available for this Odoo instance (all listed in custom addons)
 odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo
 
+# Same but in CSV format
+odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo --format csv
+
 
 echo -e "${YELLOWC}
 =================================
