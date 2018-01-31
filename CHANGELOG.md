@@ -6,6 +6,8 @@
   (those, mentioned in repository's `requirements.txt`)
 - Added `odoo-helper doc-utils` command. Have following subcommands
   - `odoo-helper doc-utils addons-list` command to print info about addons in repo in [Markdown](https://en.wikipedia.org/wiki/Markdown) format
+- Added `odoo-helper test style` commant.
+  It is experimental integration with [stylelint](https://stylelint.io/)
 
 ## Version 0.1.5 (2018-01-12)
 

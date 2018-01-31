@@ -291,6 +291,41 @@ function test_run_pylint {
     return $res
 }
 
+
+# Run stylelint for each addon in specified path
+# test_run_stylelint <path> [path] [path]
+function test_run_stylelint {
+    local stylelint_config_path=$ODOO_HELPER_LIB/default_config/stylelint-default.json;
+
+    #-----
+    local res=0;
+    for directory in $@; do
+        # skip non directories
+        for addon_path in $(addons_list_in_directory $directory); do
+            if addons_is_installable $addon_path; then
+                local save_dir=$(pwd);
+                cd $addon_path;
+
+                echoe -e "${BLUEC}Processing addon ${YELLOWC}$(basename $addon_path)${BLUEC} ...${NC}";
+
+                if ! execu stylelint --config $stylelint_config_path \
+                        "$addon_path/**/*.css" \
+                        "$addon_path/**/*.scss" \
+                        "$addon_path/**/*.less"; then
+                    res=1;
+                    echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${REDC}FAIL${NC}";
+                else
+                    echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${GREENC}OK${NC}";
+                fi
+
+                cd $save_dir;
+            fi
+        done
+    done
+
+    return $res
+}
+
 # test_module [--create-test-db] -m <module_name>
 function test_module {
     local create_test_db=0;
@@ -328,6 +363,7 @@ function test_module {
         $SCRIPT_NAME test -d addon_dir             # test all addons in specified directory
         $SCRIPT_NAME test pylint ./my_cool_module  # check addon with pylint
         $SCRIPT_NAME test flake8 ./my_cool_module  # check addon with flake8
+        $SCRIPT_NAME test style ./my_cool_module   # run stylelint standard checks for addon
         
     ";
 
@@ -385,6 +421,11 @@ function test_module {
             pylint)
                 shift;
                 test_run_pylint $@;
+                return;
+            ;;
+            style)
+                shift;
+                test_run_stylelint $@;
                 return;
             ;;
             *)

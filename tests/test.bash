@@ -510,3 +510,13 @@ odoo-helper-test --help
 
 # There is also shortcut for odoo.py command
 odoo-helper odoo-py --help
+
+
+echo -e "${YELLOWC}
+==========================================
+Test styleline on OCA/website repo
+==========================================
+${NC}"
+odoo-helper install js-tools
+odoo-helper fetch --oca web
+odoo-helper test style ./repositories/web | true

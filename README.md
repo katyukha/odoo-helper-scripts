@@ -13,7 +13,13 @@ Dev:
 
 - Easily manage few instances of odoo that ran on same machine
 - High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
-- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install node, phantom, etc in isolated *virtualenv*
+- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install [node.js](https://nodejs.org/en/), [phantom.js](http://phantomjs.org/), etc in isolated [virtualenv](https://virtualenv.pypa.io/en/stable/)
+- Powerful testing capabilities, including support for:
+    - python and js code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
+    - python code check via [flake8](https://pypi.python.org/pypi/flake8)
+    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)  (**currently experimental**)
+    - compute test code coverage via [coverage.py](https://coverage.readthedocs.io)
+    - Test web tours via [phantom.js](http://phantomjs.org/)
 - Easy addons installation
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
@@ -21,7 +27,7 @@ Dev:
     - Specific file format to track addon dependencies: [odoo\_requirements.txt](docs/odoo-requirements-txt.md)
     - installation from *git* repositories
     - installation from *Mercurial* repositories (**experimental**)
-    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
+    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi) (automatically process *requirements.txt* files in repository and anddon directories.
     - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
     - works good with long recursive dependencies.
       One of the reasons for this script collection development was,
