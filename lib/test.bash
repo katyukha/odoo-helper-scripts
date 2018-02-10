@@ -269,7 +269,7 @@ function test_run_pylint {
 
     local res=0;
     for path in $@; do
-        if is_odoo_module $path; then
+        if is_odoo_module $path && addons_is_installable $path; then
             local addon_dir=$(dirname $path);
             local addon_name=$(basename $path);
             local save_dir=$(pwd);
