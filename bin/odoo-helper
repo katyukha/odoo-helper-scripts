@@ -44,6 +44,7 @@ ohelper_require "postgres";
 ohelper_require "system";
 ohelper_require "scaffold";
 ohelper_require "doc-utils";
+ohelper_require "lint";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -66,6 +67,7 @@ function print_usage {
         addons [--help]                          - addons related helpers
         odoo [--help]                            - Odoo utils.
         test [--help]                            - test addon
+        lint [--help]                            - lint addon
         db [--help]                              - database management (list, create, drop, etc...)
         tr [--help]                              - manage translations (import, export, load, ...)
         postgres [--help]                        - manage local instance of postgresql server
@@ -84,8 +86,9 @@ function print_usage {
         print-config                             - print current configuration
         status                                   - show project status
         start|stop|restart|log                   - shortcuts for server commands
-        pylint                                   - shortcut for 'test pylint' command
-        flake8                                   - shortcut for 'test flake8' command
+        pylint                                   - shortcut for 'lint pylint' command
+        flake8                                   - shortcut for 'lint flake8' command
+        stylelint                                - shortcut for 'lint style' command
         system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
         pip [--oca] <pip arguments>              - shortcut to run project-specific pip.
@@ -156,12 +159,19 @@ function show_project_ci_tools_versions {
         local pylint_odoo_version="${REDC}Not installed${NC}";
     fi
 
+    if check_command stylelint 2>&1 >/dev/null; then
+        local stylelint_version="${BLUEC}$(execv stylelint --version)${NC}";
+    else
+        local stylelint_version="${REDC}Not installed${NC}";
+    fi
+
     echo -e "
     CI Tools versions:
         Flake8:      $flake8_version
         Pylint:      $pylint_version
         Pylint Odoo: $pylint_odoo_version
         ESLint:      $eslint_version
+        Stylelint:   $stylelint_version
     ";
 }
 
@@ -353,6 +363,12 @@ function odoo_helper_main {
                 test_module "$@";
                 return;
             ;;
+            lint)
+                shift;
+                config_load_project;
+                lint_command "$@";
+                return;
+            ;;
             db)
                 shift;
                 config_load_project;
@@ -398,9 +414,9 @@ function odoo_helper_main {
                 server "$@";
                 return;
             ;;
-            pylint|flake8)
+            pylint|flake8|style)
                 config_load_project;
-                test_module "$@";
+                lint_command "$@";
                 return;
             ;;
             exec)

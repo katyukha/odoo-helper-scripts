@@ -125,7 +125,7 @@ function link_command {
     do
         key="$1";
         case $key in
-            -h|--help)
+            -h|--help|help)
                 echo "$usage";
                 exit 0;
             ;;

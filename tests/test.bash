@@ -514,9 +514,9 @@ odoo-helper odoo-py --help
 
 echo -e "${YELLOWC}
 ==========================================
-Test styleline on OCA/website repo
+Test stylelint on OCA/website repo
 ==========================================
 ${NC}"
 odoo-helper install js-tools
 odoo-helper fetch --oca web
-odoo-helper test style ./repositories/web | true
+odoo-helper lint style ./repositories/web | true

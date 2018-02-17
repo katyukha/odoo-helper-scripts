@@ -9,6 +9,8 @@
 - Added `odoo-helper test style` commant.
   It is experimental integration with [stylelint](https://stylelint.io/)
 - `odoo-helper test pylint` skip addons with `'installable': False`
+- Move linters to separate subcommand `odoo-helper lint`.
+  Run `odoo-helper lint --help` for details
 
 ## Version 0.1.5 (2018-01-12)
 
