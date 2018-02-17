@@ -270,6 +270,9 @@ odoo-helper db create test-9-db;
 odoo-helper install py-tools;
 odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
+odoo-helper addons list --help;
+odoo-helper addons list --recursive ./custom_addons;
+odoo-helper addons list --installable ./custom_addons;
 odoo-helper addons update-list
 odoo-helper addons install bus_enchanced;
 odoo-helper addons test-installed bus_enchanced;  # find databases where this addons is installed

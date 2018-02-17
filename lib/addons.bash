@@ -129,19 +129,70 @@ function addons_update_module_list {
 
 # List addons in specified directory
 #
-# addons_list_in_directory <directory to search odoo addons in>
+# addons_list_in_directory [options] <directory to search odoo addons in>
 #
 # Note: this funtion lists addon paths
 function addons_list_in_directory {
+    # TODO: add ability to filter only installable addons
+    # Process all args that starts with '-' (ie. options)
+    local usage="
+    Usage:
+
+        $SCRIPT_NAME addons list [options] <path>
+        $SCRIPT_NAME addons list --help
+
+    Options:
+
+        -r|--recursive    - look for addons recursively
+        --installable     - display only installable addons
+        -h|--help|help    - display this help message
+    ";
+
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            -r|--recursive)
+                local recursive=1;
+            ;;
+            --installable)
+                local installable_only=1;
+            ;;
+            *)
+                echo "Unknown option $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
     local addons_path=${1:-$ADDONS_DIR};
+
+    # Check if addons_path exists
+    if [ -z $addons_path ] || [ ! -d $addons_path ]; then
+        echoe -e "${REDC}ERROR${NC}: addons directory (${YELLOWC}$addons_path${NC}) not specified or does not exists!";
+        return 1
+    fi
+
+    # Look for addons
     if [ -d $addons_path ]; then
         if is_odoo_module $addons_path; then
-            echo "$(readlink -f $addons_path)";
+            if [ -z $installable_only ] || addons_is_installable $addons_path; then
+                echo "$(readlink -f $addons_path)";
+            fi
         fi
 
         for addon in "$addons_path"/*; do
             if is_odoo_module $addon; then
-                echo "$(readlink -f $addon)";
+                if [ -z $installable_only ] || addons_is_installable $addon; then
+                    echo "$(readlink -f $addon)";
+                fi
+            elif [ ! -z $recursive ] && [ -d "$addon" ]; then
+                addons_list_in_directory "$addon";
             fi
         done | sort
     fi
@@ -154,13 +205,18 @@ function addons_list_in_directory {
 #
 # addons_list_in_directory_by_name <directory to search odoo addons in>
 function addons_list_in_directory_by_name {
-    # TODO: add ability to filter only installable addons
-    local addons_dir=$1;
-    if [ -z $addons_dir ] || [ ! -d $addons_dir ]; then
-        echoe -e "${REDC}ERROR${NC}: addons directory (${YELLOWC}$addons_dir${NC}) not specified or does not exists!";
-        return 1
-    fi
-    for addon_path in $(addons_list_in_directory $addons_dir); do
+    # If help in options, do not process result of addons_list_in_directory
+    for opt in $@; do
+        case $opt in
+            -h|--help|help)
+                addons_list_in_directory $@
+                return 0;
+            ;;
+        esac
+    done
+
+    # Process list of addons, displaying their names
+    for addon_path in $(addons_list_in_directory $@); do
         echo "$(basename $addon_path)";
     done
 }

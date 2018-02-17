@@ -9,14 +9,14 @@ if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
 fi
 
 
-ohelper_require utils;
-ohelper_require addons;
-ohelper_require odoo;
+ohelper_require "utils";
+ohelper_require "addons";
+ohelper_require "odoo";
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
 
-# test_run_flake8 [flake8 options] <module1 path> [module2 path] .. [module n path]
+# lint_run_flake8 [flake8 options] <module1 path> [module2 path] .. [module n path]
 function lint_run_flake8 {
     local res=0;
     if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $@; then
@@ -25,9 +25,27 @@ function lint_run_flake8 {
     return $res;
 }
 
+
+# lint_run_pylint_internal <addon_path> [options]
+function lint_run_pylint_internal {
+    local addon_dir=$(dirname $1);
+    local addon_name=$(basename $1);
+    shift;
+
+    local save_dir=$(pwd);
+    local res=0;
+    cd $addon_dir;
+    echo "TMP: $@ $addon_name";
+    if ! execu pylint $@ $addon_name; then
+        res=1;
+    fi
+    cd $save_dir;
+    return $res;
+}
+
 # Run pylint tests for modules
-# test_run_pylint <module1 path> [module2 path] .. [module n path]
-# test_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
+# lint_run_pylint <module1 path> [module2 path] .. [module n path]
+# lint_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
 function lint_run_pylint {
     local pylint_rc="$ODOO_HELPER_LIB/default_config/pylint_odoo.cfg";
     local pylint_opts="--rcfile=$pylint_rc";
@@ -59,57 +77,10 @@ function lint_run_pylint {
     fi
 
     local res=0;
-    for path in $@; do
-        if is_odoo_module $path && addons_is_installable $path; then
-            local addon_dir=$(dirname $path);
-            local addon_name=$(basename $path);
-            local save_dir=$(pwd);
-            cd $addon_dir;
-            if ! execu pylint $pylint_opts $addon_name; then
-                res=1;
-            fi
-            cd $save_dir;
-        elif [ -d $path ]; then
-            for subdir in "$path"/*; do
-                if is_odoo_module $subdir; then
-                    if ! lint_run_pylint "$pylint_disable_opt" $subdir; then
-                        res=1;
-                    fi
-                fi
-            done
-        fi
-    done
-    return $res
-}
-
-
-# Run stylelint for each addon in specified path
-# test_run_stylelint <path> [path] [path]
-function lint_run_stylelint {
-    local stylelint_config_path=$ODOO_HELPER_LIB/default_config/stylelint-default.json;
-
-    #-----
-    local res=0;
     for directory in $@; do
-        # skip non directories
-        for addon_path in $(addons_list_in_directory $directory); do
-            if addons_is_installable $addon_path; then
-                local save_dir=$(pwd);
-                cd $addon_path;
-
-                echoe -e "${BLUEC}Processing addon ${YELLOWC}$(basename $addon_path)${BLUEC} ...${NC}";
-
-                if ! execu stylelint --config $stylelint_config_path \
-                        "$addon_path/**/*.css" \
-                        "$addon_path/**/*.scss" \
-                        "$addon_path/**/*.less"; then
-                    res=1;
-                    echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${REDC}FAIL${NC}";
-                else
-                    echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${GREENC}OK${NC}";
-                fi
-
-                cd $save_dir;
+        for path in $(addons_list_in_directory --installable $directory); do
+            if ! lint_run_pylint_internal $path $pylint_opts; then
+                res=1;
             fi
         done
     done
@@ -117,9 +88,56 @@ function lint_run_stylelint {
     return $res
 }
 
+
+# lint_run_stylelint_internal <addon path>
+function lint_run_stylelint_internal {
+    local addon_path=$1;
+    local stylelint_config_path=$ODOO_HELPER_LIB/default_config/stylelint-default.json;
+    local res=0;
+
+    local save_dir=$(pwd);
+    cd $addon_path;
+
+    echoe -e "${BLUEC}Processing addon ${YELLOWC}$(basename $addon_path)${BLUEC} ...${NC}";
+
+    if ! execu stylelint --config $stylelint_config_path \
+            "$addon_path/**/*.css" \
+            "$addon_path/**/*.scss" \
+            "$addon_path/**/*.less"; then
+        res=1;
+        echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${REDC}FAIL${NC}";
+    else
+        echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${GREENC}OK${NC}";
+    fi
+
+    cd $save_dir;
+
+    return $res;
+}
+
+
+# Run stylelint for each addon in specified path
+# lint_run_stylelint <path> [path] [path]
+function lint_run_stylelint {
+    local stylelint_config_path=$ODOO_HELPER_LIB/default_config/stylelint-default.json;
+
+    #-----
+    local res=0;
+    for directory in $@; do
+        for addon_path in $(addons_list_in_directory --installable $directory); do
+            if ! lint_run_stylelint_internal $addon_path; then
+                res=1;
+            fi
+        done
+    done
+
+    return $res
+}
+
+
 function lint_command {
     local usage="
-    Usage: 
+    Usage:
 
         $SCRIPT_NAME lint flake8 <addon path> [addon path]
         $SCRIPT_NAME lint pylint <addon path> [addon path]
