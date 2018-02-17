@@ -110,19 +110,20 @@ For example to test, how odoo-helper-scripts will work on debian:stretch, do fol
 
 And after install you will have available folowing scripts in your path:
 
-    - odoo-install
-    - odoo-helper
+- odoo-install
+- odoo-helper
 
 Each script have ```-h``` or ```--help``` option which display most relevant information
 about script and all possible options and subcommands of script
 
 Also there are some aliases for common commands:
-    - odoo-helper-addons
-    - odoo-helper-db
-    - odoo-helper-fetch
-    - odoo-helper-log
-    - odoo-helper-restart
-    - odoo-helper-server
-    - odoo-helper-test
+
+- odoo-helper-addons
+- odoo-helper-db
+- odoo-helper-fetch
+- odoo-helper-log
+- odoo-helper-restart
+- odoo-helper-server
+- odoo-helper-test
 
 For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*)
