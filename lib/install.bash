@@ -88,7 +88,7 @@ function install_download_odoo {
 # install_wkhtmltopdf_get_dw_link <os_release_name> [wkhtmltopdf version]
 function install_wkhtmltopdf_get_dw_link {
     local os_release_name=$1;
-    local version=${2:-0.12.2.1};
+    local version=${2:-0.12.1};
     local system_arch=$(dpkg --print-architecture);
 
     echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox-${version}_linux-${os_release_name}-${system_arch}.deb"
