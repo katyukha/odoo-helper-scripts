@@ -35,7 +35,6 @@ function lint_run_pylint_internal {
     local save_dir=$(pwd);
     local res=0;
     cd $addon_dir;
-    echo "TMP: $@ $addon_name";
     if ! execu pylint $@ $addon_name; then
         res=1;
     fi

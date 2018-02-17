@@ -211,6 +211,16 @@ function exec_py {
     execu $python_exec "$@";
 }
 
+# Exec python with server user (if provided)
+function exec_py_u {
+    if [ ! -z $SERVER_RUN_USER ]; then
+        local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
+    fi
+
+    local python_exec="$(odoo_get_python_version)";
+    execu $python_exec "$sudo_opt $@";
+}
+
 # Run python code
 #
 # run_python_cmd <code>
@@ -220,3 +230,11 @@ function run_python_cmd {
     exec_py -c "\"$python_cmd\"";
 }
 
+# Run python code as server user (if provided)
+#
+# run_python_cmd <code>
+function run_python_cmd_u {
+    local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
+    python_cmd="$python_cmd $1";
+    exec_py_u -c "\"$python_cmd\"";
+}
