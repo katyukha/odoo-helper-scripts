@@ -42,7 +42,7 @@ function tr_parse_addons {
         local addons=;
         while [[ $# -gt 0 ]]; do  # while there at least one argumet left
             if [[ "$1" =~ ^--dir=(.*)$ ]]; then
-                addons="$addons $(join_by ' '  $(addons_list_in_directory_by_name ${BASH_REMATCH[1]}))";
+                addons="$addons $(join_by ' '  $(addons_list_in_directory --by-name ${BASH_REMATCH[1]}))";
             else
                 addons="$addons $1";
             fi

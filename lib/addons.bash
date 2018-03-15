@@ -145,6 +145,7 @@ function addons_list_in_directory {
 
         -r|--recursive    - look for addons recursively
         --installable     - display only installable addons
+        --by-name         - display only addon names
         -h|--help|help    - display this help message
     ";
 
@@ -161,6 +162,9 @@ function addons_list_in_directory {
             ;;
             --installable)
                 local installable_only=1;
+            ;;
+            --by-name)
+                local by_name=1;
             ;;
             *)
                 echo "Unknown option $key";
@@ -182,14 +186,22 @@ function addons_list_in_directory {
     if [ -d $addons_path ]; then
         if is_odoo_module $addons_path; then
             if [ -z $installable_only ] || addons_is_installable $addons_path; then
-                echo "$(readlink -f $addons_path)";
+                if [ -z $by_name ]; then
+                    echo "$(readlink -f $addons_path)";
+                else
+                    echo "$(basename $(readlink -f $addons_path))";
+                fi
             fi
         fi
 
         for addon in "$addons_path"/*; do
             if is_odoo_module $addon; then
                 if [ -z $installable_only ] || addons_is_installable $addon; then
-                    echo "$(readlink -f $addon)";
+                    if [ -z $by_name ]; then
+                        echo "$(readlink -f $addon)";
+                    else
+                        echo "$(basename $(readlink -f $addon))";
+                    fi
                 fi
             elif [ ! -z $recursive ] && [ -d "$addon" ]; then
                 addons_list_in_directory "$addon";
@@ -205,6 +217,8 @@ function addons_list_in_directory {
 #
 # addons_list_in_directory_by_name <directory to search odoo addons in>
 function addons_list_in_directory_by_name {
+    echoe -e "${YELLOWC}WARNING${NC}: 'addons_list_in_directory_by_name' is deprecated, use 'addons_list_in_directory --by-name' instead";
+
     # If help in options, do not process result of addons_list_in_directory
     for opt in $@; do
         case $opt in
@@ -216,9 +230,7 @@ function addons_list_in_directory_by_name {
     done
 
     # Process list of addons, displaying their names
-    for addon_path in $(addons_list_in_directory $@); do
-        echo "$(basename $addon_path)";
-    done
+    addons_list_in_directory --by-name $@;
 }
 
 
@@ -572,7 +584,7 @@ function addons_command {
         case $key in
             list)
                 shift;
-                addons_list_in_directory_by_name $@;
+                addons_list_in_directory $@;
                 return 0;
             ;;
             list-repos|list_repos)

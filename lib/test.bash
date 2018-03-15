@@ -64,8 +64,9 @@ function test_module_impl {
 }
 
 # Get database name or create new one. Prints database name
-# test_get_or_create_db    # get db
-# test_get_or_create_db 1  # create new db
+# test_get_or_create_db      # get db
+# test_get_or_create_db 1    # recreate db
+# test_get_or_create_db 0 1  # create new db
 function test_get_or_create_db {
     local recreate_db=$1;
     local create_test_db=$2;

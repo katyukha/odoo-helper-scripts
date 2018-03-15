@@ -221,12 +221,28 @@ function exec_py_u {
     execu $python_exec "$sudo_opt $@";
 }
 
+
+function run_python_cmd_prepare {
+    local cmd="
+import sys
+
+sys.path.append('$ODOO_HELPER_LIB/pylib')
+
+try:
+    $1
+except SystemExit:
+    raise
+except Exception:
+    sys.exit(1)
+";
+    echo "$cmd";
+}
+
 # Run python code
 #
 # run_python_cmd <code>
 function run_python_cmd {
-    local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
-    python_cmd="$python_cmd $1";
+    local python_cmd=$(run_python_cmd_prepare "$1");
     exec_py -c "\"$python_cmd\"";
 }
 
@@ -234,7 +250,6 @@ function run_python_cmd {
 #
 # run_python_cmd <code>
 function run_python_cmd_u {
-    local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
-    python_cmd="$python_cmd $1";
+    local python_cmd=$(run_python_cmd_prepare "$@");
     exec_py_u -c "\"$python_cmd\"";
 }

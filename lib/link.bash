@@ -91,7 +91,8 @@ function link_module {
                     # link module
                     link_module_impl $file $ADDONS_DIR/`basename $file` $force;
                 elif [ -d $file ] && ! is_odoo_module $file && [ $(basename $file) != 'setup' ]; then
-                    # if it is directory but not odoo module, recursively look for addons there
+                    # if it is directory but not odoo module,
+                    # and not 'setup' dir, then recursively look for addons there
                     link_module $force $file;
                 fi
             done
