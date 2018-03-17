@@ -48,7 +48,7 @@ Dev:
 ## Documentation note
 
 Documentaion in this readme, or in other sources, may not be up to date!!!
-So use *--help* option, which is available for most of commands.
+So use ``--help`` option, which is available for most of commands.
 
 
 ## Usage note
@@ -64,36 +64,54 @@ Also, it is possible to manage almost any Odoo intance with this project, if it 
 To install (in user home) just do folowing:
 
 ```bash
+# Install odoo-helper-scripts
 wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-user.bash | bash -s
+
+# Install system dependencies required for odoo-helper-scripts (require sudo)
+sudo odoo-helper install pre-requirements
 ```
 
-After instalation You will have ```odoo-helper-scripts``` directory inside your home directory
-(also it will be added to PATH environment variable through ```~/.bash-profile``` file).
-And ```$HOME/odoo-helper.conf``` file will be generated with path to odoo-helper-scripts install dir.
+After instalation You will have ``odoo-helper-scripts`` directory inside your home directory
+(also it will be added to PATH environment variable through ``~/.bash-profile`` file).
+And ``$HOME/odoo-helper.conf`` file will be generated with path to odoo-helper-scripts install dir.
 
 ## Install (system-wide)
 
 To install (system-wide) just do folowing:
 
 ```bash
+# Install odoo-helper-scripts
 wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
+
+# Install system dependencies required for odoo-helper-scripts
+sudo odoo-helper install pre-requirements
 ```
 
 or more explicit way:
 
 ```bash
+# Download installation script
 wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
+
+# Install odoo-helper-scripts
 sudo bash /tmp/odoo-helper-install.bash;
+
+#  Intall system pre-requirements for odoo-helper-scripts
+sudo odoo-helper install pre-requirements
 ```
 
-After instalation You will have ```odoo-helper-scripts``` directory under ```/opt/``` directory.
-(also ```odoo-helper``` and ```odoo-install``` scripts will be linked to ```/usr/local/bin/``` dir).
-And ```/etc/odoo-helper.conf``` file will be generated with path to odoo-helper-scripts install dir.
+After instalation You will have ``odoo-helper-scripts`` directory under ``/opt/`` directory.
+(also ``odoo-helper`` and ``odoo-install`` scripts will be linked to ``/usr/local/bin/`` dir).
+And ``/etc/odoo-helper.conf`` file will be generated with path to odoo-helper-scripts install dir.
 
 If you wish to install from *dev* branch, you can use following command:
 
 ```bash
+# Install odoo-helper-scripts
 wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s - dev
+
+#  Intall system pre-requirements for odoo-helper-scripts
+sudo odoo-helper install pre-requirements
 ```
 
 ## Test your OS support
@@ -113,7 +131,7 @@ And after install you will have available folowing scripts in your path:
 - odoo-install
 - odoo-helper
 
-Each script have ```-h``` or ```--help``` option which display most relevant information
+Each script have ``-h`` or ``--help`` option which display most relevant information
 about script and all possible options and subcommands of script
 
 Also there are some aliases for common commands:
@@ -126,4 +144,6 @@ Also there are some aliases for common commands:
 - odoo-helper-server
 - odoo-helper-test
 
-For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*)
+For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*).
+
+Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).
