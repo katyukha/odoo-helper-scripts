@@ -276,6 +276,7 @@ function tr_regenerate {
 
         --lang <lang code>    - language code to regenerate translations for
         --file <filename>     - name of po file in i18n dir of addons to generate
+        --dir  <addons path>  - look for addons at specified directory
 
     this command automaticaly creates new temporary database with specified lang
     and demo_data, installs there specified list of addons
@@ -296,6 +297,10 @@ function tr_regenerate {
             ;;
             --file)
                 file_name=$2;
+                shift;
+            ;;
+            --dir)
+                addons="$addons $(addons_list_in_directory --by-name --installable --recursive $2)";
                 shift;
             ;;
             *)
@@ -338,6 +343,7 @@ function tr_translation_rate {
         --lang <lang code>       - language code to regenerate translations for
         --min-total-rate <rate>  - minimal translation rate to pass. (optional)
         --min-addon-rate <rate>  - minimal translation rate per addon. (optional)
+        --dir  <addons path>     - look for addons at specified directory
 
     compute translation rate for specified langauage and addons
     ";
@@ -360,6 +366,10 @@ function tr_translation_rate {
             ;;
             --min-addon-rate)
                 min_addon_rate=$2;
+                shift;
+            ;;
+            --dir)
+                addons="$addons $(addons_list_in_directory --by-name --installable --recursive $2)";
                 shift;
             ;;
             *)
@@ -390,7 +400,7 @@ function tr_translation_rate {
 
                 # Compute translation rate and print it
                 local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
-                python_cmd="$python_cmd trans_rate = db.compute_translation_rate('$lang', '$addons'.split());";
+                python_cmd="$python_cmd trans_rate = db.compute_translation_rate('$lang', '$addons_cs'.split(','));";
                 python_cmd="$python_cmd db.print_translation_rate(trans_rate);";
                 python_cmd="$python_cmd exit_code = db.assert_translation_rate(trans_rate, min_total_rate=$min_total_rate, min_addon_rate=$min_addon_rate);";
                 python_cmd="$python_cmd exit(exit_code);";
@@ -400,7 +410,7 @@ function tr_translation_rate {
                 fi
             fi
         else
-            echoe -e "${REDC}ERROR${NC}: Cannoc export translations!";
+            echoe -e "${REDC}ERROR${NC}: Cannot export translations!";
             res=12;
         fi
     else

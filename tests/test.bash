@@ -388,10 +388,15 @@ odoo-helper install js-tools;
 
 
 # Install oca/partner_firstname addons and
-# regenerate Ukrainian translations for it
-odoo-helper fetch --oca partner-contact -m partner_firstname;
+odoo-helper fetch --oca partner-contact;
+
+# Regenerate Ukrainian translations for partner_firstname addons
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
 odoo-helper tr rate --lang uk_UA partner_firstname;
+
+# Regenerate Ukrainian translations for all addons in partner-contact
+odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
+odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
 
 # Check partner_first_name addon with pylint and flake8
 odoo-helper install py-tools

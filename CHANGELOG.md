@@ -17,6 +17,7 @@
 - `odoo-helper addons (install|update|uninstall)` command now have
   extra option `--dir <addon path>` which can be used
   to install/update/uninstall all installable addons in specified directory
+- Added `--dir` option for `odoo-helper tr regenerate` and `odoo-helper tr rate` commands
 
 ## Version 0.1.5 (2018-01-12)
 
