@@ -203,7 +203,7 @@ function addons_list_in_directory {
                         echo "$(basename $(readlink -f $addon))";
                     fi
                 fi
-            elif [ ! -z $recursive ] && [ -d "$addon" ]; then
+            elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
                 addons_list_in_directory "$addon";
             fi
         done | sort
@@ -439,16 +439,25 @@ function addons_install_update {
     shift;
     local usage="Usage:
 
-        $SCRIPT_NAME addons $cmd [-d <db>] [--no-restart] <addons>    - $cmd some addons
+        $SCRIPT_NAME addons $cmd [options] <addons>    - $cmd some addons
         $SCRIPT_NAME addons $cmd --help
 
-        if -d <db> argument is not passed '$cmd' will be executed on all databases
-        <addons> is comma-separated or space-separated list of addons
+    Options
 
-        if --no-restart option passed, then do not restart server.
-        By default, befor updating \ installing addons server will be stopped,
-        and started on success
-
+        -d|--db <database>       - database to $cmd addons on.
+                                   may be specified multiple times.
+                                   If not specified, then command applied to
+                                   all databases available for
+                                   this odoo instance
+        --no-restart             - do not restart server during addons update
+                                   By default server will be stopped before
+                                   command and restarted after command finishes.
+                                   If command return non-zero exit code, then
+                                   server will not be restarted.
+        --dir <addon path>       - directory to $cmd addons from.
+                                   Searches for all installable addons
+                                   recursively in specified directory.
+                                   May be specified multiple times
     ";
     local dbs="";
     local todo_addons="";
@@ -458,6 +467,10 @@ function addons_install_update {
         case $key in
             -d|--db)
                 dbs=$dbs$'\n'$2;
+                shift;
+            ;;
+            --dir)
+                todo_addons="$todo_addons,$(join_by , $(addons_list_in_directory --recursive --installable --by-name $2))";
                 shift;
             ;;
             --no-restart)

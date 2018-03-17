@@ -208,24 +208,6 @@ function test_run_tests {
     fi
 }
 
-
-# test_find_modules_in_directories <dir1> [dir2] ...
-# echoes list of modules found in specified directories
-function test_find_modules_in_directories {
-    # TODO: sort addons in correct order to avoid duble test runs
-    #       in cases when addon that is tested first depends on other,
-    #       which is tested next, but when it is tested, then all dependent
-    #       addons will be also tested
-    for directory in $@; do
-        # skip non directories
-        for addon_path in $(addons_list_in_directory $directory); do
-            if addons_is_installable $addon_path; then
-                echo -n " $(basename $addon_path)";
-            fi
-        done
-    done
-}
-
 # Run flake8 for modules
 # test_module [--create-test-db] -m <module_name>
 function test_module {
@@ -311,7 +293,7 @@ function test_module {
                 shift;
             ;;
             -d|--directory)
-                modules="$modules $(test_find_modules_in_directories $2)";
+                modules="$modules $(addons_list_in_directory --recursive --installable --by-name $2)";
                 shift;
             ;;
             flake8)

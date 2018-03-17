@@ -14,6 +14,9 @@
 - **Backward incompatible** `odoo-helper addons list` command now have options.
   Use `odoo-helper addons list --by-name` option to get same result as previous
   version of command.
+- `odoo-helper addons (install|update|uninstall)` command now have
+  extra option `--dir <addon path>` which can be used
+  to install/update/uninstall all installable addons in specified directory
 
 ## Version 0.1.5 (2018-01-12)
 
