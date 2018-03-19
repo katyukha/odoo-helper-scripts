@@ -401,7 +401,7 @@ function install_bin_tools {
 # Install extra python tools
 function install_python_tools {
     exec_pip install setproctitle watchdog pylint-odoo coverage \
-        flake8 flake8-colors Mercurial;
+        flake8 flake8-colors;
 }
 
 # Install extra javascript tools

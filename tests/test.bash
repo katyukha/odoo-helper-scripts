@@ -266,8 +266,7 @@ odoo-helper server auto-update
 odoo-helper db create test-9-db;
 
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
-# Also it is possible to install it together with other dev tools via *install py-tools* command
-odoo-helper install py-tools;
+odoo-helper pip install Mercurial;
 odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons list --help;
@@ -464,6 +463,10 @@ odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
     --db-user odoo11 --db-pass odoo
 
 cd odoo-11.0;
+
+# Install py-tools and js-tools
+odoo-helper install py-tools;
+odoo-helper install js-tools;
 
 # Test python version
 echo -e "${YELLOWC}Ensure that it is Py3${NC}";

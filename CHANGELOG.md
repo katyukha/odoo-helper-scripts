@@ -21,6 +21,8 @@
 - Added `--start` option to `odoo-helper addons install|update|uninstall` command
 - Do not set `pidfile` option in odoo config by default.
   pidfile have to be managed by odoo-helper-scripts, not by Odoo.
+- **Backward incompatible** remove [Mercurial](https://www.mercurial-scm.org/)
+  installation from `odoo-helper install py-tools`, because it [does not support Python3](https://www.mercurial-scm.org/wiki/Python3)
 
 ## Version 0.1.5 (2018-01-12)
 

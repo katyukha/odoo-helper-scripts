@@ -206,7 +206,7 @@ function addons_list_in_directory {
             elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
                 addons_list_in_directory "$addon";
             fi
-        done | sort
+        done | sort -u;
     fi
 }
 
