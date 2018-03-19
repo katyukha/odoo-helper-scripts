@@ -231,7 +231,6 @@ function generate_test_conf {
 
     # Add default values
     ODOO_CONF_OPTIONS[logfile]="${ODOO_CONF_OPTIONS['logfile']:-False}";
-    ODOO_CONF_OPTIONS[pidfile]="${ODOO_CONF_OPTIONS['pidfile']:-$PROJECT_ROOT_DIR/odoo.test.pid}";
     ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-$DB_HOST}";
     ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
     ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-$DB_USER}";

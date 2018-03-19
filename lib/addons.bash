@@ -454,11 +454,13 @@ function addons_install_update {
                                    command and restarted after command finishes.
                                    If command return non-zero exit code, then
                                    server will not be restarted.
+        --start                  - Start odoo server on $cmd success.
         --dir <addon path>       - directory to $cmd addons from.
                                    Searches for all installable addons
                                    recursively in specified directory.
                                    May be specified multiple times
     ";
+    local need_start=;
     local dbs="";
     local todo_addons="";
     while [[ $# -gt 0 ]]
@@ -475,6 +477,9 @@ function addons_install_update {
             ;;
             --no-restart)
                 local no_restart_server=1;
+            ;;
+            --start)
+                need_start=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -517,7 +522,7 @@ function addons_install_update {
     done
 
     # Start server again if it was stopped
-    if [ -z $no_restart_server ] && [ ! -z $need_start ]; then
+    if [ ! -z $need_start ] && ! server_is_running; then
         server_start;
     fi
 }
