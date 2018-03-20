@@ -193,7 +193,7 @@ function fetch_clone_repo_git {
     fi
 
     [ -z $VERBOSE ] && local git_clone_opt=" -q "
-    if ! git clone $git_clone_opt $repo_branch_opt $repo_url $repo_dest; then
+    if ! git clone --recurse-submodules $git_clone_opt $repo_branch_opt $repo_url $repo_dest; then
         echo -e "${REDC}Cannot clone [git] '$repo_url to $repo_dest'!${NC}";
     elif [ -z "$repo_branch_opt" ]; then
         # IF repo clonned successfuly, and not branch specified then
