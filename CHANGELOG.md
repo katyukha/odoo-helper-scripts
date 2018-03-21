@@ -11,19 +11,24 @@
 - `odoo-helper test pylint` skip addons with `'installable': False`
 - Move linters to separate subcommand `odoo-helper lint`.
   Run `odoo-helper lint --help` for details
-- **Backward incompatible** `odoo-helper addons list` command now have options.
-  Use `odoo-helper addons list --by-name` option to get same result as previous
-  version of command.
+- `odoo-helper addons list` command now have extra options:
+  - `--installable`
+  - `--by-name`  (used by default)
+  - `--by-path`
+  - `--recursive`
 - `odoo-helper addons (install|update|uninstall)` command now have
-  extra option `--dir <addon path>` which can be used
+  extra options `--dir <addon path>` and `--dir-r <addon-path>` which can be used
   to install/update/uninstall all installable addons in specified directory
-- Added `--dir` option for `odoo-helper tr regenerate` and `odoo-helper tr rate` commands
+- Added `--dir` and `--dir-r` options for `odoo-helper tr regenerate` and `odoo-helper tr rate` commands
 - Added `--start` option to `odoo-helper addons install|update|uninstall` command
 - Do not set `pidfile` option in odoo config by default.
   pidfile have to be managed by odoo-helper-scripts, not by Odoo.
 - **Backward incompatible** remove [Mercurial](https://www.mercurial-scm.org/)
   installation from `odoo-helper install py-tools`, because it [does not support Python3](https://www.mercurial-scm.org/wiki/Python3)
-- `odoo-helper fetch` now recursively fetches submodules for git repositories.
+- To be compatible with [Odoo.sh](https://www.odoo.sh)-style development,
+  `odoo-helper fetch` now recursively fetches submodules for git repositories.
+- Added option `--dir-r|--directory-r` for `odoo-helper test` command,
+  to recursively search for addons to be tested in specified directory
 
 ## Version 0.1.5 (2018-01-12)
 

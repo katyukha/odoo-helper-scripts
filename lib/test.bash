@@ -239,11 +239,14 @@ function test_module {
         --coverage-report        - print coverage report
         --coverage-skip-covered  - skip covered files in coverage report
         -m|--module              - specify module to test
-        -d|--directory           - specify directory with modules to test
+        -d|--dir|--directory     - search for modules to test in specified directory
+        --dir-r|--directory-r    - recursively search for modules to test in specified directory
 
     Examples:
         $SCRIPT_NAME test -m my_cool_module        # test single addon
         $SCRIPT_NAME test -d addon_dir             # test all addons in specified directory
+        $SCRIPT_NAME test --dir-r addon_dir        # test all addons in specified directory
+                                                   # and subdirectories
         $SCRIPT_NAME test pylint ./my_cool_module  # check addon with pylint
         $SCRIPT_NAME test flake8 ./my_cool_module  # check addon with flake8
         $SCRIPT_NAME test style ./my_cool_module   # run stylelint standard checks for addon
@@ -292,7 +295,11 @@ function test_module {
                 modules="$modules $2";  # add module to module list
                 shift;
             ;;
-            -d|--directory)
+            -d|--dir|--directory)
+                modules="$modules $(addons_list_in_directory --installable --by-name $2)";
+                shift;
+            ;;
+            --dir-r|--directory-r)
                 modules="$modules $(addons_list_in_directory --recursive --installable --by-name $2)";
                 shift;
             ;;

@@ -42,7 +42,9 @@ function tr_parse_addons {
         local addons=;
         while [[ $# -gt 0 ]]; do  # while there at least one argumet left
             if [[ "$1" =~ ^--dir=(.*)$ ]]; then
-                addons="$addons $(join_by ' '  $(addons_list_in_directory --by-name ${BASH_REMATCH[1]}))";
+                addons="$addons $(join_by ' '  $(addons_list_in_directory --installable --by-name ${BASH_REMATCH[1]}))";
+            elif [[ "$1" =~ ^--dir-r=(.*)$ ]]; then
+                addons="$addons $(join_by ' '  $(addons_list_in_directory --installable --recursive --by-name ${BASH_REMATCH[1]}))";
             else
                 addons="$addons $1";
             fi
@@ -277,6 +279,7 @@ function tr_regenerate {
         --lang <lang code>    - language code to regenerate translations for
         --file <filename>     - name of po file in i18n dir of addons to generate
         --dir  <addons path>  - look for addons at specified directory
+        --dir-r <addons path> - look for addons at specified directory and its subdirectories
 
     this command automaticaly creates new temporary database with specified lang
     and demo_data, installs there specified list of addons
@@ -300,6 +303,10 @@ function tr_regenerate {
                 shift;
             ;;
             --dir)
+                addons="$addons $(addons_list_in_directory --by-name --installable $2)";
+                shift;
+            ;;
+            --dir-r)
                 addons="$addons $(addons_list_in_directory --by-name --installable --recursive $2)";
                 shift;
             ;;
@@ -344,6 +351,7 @@ function tr_translation_rate {
         --min-total-rate <rate>  - minimal translation rate to pass. (optional)
         --min-addon-rate <rate>  - minimal translation rate per addon. (optional)
         --dir  <addons path>     - look for addons at specified directory
+        --dir-r <addons path> - look for addons at specified directory and its subdirectories
 
     compute translation rate for specified langauage and addons
     ";
@@ -369,6 +377,10 @@ function tr_translation_rate {
                 shift;
             ;;
             --dir)
+                addons="$addons $(addons_list_in_directory --by-name --installable $2)";
+                shift;
+            ;;
+            --dir-r)
                 addons="$addons $(addons_list_in_directory --by-name --installable --recursive $2)";
                 shift;
             ;;
@@ -444,7 +456,7 @@ function tr_main {
             $SCRIPT_NAME tr export <db> uk_UA uk <addon1> [addon2] [addon3]...
             $SCRIPT_NAME tr export <db> uk_UA uk all
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk <addon1> [addon2] [addon3]...
-            $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk --dir=/addons/dir --dir=/addons/dir2 [addon3]...
+            $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk --dir=/addons/dir --dir-r=/addons/dir2 [addon3]...
             $SCRIPT_NAME tr import [--overwrite] <db> uk_UA uk all
 
     Note2:

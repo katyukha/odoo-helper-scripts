@@ -146,7 +146,13 @@ function addons_list_in_directory {
         -r|--recursive    - look for addons recursively
         --installable     - display only installable addons
         --by-name         - display only addon names
+        --by-path         - display addon path
         -h|--help|help    - display this help message
+
+    Note:
+
+        --by-name and --by-path options are conflicting,
+        thus last option in command call will take effect.
     ";
 
     while [[ $1 == -* ]]
@@ -165,6 +171,9 @@ function addons_list_in_directory {
             ;;
             --by-name)
                 local by_name=1;
+            ;;
+            --by-path)
+                local by_name=;
             ;;
             *)
                 echo "Unknown option $key";
@@ -457,7 +466,9 @@ function addons_install_update {
         --start                  - Start odoo server on $cmd success.
         --dir <addon path>       - directory to $cmd addons from.
                                    Searches for all installable addons
-                                   recursively in specified directory.
+                                   in specified directory.
+                                   May be specified multiple times
+        --dir-r <addon path>     - Same as --dir, but searches for addons recursively.
                                    May be specified multiple times
     ";
     local need_start=;
@@ -472,6 +483,10 @@ function addons_install_update {
                 shift;
             ;;
             --dir)
+                todo_addons="$todo_addons,$(join_by , $(addons_list_in_directory --installable --by-name $2))";
+                shift;
+            ;;
+            --dir-r)
                 todo_addons="$todo_addons,$(join_by , $(addons_list_in_directory --recursive --installable --by-name $2))";
                 shift;
             ;;
@@ -602,7 +617,7 @@ function addons_command {
         case $key in
             list)
                 shift;
-                addons_list_in_directory $@;
+                addons_list_in_directory --by-name $@;
                 return 0;
             ;;
             list-repos|list_repos)
