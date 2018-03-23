@@ -138,16 +138,12 @@ function server_status {
         local pid=$(server_get_pid);
         if [ $pid -gt 0 ]; then
             echoe -e "${GREENC}Server process already running. PID=${YELLOWC}${pid}${GREENC}.${NC}";
-            return 0;
         elif [ $pid -eq -2 ]; then
             echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
-            return 2;
         elif [ $pid -eq -1 ]; then
             echoe -e "${REDC}Server stopped${NC}";
-            return 1;
         else
             echoe -e "${REDC}Unknown server status!${NC}";
-            return 3;
         fi
     fi
 }
