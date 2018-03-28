@@ -16,6 +16,8 @@ must be just set of options for ```odoo-helper fetch``` command:
 
 ```
 
+***NOTE*** *odoo_requirements.txt* must end with newline symbol.
+
 Also there are shorter syntax for specific repository sources:
 
 - ```--github user/repository``` for github repositories

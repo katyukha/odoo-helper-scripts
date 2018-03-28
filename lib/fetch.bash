@@ -286,6 +286,7 @@ function fetch_module {
                                        Usualy not required
             -b|--branch <branch>     - name fo repository branch to clone
             --requirements <file>    - path to requirements file to fetch required modules
+                                       NOTE: requirements file must end with newline.
             -p|--python <package>    - fetch python dependency. (it use pip to install package)
             -p|--python <vcs>+<repository>  - install python dependency directly from VCS
 

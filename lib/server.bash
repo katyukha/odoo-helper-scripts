@@ -84,11 +84,24 @@ function server_start {
         fi
 
         server_run --pidfile=$ODOO_PID_FILE "$@" &
-        sleep 2;
-        local odoo_pid=$(cat $ODOO_PID_FILE "$@");
-        echoe -e "${GREENC}Odoo started!${NC}";
-        echoe -e "PID File: ${YELLOWC}$ODOO_PID_FILE${NC}."
-        echoe -e "Process ID: ${YELLOWC}${odoo_pid}${NC}";
+
+        for stime in 1 2 3 4; do
+            if [ -f $ODOO_PID_FILE ]; then
+                local odoo_pid=$(cat $ODOO_PID_FILE);
+                break
+            else
+                sleep $stime;
+            fi
+        done
+
+        if [ -z $odoo_pid ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot start odoo.";
+            return 1;
+        else
+            echoe -e "${GREENC}Odoo started!${NC}";
+            echoe -e "PID File: ${YELLOWC}${ODOO_PID_FILE}${NC}."
+            echoe -e "Process ID: ${YELLOWC}${odoo_pid}${NC}";
+        fi
     fi
 }
 
