@@ -76,12 +76,10 @@ function lint_run_pylint {
     fi
 
     local res=0;
-    for directory in $@; do
-        for path in $(addons_list_in_directory --installable $directory); do
-            if ! lint_run_pylint_internal $path $pylint_opts; then
-                res=1;
-            fi
-        done
+    for path in $(addons_list_in_directory --installable $@); do
+        if ! lint_run_pylint_internal $path $pylint_opts; then
+            res=1;
+        fi
     done
 
     return $res
@@ -118,16 +116,49 @@ function lint_run_stylelint_internal {
 # Run stylelint for each addon in specified path
 # lint_run_stylelint <path> [path] [path]
 function lint_run_stylelint {
-    local stylelint_config_path=$ODOO_HELPER_LIB/default_config/stylelint-default.json;
+    local usage="
+    Usage:
+
+        $SCRIPT_NAME lint style <addon path> [addon path]
+        $SCRIPT_NAME lint style --help
+
+    Description:
+        Lint styles (*.css, *.less, *.scss).
+        This command uses [stylelint](https://stylelint.io/) with
+        standard config (stylelint-config-standard)
+
+    ";
+
+    # Parse command line options
+    if [[ $# -lt 1 ]]; then
+        echo "No options supplied $#: $@";
+        echo "";
+        echo "$usage";
+        exit 0;
+    fi
+
+    while [[ $1 == -* ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
 
     #-----
     local res=0;
-    for directory in $@; do
-        for addon_path in $(addons_list_in_directory --installable $directory); do
-            if ! lint_run_stylelint_internal $addon_path; then
-                res=1;
-            fi
-        done
+    for addon_path in $(addons_list_in_directory --installable $@); do
+        if ! lint_run_stylelint_internal $addon_path; then
+            res=1;
+        fi
     done
 
     return $res
@@ -160,7 +191,7 @@ function lint_command {
         case $key in
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return;
             ;;
             flake8)
                 shift;
@@ -179,7 +210,7 @@ function lint_command {
             ;;
             *)
                 echo "Unknown option $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift

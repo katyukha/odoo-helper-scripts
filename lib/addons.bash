@@ -129,7 +129,7 @@ function addons_update_module_list {
 
 # List addons in specified directory
 #
-# addons_list_in_directory [options] <directory to search odoo addons in>
+# addons_list_in_directory [options] <directory to search odoo addons in> [dir2 [dirn]]
 #
 # Note: this funtion lists addon paths
 function addons_list_in_directory {
@@ -138,7 +138,7 @@ function addons_list_in_directory {
     local usage="
     Usage:
 
-        $SCRIPT_NAME addons list [options] <path>
+        $SCRIPT_NAME addons list [options] <path> [path2 [pathn]]
         $SCRIPT_NAME addons list --help
 
     Options:
@@ -183,40 +183,34 @@ function addons_list_in_directory {
         shift
     done
 
-    local addons_path=${1:-$ADDONS_DIR};
-
-    # Check if addons_path exists
-    if [ -z $addons_path ] || [ ! -d $addons_path ]; then
-        echoe -e "${REDC}ERROR${NC}: addons directory (${YELLOWC}$addons_path${NC}) not specified or does not exists!";
-        return 1
-    fi
-
-    # Look for addons
-    if [ -d $addons_path ]; then
-        if is_odoo_module $addons_path; then
-            if [ -z $installable_only ] || addons_is_installable $addons_path; then
-                if [ -z $by_name ]; then
-                    echo "$(readlink -f $addons_path)";
-                else
-                    echo "$(basename $(readlink -f $addons_path))";
-                fi
-            fi
-        fi
-
-        for addon in "$addons_path"/*; do
-            if is_odoo_module $addon; then
-                if [ -z $installable_only ] || addons_is_installable $addon; then
+    for addons_path in $@; do
+        # Look for addons
+        if [ -d $addons_path ]; then
+            if is_odoo_module $addons_path; then
+                if [ -z $installable_only ] || addons_is_installable $addons_path; then
                     if [ -z $by_name ]; then
-                        echo "$(readlink -f $addon)";
+                        echo "$(readlink -f $addons_path)";
                     else
-                        echo "$(basename $(readlink -f $addon))";
+                        echo "$(basename $(readlink -f $addons_path))";
                     fi
                 fi
-            elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
-                addons_list_in_directory "$addon";
             fi
-        done | sort -u;
-    fi
+
+            for addon in "$addons_path"/*; do
+                if is_odoo_module $addon; then
+                    if [ -z $installable_only ] || addons_is_installable $addon; then
+                        if [ -z $by_name ]; then
+                            echo "$(readlink -f $addon)";
+                        else
+                            echo "$(basename $(readlink -f $addon))";
+                        fi
+                    fi
+                elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
+                    addons_list_in_directory "$addon";
+                fi
+            done
+        fi
+    done | sort -u;
 }
 
 

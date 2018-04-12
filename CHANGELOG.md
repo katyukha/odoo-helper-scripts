@@ -6,12 +6,12 @@
   (those, mentioned in repository's `requirements.txt`)
 - Added `odoo-helper doc-utils` command. Have following subcommands
   - `odoo-helper doc-utils addons-list` command to print info about addons in repo in [Markdown](https://en.wikipedia.org/wiki/Markdown) format
-- Added `odoo-helper test style` commant.
-  It is experimental integration with [stylelint](https://stylelint.io/)
-- `odoo-helper test pylint` skip addons with `'installable': False`
 - Move linters to separate subcommand `odoo-helper lint`.
   Run `odoo-helper lint --help` for details
-- `odoo-helper addons list` command now have extra options:
+- Added `odoo-helper lint style` commant.
+  It is experimental integration with [stylelint](https://stylelint.io/)
+- `odoo-helper lint pylint` skip addons with `'installable': False`
+- `odoo-helper addons list` command now have extra options and can search for addons in multiple paths:
   - `--installable`
   - `--by-name`  (used by default)
   - `--by-path`

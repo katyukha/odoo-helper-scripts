@@ -85,10 +85,16 @@ function server_start {
 
         server_run --pidfile=$ODOO_PID_FILE "$@" &
 
+        # Wait until Odoo server started
+        local odoo_pid=;
         for stime in 1 2 3 4; do
             if [ -f $ODOO_PID_FILE ]; then
-                local odoo_pid=$(cat $ODOO_PID_FILE);
-                break
+                odoo_pid=$(cat $ODOO_PID_FILE);
+                if [ ! -z $odoo_pid ] && is_process_running $odoo_pid; then
+                    break
+                else
+                    odoo_pid=;
+                fi
             else
                 sleep $stime;
             fi

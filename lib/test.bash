@@ -30,6 +30,10 @@ function test_run_server {
         if [ -z $COVERAGE_INCLUDE ]; then
             local COVERAGE_INCLUDE="$(pwd)/*";
         fi
+        if ! check_command coverage >/dev/null 2>&1; then
+            echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found. Please, run *${BLUEC}odoo-helper install py-tools${BLUEC}* or *${BLUEC}odoo-helper pip install coverage${NC}*.";
+            return 1
+        fi
         exec_conf $ODOO_TEST_CONF_FILE execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
             --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init $@";
     else
