@@ -104,7 +104,11 @@ function addons_update_module_list_db {
     python_cmd="$python_cmd cl['$db'].cursor.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
-    run_python_cmd "$python_cmd";
+    if run_python_cmd "$python_cmd"; then
+        echoe -e "${GREENC}OK${NC}: Addons list successfully updated for ${YELLOWC}${db}${NC} database";
+    else
+        echoe -e "${REDC}ERROR${NC}: Cannot update module list for ${YELLOWC}${db}${NC} database";
+    fi
 }
 
 
