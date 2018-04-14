@@ -50,6 +50,8 @@ Dev:
 Documentaion in this readme, or in other sources, may not be up to date!!!
 So use ``--help`` option, which is available for most of commands.
 
+[Frequently used commands](docs/frequently-used-commands.md)
+
 
 ## Usage note
 
@@ -145,5 +147,6 @@ Also there are some aliases for common commands:
 - odoo-helper-test
 
 For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*).
+Also look at [Frequently used commands](docs/frequently-used-commands.md)
 
 Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).

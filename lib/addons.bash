@@ -214,29 +214,6 @@ function addons_list_in_directory {
 }
 
 
-# List addons in specified directory by name
-# This function prints only name of addons found in specified dir.
-# Not paths!
-#
-# addons_list_in_directory_by_name <directory to search odoo addons in>
-function addons_list_in_directory_by_name {
-    echoe -e "${YELLOWC}WARNING${NC}: 'addons_list_in_directory_by_name' is deprecated, use 'addons_list_in_directory --by-name' instead";
-
-    # If help in options, do not process result of addons_list_in_directory
-    for opt in $@; do
-        case $opt in
-            -h|--help|help)
-                addons_list_in_directory $@
-                return 0;
-            ;;
-        esac
-    done
-
-    # Process list of addons, displaying their names
-    addons_list_in_directory --by-name $@;
-}
-
-
 # List addons repositories
 # Note that this function list only addons that are under git control
 #
@@ -570,7 +547,7 @@ function addons_update_py_deps {
         fi
     done
 
-    for addon in $(addons_list_in_directory); do
+    for addon in $(addons_list_in_directory $ADDONS_DIR); do
         if [ -f "$addon/requirements.txt" ]; then
             echoe -e "${BLUEC}Installing dependencies for ${YELLOWC}$(basename $addon)${BLUEC}... ${NC}";
             exec_pip install -r $addon/requirements.txt;

@@ -88,7 +88,7 @@ function print_usage {
         start|stop|restart|log                   - shortcuts for server commands
         pylint                                   - shortcut for 'lint pylint' command
         flake8                                   - shortcut for 'lint flake8' command
-        stylelint                                - shortcut for 'lint style' command
+        style                                    - shortcut for 'lint style' command
         system [--help]                          - odoo-helper related functions
         exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
         pip [--oca] <pip arguments>              - shortcut to run project-specific pip.

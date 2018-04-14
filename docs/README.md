@@ -49,10 +49,9 @@ Core functionality is:
 - *db* - manage database (create, drop, dump, restore, etc)
 - *addons* - manage addons (install, update, check for updates in git repos, etc)
 - *tr* - translation utils
-- *postgres* - manage local postgres (create pg user, etc)
+- *postgres* - manage local postgres (create pg user, access psql shell, etc)
 
 For details use *--help* option
-
 
 ## Complete example
 
