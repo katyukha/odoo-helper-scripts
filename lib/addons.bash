@@ -439,6 +439,7 @@ function addons_install_update {
                                    If command return non-zero exit code, then
                                    server will not be restarted.
         --start                  - Start odoo server on $cmd success.
+        --log                    - Open log after $cmd
         --dir <addon path>       - directory to $cmd addons from.
                                    Searches for all installable addons
                                    in specified directory.
@@ -470,6 +471,9 @@ function addons_install_update {
             ;;
             --start)
                 need_start=1;
+            ;;
+            --log)
+                local open_logs=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -507,6 +511,9 @@ function addons_install_update {
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${GREENC}OK${NC}";
         else
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
+            if [ ! -z $open_logs ]; then
+                server_log;
+            fi
             return 1;
         fi
     done
@@ -514,6 +521,9 @@ function addons_install_update {
     # Start server again if it was stopped
     if [ ! -z $need_start ] && ! server_is_running; then
         server_start;
+    fi
+    if [ ! -z $open_logs ]; then
+        server_log;
     fi
 }
 

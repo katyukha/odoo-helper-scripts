@@ -59,6 +59,11 @@ function server_is_running {
     fi
 }
 
+
+function server_log {
+    less ${LOG_FILE:-$LOG_DIR/odoo.log};
+}
+
 # server_run <arg1> .. <argN>
 # all arguments will be passed to odoo server
 function server_run {
@@ -73,6 +78,11 @@ function server_run {
 }
 
 function server_start {
+    if [ "$1" == "--log" ]; then
+        local log_after_start=1;
+        shift;
+    fi
+
     if [ ! -z $INIT_SCRIPT ]; then
         echo -e "${YELLOWC}Starting server via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT start;
@@ -107,6 +117,10 @@ function server_start {
             echoe -e "PID File: ${YELLOWC}${ODOO_PID_FILE}${NC}."
             echoe -e "Process ID: ${YELLOWC}${odoo_pid}${NC}";
         fi
+    fi
+
+    if [ ! -z $log_after_start ]; then
+        server_log;
     fi
 }
 
@@ -167,12 +181,21 @@ function server_status {
 }
 
 function server_restart {
+    if [ "$1" == "--log" ]; then
+        local log_after_start=1;
+        shift;
+    fi
+
     if [ ! -z $INIT_SCRIPT ]; then
         echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT restart;
     else
         server_stop;
         server_start "$@";
+    fi
+
+    if [ ! -z $log_after_start ]; then
+        server_log;
     fi
 }
 
@@ -227,9 +250,9 @@ function server {
 
     Commands:
         run             - run the server. if no command supply, this one will be used
-        start           - start server in background
+        start [--log]   - start server in background
         stop            - stop background running server
-        restart         - restart background server
+        restart [--log] - restart background server
         status          - status of background server
         auto-update     - automatiacly update server. (WARN: experimental feature. may be buggy)
         log             - open server log
@@ -290,7 +313,7 @@ function server {
             log)
                 shift;
                 # TODO: remove backward compatability from this code
-                less ${LOG_FILE:-$LOG_DIR/odoo.log};
+                server_log;
                 return;
             ;;
             ps)

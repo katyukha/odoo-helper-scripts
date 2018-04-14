@@ -29,6 +29,12 @@
   `odoo-helper fetch` now recursively fetches submodules for git repositories.
 - Added option `--dir-r|--directory-r` for `odoo-helper test` command,
   to recursively search for addons to be tested in specified directory
+- Added `--log` option for following commands:
+  - `odoo-helper start --log`
+  - `odoo-helper restart --log`
+  - `odoo-helper addons install --log`
+  - `odoo-helper addons update --log`
+  - `odoo-helper addons uninstall --log`
 
 ## Version 0.1.5 (2018-01-12)
 
