@@ -55,22 +55,22 @@ function odoo_update_sources_git {
 
 function odoo_update_sources_archive {
     local FILE_SUFFIX=`date -I`.`random_string 4`;
-    local wget_opt="";
+    local wget_opt="-T 2";
 
-    [ ! -z $VERBOSE ] && wget_opt="$wget_opt -q";
+    [ -z $VERBOSE ] && wget_opt="$wget_opt -q";
 
     if [ -d $ODOO_PATH ]; then    
         # Backup only if odoo sources directory exists
         local BACKUP_PATH=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-        echo -e "${LBLUEC}Saving odoo source backup:${NC} $BACKUP_PATH";
+        echoe -e "${LBLUEC}Saving odoo source backup:${NC} $BACKUP_PATH";
         (cd $ODOO_PATH/.. && tar -czf $BACKUP_PATH `basename $ODOO_PATH`);
-        echo -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
+        echoe -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
     fi
 
-    echo -e "${LBLUEC}Downloading new sources archive...${NC}"
+    echoe -e "${LBLUEC}Downloading new sources archive...${NC}"
     local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
     # TODO: use odoo-repo variable here
-    wget -T 2 $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
+    wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
     rm -r $ODOO_PATH;
     (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
 
@@ -78,20 +78,20 @@ function odoo_update_sources_archive {
 
 function odoo_update_sources {
     if git_is_git_repo $ODOO_PATH; then
-        echo -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
+        echoe -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
         odoo_update_sources_git;
 
     else
-        echo -e "${LBLUEC}Updating odoo sources...${NC}";
+        echoe -e "${LBLUEC}Updating odoo sources...${NC}";
         odoo_update_sources_archive;
     fi
 
-    echo -e "${LBLUEC}Reinstalling odoo...${NC}";
+    echoe -e "${LBLUEC}Reinstalling odoo...${NC}";
 
     # Run setup.py with gevent workaround applied.
     odoo_run_setup_py;  # imported from 'install' module
 
-    echo -e "${GREENC}Odoo sources update finished!${NC}";
+    echoe -e "${GREENC}Odoo sources update finished!${NC}";
 
 }
 
