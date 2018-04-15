@@ -2,6 +2,8 @@
 
 At this moment, here is only basic documentation
 
+## [Frequently used commands](docs/frequently-used-commands.md)
+
 ## Basic usage
 
 ### odoo-install
@@ -29,7 +31,7 @@ Config will be searched in folowing paths:
                                      You have only one Odoo instalation in system
 - `<user home dir>/odoo-helper.conf`   - User specific config.
 - *Project specific* - this config is searched in working directory and up. first one found will be used.
-                     This feature allows to use *odoo-helper* with multiple odoo instances in one system
+                       This feature allows to use *odoo-helper* with multiple odoo instances in one system
 
 Core functionality is:
 

@@ -69,7 +69,7 @@ function print_usage {
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
-         --single-branch               - if on, then odoo will clone only single branch,
+         --single-branch on|off        - if on, then odoo will clone only single branch,
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH

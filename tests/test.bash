@@ -249,7 +249,7 @@ odoo-helper install sys-deps -y 9.0;
 odoo-helper postgres user-create odoo9 odoo;
 odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo9 --db-pass odoo --download-archive off
+    --db-user odoo9 --db-pass odoo --download-archive off --single-branch on
 
 cd odoo-9.0;
 
@@ -386,16 +386,12 @@ odoo-helper npm help
 odoo-helper install js-tools;
 
 
-# Install oca/partner_firstname addons and
+# Install oca/partner-contact addons
 odoo-helper fetch --oca partner-contact;
 
 # Regenerate Ukrainian translations for partner_firstname addons
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
 odoo-helper tr rate --lang uk_UA partner_firstname;
-
-# Regenerate Ukrainian translations for all addons in partner-contact
-odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
-odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
 
 # Check partner_first_name addon with pylint and flake8
 odoo-helper install py-tools
@@ -442,11 +438,11 @@ odoo-helper start
 odoo-helper server status
 odoo-helper stop
 
-# Test doc-utils. List all addons available for this Odoo instance (all listed in custom addons)
-odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo
+# Test doc-utils. List all addons available in *contract* addon
+odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo ./repositories/contract
 
 # Same but in CSV format
-odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo --format csv
+odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo --format csv ./repositories/contract
 
 
 echo -e "${YELLOWC}
@@ -502,6 +498,14 @@ odoo-helper db create --demo test-11-db;
 odoo-helper tr load --lang uk_UA --db test-11-db;
 odoo-helper tr export test-11-db uk_UA uk-test test-11-db web;
 odoo-helper tr import test-11-db uk_UA uk-test test-11-db web;
+
+# Install oca/partner-contact addons
+odoo-helper fetch --oca partner-contact;
+
+# Regenerate Ukrainian translations for all addons in partner-contact
+odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
+odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
+
 odoo-helper db drop test-11-db;
 
 

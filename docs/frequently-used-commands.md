@@ -39,7 +39,9 @@ Brief list of frequently used odoo-helper commands
 ### Fetch addons
 - `odoo-helper link .` - create symlinks for all addons in current directory in `custom_addons` folder to make them visible for odoo
 - `odoo-helper fetch --oca web` - fetch all addons from [OCA](https://odoo-community.org/) repository [web](https://github.com/OCA/web)
-- `odoo-helper fetch --repo <repository url> --branch 11.0` - fetch all addons from specified repository
+- `odoo-helper fetch --github <username/repository>` - fetch all addons from spcified [github](https://github.com) repository
+- `odoo-helper fetch --repo <repository url> --branch 11.0` - fetch all addons from specified *git* repository
+- `odoo-helper fetch --hg <repository url> --branch 11.0` - fetch all addons from specified *hg* repository
 
 ### Database management
 - `odoo-helper db list` - list all databases available for current odoo instance
@@ -47,6 +49,9 @@ Brief list of frequently used odoo-helper commands
 - `odoo-helper db backup my_db zip` - backup *my\_db* as ZIP archive (with filestore)
 - `odoo-helper db backup my_db sql` - backup *my\_db* as SQL dump only (without filestore)
 - `odoo-helper db drop my_db` - drop database
+
+### Translation management
+- `odoo-helper tr regenerate --lang uk_UA --file uk <addon1> [addon2]...` - regenerate translations for specified language for specified addons
 
 ### Other
 - `odoo-helper pip` - run `pip` inside current project's virtual environment [virtualenv](https://virtualenv.pypa.io/en/stable/).
