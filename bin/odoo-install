@@ -87,9 +87,11 @@ function print_usage {
              - virtualenv
              - postgresql-client
              - python-dev
+             - python3-dev
              - g++
              - libpq-dev
              - git
+             - wget
 
     After instalation configs will be generated in 'conf' directory
     Also 'log' directory will contain Odoo logs
@@ -97,9 +99,6 @@ function print_usage {
     Note that, it is safe enough to run this script second time with same or similar args
     if it breaks somehow. It will automaticaly detect if odoo sources were downloaded or
     virtual environment created and will not do this operations second time.
-    So for example if you use option --sys-deps and some dependencies cannot be installed
-    you can install them manualy and retry this script with or without thi option and You will not
-    wast time waiting odoo sources to be downloaded again.
 
     For bug reports use github issues: https://github.com/katyukha/odoo-helper-scripts/issues
     ";
@@ -128,7 +127,7 @@ function parse_options {
                 ODOO_VERSION=$2;
                 shift;
             ;;
-            --branch|-b)
+            --odoo-branch|--branch|-b)
                 ODOO_BRANCH=$2;
                 shift;
             ;;
@@ -239,6 +238,7 @@ function generate_test_conf {
     ODOO_CONF_OPTIONS[db_filter]="${ODOO_CONF_OPTIONS['db_filter']:-$DB_USER-odoo-test}";
     ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-8269}";
     ODOO_CONF_OPTIONS[xmlrpcs_port]="${ODOO_CONF_OPTIONS['xmlrpcs_port']:-8271}";
+    ODOO_CONF_OPTIONS[http_port]="${ODOO_CONF_OPTIONS['http_port']:-8269}";
     ODOO_CONF_OPTIONS[longpolling_port]="${ODOO_CONF_OPTIONS['longpolling_port']:-8272}";
 
     # Generate conf

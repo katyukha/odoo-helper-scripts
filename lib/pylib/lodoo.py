@@ -6,69 +6,45 @@ import atexit
 import functools
 import pkg_resources
 
+# Odoo package import and start services logic are based on code:
+#     https://github.com/tinyerp/erppeek
+# With PR #92 applied: https://github.com/tinyerp/erppeek/pull/92
+# Removed support of Odoo versions less then 7.0
 
-def get_odoo_pkg():
+# Import odoo package
+try:
+    # Odoo 10.0+
+
+    # this is required if there are addons installed via setuptools_odoo
+    pkg_resources.declare_namespace('odoo.addons')
+
+    # import odoo itself
+    import odoo
+    import odoo.release  # to avoid 9.0 with odoo.py on path
+except (ImportError, KeyError):
     try:
-        # Odoo 10.0+
+        # Odoo 9.0 and less versions
+        import openerp as odoo
+    except ImportError:
+        raise
 
-        # this is required if there are addons installed via setuptools_odoo
-        pkg_resources.declare_namespace('odoo.addons')
+if odoo.release.version_info < (7,):
+    raise ImportError(
+        "Odoo version %s is not supported!" % odoo.release.version_info)
 
-        # import odoo itself
-        import odoo
-        import odoo.release  # to avoid 9.0 with odoo.py on path
-    except (ImportError, KeyError):
-        try:
-            # Odoo 9.0 and less versions
-            import openerp as odoo
-        except ImportError:
-            raise
-    return odoo
+# Check Odoo API version
+odoo._api_v7 = odoo.release.version_info < (8,)
 
-
-# Based on code: https://github.com/tinyerp/erppeek
-# With PR applied: https://github.com/tinyerp/erppeek/pull/92
-def start_odoo_services(options=None, appname='odoo-helper'):
-    """Initialize the Odoo services.
-    Import the ``openerp`` package and load the Odoo services.
-    The argument `options` receives the command line arguments
-    for ``openerp``.  Example:
-      ``['-c', '/path/to/openerp-server.conf', '--without-demo', 'all']``.
-    Return the ``openerp`` package.
-    """
-    odoo = get_odoo_pkg()
-    odoo._api_v7 = odoo.release.version_info < (8,)
-    if not (odoo._api_v7 and odoo.osv.osv.service):
-        os.putenv('TZ', 'UTC')
-        if appname is not None:
-            os.putenv('PGAPPNAME', appname)
-        odoo.tools.config.parse_config(options or [])
-        if odoo.release.version_info < (10,):
-            odoo._registry = odoo.modules.registry.RegistryManager
-        else:
-            odoo._registry = odoo.modules.registry.Registry
-        if odoo.release.version_info < (7,):
-            odoo.netsvc.init_logger()
-            odoo.osv.osv.start_object_proxy()
-            odoo.service.web_services.start_web_services()
-        elif odoo._api_v7:
-            odoo.service.start_internal()
-        else:   # Odoo v8
-            try:
-                odoo.api.Environment._local.environments = \
-                    odoo.api.Environments()
-            except AttributeError:
-                pass
-
-        def close_all():
-            for db in odoo._registry.registries.keys():
-                odoo.sql_db.close_db(db)
-        atexit.register(close_all)
-
-    return odoo
+# Prepare odoo environments
+os.putenv('TZ', 'UTC')
+os.putenv('PGAPPNAME', 'lodoo')
 
 
 class LocalModel(object):
+    """ Simple wrapper for Odoo models
+
+        just proxy method calls to model class
+    """
     def __init__(self, client, name):
         self._client = client
         self._name = name
@@ -80,21 +56,21 @@ class LocalModel(object):
 
 
 class LocalRegistry(object):
+    """ Simple proxy for Odoo registry
+    """
     def __init__(self, client, dbname):
         self._client = client
         self._dbname = dbname
+        self._env = None
 
         if self.odoo._api_v7:
             self.registry = self.odoo.modules.registry.RegistryManager.get(self._dbname)
             self.cursor = self.registry.db.cursor()
-            self._env = None
         else:
-            # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
-            # to get registry instance for db
+            # For odoo 8, 9, 10, 11, +(?) there is special
+            # function `odoo.registry` to get registry instance for db
             self.registry = self.odoo.registry(self._dbname)
             self.cursor = self.registry.cursor()
-            self._env = self.odoo.api.Environment(
-                self.cursor, self.odoo.SUPERUSER_ID, {})
 
     @property
     def odoo(self):
@@ -103,6 +79,11 @@ class LocalRegistry(object):
     @property
     def env(self):
         self.require_v8_api()
+
+        if self._env is None:
+            self._env = self.odoo.api.Environment(
+                self.cursor, self.odoo.SUPERUSER_ID, {})
+
         return self._env
 
     def require_v8_api(self):
@@ -116,11 +97,11 @@ class LocalRegistry(object):
             This usualy applicable for stored, field, that was not recomputed
             due to errors in compute method for example.
         """
-        model = self.env[model]
-        records = model.search([])
+        Model = self.env[model]
+        records = Model.search([])
         for field in fields:
-            self.env.add_todo(model._fields[field], records)
-        model.recompute()
+            self.env.add_todo(Model._fields[field], records)
+        Model.recompute()
         self.env.cr.commit()
 
     def recompute_parent_store(self, model):
@@ -255,12 +236,23 @@ class LocalDBService(object):
         return db_service_method
 
 
-class LocalClient(object):
+class LOdoo(object):
     """ Wrapper for local odoo instance
+
+        (Singleton)
     """
+    __lodoo = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls.__lodoo:
+            cls.__lodoo = super(LOdoo, cls).__new__(cls)
+        return cls.__lodoo
+
     def __init__(self, options=None):
-        if options is None:
-            options = []
+        # Set workers = 0 if other not specified
+        options = options[:] if options is not None else []
+        if not any(o.startswith('--workers') for o in options):
+            options.append('--workers=0')
 
         self._options = options
 
@@ -268,14 +260,29 @@ class LocalClient(object):
         self._registries = {}
         self._db_service = None
 
+    @classmethod
+    def get_lodoo(cls):
+        return cls.__lodoo
+
     @property
     def odoo(self):
+        """ Return initialized Odoo package
+        """
         if self._odoo is None:
-            self._odoo = start_odoo_services(self._options)
+            odoo.tools.config.parse_config(self._options)
+
+            if odoo._api_v7:
+                odoo.service.start_internal()
+            elif not hasattr(odoo.api.Environment._local, 'environments'):
+                odoo.api.Environment._local.environments = odoo.api.Environments()
+
+            self._odoo = odoo
         return self._odoo
 
     @property
     def db(self):
+        """ Return database management service
+        """
         if self._db_service is None:
             self._db_service = LocalDBService(self)
         return self._db_service
@@ -288,3 +295,18 @@ class LocalClient(object):
 
     def __getitem__(self, name):
         return self.get_registry(name)
+
+
+# Backward comatability
+LocalClient = LOdoo
+
+
+@atexit.register
+def cleanup():
+    if odoo.release.version_info < (10,):
+        Registry = odoo.modules.registry.RegistryManager
+    else:
+        Registry = odoo.modules.registry.Registry
+
+    for db in Registry.registries.keys():
+        odoo.sql_db.close_db(db)
