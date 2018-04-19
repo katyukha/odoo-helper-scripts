@@ -97,7 +97,7 @@ function server_start {
 
         # Wait until Odoo server started
         local odoo_pid=;
-        for stime in 1 2 3 4; do
+        for stime in 2 4 8 16; do
             sleep $stime;
             if [ -f $ODOO_PID_FILE ]; then
                 odoo_pid=$(cat $ODOO_PID_FILE);
@@ -133,7 +133,7 @@ function server_stop {
         if [ $pid -gt 0 ]; then
             if kill $pid; then
                 # wait until server is stopped
-                for stime in 1 2 3 4; do
+                for stime in 2 4 6 8; do
                     if is_process_running $pid; then
                         # if process alive, wait a little time
                         echov "Server still running. sleeping for $stime seconds";
