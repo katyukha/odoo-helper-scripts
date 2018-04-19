@@ -410,7 +410,7 @@ function fetch_module {
 
     local recursion_key="fetch_module";
     if ! recursion_protection_easy_check $recursion_key "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then
-        echoe -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
+        echov -e "${YELLOWC}WARNING${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
         return 0
     fi
     # Conditions:
