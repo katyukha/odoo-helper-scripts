@@ -3,10 +3,13 @@
 Master: 
 [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=master)](https://travis-ci.org/katyukha/odoo-helper-scripts)
 [![Coverage Status](https://codecov.io/gh/katyukha/odoo-helper-scripts/graph/badge.svg)](https://codecov.io/gh/katyukha/odoo-helper-scripts)
+![Release](https://img.shields.io/github/release/katyukha/odoo-helper-scripts.svg)
+[![CHANGELOG](https://img.shields.io/badge/CHANGELOG-master-brightgreen.svg)](https://github.com/katyukha/odoo-helper-scripts/blob/master/CHANGELOG.md)
 
 Dev:
 [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=dev)](https://travis-ci.org/katyukha/odoo-helper-scripts)
 [![Coverage Status](https://codecov.io/gh/katyukha/odoo-helper-scripts/branch/dev/graph/badge.svg)](https://codecov.io/gh/katyukha/odoo-helper-scripts/branch/dev)
+[![CHANGELOG](https://img.shields.io/badge/CHANGELOG-dev-yellow.svg)](https://github.com/katyukha/odoo-helper-scripts/blob/dev/CHANGELOG.md)
 
 
 ## Features

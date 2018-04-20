@@ -36,7 +36,7 @@
   - `odoo-helper addons install --log`
   - `odoo-helper addons update --log`
   - `odoo-helper addons uninstall --log`
-- Command `odoo-helper server log` now automaticaly use autofollow option (`+F` for less)
+- Command `odoo-helper server log` now automaticaly use autofollow option (`+F` for `less` command)
 
 
 ## Version 0.1.5 (2018-01-12)
