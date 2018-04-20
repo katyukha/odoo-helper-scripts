@@ -18,10 +18,52 @@ set -e; # fail on errors
 
 # lint_run_flake8 [flake8 options] <module1 path> [module2 path] .. [module n path]
 function lint_run_flake8 {
-    local res=0;
-    if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $@; then
-        res=1;
+    local usage="
+    Usage:
+
+        $SCRIPT_NAME lint flake8 <addon path> [addon path]
+        $SCRIPT_NAME lint flake8 --help
+
+    Description:
+        Lint addons with [Flake8](http://flake8.pycqa.org)
+        By default lints only installable addons ('installable' is True) on
+        specified *addon paths*
+
+        To run unwrapped flake8 use following command:
+
+            $ odoo-helper exec flake8
+
+    ";
+    # Parse command line options
+    if [[ $# -lt 1 ]]; then
+        echo "No options supplied $#: $@";
+        echo "";
+        echo "$usage";
+        exit 0;
     fi
+
+    while [[ $1 == -* ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
+    local res=0;
+    for path in $(addons_list_in_directory --installable $@); do
+        if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $path; then
+            res=1;
+        fi
+    done
     return $res;
 }
 

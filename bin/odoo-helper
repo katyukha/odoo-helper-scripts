@@ -411,7 +411,7 @@ function odoo_helper_main {
             # Server shortcuts
             start|stop|restart|log)
                 config_load_project;
-                server "$@";
+                server $@;
                 return;
             ;;
             pylint|flake8|style)

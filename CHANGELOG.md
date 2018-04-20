@@ -11,6 +11,7 @@
 - Added `odoo-helper lint style` commant.
   It is experimental integration with [stylelint](https://stylelint.io/)
 - `odoo-helper lint pylint` skip addons with `'installable': False`
+- `odoo-helper lint flake8` skip addons with `'installable': False`
 - `odoo-helper addons list` command now have extra options and can search for addons in multiple paths:
   - `--installable`
   - `--by-name`  (used by default)
@@ -35,6 +36,8 @@
   - `odoo-helper addons install --log`
   - `odoo-helper addons update --log`
   - `odoo-helper addons uninstall --log`
+- Command `odoo-helper server log` now automaticaly use autofollow option (`+F` for less)
+
 
 ## Version 0.1.5 (2018-01-12)
 

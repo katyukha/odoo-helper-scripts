@@ -61,7 +61,7 @@ function server_is_running {
 
 
 function server_log {
-    less ${LOG_FILE:-$LOG_DIR/odoo.log};
+    less +F $@ -- ${LOG_FILE:-$LOG_DIR/odoo.log};
 }
 
 # server_run <arg1> .. <argN>
