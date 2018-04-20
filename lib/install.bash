@@ -388,6 +388,9 @@ function install_virtual_env {
         fi
         exec_pip install nodeenv;
         execv nodeenv --python-virtualenv;  # Install node environment
+
+        exec_npm set user 0;
+        exec_npm set unsafe-perm true;
     fi
 }
 

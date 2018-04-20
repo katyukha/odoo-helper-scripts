@@ -532,6 +532,7 @@ echo -e "${YELLOWC}
 Test stylelint on OCA/website repo
 ==========================================
 ${NC}"
+
 odoo-helper install js-tools
 odoo-helper fetch --oca web
 odoo-helper lint style ./repositories/web | true
