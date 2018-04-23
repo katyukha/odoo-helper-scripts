@@ -207,7 +207,7 @@ function join_by {
 # Exec python
 #
 function exec_py {
-    local python_exec="$(odoo_get_python_version)";
+    local python_exec="$(odoo_get_python_interpreter)";
     execu $python_exec "$@";
 }
 
@@ -217,8 +217,8 @@ function exec_py_u {
         local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
     fi
 
-    local python_exec="$(odoo_get_python_version)";
-    execu $python_exec "$sudo_opt $@";
+    local python_exec="$(odoo_get_python_interpreter)";
+    execu $sudo_opt $python_exec "$@";
 }
 
 

@@ -101,7 +101,7 @@ function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }
 
-# Get python interpreter to run odoo with
+# Get python interpreter name to run odoo with
 # Returns one of: python2, python3, python
 # Default: python
 function odoo_get_python_version {
@@ -115,6 +115,11 @@ function odoo_get_python_version {
     fi
 }
 
+# Get python interpreter (full path to executable) to run odoo with
+function odoo_get_python_interpreter {
+    local python_version="$(odoo_get_python_version)";
+    echo $(check_command $python_version);
+}
 
 function odoo_recompute_stored_fields {
     local usage="Recompute stored fields
