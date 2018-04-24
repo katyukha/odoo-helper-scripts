@@ -37,6 +37,7 @@
   - `odoo-helper addons update --log`
   - `odoo-helper addons uninstall --log`
 - Command `odoo-helper server log` now automaticaly use autofollow option (`+F` for `less` command)
+- Added command `odoo-helper postgres start-activity` to display running postgres transactions
 
 
 ## Version 0.1.5 (2018-01-12)

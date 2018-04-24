@@ -100,6 +100,25 @@ function postgres_psql {
         PGPORT=$pgport PGUSER=$pguser psql $@;
 }
 
+# Show active postgres transactions
+#
+function postgres_psql_stat_activity {
+PGAPPNAME="odoo-helper-pgstat" postgres_psql << EOF
+    SELECT
+        datname,
+        pid,
+        usename,
+        application_name,
+        client_addr,
+        to_char(query_start,
+        'YYYY-MM-DD HH:MM'),
+        state,
+        query
+    FROM pg_stat_activity
+    WHERE application_name != 'odoo-helper-pgstat';
+EOF
+}
+
 # Configure local postgresql instance to be faster but less safe
 #
 # postgres_config_local_speed_unsafe
@@ -131,6 +150,8 @@ function postgres_command {
         $SCRIPT_NAME postgres psql -d <database> [psql options]    - Run psql connected to specified database
         $SCRIPT_NAME postgres user-create <user name> <password>   - [local][sudo] Create postgres user for odoo
                                                                      It automaticaly uses credentials used by odoo
+        $SCRIPT_NAME postgres stat-activity                        - list running postgres queries in database
+                                                                     print data from pg_stat_activity table.
         $SCRIPT_NAME postgres speedify                             - [local][sudo] Modify local postgres config
                                                                      to make it faster. But also makes postgres unsafe.
                                                                      Usualy this is normal for dev machines,
@@ -161,6 +182,12 @@ function postgres_command {
                 shift;
                 config_load_project;
                 postgres_psql $@;
+                return;
+            ;;
+            stat-activity)
+                shift;
+                config_load_project;
+                postgres_psql_stat_activity $@;
                 return;
             ;;
             -h|--help|help)

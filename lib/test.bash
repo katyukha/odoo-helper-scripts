@@ -35,9 +35,9 @@ function test_run_server {
             return 1
         fi
         exec_conf $ODOO_TEST_CONF_FILE execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
-            --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init $@";
+            --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init --workers=0 $@";
     else
-        exec_conf $ODOO_TEST_CONF_FILE execu "$SERVER --stop-after-init $@";
+        exec_conf $ODOO_TEST_CONF_FILE execu "$SERVER --stop-after-init --workers=0 $@";
     fi
 }
 

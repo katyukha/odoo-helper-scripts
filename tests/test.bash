@@ -506,6 +506,23 @@ odoo-helper fetch --oca partner-contact;
 odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
 odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
 
+
+echo -e "${YELLOWC}
+==========================================
+Show list of running sql queries
+==========================================
+${NC}"
+odoo-helper server start
+odoo-helper db list
+odoo-helper postgres stat-activity
+odoo-helper stop
+
+
+echo -e "${YELLOWC}
+==========================================
+Drop temporary database
+==========================================
+${NC}"
 odoo-helper db drop test-11-db;
 
 
