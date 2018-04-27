@@ -40,9 +40,14 @@ declare -A TEST_CONF_OPTIONS;
 function print_usage {
     echo "Bash script to instal dev version of Odoo in local environment
 
-    Optionaly system dependencies could be installed too (Debian only systems)
-
     Script version: $ODOO_HELPER_VERSION
+
+    Note:
+        Before running this script, system dependencies and pre-requirements
+        have to be installed.
+        To do this run following commands(*sudo* required):
+            $ odoo-helper install pre-requirements
+            $ odoo-helper install sys-deps <odoo-version>
 
     Usage:
          bash $SCRIPT_NAME [options]
@@ -80,18 +85,6 @@ function print_usage {
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xml_rpc_port 9999'
          --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xml_rpc_port 9998'
          --verbose|--vv                - show extra output
-
-    Prerequirements:
-         Next packages must be installed system-wide
-         (or use --sys-deps option to install them during installation process):
-             - virtualenv
-             - postgresql-client
-             - python-dev
-             - python3-dev
-             - g++
-             - libpq-dev
-             - git
-             - wget
 
     After instalation configs will be generated in 'conf' directory
     Also 'log' directory will contain Odoo logs

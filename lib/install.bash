@@ -409,7 +409,8 @@ function install_python_tools {
 
 # Install extra javascript tools
 function install_js_tools {
-    exec_npm install -g eslint phantomjs-prebuilt stylelint stylelint-config-standard;
+    exec_npm install -g eslint phantomjs-prebuilt \
+        stylelint stylelint-config-standard;
 }
 
 # install_python_prerequirements

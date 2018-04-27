@@ -6,8 +6,21 @@
 
 set -e;  # Fail on each error
 
+# Define colors
+NC='\e[0m';
+REDC='\e[31m';
+GREENC='\e[32m';
+YELLOWC='\e[33m';
+BLUEC='\e[34m';
+LBLUEC='\e[94m';
+
 if ! command -v git >/dev/null 2>&1; then
-    echo "To use this script collection you must install Git!"
+    echo -e "${REDC}ERROR${NC}: To use this script collection you must install ${YELLOWC}git${NC}!"
+    exit 1;
+fi
+
+if ! command -v wget >/dev/null 2>&1; then
+    echo -e "${REDC}ERROR${NC}: To use this script collection you must install ${YELLOC}wget${NC}!"
     exit 1;
 fi
 
@@ -44,7 +57,7 @@ if [ ! -f "$ODOO_HELPER_USER_CONF" ]; then
 fi
 
 # add odoo-helper-bin to path
-echo "Adding links to $HOME/bin"
+echo -e "${BLUEC}Adding links to ${YELLOWC}$HOME/bin${NC}"
 if [ ! -d $HOME/bin ]; then
     mkdir -p $HOME/bin;
 fi
@@ -54,7 +67,12 @@ for oh_cmd in $ODOO_HELPER_BIN/*; do
     fi
 done
     
-echo "Odoo-helper-scripts seems to be correctly installed for current user!";
-echo "Install path is $INSTALL_PATH";
-echo "To update odoo-helper-scripts, just go to install path, and pull last repo changes:";
-echo "    (cd $INSTALL_PATH && git pull)";
+echo -e "${YELLOWC}odoo-helper-scripts${GREENC} seems to be successfully installed for current user!${NC}";
+echo -e "Install path is ${YELLOWC}${INSTALL_PATH}${NC}";
+echo;
+echo -e "${YELLOWC}NOTE${NC}: Do not forget to install odoo-helper system dependencies.";
+echo -e "To do this for debian-like systems run following command (${YELLOWC}sudo access required${NC}):";
+echo -e "    $ ${BLUEC}odoo-helper install pre-requirements${NC}";
+echo;
+echo -e "To update odoo-helper-scripts, just run following command:";
+echo -e "    $ ${BLUEC}odoo-helper system update${NC}";

@@ -61,52 +61,52 @@ function print_usage {
         Branch:      ${ODOO_BRANCH:-'Not defined'}
 
     Available commands:
-        fetch [--help]                           - fetch and install odoo addon
-        link [--help]                            - link module to custom_addons dir
-        server [--help]                          - manage local odoo server (run, start, stop, etc)
-        addons [--help]                          - addons related helpers
-        odoo [--help]                            - Odoo utils.
-        test [--help]                            - test addon
-        lint [--help]                            - lint addon
-        db [--help]                              - database management (list, create, drop, etc...)
-        tr [--help]                              - manage translations (import, export, load, ...)
-        postgres [--help]                        - manage local instance of postgresql server
-        install [--help]                         - install related stuff (sys-deps, ...)
-        generate-requirements [addons dir]       - parse addons dir, find all addons that are
-                                                   git repositories and print odoo-requirements.txt content
-                                                   file content suitable for *fetch* subcommand.
-                                                   for example:
-                                                       $SCRIPT_NAME generate-requirements > odoo_requirements.txt
-                                                   and you can use generated file for fetch subcommand:
-                                                       $SCRIPT_NAME fetch --requirements odoo_requirements.txt
-        doc-utils [--help]                       - subcommand that contains doc utlities
-        update-odoo                              - update odoo source code
-        odoo-py [args]                           - run project-specific odoo.py script
-        scaffold [--help]                        - Scaffold repo, addon, model, etc
-        print-config                             - print current configuration
-        status                                   - show project status
-        start|stop|restart|log                   - shortcuts for server commands
-        pylint                                   - shortcut for 'lint pylint' command
-        flake8                                   - shortcut for 'lint flake8' command
-        style                                    - shortcut for 'lint style' command
-        system [--help]                          - odoo-helper related functions
-        exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
-        pip [--oca] <pip arguments>              - shortcut to run project-specific pip.
-                                                   if option *--oca* is specified, then OCA wheelhouse
-                                                   will be used to install OCA addons.
-        npm <npm arguments>                      - Run npm installed in current project's environment
-        help | --help | -h                       - display this help message
-        --version                                - display odoo-helper version and exit
+        fetch [--help]                      - fetch and install odoo addon
+        link [--help]                       - link module to custom_addons dir
+        server [--help]                     - manage local odoo server (run, start, stop, etc)
+        addons [--help]                     - addons related helpers
+        odoo [--help]                       - Odoo utils.
+        test [--help]                       - test addon
+        lint [--help]                       - lint addon
+        db [--help]                         - database management (list, create, drop, etc...)
+        tr [--help]                         - manage translations (import, export, load, ...)
+        postgres [--help]                   - manage local instance of postgresql server
+        install [--help]                    - install related stuff (sys-deps, ...)
+        generate-requirements [addons dir]  - parse addons dir, find all addons that are
+                                              git repositories and print odoo-requirements.txt content
+                                              file content suitable for *fetch* subcommand.
+                                              for example:
+                                                  $SCRIPT_NAME generate-requirements > odoo_requirements.txt
+                                              and you can use generated file for fetch subcommand:
+                                                  $SCRIPT_NAME fetch --requirements odoo_requirements.txt
+        doc-utils [--help]                  - subcommand that contains doc utlities
+        update-odoo                         - update odoo source code
+        odoo-py [args]                      - run project-specific odoo.py script
+        scaffold [--help]                   - Scaffold repo, addon, model, etc
+        print-config                        - print current configuration
+        status                              - show project status
+        start|stop|restart|log              - shortcuts for server commands
+        pylint                              - shortcut for 'lint pylint' command
+        flake8                              - shortcut for 'lint flake8' command
+        style                               - shortcut for 'lint style' command
+        system [--help]                     - odoo-helper related functions
+        exec <cmd> [args]                   - exec command in project environment. Useful if virtualenv is used
+        pip [--oca] <pip arguments>         - shortcut to run project-specific pip.
+                                              if option *--oca* is specified, then OCA wheelhouse
+                                              will be used to install OCA addons.
+        npm <npm arguments>                 - Run npm installed in current project's environment
+        help | --help | -h                  - display this help message
+        --version                           - display odoo-helper version and exit
     
     Global options:
-        --use-copy                            - if set, then downloaded modules, repositories will
-                                                be copied instead of being symlinked
-        --use-unbuffer                        - if set, then 'unbuffer' command from 'expect' package will be used
-                                                otherwise standard 'exec' will be used to run odoo server
-                                                this helps to make odoo server think that it runs in terminal thus
-                                                it provides colored output.
-        --no-colors                           - disable colored output
-        --verbose|--vv                        - show extra output
+        --use-copy                          - if set, then downloaded modules, repositories will
+                                              be copied instead of being symlinked
+        --use-unbuffer                      - if set, then 'unbuffer' command from 'expect' package will be used
+                                              otherwise standard 'exec' will be used to run odoo server
+                                              this helps to make odoo server think that it runs in terminal thus
+                                              it provides colored output.
+        --no-colors                         - disable colored output
+        --verbose|--vv                      - show extra output
 
     Also global options may be set up using configuration files.
     Folowing file paths will be searched for file $CONF_FILE_NAME:
@@ -414,6 +414,7 @@ function odoo_helper_main {
                 server $@;
                 return;
             ;;
+            # Lint shortcuts
             pylint|flake8|style)
                 config_load_project;
                 lint_command "$@";

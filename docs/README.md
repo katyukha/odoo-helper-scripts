@@ -2,7 +2,7 @@
 
 At this moment, here is only basic documentation
 
-## [Frequently used commands](docs/frequently-used-commands.md)
+## [Frequently used commands](./frequently-used-commands.md)
 
 ## Basic usage
 
@@ -19,6 +19,8 @@ After this you will have odoo and it's dependencies installed into *odoo-11.0* d
 
 This installation also creates *odoo-helper.conf* file inside project, which allows to use
 *odoo-helper* script to simplify interaction with this odoo installation.
+
+Description of *odoo-helper* project's directory structure is [here](./project-directory-structure.md')
 
 ### odoo-helper
 
