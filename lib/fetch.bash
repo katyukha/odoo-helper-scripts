@@ -96,7 +96,7 @@ function fetch_pip_requirements {
     # -e ./lib/python-project
     #
     local req_dir=$(dirname $pip_requirements);
-    (cd $req_dir && exec_pip install -r $pip_requirements);
+    (cd $req_dir && exec_pip -q install -r $pip_requirements);
 }
 
 # fetch_oca_requirements <filepath>
@@ -177,7 +177,7 @@ function fetch_python_dep {
         local install_opt="$1";
     fi
 
-    exec_pip install $install_opt;
+    exec_pip -q install $install_opt;
 }
 
 

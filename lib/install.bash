@@ -346,7 +346,7 @@ function install_odoo_py_requirements_for_version {
                 echo $dependency;
             fi
         done < "$tmp_requirements" > "$tmp_requirements_post";
-        exec_pip install -r "$tmp_requirements_post";
+        exec_pip -q install -r "$tmp_requirements_post";
     fi
 
     if [ -f "$tmp_requirements" ]; then
@@ -406,7 +406,7 @@ function install_virtual_env {
         else
             VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
         fi
-        exec_pip install nodeenv;
+        exec_pip -q install nodeenv;
         execv nodeenv --python-virtualenv;  # Install node environment
 
         exec_npm set user 0;
@@ -423,7 +423,7 @@ function install_bin_tools {
 
 # Install extra python tools
 function install_python_tools {
-    exec_pip install setproctitle watchdog pylint-odoo coverage \
+    exec_pip -q install setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors;
 }
 
@@ -437,10 +437,10 @@ function install_js_tools {
 function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
     # setuptools, so we do not need to upgrade them
-    exec_pip install python-slugify setuptools-odoo cffi jinja2;
+    exec_pip -q install python-slugify setuptools-odoo cffi jinja2;
 
     if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
-        exec_pip install Python-Chart;
+        exec_pip -q install Python-Chart;
     fi
 }
 
@@ -520,7 +520,7 @@ function install_odoo_workaround_70 {
     fi
 
     # Installing requirements via pip. This should improve performance
-    exec_pip install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
+    exec_pip -q install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
 
     # Force use Pillow, because PIL is too old.
     cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
@@ -549,7 +549,7 @@ function odoo_run_setup_py {
     install_odoo_py_requirements_for_version;
 
     # Install odoo
-    (cd $ODOO_PATH && exec_py setup.py develop $@);
+    (cd $ODOO_PATH && exec_py setup.py -q develop $@);
 
      
     # Workaround for situation when setup does not install openerp-gevent script.
@@ -631,9 +631,11 @@ function install_entry_point {
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv                - reinstall virtual environment
                                                              all options will be passed to virtualenv cmd directly
-        $SCRIPT_NAME install reinstall-odoo clone|download - reinstall odoo. Options are
+        $SCRIPT_NAME install reinstall-odoo clone|download - completly reinstall odoo
+                                                             (downlload or clone new sources, create new virtualenv, etc).
+                                                             Options are:
                                                                 - clone odoo as git repository
-                                                                - download odoo archieve and unpack sources
+                                                                - download odoo archieve and unpack source
         $SCRIPT_NAME install --help                        - show this help message
 
     ";
