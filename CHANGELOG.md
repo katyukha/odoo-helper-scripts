@@ -38,6 +38,9 @@
   - `odoo-helper addons uninstall --log`
 - Command `odoo-helper server log` now automaticaly use autofollow option (`+F` for `less` command)
 - Added command `odoo-helper postgres start-activity` to display running postgres connections
+- Added command `odoo-helper install reinstall-odoo` to easily spwitch betwen two installation modes:
+  - `download` - download Odoo source as archive (faster)
+  - `clone` - clone Odoo source as git repo (better handle updates, multiple remotes, multiple branches, etc).
 
 
 ## Version 0.1.5 (2018-01-12)

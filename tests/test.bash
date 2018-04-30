@@ -290,6 +290,9 @@ odoo-helper addons list-no-repo;
 # Generate requirements
 odoo-helper addons generate-requirements;
 
+# Reinstall odoo downloading archive
+odoo-helper install reinstall-odoo download;
+
 # Drop created database
 odoo-helper db drop test-9-db;
 

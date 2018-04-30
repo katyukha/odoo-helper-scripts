@@ -181,10 +181,10 @@ function install_odoo {
     if [ ! -d $ODOO_PATH ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
             echoe -e "${BLUEC}Downloading odoo...${NC}";
-            install_download_odoo;
+            install_fetch_odoo download;
         else
             echoe -e "${BLUEC}Clonning odoo...${NC}";
-            install_clone_odoo;
+            install_fetch_odoo clone;
         fi
     fi
 

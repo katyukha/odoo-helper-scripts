@@ -16,9 +16,11 @@ ohelper_require "odoo";
 
 set -e; # fail on errors
 
+DEFAULT_ODOO_REPO="https://github.com/odoo/odoo.git";
+
 # Set-up defaul values for environment variables
 function install_preconfigure_env {
-    ODOO_REPO=${ODOO_REPO:-https://github.com/odoo/odoo.git};
+    ODOO_REPO=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
     ODOO_VERSION=${ODOO_VERSION:-9.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-${DOWNLOAD_ARCHIVE:-on}};
@@ -46,9 +48,9 @@ function install_create_project_dir_tree {
 
 # install_clone_odoo [path [branch [repo]]]
 function install_clone_odoo {
-    local odoo_path=${1:-$ODOO_PATH};
-    local odoo_branch=${2:-$ODOO_BRANCH};
-    local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
+    local odoo_path=${ODOO_PATH};
+    local odoo_branch=${ODOO_BRANCH};
+    local odoo_repo=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
     local branch_opt=;
 
     if [ ! -z $odoo_branch ]; then
@@ -62,11 +64,11 @@ function install_clone_odoo {
     git clone $branch_opt $odoo_repo $odoo_path;
 }
 
-# install_download_odoo [path [branch [repo]]]
+# install_download_odoo
 function install_download_odoo {
-    local odoo_path=${1:-$ODOO_PATH};
-    local odoo_branch=${2:-$ODOO_BRANCH};
-    local odoo_repo=${3:-${ODOO_REPO:-https://github.com/odoo/odoo.git}};
+    local odoo_path=${ODOO_PATH};
+    local odoo_branch=${ODOO_BRANCH};
+    local odoo_repo=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
 
     local odoo_archive=/tmp/odoo.$ODOO_BRANCH.tar.gz
     if [ -f $odoo_archive ]; then
@@ -80,6 +82,24 @@ function install_download_odoo {
         tar -zxf $odoo_archive;
         mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
         rm $odoo_archive;
+    else
+        echoe -e "${REDC}ERROR${NC}: Cannot download Odoo. Download option supported only for github repositories!";
+        return 1;
+    fi
+}
+
+
+# fetch odoo source code clone|download
+function install_fetch_odoo {
+    local odoo_action=$1;
+
+    if [ "$odoo_action" == 'clone' ]; then
+        install_clone_odoo;
+    elif [ "$odoo_action" == 'download' ]; then
+        install_download_odoo;
+    else
+        echoe -e "${REDC}ERROR${NC}: *install_fetch_odoo* - unknown action '$odoo_action'!";
+        return 1;
     fi
 }
 
@@ -568,7 +588,7 @@ function install_reinstall_venv {
 
     # Backup old venv
     if [ -d $VENV_DIR ]; then
-        mv $VENV_DIR $PROJECT_ROOT_DIR/venv_backup_$(random_string 4);
+        mv $VENV_DIR $PROJECT_ROOT_DIR/venv-backup-$(random_string 4);
     fi
 
     # Install odoo
@@ -576,6 +596,22 @@ function install_reinstall_venv {
 
     # Update python dependencies for addons
     addons_update_py_deps;
+}
+
+function install_reinstall_odoo {
+    local reinstall_action=$1;
+
+    if [ "$reinstall_action" != "clone" ] && [ "$reinstall_action" != "download" ]; then
+        echoe -e "${REDC}ERROR${NC}: unknown odoo reinstall action '$reinstall_action'!";
+        return 1;
+    fi
+
+    if [ -d $ODOO_PATH ]; then
+        mv $ODOO_PATH $ODOO_PATH-backup-$(random_string 4);
+    fi
+
+    install_fetch_odoo $reinstall_action;
+    install_reinstall_venv;
 }
 
 
@@ -595,6 +631,9 @@ function install_entry_point {
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv                - reinstall virtual environment
                                                              all options will be passed to virtualenv cmd directly
+        $SCRIPT_NAME install reinstall-odoo clone|download - reinstall odoo. Options are
+                                                                - clone odoo as git repository
+                                                                - download odoo archieve and unpack sources
         $SCRIPT_NAME install --help                        - show this help message
 
     ";
@@ -662,6 +701,12 @@ function install_entry_point {
                 shift;
                 config_load_project;
                 install_reinstall_venv "$@";
+                return 0;
+            ;;
+            reinstall-odoo)
+                shift;
+                config_load_project;
+                install_reinstall_odoo $@;
                 return 0;
             ;;
             postgres)
