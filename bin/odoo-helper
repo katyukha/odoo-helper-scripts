@@ -141,7 +141,7 @@ function show_project_ci_tools_versions {
     fi
 
     if check_command pylint 2>&1 >/dev/null; then
-        local pylint_version="${BLUEC}$(test_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
+        local pylint_version="${BLUEC}$(lint_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
     else
         local pylint_version="${REDC}Not installed${NC}"
     fi
