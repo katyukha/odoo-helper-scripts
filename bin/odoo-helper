@@ -235,12 +235,19 @@ function show_project_status {
         local version="${GREENC}$ODOO_VERSION${NC}";
     fi
 
+    if [ -d $ODOO_PATH/.git ]; then
+        local is_git_install="${GREENC}Yes${NC}";
+    else
+        local is_git_install="${YELLOWC}No${NC}";
+    fi
+
     echo -e "
     Current project:
 
         Project dir: $project_dir
         Odoo branch: $branch
         Odoo version: $version
+        Git install: $is_git_install
         Server status: ${server_status}
     ";
 
