@@ -66,6 +66,7 @@ for oh_cmd in $ODOO_HELPER_BIN/*; do
         ln -s $oh_cmd $HOME/bin;
     fi
 done
+
     
 echo -e "${YELLOWC}odoo-helper-scripts${GREENC} seems to be successfully installed for current user!${NC}";
 echo -e "Install path is ${YELLOWC}${INSTALL_PATH}${NC}";
@@ -76,3 +77,10 @@ echo -e "    $ ${BLUEC}odoo-helper install pre-requirements${NC}";
 echo;
 echo -e "To update odoo-helper-scripts, just run following command:";
 echo -e "    $ ${BLUEC}odoo-helper system update${NC}";
+echo;
+
+if ! command -v odoo-helper >/dev/null 2>&1; then
+    echo -e "${YELLOWC}WARNING${NC}: ${BLUEC}$HOME/bin${NC} is not on ${BLUEC}\$PATH${NC}. One of following actions may be required:";
+    echo -e "    - shell reload/restart (for example open new termial window)"
+    echo -e "    - manualy add ${BLUEC}$HOME/bin${NC} directory to ${BLUEC}\$PATH${NC} (Stack Exchange question: https://unix.stackexchange.com/questions/381228/home-bin-dir-is-not-on-the-path)"
+fi

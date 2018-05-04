@@ -69,8 +69,20 @@ sudo odoo-helper install pre-requirements
 ```
 
 After instalation You will have ``odoo-helper-scripts`` directory inside your home directory
-(also it will be added to PATH environment variable through ``~/.bash-profile`` file).
 And ``$HOME/odoo-helper.conf`` file will be generated with path to odoo-helper-scripts install dir.
+*odoo-helper-scripts* executables will be placed in ``$HOME/bin/`` directory.
+If this directory does not exists at installation time, then it will be created.
+
+### Known bugs and workarounds for user-space installation
+
+1. *command not found `odoo-helper`* after installation. Ususaly this happens, because there is
+   no `$HOME/bin` directory or it is not in `$PATH` before installation.
+   After installation this directory will be created, but additional steps may be required to add it to `$PATH`
+   - restart shell session (for example open new terminal window or tab).
+     This may help if shell is configured to use `$HOME/bin` directory if it is exists.
+   - if *bash* is used as shell, then it may be enough to source `.profile` file (`$ source $HOME/.profile`)
+   - add `$HOME/bin` directory to `$PATH` in your shell start-up configration ([Stack Exchange](https://unix.stackexchange.com/questions/381228/home-bin-dir-is-not-on-the-path))
+
 
 ## Install (system-wide)
 
