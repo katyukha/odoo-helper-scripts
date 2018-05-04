@@ -12,7 +12,7 @@
 - Powerful testing capabilities, including support for:
     - python and js code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
     - python code check via [flake8](https://pypi.python.org/pypi/flake8)
-    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)  (**currently experimental**)
+    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)  (**experimental**)
     - compute test code coverage via [coverage.py](https://coverage.readthedocs.io)
     - Test web tours via [phantom.js](http://phantomjs.org/)
 - Easy addons installation
@@ -40,12 +40,13 @@
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
 
 
-## Documentation note
+## Documentation
 
-Documentaion in this readme, or in other sources, may not be up to date!!!
+***Note*** Documentaion in this readme, or in other sources, may not be up to date!!!
 So use ``--help`` option, which is available for most of commands.
 
-[Frequently used commands](docs/frequently-used-commands.md)
+- [Documentation](docs/README.md)
+- [Frequently used commands](docs/frequently-used-commands.md)
 
 
 ## Usage note
@@ -81,7 +82,7 @@ If this directory does not exists at installation time, then it will be created.
    - restart shell session (for example open new terminal window or tab).
      This may help if shell is configured to use `$HOME/bin` directory if it is exists.
    - if *bash* is used as shell, then it may be enough to source `.profile` file (`$ source $HOME/.profile`)
-   - add `$HOME/bin` directory to `$PATH` in your shell start-up configration ([Stack Exchange](https://unix.stackexchange.com/questions/381228/home-bin-dir-is-not-on-the-path))
+   - add `$HOME/bin` directory to `$PATH` in your shell start-up configration ([Stack Exchange Question](https://unix.stackexchange.com/questions/381228/home-bin-dir-is-not-on-the-path))
 
 
 ## Install (system-wide)
