@@ -392,7 +392,7 @@ function install_system_prerequirements {
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
-    with_sudo easy_install 'virtualenv>=15.1.0';
+    with_sudo python -m easy_install 'virtualenv>=15.1.0';
 }
 
 # Install virtual environment. All options will be passed directly to
