@@ -322,6 +322,7 @@ function install_sys_deps_for_odoo_version {
 # NOTE: not supported for odoo 7.0 and lower.
 function install_odoo_py_requirements_for_version {
     local odoo_version=${1:-$ODOO_VERSION};
+    local odoo_major_version="${odoo_version%.*}";
     local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
     local tmp_requirements=$(mktemp);
     local tmp_requirements_post=$(mktemp);
@@ -336,11 +337,16 @@ function install_odoo_py_requirements_for_version {
             elif [[ "$dependency_stripped" =~ pychart* ]]; then
                 # Pychart is not downloadable. Use Python-Chart package
                 echo "Python-Chart";
-            elif [[ "$dependency_stripped" =~ gevent* ]]; then
+            elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
                 # Install last gevent, because old gevent versions (ex. 1.0.2)
                 # cause build errors.
                 # Instead last gevent (1.1.0+) have already prebuild wheels.
-                echo "gevent";
+                # Note that gevent (1.3.1) may break odoo 10.0, 11.0
+                # and in Odoo 10.0, 11.0 working version of gevent is placed in requirements
+                echo "gevent==1.1.0";
+            elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+                # Install correct version of greenlet for for gevent.
+                echo "greenlet==0.4.9";
             else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;

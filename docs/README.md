@@ -9,7 +9,7 @@ At this moment, here is only basic documentation
 Install Odoo in specified directory (using virtualenv)
 
 ```bash
-sudo odoo-helper install sys-deps 11.0  # install global system dependencies for specified version of Odoo
+odoo-helper install sys-deps 11.0  # install global system dependencies for specified version of Odoo
 odoo-install --odoo-version 11.0        # no sudo required
 ```
 
