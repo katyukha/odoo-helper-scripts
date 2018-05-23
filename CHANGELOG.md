@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.1.6
+## Version 0.1.6 (2018-05-xx)
 
 - Improve `odoo-helper addons update-py-deps` command, now it aloso updates repository level dependencies
   (those, mentioned in repository's `requirements.txt`)

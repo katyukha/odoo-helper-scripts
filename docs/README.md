@@ -2,6 +2,36 @@
 
 At this moment, here is only basic documentation
 
+## odoo-helper-scripts installation
+
+For full list of installation options look at [installation documentation](./installation.md)
+
+To install *odoo-helper-scripts* system-wide do folowing:
+
+```bash
+# Install odoo-helper-scripts
+wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
+
+# Install system dependencies required for odoo-helper-scripts
+# NOTE: Works only on debian-based systems
+odoo-helper install pre-requirements
+```
+
+or more explicit way:
+
+```bash
+# Download installation script
+wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
+
+# Install odoo-helper-scripts
+sudo bash /tmp/odoo-helper-install.bash;
+
+#  Intall system pre-requirements for odoo-helper-scripts
+# NOTE: Works only on debian-based systems
+odoo-helper install pre-requirements
+```
+
+
 ## Basic usage
 
 ### odoo-install
@@ -10,7 +40,7 @@ Install Odoo in specified directory (using virtualenv)
 
 ```bash
 odoo-helper install sys-deps 11.0  # install global system dependencies for specified version of Odoo
-odoo-install --odoo-version 11.0        # no sudo required
+odoo-install --odoo-version 11.0   # no sudo required
 ```
 
 After this you will have odoo and it's dependencies installed into *odoo-11.0* directory.
