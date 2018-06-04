@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.1.6 (2018-05-xx)
+## Version 0.1.6 (2018-06-xx)
 
 - Improve `odoo-helper addons update-py-deps` command, now it aloso updates repository level dependencies
   (those, mentioned in repository's `requirements.txt`)
@@ -42,6 +42,10 @@
   - `download` - download Odoo source as archive (faster)
   - `clone` - clone Odoo source as git repo (better handle updates, multiple remotes, multiple branches, etc).
 - Show if it is *Git Install* in output of `odoo-helper status` command
+- Show Odoo server url in output of following command:
+  - `odoo-helper status`
+  - `odoo-helper server status`
+  - `odoo-helper server start`
 
 
 ## Version 0.1.5 (2018-01-12)

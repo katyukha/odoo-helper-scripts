@@ -31,6 +31,24 @@ function odoo_get_conf_val {
     echo $(awk -F " *= *" "/$key/ {print \$2}" $conf_file);
 }
 
+function odoo_get_conf_val_http_host {
+    local host="$(odoo_get_conf_val 'http_interface')";
+    host="${host:-$(odoo_get_conf_val 'xmlrpc_interface')}";
+    host="${host:-localhost}";
+    echo "$host";
+}
+
+function odoo_get_conf_val_http_port {
+    local host="$(odoo_get_conf_val 'http_port')";
+    host="${host:-$(odoo_get_conf_val 'xmlrpc_port')}";
+    host="${host:-8069}";
+    echo "$host";
+}
+
+function odoo_gen_server_url {
+    echo "http://$(odoo_get_conf_val_http_host):$(odoo_get_conf_val_http_port)/";
+}
+
 function odoo_update_sources_git {
     local update_date=$(date +'%Y-%m-%d.%H-%M-%S')
 

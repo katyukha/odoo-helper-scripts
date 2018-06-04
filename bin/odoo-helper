@@ -213,8 +213,14 @@ function show_project_status {
 
     if [ $pid -gt 0 ]; then
         local server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
+        if [ -z "$INIT_SCRIPT" ]; then
+            local server_url="${BLUEC}$(odoo_gen_server_url)${NC}";
+        else
+            local server_url="";
+        fi
     else
         local server_status="${REDC}Stopped${NC}";
+        local server_url="";
     fi
 
     if [ -z $PROJECT_ROOT_DIR ]; then
@@ -244,11 +250,12 @@ function show_project_status {
     echo -e "
     Current project:
 
-        Project dir: $project_dir
-        Odoo branch: $branch
-        Odoo version: $version
-        Git install: $is_git_install
+        Project dir:   $project_dir
+        Odoo branch:   $branch
+        Odoo version:  $version
+        Git install:   $is_git_install
         Server status: ${server_status}
+        Server URL:    ${server_url}
     ";
 
     if [ ! -z $opt_show_tools_versions ]; then
