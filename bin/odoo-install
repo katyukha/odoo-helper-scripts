@@ -40,9 +40,14 @@ declare -A TEST_CONF_OPTIONS;
 function print_usage {
     echo "Bash script to instal dev version of Odoo in local environment
 
-    Optionaly system dependencies could be installed too (Debian only systems)
-
     Script version: $ODOO_HELPER_VERSION
+
+    Note:
+        Before running this script, system dependencies and pre-requirements
+        have to be installed.
+        To do this run following commands(*sudo* required):
+            $ odoo-helper install pre-requirements
+            $ odoo-helper install sys-deps <odoo-version>
 
     Usage:
          bash $SCRIPT_NAME [options]
@@ -69,7 +74,7 @@ function print_usage {
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
-         --single-branch               - if on, then odoo will clone only single branch,
+         --single-branch on|off        - if on, then odoo will clone only single branch,
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
@@ -81,25 +86,12 @@ function print_usage {
          --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xml_rpc_port 9998'
          --verbose|--vv                - show extra output
 
-    Prerequirements:
-         Next packages must be installed system-wide
-         (or use --sys-deps option to install them during installation process):
-             - virtualenv
-             - postgresql-client
-             - python-dev
-             - g++
-             - libpq-dev
-             - git
-
     After instalation configs will be generated in 'conf' directory
     Also 'log' directory will contain Odoo logs
 
     Note that, it is safe enough to run this script second time with same or similar args
     if it breaks somehow. It will automaticaly detect if odoo sources were downloaded or
     virtual environment created and will not do this operations second time.
-    So for example if you use option --sys-deps and some dependencies cannot be installed
-    you can install them manualy and retry this script with or without thi option and You will not
-    wast time waiting odoo sources to be downloaded again.
 
     For bug reports use github issues: https://github.com/katyukha/odoo-helper-scripts/issues
     ";
@@ -128,7 +120,7 @@ function parse_options {
                 ODOO_VERSION=$2;
                 shift;
             ;;
-            --branch|-b)
+            --odoo-branch|--branch|-b)
                 ODOO_BRANCH=$2;
                 shift;
             ;;
@@ -189,10 +181,10 @@ function install_odoo {
     if [ ! -d $ODOO_PATH ]; then
         if [ "$DOWNLOAD_ARCHIVE" == "on" ]; then
             echoe -e "${BLUEC}Downloading odoo...${NC}";
-            install_download_odoo;
+            install_fetch_odoo download;
         else
             echoe -e "${BLUEC}Clonning odoo...${NC}";
-            install_clone_odoo;
+            install_fetch_odoo clone;
         fi
     fi
 
@@ -231,7 +223,6 @@ function generate_test_conf {
 
     # Add default values
     ODOO_CONF_OPTIONS[logfile]="${ODOO_CONF_OPTIONS['logfile']:-False}";
-    ODOO_CONF_OPTIONS[pidfile]="${ODOO_CONF_OPTIONS['pidfile']:-$PROJECT_ROOT_DIR/odoo.test.pid}";
     ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-$DB_HOST}";
     ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
     ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-$DB_USER}";
@@ -240,6 +231,7 @@ function generate_test_conf {
     ODOO_CONF_OPTIONS[db_filter]="${ODOO_CONF_OPTIONS['db_filter']:-$DB_USER-odoo-test}";
     ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-8269}";
     ODOO_CONF_OPTIONS[xmlrpcs_port]="${ODOO_CONF_OPTIONS['xmlrpcs_port']:-8271}";
+    ODOO_CONF_OPTIONS[http_port]="${ODOO_CONF_OPTIONS['http_port']:-8269}";
     ODOO_CONF_OPTIONS[longpolling_port]="${ODOO_CONF_OPTIONS['longpolling_port']:-8272}";
 
     # Generate conf

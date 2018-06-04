@@ -96,7 +96,7 @@ function fetch_pip_requirements {
     # -e ./lib/python-project
     #
     local req_dir=$(dirname $pip_requirements);
-    (cd $req_dir && exec_pip install -r $pip_requirements);
+    (cd $req_dir && exec_pip -q install -r $pip_requirements);
 }
 
 # fetch_oca_requirements <filepath>
@@ -177,7 +177,7 @@ function fetch_python_dep {
         local install_opt="$1";
     fi
 
-    exec_pip install $install_opt;
+    exec_pip -q install $install_opt;
 }
 
 
@@ -193,7 +193,7 @@ function fetch_clone_repo_git {
     fi
 
     [ -z $VERBOSE ] && local git_clone_opt=" -q "
-    if ! git clone $git_clone_opt $repo_branch_opt $repo_url $repo_dest; then
+    if ! git clone --recurse-submodules $git_clone_opt $repo_branch_opt $repo_url $repo_dest; then
         echo -e "${REDC}Cannot clone [git] '$repo_url to $repo_dest'!${NC}";
     elif [ -z "$repo_branch_opt" ]; then
         # IF repo clonned successfuly, and not branch specified then
@@ -286,6 +286,7 @@ function fetch_module {
                                        Usualy not required
             -b|--branch <branch>     - name fo repository branch to clone
             --requirements <file>    - path to requirements file to fetch required modules
+                                       NOTE: requirements file must end with newline.
             -p|--python <package>    - fetch python dependency. (it use pip to install package)
             -p|--python <vcs>+<repository>  - install python dependency directly from VCS
 
@@ -409,7 +410,7 @@ function fetch_module {
 
     local recursion_key="fetch_module";
     if ! recursion_protection_easy_check $recursion_key "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then
-        echoe -e "${YELLOWC}WARN${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
+        echov -e "${YELLOWC}WARNING${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
         return 0
     fi
     # Conditions:

@@ -207,16 +207,49 @@ function join_by {
 # Exec python
 #
 function exec_py {
-    local python_exec="$(odoo_get_python_version)";
+    local python_exec="$(odoo_get_python_interpreter)";
     execu $python_exec "$@";
+}
+
+# Exec python with server user (if provided)
+function exec_py_u {
+    if [ ! -z $SERVER_RUN_USER ]; then
+        local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
+    fi
+
+    local python_exec="$(odoo_get_python_interpreter)";
+    execu $sudo_opt $python_exec "$@";
+}
+
+
+function run_python_cmd_prepare {
+    local cmd="
+import sys
+
+sys.path.append('$ODOO_HELPER_LIB/pylib')
+
+try:
+    $1
+except SystemExit:
+    raise
+except Exception:
+    sys.exit(1)
+";
+    echo "$cmd";
 }
 
 # Run python code
 #
 # run_python_cmd <code>
 function run_python_cmd {
-    local python_cmd="import sys; sys.path.append('$ODOO_HELPER_LIB/pylib');";
-    python_cmd="$python_cmd $1";
+    local python_cmd=$(run_python_cmd_prepare "$1");
     exec_py -c "\"$python_cmd\"";
 }
 
+# Run python code as server user (if provided)
+#
+# run_python_cmd <code>
+function run_python_cmd_u {
+    local python_cmd=$(run_python_cmd_prepare "$@");
+    exec_py_u -c "\"$python_cmd\"";
+}

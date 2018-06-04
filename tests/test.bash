@@ -249,7 +249,7 @@ odoo-helper install sys-deps -y 9.0;
 odoo-helper postgres user-create odoo9 odoo;
 odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo9 --db-pass odoo --download-archive off
+    --db-user odoo9 --db-pass odoo --download-archive off --single-branch on
 
 cd odoo-9.0;
 
@@ -266,10 +266,12 @@ odoo-helper server auto-update
 odoo-helper db create test-9-db;
 
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
-# Also it is possible to install it together with other dev tools via *install py-tools* command
-odoo-helper install py-tools;
+odoo-helper pip install Mercurial;
 odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
+odoo-helper addons list --help;
+odoo-helper addons list --recursive ./custom_addons;
+odoo-helper addons list --installable ./custom_addons;
 odoo-helper addons update-list
 odoo-helper addons install bus_enchanced;
 odoo-helper addons test-installed bus_enchanced;  # find databases where this addons is installed
@@ -287,6 +289,9 @@ odoo-helper addons list-no-repo;
 
 # Generate requirements
 odoo-helper addons generate-requirements;
+
+# Reinstall odoo downloading archive
+odoo-helper install reinstall-odoo download;
 
 # Drop created database
 odoo-helper db drop test-9-db;
@@ -384,9 +389,10 @@ odoo-helper npm help
 odoo-helper install js-tools;
 
 
-# Install oca/partner_firstname addons and
-# regenerate Ukrainian translations for it
-odoo-helper fetch --oca partner-contact -m partner_firstname;
+# Install oca/partner-contact addons
+odoo-helper fetch --oca partner-contact;
+
+# Regenerate Ukrainian translations for partner_firstname addons
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
 odoo-helper tr rate --lang uk_UA partner_firstname;
 
@@ -435,6 +441,12 @@ odoo-helper start
 odoo-helper server status
 odoo-helper stop
 
+# Test doc-utils. List all addons available in *contract* addon
+odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo ./repositories/contract
+
+# Same but in CSV format
+odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo --format csv ./repositories/contract
+
 
 echo -e "${YELLOWC}
 =================================
@@ -450,6 +462,10 @@ odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
     --db-user odoo11 --db-pass odoo
 
 cd odoo-11.0;
+
+# Install py-tools and js-tools
+odoo-helper install py-tools;
+odoo-helper install js-tools;
 
 # Test python version
 echo -e "${YELLOWC}Ensure that it is Py3${NC}";
@@ -485,6 +501,31 @@ odoo-helper db create --demo test-11-db;
 odoo-helper tr load --lang uk_UA --db test-11-db;
 odoo-helper tr export test-11-db uk_UA uk-test test-11-db web;
 odoo-helper tr import test-11-db uk_UA uk-test test-11-db web;
+
+# Install oca/partner-contact addons
+odoo-helper fetch --oca partner-contact;
+
+# Regenerate Ukrainian translations for all addons in partner-contact
+odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
+odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
+
+
+echo -e "${YELLOWC}
+==========================================
+Show list of running sql queries
+==========================================
+${NC}"
+odoo-helper server start
+odoo-helper db list
+odoo-helper postgres stat-activity
+odoo-helper stop
+
+
+echo -e "${YELLOWC}
+==========================================
+Drop temporary database
+==========================================
+${NC}"
 odoo-helper db drop test-11-db;
 
 
@@ -504,3 +545,14 @@ odoo-helper-test --help
 
 # There is also shortcut for odoo.py command
 odoo-helper odoo-py --help
+
+
+echo -e "${YELLOWC}
+==========================================
+Test stylelint on OCA/website repo
+==========================================
+${NC}"
+
+odoo-helper install js-tools
+odoo-helper fetch --oca web
+odoo-helper lint style ./repositories/web | true

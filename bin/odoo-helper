@@ -43,6 +43,8 @@ ohelper_require "tr";
 ohelper_require "postgres";
 ohelper_require "system";
 ohelper_require "scaffold";
+ohelper_require "doc-utils";
+ohelper_require "lint";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -59,49 +61,52 @@ function print_usage {
         Branch:      ${ODOO_BRANCH:-'Not defined'}
 
     Available commands:
-        fetch [--help]                           - fetch and install odoo addon
-        link [--help]                            - link module to custom_addons dir
-        server [--help]                          - manage local odoo server (run, start, stop, etc)
-        addons [--help]                          - addons related helpers
-        odoo [--help]                            - Odoo utils.
-        test [--help]                            - test addon
-        db [--help]                              - database management (list, create, drop, etc...)
-        tr [--help]                              - manage translations (import, export, load, ...)
-        postgres [--help]                        - manage local instance of postgresql server
-        install [--help]                         - install related stuff (sys-deps, ...)
-        generate-requirements [addons dir]       - parse addons dir, find all addons that are
-                                                   git repositories and print odoo-requirements.txt content
-                                                   file content suitable for *fetch* subcommand.
-                                                   for example:
-                                                       $SCRIPT_NAME generate-requirements > odoo_requirements.txt
-                                                   and you can use generated file for fetch subcommand:
-                                                       $SCRIPT_NAME fetch --requirements odoo_requirements.txt
-        update-odoo                              - update odoo source code
-        odoo-py [args]                           - run project-specific odoo.py script
-        scaffold [--help]                        - Scaffold repo, addon, model, etc
-        print-config                             - print current configuration
-        status                                   - show project status
-        start|stop|restart|log                   - shortcuts for server commands
-        pylint                                   - shortcut for 'test pylint' command
-        flake8                                   - shortcut for 'test flake8' command
-        system [--help]                          - odoo-helper related functions
-        exec <cmd> [args]                        - exec command in project environment. Useful if virtualenv is used
-        pip [--oca] <pip arguments>              - shortcut to run project-specific pip.
-                                                   if option *--oca* is specified, then OCA wheelhouse
-                                                   will be used to install OCA addons.
-        npm <npm arguments>                      - Run npm installed in current project's environment
-        help | --help | -h                       - display this help message
-        --version                                - display odoo-helper version and exit
+        fetch [--help]                      - fetch and install odoo addon
+        link [--help]                       - link module to custom_addons dir
+        server [--help]                     - manage local odoo server (run, start, stop, etc)
+        addons [--help]                     - addons related helpers
+        odoo [--help]                       - Odoo utils.
+        test [--help]                       - test addon
+        lint [--help]                       - lint addon
+        db [--help]                         - database management (list, create, drop, etc...)
+        tr [--help]                         - manage translations (import, export, load, ...)
+        postgres [--help]                   - manage local instance of postgresql server
+        install [--help]                    - install related stuff (sys-deps, ...)
+        generate-requirements [addons dir]  - parse addons dir, find all addons that are
+                                              git repositories and print odoo-requirements.txt content
+                                              file content suitable for *fetch* subcommand.
+                                              for example:
+                                                  $SCRIPT_NAME generate-requirements > odoo_requirements.txt
+                                              and you can use generated file for fetch subcommand:
+                                                  $SCRIPT_NAME fetch --requirements odoo_requirements.txt
+        doc-utils [--help]                  - subcommand that contains doc utlities
+        update-odoo                         - update odoo source code
+        odoo-py [args]                      - run project-specific odoo.py script
+        scaffold [--help]                   - Scaffold repo, addon, model, etc
+        print-config                        - print current configuration
+        status                              - show project status
+        start|stop|restart|log              - shortcuts for server commands
+        pylint                              - shortcut for 'lint pylint' command
+        flake8                              - shortcut for 'lint flake8' command
+        style                               - shortcut for 'lint style' command
+        system [--help]                     - odoo-helper related functions
+        exec <cmd> [args]                   - exec command in project environment. Useful if virtualenv is used
+        pip [--oca] <pip arguments>         - shortcut to run project-specific pip.
+                                              if option *--oca* is specified, then OCA wheelhouse
+                                              will be used to install OCA addons.
+        npm <npm arguments>                 - Run npm installed in current project's environment
+        help | --help | -h                  - display this help message
+        --version                           - display odoo-helper version and exit
     
     Global options:
-        --use-copy                            - if set, then downloaded modules, repositories will
-                                                be copied instead of being symlinked
-        --use-unbuffer                        - if set, then 'unbuffer' command from 'expect' package will be used
-                                                otherwise standard 'exec' will be used to run odoo server
-                                                this helps to make odoo server think that it runs in terminal thus
-                                                it provides colored output.
-        --no-colors                           - disable colored output
-        --verbose|--vv                        - show extra output
+        --use-copy                          - if set, then downloaded modules, repositories will
+                                              be copied instead of being symlinked
+        --use-unbuffer                      - if set, then 'unbuffer' command from 'expect' package will be used
+                                              otherwise standard 'exec' will be used to run odoo server
+                                              this helps to make odoo server think that it runs in terminal thus
+                                              it provides colored output.
+        --no-colors                         - disable colored output
+        --verbose|--vv                      - show extra output
 
     Also global options may be set up using configuration files.
     Folowing file paths will be searched for file $CONF_FILE_NAME:
@@ -136,7 +141,7 @@ function show_project_ci_tools_versions {
     fi
 
     if check_command pylint 2>&1 >/dev/null; then
-        local pylint_version="${BLUEC}$(test_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
+        local pylint_version="${BLUEC}$(lint_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
     else
         local pylint_version="${REDC}Not installed${NC}"
     fi
@@ -154,12 +159,19 @@ function show_project_ci_tools_versions {
         local pylint_odoo_version="${REDC}Not installed${NC}";
     fi
 
+    if check_command stylelint 2>&1 >/dev/null; then
+        local stylelint_version="${BLUEC}$(execv stylelint --version)${NC}";
+    else
+        local stylelint_version="${REDC}Not installed${NC}";
+    fi
+
     echo -e "
     CI Tools versions:
         Flake8:      $flake8_version
         Pylint:      $pylint_version
         Pylint Odoo: $pylint_odoo_version
         ESLint:      $eslint_version
+        Stylelint:   $stylelint_version
     ";
 }
 
@@ -201,8 +213,14 @@ function show_project_status {
 
     if [ $pid -gt 0 ]; then
         local server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
+        if [ -z "$INIT_SCRIPT" ]; then
+            local server_url="${BLUEC}$(odoo_gen_server_url)${NC}";
+        else
+            local server_url="";
+        fi
     else
         local server_status="${REDC}Stopped${NC}";
+        local server_url="";
     fi
 
     if [ -z $PROJECT_ROOT_DIR ]; then
@@ -223,13 +241,21 @@ function show_project_status {
         local version="${GREENC}$ODOO_VERSION${NC}";
     fi
 
+    if [ -d $ODOO_PATH/.git ]; then
+        local is_git_install="${GREENC}Yes${NC}";
+    else
+        local is_git_install="${YELLOWC}No${NC}";
+    fi
+
     echo -e "
     Current project:
 
-        Project dir: $project_dir
-        Odoo branch: $branch
-        Odoo version: $version
+        Project dir:   $project_dir
+        Odoo branch:   $branch
+        Odoo version:  $version
+        Git install:   $is_git_install
         Server status: ${server_status}
+        Server URL:    ${server_url}
     ";
 
     if [ ! -z $opt_show_tools_versions ]; then
@@ -297,6 +323,12 @@ function odoo_helper_main {
                 addons_generate_requirements "$@"
                 return;
             ;;
+            doc-utils)
+                shift;
+                config_load_project;
+                doc_utils_command $@;
+                return;
+            ;;
             update-odoo|update_odoo)
                 shift;
                 config_load_project;
@@ -345,6 +377,12 @@ function odoo_helper_main {
                 test_module "$@";
                 return;
             ;;
+            lint)
+                shift;
+                config_load_project;
+                lint_command "$@";
+                return;
+            ;;
             db)
                 shift;
                 config_load_project;
@@ -387,12 +425,13 @@ function odoo_helper_main {
             # Server shortcuts
             start|stop|restart|log)
                 config_load_project;
-                server "$@";
+                server $@;
                 return;
             ;;
-            pylint|flake8)
+            # Lint shortcuts
+            pylint|flake8|style)
                 config_load_project;
-                test_module "$@";
+                lint_command "$@";
                 return;
             ;;
             exec)

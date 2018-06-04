@@ -1,9 +1,17 @@
 #!/bin/bash
 
+# Define colors
+NC='\e[0m';
+REDC='\e[31m';
+GREENC='\e[32m';
+YELLOWC='\e[33m';
+BLUEC='\e[34m';
+LBLUEC='\e[94m';
+
 # Simple script to install odoo-helper-script system-wide
 if [[ $UID != 0 ]]; then
-    echo "Please run this script with sudo:"
-    echo "sudo $0 $*"
+    echo -e "${REDC}ERROR${NC}: Please run this script with ${YELLOWC}sudo${NC}:"
+    echo -e "$ ${BLUEC}sudo $0 $* ${NC}"
     exit 1
 fi
 
@@ -52,9 +60,14 @@ for oh_cmd in $ODOO_HELPER_BIN/*; do
         ln -s $oh_cmd /usr/local/bin/;
     fi
 done
-    
-echo "Odoo-helper-scripts seems to be correctly installed system-wide!";
-echo "Install path is $INSTALL_PATH";
-echo "To update odoo-helper-scripts, just run following command:";
-echo "    odoo-helper system update";
+
+echo -e "${YELLOWC}odoo-helper-scripts${GREENC} seems to be successfully installed system-wide!${NC}";
+echo -e "Install path is ${YELLOWC}${INSTALL_PATH}${NC}";
+echo;
+echo -e "${YELLOWC}NOTE${NC}: Do not forget to install odoo-helper system dependencies.";
+echo -e "To do this for debian-like systems run following command (${YELLOWC}sudo access required${NC}):";
+echo -e "    $ ${BLUEC}odoo-helper install pre-requirements${NC}";
+echo;
+echo -e "To update odoo-helper-scripts, just run following command:";
+echo -e "    $ ${BLUEC}odoo-helper system update${NC}";
 

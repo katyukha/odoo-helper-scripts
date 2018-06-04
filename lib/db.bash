@@ -69,9 +69,14 @@ function odoo_db_create {
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.create_database(cl.odoo.tools.config['admin_passwd'], '$db_name', $demo_data, '$db_lang');"
 
-    run_python_cmd "$python_cmd";
-    
-    echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$db_name${NC} created successfuly!";
+    # Filestore should be created by server user, so run resotore command as server user
+    if ! run_python_cmd_u "$python_cmd"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot create database ${YELLOWC}$db_name${NC}!";
+        return 1;
+    else
+        echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} created successfuly!";
+        return 0;
+    fi
 }
 
 # odoo_db_drop <name> [odoo_conf_file]
@@ -87,9 +92,13 @@ function odoo_db_drop {
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name');"
     
-    run_python_cmd "$python_cmd";
-    
-    echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+    if ! run_python_cmd "$python_cmd"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        return 1;
+    else
+        echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+        return 0;
+    fi
 }
 
 # odoo_db_list [odoo_conf_file]
@@ -99,7 +108,11 @@ function odoo_db_list {
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd print('\n'.join(['%s'%d for d in cl.db.list()]));";
     
-    run_python_cmd "$python_cmd";
+    if ! run_python_cmd "$python_cmd"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot get list of databases!";
+        return 1;
+    fi
+    return 0;
 }
 
 # odoo_db_exists [options] <dbname> [odoo_conf_file]
@@ -164,10 +177,13 @@ function odoo_db_rename {
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.rename(cl.odoo.tools.config['admin_passwd'], '$old_db_name', '$new_db_name');"
     
-    if run_python_cmd "$python_cmd"; then
+    # Filestore should be created by server user, so run resotore command as server user
+    if run_python_cmd_u "$python_cmd"; then
         echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$old_db_name${NC} renamed to ${BLUEC}$new_db_name${NC} successfuly!";
+        return 0;
     else
         echoe -e "${REDC}ERROR${NC}: Cannot rename databse ${BLUEC}$old_db_name${NC} to ${BLUEC}$new_db_name${NC}!";
+        return 1;
     fi
 }
 
@@ -261,8 +277,9 @@ function odoo_db_restore {
     local python_cmd="import lodoo, base64; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd res=cl.db.restore(cl.odoo.tools.config['admin_passwd'], '$db_name', base64.b64encode(open('$db_dump_file', 'rb').read()));";
     python_cmd="$python_cmd exit(0 if res else 1);";
-    
-    if run_python_cmd "$python_cmd"; then
+
+    # Filestore should be created by server user, so run resotore command as server user
+    if run_python_cmd_u "$python_cmd"; then
         echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} restored from ${BLUEC}$db_dump_file${NC}!";
         return 0;
     else

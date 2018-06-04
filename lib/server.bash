@@ -47,6 +47,23 @@ function server_get_pid {
     fi
 }
 
+
+# Test if server is running
+#
+# server_is_running
+function server_is_running {
+    if [ $(server_get_pid) -gt 0 ]; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+
+function server_log {
+    less +G $@ -- ${LOG_FILE:-$LOG_DIR/odoo.log};
+}
+
 # server_run <arg1> .. <argN>
 # all arguments will be passed to odoo server
 function server_run {
@@ -61,22 +78,53 @@ function server_run {
 }
 
 function server_start {
+    if [ "$1" == "--log" ]; then
+        local log_after_start=1;
+        shift;
+    fi
+
     if [ ! -z $INIT_SCRIPT ]; then
         echo -e "${YELLOWC}Starting server via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT start;
     else
         # Check if server process is already running
-        if [ $(server_get_pid) -gt 0 ]; then
+        if server_is_running; then
             echoe -e "${REDC}Server process already running.${NC}";
             return 1;
         fi
 
         server_run --pidfile=$ODOO_PID_FILE "$@" &
-        local pid=$!;
-        sleep 2;
-        echoe -e "${GREENC}Odoo started!${NC}";
-        echoe -e "PID File: ${YELLOWC}$ODOO_PID_FILE${NC}."
-        echoe -e "Process ID: ${YELLOWC}$pid${NC}";
+
+        # Wait until Odoo server started
+        local odoo_pid=;
+        for stime in 2 4 8 16; do
+            sleep $stime;
+            if [ -f $ODOO_PID_FILE ]; then
+                odoo_pid=$(cat $ODOO_PID_FILE);
+                if [ ! -z $odoo_pid ] && is_process_running $odoo_pid; then
+                    break
+                else
+                    odoo_pid=;
+                fi
+            fi
+        done
+
+        if [ -z $odoo_pid ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot start odoo.";
+            return 1;
+        else
+            echoe -e "${GREENC}Odoo started!${NC}";
+            echoe -e "PID File: ${YELLOWC}${ODOO_PID_FILE}${NC}."
+            echoe -e "Process ID: ${YELLOWC}${odoo_pid}${NC}";
+
+            if [ -z "$INIT_SCRIPT" ]; then
+                echoe -e "Server URL: ${BLUEC}$(odoo_gen_server_url)${NC}";
+            fi
+        fi
+    fi
+
+    if [ ! -z $log_after_start ]; then
+        server_log;
     fi
 }
 
@@ -89,7 +137,7 @@ function server_stop {
         if [ $pid -gt 0 ]; then
             if kill $pid; then
                 # wait until server is stopped
-                for stime in 1 2 3 4; do
+                for stime in 2 4 6 8; do
                     if is_process_running $pid; then
                         # if process alive, wait a little time
                         echov "Server still running. sleeping for $stime seconds";
@@ -125,22 +173,36 @@ function server_status {
     else
         local pid=$(server_get_pid);
         if [ $pid -gt 0 ]; then
-            echoe -e "${GREENC}Server process already running. PID=${YELLOWC}${pid}${GREENC}.${NC}";
+            echoe -e "${GREENC}Server process already running: PID=${YELLOWC}${pid}${GREENC}.${NC}";
+            if [ -z "$INIT_SCRIPT" ]; then
+                echoe -e "${GREENC}Server URL:${NC} ${BLUEC}$(odoo_gen_server_url)${NC}";
+            fi
         elif [ $pid -eq -2 ]; then
             echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
         elif [ $pid -eq -1 ]; then
             echoe -e "${REDC}Server stopped${NC}";
+        else
+            echoe -e "${REDC}Unknown server status!${NC}";
         fi
     fi
 }
 
 function server_restart {
+    if [ "$1" == "--log" ]; then
+        local log_after_start=1;
+        shift;
+    fi
+
     if [ ! -z $INIT_SCRIPT ]; then
         echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT restart;
     else
         server_stop;
         server_start "$@";
+    fi
+
+    if [ ! -z $log_after_start ]; then
+        server_log;
     fi
 }
 
@@ -149,7 +211,7 @@ function server_restart {
 # Update odoo sources
 function server_auto_update {
     # Stop odoo server
-    if [ $(server_get_pid) -gt 0 ]; then
+    if server_is_running; then
         echoe -e "${BLUEC}Stopping server...${NC}";
         server_stop;
         local need_start=1;
@@ -195,9 +257,9 @@ function server {
 
     Commands:
         run             - run the server. if no command supply, this one will be used
-        start           - start server in background
+        start [--log]   - start server in background
         stop            - stop background running server
-        restart         - restart background server
+        restart [--log] - restart background server
         status          - status of background server
         auto-update     - automatiacly update server. (WARN: experimental feature. may be buggy)
         log             - open server log
@@ -258,7 +320,7 @@ function server {
             log)
                 shift;
                 # TODO: remove backward compatability from this code
-                less ${LOG_FILE:-$LOG_DIR/odoo.log};
+                server_log;
                 return;
             ;;
             ps)

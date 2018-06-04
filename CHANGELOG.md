@@ -1,5 +1,53 @@
 # Changelog
 
+## Version 0.1.6 (2018-06-04)
+
+- Improve `odoo-helper addons update-py-deps` command, now it aloso updates repository level dependencies
+  (those, mentioned in repository's `requirements.txt`)
+- Added `odoo-helper doc-utils` command. Have following subcommands
+  - `odoo-helper doc-utils addons-list` command to print info about addons in repo in [Markdown](https://en.wikipedia.org/wiki/Markdown) format
+- Move linters to separate subcommand `odoo-helper lint`.
+  Run `odoo-helper lint --help` for details
+- Added `odoo-helper lint style` commant.
+  It is experimental integration with [stylelint](https://stylelint.io/)
+- `odoo-helper lint pylint` skip addons with `'installable': False`
+- `odoo-helper lint flake8` skip addons with `'installable': False`
+- `odoo-helper addons list` command now have extra options and can search for addons in multiple paths:
+  - `--installable`
+  - `--by-name`  (used by default)
+  - `--by-path`
+  - `--recursive`
+- `odoo-helper addons (install|update|uninstall)` command now have
+  extra options `--dir <addon path>` and `--dir-r <addon-path>` which can be used
+  to install/update/uninstall all installable addons in specified directory
+- Added `--dir` and `--dir-r` options for `odoo-helper tr regenerate` and `odoo-helper tr rate` commands
+- Added `--start` option to `odoo-helper addons install|update|uninstall` command
+- Do not set `pidfile` option in odoo config by default.
+  pidfile have to be managed by odoo-helper-scripts, not by Odoo.
+- **Backward incompatible** remove [Mercurial](https://www.mercurial-scm.org/)
+  installation from `odoo-helper install py-tools`, because it [does not support Python3](https://www.mercurial-scm.org/wiki/Python3)
+- To be compatible with [Odoo.sh](https://www.odoo.sh)-style development,
+  `odoo-helper fetch` now recursively fetches submodules for git repositories.
+- Added option `--dir-r|--directory-r` for `odoo-helper test` command,
+  to recursively search for addons to be tested in specified directory
+- Added `--log` option for following commands:
+  - `odoo-helper start --log`
+  - `odoo-helper restart --log`
+  - `odoo-helper addons install --log`
+  - `odoo-helper addons update --log`
+  - `odoo-helper addons uninstall --log`
+- Command `odoo-helper server log`: automatically move to end of log file after open  (`+G` for `less` command)
+- Added command `odoo-helper postgres start-activity` to display running postgres connections
+- Added command `odoo-helper install reinstall-odoo` to easily spwitch betwen two installation modes:
+  - `download` - download Odoo source as archive (faster)
+  - `clone` - clone Odoo source as git repo (better handle updates, multiple remotes, multiple branches, etc).
+- Show if it is *Git Install* in output of `odoo-helper status` command
+- Show Odoo server url in output of following command:
+  - `odoo-helper status`
+  - `odoo-helper server status`
+  - `odoo-helper server start`
+
+
 ## Version 0.1.5 (2018-01-12)
 
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) together with

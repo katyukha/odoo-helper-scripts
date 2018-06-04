@@ -31,6 +31,24 @@ function odoo_get_conf_val {
     echo $(awk -F " *= *" "/$key/ {print \$2}" $conf_file);
 }
 
+function odoo_get_conf_val_http_host {
+    local host="$(odoo_get_conf_val 'http_interface')";
+    host="${host:-$(odoo_get_conf_val 'xmlrpc_interface')}";
+    host="${host:-localhost}";
+    echo "$host";
+}
+
+function odoo_get_conf_val_http_port {
+    local host="$(odoo_get_conf_val 'http_port')";
+    host="${host:-$(odoo_get_conf_val 'xmlrpc_port')}";
+    host="${host:-8069}";
+    echo "$host";
+}
+
+function odoo_gen_server_url {
+    echo "http://$(odoo_get_conf_val_http_host):$(odoo_get_conf_val_http_port)/";
+}
+
 function odoo_update_sources_git {
     local update_date=$(date +'%Y-%m-%d.%H-%M-%S')
 
@@ -55,22 +73,22 @@ function odoo_update_sources_git {
 
 function odoo_update_sources_archive {
     local FILE_SUFFIX=`date -I`.`random_string 4`;
-    local wget_opt="";
+    local wget_opt="-T 2";
 
-    [ ! -z $VERBOSE ] && wget_opt="$wget_opt -q";
+    [ -z $VERBOSE ] && wget_opt="$wget_opt -q";
 
     if [ -d $ODOO_PATH ]; then    
         # Backup only if odoo sources directory exists
         local BACKUP_PATH=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-        echo -e "${LBLUEC}Saving odoo source backup:${NC} $BACKUP_PATH";
+        echoe -e "${LBLUEC}Saving odoo source backup:${NC} $BACKUP_PATH";
         (cd $ODOO_PATH/.. && tar -czf $BACKUP_PATH `basename $ODOO_PATH`);
-        echo -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
+        echoe -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
     fi
 
-    echo -e "${LBLUEC}Downloading new sources archive...${NC}"
+    echoe -e "${LBLUEC}Downloading new sources archive...${NC}"
     local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
     # TODO: use odoo-repo variable here
-    wget -T 2 $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
+    wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
     rm -r $ODOO_PATH;
     (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
 
@@ -78,20 +96,20 @@ function odoo_update_sources_archive {
 
 function odoo_update_sources {
     if git_is_git_repo $ODOO_PATH; then
-        echo -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
+        echoe -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
         odoo_update_sources_git;
 
     else
-        echo -e "${LBLUEC}Updating odoo sources...${NC}";
+        echoe -e "${LBLUEC}Updating odoo sources...${NC}";
         odoo_update_sources_archive;
     fi
 
-    echo -e "${LBLUEC}Reinstalling odoo...${NC}";
+    echoe -e "${LBLUEC}Reinstalling odoo...${NC}";
 
     # Run setup.py with gevent workaround applied.
     odoo_run_setup_py;  # imported from 'install' module
 
-    echo -e "${GREENC}Odoo sources update finished!${NC}";
+    echoe -e "${GREENC}Odoo sources update finished!${NC}";
 
 }
 
@@ -101,7 +119,7 @@ function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }
 
-# Get python interpreter to run odoo with
+# Get python interpreter name to run odoo with
 # Returns one of: python2, python3, python
 # Default: python
 function odoo_get_python_version {
@@ -115,6 +133,11 @@ function odoo_get_python_version {
     fi
 }
 
+# Get python interpreter (full path to executable) to run odoo with
+function odoo_get_python_interpreter {
+    local python_version="$(odoo_get_python_version)";
+    echo $(check_command $python_version);
+}
 
 function odoo_recompute_stored_fields {
     local usage="Recompute stored fields

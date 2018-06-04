@@ -13,6 +13,7 @@ ohelper_require fetch;
 ohelper_require server;
 ohelper_require db;
 ohelper_require odoo;
+ohelper_require lint;
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -29,10 +30,14 @@ function test_run_server {
         if [ -z $COVERAGE_INCLUDE ]; then
             local COVERAGE_INCLUDE="$(pwd)/*";
         fi
+        if ! check_command coverage >/dev/null 2>&1; then
+            echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found. Please, run *${BLUEC}odoo-helper install py-tools${BLUEC}* or *${BLUEC}odoo-helper pip install coverage${NC}*.";
+            return 1
+        fi
         exec_conf $ODOO_TEST_CONF_FILE execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
-            --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init $@";
+            --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init --workers=0 $@";
     else
-        exec_conf $ODOO_TEST_CONF_FILE execu "$SERVER --stop-after-init $@";
+        exec_conf $ODOO_TEST_CONF_FILE execu "$SERVER --stop-after-init --workers=0 $@";
     fi
 }
 
@@ -63,8 +68,9 @@ function test_module_impl {
 }
 
 # Get database name or create new one. Prints database name
-# test_get_or_create_db    # get db
-# test_get_or_create_db 1  # create new db
+# test_get_or_create_db      # get db
+# test_get_or_create_db 1    # recreate db
+# test_get_or_create_db 0 1  # create new db
 function test_get_or_create_db {
     local recreate_db=$1;
     local create_test_db=$2;
@@ -206,91 +212,7 @@ function test_run_tests {
     fi
 }
 
-
-# test_find_modules_in_directories <dir1> [dir2] ...
-# echoes list of modules found in specified directories
-function test_find_modules_in_directories {
-    # TODO: sort addons in correct order to avoid duble test runs
-    #       in cases when addon that is tested first depends on other,
-    #       which is tested next, but when it is tested, then all dependent
-    #       addons will be also tested
-    for directory in $@; do
-        # skip non directories
-        for addon_path in $(addons_list_in_directory $directory); do
-            if addons_is_installable $addon_path; then
-                echo -n " $(basename $addon_path)";
-            fi
-        done
-    done
-}
-
 # Run flake8 for modules
-# test_run_flake8 [flake8 options] <module1 path> [module2 path] .. [module n path]
-function test_run_flake8 {
-    local res=0;
-    if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $@; then
-        res=1;
-    fi
-    return $res;
-}
-
-# Run pylint tests for modules
-# test_run_pylint <module1 path> [module2 path] .. [module n path]
-# test_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
-function test_run_pylint {
-    local pylint_rc="$ODOO_HELPER_LIB/default_config/pylint_odoo.cfg";
-    local pylint_opts="--rcfile=$pylint_rc";
-    local pylint_disable="manifest-required-author";
-
-    # specify valid odoo version for pylint manifest version check
-    pylint_opts="$pylint_opts --valid_odoo_versions=$ODOO_VERSION";
-
-    # Pre-process commandline arguments to be forwarded to pylint
-    while [[ "$1" =~ ^--[a-zA-Z0-9\-]+(=[a-zA-Z0-9,-.]+)? ]]; do
-        if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
-            local pylint_disable_opt=$1;
-            local pylint_disable_arg="${BASH_REMATCH[1]}";
-            pylint_disable=$(join_by , $pylint_disable_arg "manifest-required-author");
-        elif [[ "$1" =~ --help|--long-help|--version ]]; then
-            local show_help=1;
-            pylint_opts="$pylint_opts $1"
-        else
-            pylint_opts="$pylint_opts $1"
-        fi
-        shift;
-    done
-    local pylint_opts="$pylint_opts -d $pylint_disable";
-
-    # Show help if requested
-    if [ ! -z $show_help ]; then
-        execu pylint $pylint_opts;
-        return;
-    fi
-
-    local res=0;
-    for path in $@; do
-        if is_odoo_module $path; then
-            local addon_dir=$(dirname $path);
-            local addon_name=$(basename $path);
-            local save_dir=$(pwd);
-            cd $addon_dir;
-            if ! execu pylint $pylint_opts $addon_name; then
-                res=1;
-            fi
-            cd $save_dir;
-        elif [ -d $path ]; then
-            for subdir in "$path"/*; do
-                if is_odoo_module $subdir; then
-                    if ! test_run_pylint "$pylint_disable_opt" $subdir; then
-                        res=1;
-                    fi
-                fi
-            done
-        fi
-    done
-    return $res
-}
-
 # test_module [--create-test-db] -m <module_name>
 function test_module {
     local create_test_db=0;
@@ -321,13 +243,17 @@ function test_module {
         --coverage-report        - print coverage report
         --coverage-skip-covered  - skip covered files in coverage report
         -m|--module              - specify module to test
-        -d|--directory           - specify directory with modules to test
+        -d|--dir|--directory     - search for modules to test in specified directory
+        --dir-r|--directory-r    - recursively search for modules to test in specified directory
 
     Examples:
         $SCRIPT_NAME test -m my_cool_module        # test single addon
         $SCRIPT_NAME test -d addon_dir             # test all addons in specified directory
+        $SCRIPT_NAME test --dir-r addon_dir        # test all addons in specified directory
+                                                   # and subdirectories
         $SCRIPT_NAME test pylint ./my_cool_module  # check addon with pylint
         $SCRIPT_NAME test flake8 ./my_cool_module  # check addon with flake8
+        $SCRIPT_NAME test style ./my_cool_module   # run stylelint standard checks for addon
         
     ";
 
@@ -373,18 +299,24 @@ function test_module {
                 modules="$modules $2";  # add module to module list
                 shift;
             ;;
-            -d|--directory)
-                modules="$modules $(test_find_modules_in_directories $2)";
+            -d|--dir|--directory)
+                modules="$modules $(addons_list_in_directory --installable --by-name $2)";
+                shift;
+            ;;
+            --dir-r|--directory-r)
+                modules="$modules $(addons_list_in_directory --recursive --installable --by-name $2)";
                 shift;
             ;;
             flake8)
                 shift;
-                test_run_flake8 $@;
+                echoe -e "${YELLOWC}WARNING${NC}: 'odoo-helper test flake8' is deprecated. Use 'odoo-helper lint flake8' instead.";
+                lint_run_flake8 $@;
                 return;
             ;;
             pylint)
                 shift;
-                test_run_pylint $@;
+                echoe -e "${YELLOWC}WARNING${NC}: 'odoo-helper test pylint' is deprecated. Use 'odoo-helper lint pylint' instead.";
+                lint_run_pylint $@;
                 return;
             ;;
             *)

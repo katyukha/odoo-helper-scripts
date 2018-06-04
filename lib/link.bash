@@ -91,7 +91,8 @@ function link_module {
                     # link module
                     link_module_impl $file $ADDONS_DIR/`basename $file` $force;
                 elif [ -d $file ] && ! is_odoo_module $file && [ $(basename $file) != 'setup' ]; then
-                    # if it is directory but not odoo module, recursively look for addons there
+                    # if it is directory but not odoo module,
+                    # and not 'setup' dir, then recursively look for addons there
                     link_module $force $file;
                 fi
             done
@@ -117,24 +118,24 @@ function link_command {
         echo "No options supplied $#: $@";
         echo "";
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     # Process all args that starts with '-' (ie. options)
     while [[ $1 == -* ]]
     do
-        key="$1";
+        local key="$1";
         case $key in
-            -h|--help)
+            -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             -f|--force)
-                force=on;
+                local force=on;
             ;;
             *)
                 echo "Unknown option $key";
-                exit 1;
+                return 1;
             ;;
         esac
         shift
