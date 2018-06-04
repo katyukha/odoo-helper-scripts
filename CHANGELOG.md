@@ -36,7 +36,7 @@
   - `odoo-helper addons install --log`
   - `odoo-helper addons update --log`
   - `odoo-helper addons uninstall --log`
-- Command `odoo-helper server log` now automaticaly use autofollow option (`+F` for `less` command)
+- Command `odoo-helper server log`: automatically move to end of log file after open  (`+G` for `less` command)
 - Added command `odoo-helper postgres start-activity` to display running postgres connections
 - Added command `odoo-helper install reinstall-odoo` to easily spwitch betwen two installation modes:
   - `download` - download Odoo source as archive (faster)
