@@ -61,7 +61,7 @@ function install_clone_odoo {
         branch_opt="$branch_opt --single-branch";
     fi
 
-    git clone $branch_opt $odoo_repo $odoo_path;
+    git clone -q $branch_opt $odoo_repo $odoo_path;
 }
 
 # install_download_odoo
@@ -147,11 +147,6 @@ function install_wkhtmltopdf_download {
 
 # install_wkhtmltopdf
 function install_wkhtmltopdf {
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
-    fi
-
-    # Install wkhtmltopdf
     if ! check_command wkhtmltopdf > /dev/null; then
         # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
@@ -180,7 +175,7 @@ function install_sys_deps_internal {
     # so we need to skip it before running apt-get
     echoe -e "${BLUEC}Installing system dependencies${NC}: $@";
     if [ ! -z $ALWAYS_ANSWER_YES ]; then
-        local opt_apt_always_yes="-y";
+        local opt_apt_always_yes="-yq";
     fi
     with_sudo apt-get install $opt_apt_always_yes --no-install-recommends "$@";
 }
@@ -385,7 +380,7 @@ function install_and_configure_postgresql {
 # install_system_prerequirements
 function install_system_prerequirements {
     echoe -e "${BLUEC}Updating package list...${NC}"
-    with_sudo apt-get update || true;
+    with_sudo apt-get update -qq || true;
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
