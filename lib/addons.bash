@@ -130,6 +130,38 @@ function addons_update_module_list {
     fi
 }
 
+# _addon_list_in_directory_display <addon_path> <name_mode> <color model>
+function _addon_list_in_directory_display {
+    local addon_path=$(readlink -f $1); shift;
+    local name_mode=$1; shift;
+    local color_mode=$1; shift;
+
+
+    if [ "$name_mode" == 'path' ]; then
+        local result="$addon_path";
+    elif [ "$name_mode" == 'name' ]; then
+        local result="$(basename $addon_path)";
+    else
+        return 1;
+    fi
+
+    if [ "$color_mode" == 'link' ]; then
+        if link_is_addon_linked $addon_path; then
+            result="${GREENC}${result}${NC}";
+        else
+            local link_result="$?";
+            if [ $link_result -eq 1 ]; then
+                result="${REDC}${result}${NC}";
+            elif [ $link_result -eq 2 ]; then
+                result="${YELLOWC}${result}${NC}";
+            fi
+        fi
+    fi
+
+
+    echo -e "$result";
+}
+
 
 # List addons in specified directory
 #
@@ -151,6 +183,7 @@ function addons_list_in_directory {
         --installable     - display only installable addons
         --by-name         - display only addon names
         --by-path         - display addon path
+        --color           - color result by link-status
         -h|--help|help    - display this help message
 
     Note:
@@ -159,6 +192,8 @@ function addons_list_in_directory {
         thus last option in command call will take effect.
     ";
 
+    local name_mode='path';
+    local color_mode='off';
     while [[ $1 == -* ]]
     do
         local key="$1";
@@ -174,10 +209,13 @@ function addons_list_in_directory {
                 local installable_only=1;
             ;;
             --by-name)
-                local by_name=1;
+                name_mode='name';
             ;;
             --by-path)
-                local by_name=;
+                name_mode='path';
+            ;;
+            --color)
+                color_mode='link';
             ;;
             *)
                 echo "Unknown option $key";
@@ -192,22 +230,14 @@ function addons_list_in_directory {
         if [ -d $addons_path ]; then
             if is_odoo_module $addons_path; then
                 if [ -z $installable_only ] || addons_is_installable $addons_path; then
-                    if [ -z $by_name ]; then
-                        echo "$(readlink -f $addons_path)";
-                    else
-                        echo "$(basename $(readlink -f $addons_path))";
-                    fi
+                    _addon_list_in_directory_display "$addons_path" $name_mode $color_mode;
                 fi
             fi
 
             for addon in "$addons_path"/*; do
                 if is_odoo_module $addon; then
                     if [ -z $installable_only ] || addons_is_installable $addon; then
-                        if [ -z $by_name ]; then
-                            echo "$(readlink -f $addon)";
-                        else
-                            echo "$(basename $(readlink -f $addon))";
-                        fi
+                        _addon_list_in_directory_display "$addon" $name_mode $color_mode;
                     fi
                 elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
                     addons_list_in_directory "$addon";
@@ -294,7 +324,7 @@ function addons_show_status {
     local cdir=$(pwd);
 
     local usage="
-    Usage 
+    Usage
 
         $SCRIPT_NAME addons show_status [options]
 

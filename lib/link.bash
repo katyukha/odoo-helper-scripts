@@ -23,6 +23,31 @@ PIP_REQUIREMENTS_FILE_NAME="requirements.txt";
 OCA_REQUIREMENTS_FILE_NAME="oca_dependencies.txt";
 
 
+# link_is_addon_linked <addon_path>
+# Return statuses
+#  * 0 - addon is linked
+#  * 1 - addon is not present in addons dir
+#  * 2 - addon is present in addons dir, but link points to another path
+function link_is_addon_linked {
+    local addon_path="$(readlink -f $1)";
+    local addon_name="$(basename $addon_path)";
+
+    if [ ! -e "$ADDONS_DIR/$addon_name" ]; then
+        # Addon is not present in custom addons
+        return 1;
+    fi
+    local linked_path="$ADDONS_DIR/$addon_name";
+
+    if [ "$addon_path" == "$(readlink -f $linked_path)" ]; then
+        # Addon is present in custom addons and link points to addon been checked
+        return 0;
+    else
+        return 2;
+    fi
+
+}
+
+
 # link_module_impl <source_path> <dest_path> <force: on|off>
 function link_module_impl {
     local SOURCE=`readlink -f $1`;

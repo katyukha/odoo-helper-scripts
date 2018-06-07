@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.1.7
+
+- Add `--color` option to `odoo-helper addons list` command. At this time this option colors output  by following rules:
+  - green - addon is linked to *custom addons*
+  - red - addons is not present in *custom addons*
+  - yellow - addons is present in *custom addon*, but link point's to anouther place
+
 ## Version 0.1.6 (2018-06-04)
 
 - Improve `odoo-helper addons update-py-deps` command, now it aloso updates repository level dependencies
