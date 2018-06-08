@@ -27,7 +27,7 @@ if [ -z "$ODOO_HELPER_ROOT" ]; then
 
     if [ -z $ODOO_HELPER_ROOT ]; then
         echo "Odoo-helper-scripts seems not been installed correctly.";
-        echo "Reinstall it (see Readme on https://github.com/katyukha/odoo-helper-scripts/)";
+        echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
         exit 1;
     fi
 fi

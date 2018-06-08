@@ -18,13 +18,13 @@ There are two options to install *odoo-helper-scripts*:
 ### User-space installation
 
 ```bash
-wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-user.bash | bash -s
+wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-user.bash | bash -s
 ```
 
 or in more explicit way:
 
 ```bash
-wget -O odoo-helper-install-user.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-user.bash
+wget -O odoo-helper-install-user.bash https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-user.bash
 bash odoo-helper-install-user.bash
 ```
 
@@ -49,13 +49,13 @@ To install (system-wide) just do folowing:
 
 ```bash
 # Install odoo-helper-scripts
-wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
+wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash | sudo bash -s
 
 or more explicit way:
 
 ```bash
 # Download installation script
-wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
+wget -O /tmp/odoo-helper-install.bash https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash;
 
 # Install odoo-helper-scripts
 sudo bash /tmp/odoo-helper-install.bash;
@@ -119,7 +119,7 @@ So to install *development* version system-wide run following command:
 
 ```bash
 # Install odoo-helper-scripts  (note '- dev' in the end of command)
-wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s - dev
+wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash | sudo bash -s - dev
 
 #  Intall system pre-requirements for odoo-helper-scripts
 odoo-helper install pre-requirements
@@ -128,7 +128,7 @@ odoo-helper install pre-requirements
 For user-space install:
 
 ```bash
-wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-user.bash | bash -s - dev
+wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-user.bash | bash -s - dev
 
 #  Intall system pre-requirements for odoo-helper-scripts
 #  NOTE: works only on debian-based systems

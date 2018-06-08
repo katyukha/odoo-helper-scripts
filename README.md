@@ -65,7 +65,7 @@ To install *odoo-helper-scripts* system-wide do folowing:
 
 ```bash
 # Install odoo-helper-scripts
-wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
+wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash | sudo bash -s
 
 # Install system dependencies required for odoo-helper-scripts
 # NOTE: Works only on debian-based systems
@@ -76,7 +76,7 @@ or more explicit way:
 
 ```bash
 # Download installation script
-wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
+wget -O /tmp/odoo-helper-install.bash https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash;
 
 # Install odoo-helper-scripts
 sudo bash /tmp/odoo-helper-install.bash;
