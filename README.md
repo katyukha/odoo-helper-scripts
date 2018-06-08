@@ -45,7 +45,7 @@
 ***Note*** Documentaion in this readme, or in other sources, may not be up to date!!!
 So use ``--help`` option, which is available for most of commands.
 
-- [Documentation](docs/README.md)
+- [Documentation](docs/index.md)
 - [Installation](docs/installation.md)
 - [Frequently used commands](docs/frequently-used-commands.md)
 
@@ -116,7 +116,7 @@ Also there are some aliases for common commands:
 - odoo-helper-server
 - odoo-helper-test
 
-For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*).
+For more info look at [documentation](docs/index.md). (currently documentation status is *work-in-progress*).
 Also look at [Frequently used commands](docs/frequently-used-commands.md)
 
 Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).

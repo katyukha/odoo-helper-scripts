@@ -20,7 +20,12 @@ cache:
         # - /var/cache/apt/archives
         # - /var/lib/apt/lists
 
+stages:
+    - test
+    - docs
+
 tests:
+    stage: test 
     before_script:
         # Setup PIP Cache
         - mkdir -p .cache && chmod a+rwx -R .cache
@@ -39,3 +44,19 @@ tests:
         - bash install-system.bash
         - sudo -u odoo -HE bashcov tests/test.bash
     coverage: '/COVERAGE:.*\s+(\d{1,3}\.\d{2}\%)/'
+
+pages:
+    stage: docs
+    image: python:alpine
+
+    before_script:
+        - pip install mkdocs mkdocs-cinder
+
+    script:
+        - mkdocs build
+        - mv site public
+    artifacts:
+        paths:
+            - public
+    only:
+        - master

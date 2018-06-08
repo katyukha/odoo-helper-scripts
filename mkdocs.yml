@@ -1,0 +1,10 @@
+site_name: odoo-helper-scripts
+site_url: https://odoo-helper-scripts.gitlab.io
+theme: cinder
+pages:
+  - Home: index.md
+  - Installation: installation.md
+  - Frequently Used Commands: frequently-used-commands.md
+  - Reference:
+      - Configuration: odoo-helper-configuration.md
+      - odoo-requirements.txt format: odoo-requirements-txt.md
