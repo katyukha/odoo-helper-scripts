@@ -19,7 +19,7 @@
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
         - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
-    - Specific file format to track addon dependencies: [odoo\_requirements.txt](docs/odoo-requirements-txt.md)
+    - Specific file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
     - installation from *git* repositories
     - installation from *Mercurial* repositories (**experimental**)
     - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi) (automatically process *requirements.txt* files in repository and anddon directories.
@@ -45,9 +45,9 @@
 ***Note*** Documentaion in this readme, or in other sources, may not be up to date!!!
 So use ``--help`` option, which is available for most of commands.
 
-- [Documentation](docs/index.md)
-- [Installation](docs/installation.md)
-- [Frequently used commands](docs/frequently-used-commands.md)
+- [Documentation](https://katyukha.gitlab.io/odoo-helper-scripts/)
+- [Installation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
+- [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/)
 
 
 ## Usage note
@@ -59,7 +59,7 @@ Also, it is possible to manage almost any Odoo intance with this project, if it 
 
 ## Installation
 
-For full list of installation options look at [installation documentation](docs/installation.md)
+For full list of installation options look at [installation documentation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
 
 To install *odoo-helper-scripts* system-wide do folowing:
 
@@ -116,7 +116,7 @@ Also there are some aliases for common commands:
 - odoo-helper-server
 - odoo-helper-test
 
-For more info look at [documentation](docs/index.md). (currently documentation status is *work-in-progress*).
-Also look at [Frequently used commands](docs/frequently-used-commands.md)
+For more info look at [documentation](https://katyukha.gitlab.io/odoo-helper-scripts/). (currently documentation status is *work-in-progress*).
+Also look at [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/)
 
 Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).

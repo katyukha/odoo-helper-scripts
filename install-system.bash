@@ -22,7 +22,7 @@ set -e;  # Fail on each error
 
 # Install git if not installed yet
 if ! command -v git >/dev/null 2>&1; then
-    apt-get install -y git wget;
+    apt-get install -yqq --no-install-recommends git wget;
 fi
 
 # define vars
