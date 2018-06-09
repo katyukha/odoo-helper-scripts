@@ -1,0 +1,62 @@
+image: ubuntu:16.04
+
+variables:
+    CI_RUN: '1'
+    ODOO_HELPER_INSTALL_PATH: "$CI_PROJECT_DIR"
+    TEST_TMP_DIR: "/tmp/odoo-helper-tests"
+    DEBIAN_FRONTEND: 'noninteractive'
+    ALWAYS_ANSWER_YES: '1'
+    LANG: 'C.UTF-8'
+    LC_ALL: 'C.UTF-8'
+    LANGUAGE: 'C.UTF-8'
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
+    APT_DIR: "$CI_PROJECT_DIR/.apt-cache"
+    APT_STATE_LISTS: "$APT_DIR/lists"
+    APT_CACHE_ARCHIVES: "$APT_DIR/archives"
+
+cache:
+    paths:
+        - .cache
+        # - /var/cache/apt/archives
+        # - /var/lib/apt/lists
+
+stages:
+    - test
+    - docs
+
+tests:
+    stage: test 
+    before_script:
+        # Setup PIP Cache
+        - mkdir -p .cache && chmod a+rwx -R .cache
+
+        # Install deps
+        - apt-get update -qq && apt-get install -yqq adduser sudo locales ruby git
+        - update-locale LANG=C.UTF-8 && update-locale LC_ALL=C.UTF-8 && update-locale LANGUAGE=C.UTF-8
+        - gem install bashcov codecov simplecov-console
+
+        # Configure Odoo user
+        - adduser -q odoo
+        - echo ' odoo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+        - sudo -u odoo -HE git config --global user.email "test-oh@test.test"
+        - sudo -u odoo -HE git config --global user.name "test-oh"
+    script:
+        - bash install-system.bash
+        - sudo -u odoo -HE bashcov tests/test.bash
+    coverage: '/COVERAGE:.*\s+(\d{1,3}\.\d{2}\%)/'
+
+pages:
+    stage: docs
+    image: python:alpine
+
+    before_script:
+        - pip install mkdocs mkdocs-cinder
+
+    script:
+        - mkdocs build
+        - mv site public
+    artifacts:
+        paths:
+            - public
+    only:
+        - master

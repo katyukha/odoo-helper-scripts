@@ -1,8 +1,8 @@
 # Odoo helper scripts collection
 
-| Master        | [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=master)](https://travis-ci.org/katyukha/odoo-helper-scripts) | [![Coverage Status](https://codecov.io/gh/katyukha/odoo-helper-scripts/graph/badge.svg)](https://codecov.io/gh/katyukha/odoo-helper-scripts) | [![Release](https://img.shields.io/github/release/katyukha/odoo-helper-scripts.svg)](https://github.com/katyukha/odoo-helper-scripts/releases) | [![Release Date](https://img.shields.io/github/release-date/katyukha/odoo-helper-scripts.svg)](https://github.com/katyukha/odoo-helper-scripts/releases) | [![Last Commit](https://img.shields.io/github/last-commit/katyukha/odoo-helper-scripts/master.svg)](https://github.com/katyukha/odoo-helper-scripts/commits/master) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-master-brightgreen.svg)](https://github.com/katyukha/odoo-helper-scripts/blob/master/CHANGELOG.md)              |
+| Master        | [![pipeline status](https://gitlab.com/katyukha/odoo-helper-scripts/badges/master/pipeline.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/master) |  [![coverage report](https://gitlab.com/katyukha/odoo-helper-scripts/badges/master/coverage.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/master)| [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-master-brightgreen.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/blob/master/CHANGELOG.md)              |
 | ------------- |:---------------|:--------------|:------------|:------------|:------------|:----------|
-| Dev           | [![Build Status](https://travis-ci.org/katyukha/odoo-helper-scripts.svg?branch=dev)](https://travis-ci.org/katyukha/odoo-helper-scripts) | [![Coverage Status](https://codecov.io/gh/katyukha/odoo-helper-scripts/branch/dev/graph/badge.svg)](https://codecov.io/gh/katyukha/odoo-helper-scripts/branch/dev) |   |   | [![Last Commit](https://img.shields.io/github/last-commit/katyukha/odoo-helper-scripts/dev.svg)](https://github.com/katyukha/odoo-helper-scripts/commits/dev) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-dev-yellow.svg)](https://github.com/katyukha/odoo-helper-scripts/blob/dev/CHANGELOG.md) |
+| Dev           | [![pipeline status](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/pipeline.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![coverage report](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/coverage.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-dev-yellow.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/blob/dev/CHANGELOG.md) |
 
 ## Features
 
@@ -45,7 +45,7 @@
 ***Note*** Documentaion in this readme, or in other sources, may not be up to date!!!
 So use ``--help`` option, which is available for most of commands.
 
-- [Documentation](docs/README.md)
+- [Documentation](docs/index.md)
 - [Installation](docs/installation.md)
 - [Frequently used commands](docs/frequently-used-commands.md)
 
@@ -65,7 +65,7 @@ To install *odoo-helper-scripts* system-wide do folowing:
 
 ```bash
 # Install odoo-helper-scripts
-wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
+wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash | sudo bash -s
 
 # Install system dependencies required for odoo-helper-scripts
 # NOTE: Works only on debian-based systems
@@ -76,7 +76,7 @@ or more explicit way:
 
 ```bash
 # Download installation script
-wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
+wget -O /tmp/odoo-helper-install.bash https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash;
 
 # Install odoo-helper-scripts
 sudo bash /tmp/odoo-helper-install.bash;
@@ -116,7 +116,7 @@ Also there are some aliases for common commands:
 - odoo-helper-server
 - odoo-helper-test
 
-For more info look at [documentation](docs/README.md). (currently documentation status is *work-in-progress*).
+For more info look at [documentation](docs/index.md). (currently documentation status is *work-in-progress*).
 Also look at [Frequently used commands](docs/frequently-used-commands.md)
 
 Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).

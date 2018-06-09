@@ -23,4 +23,3 @@ unittest2
 vatnumber
 werkzeug
 xlwt
-

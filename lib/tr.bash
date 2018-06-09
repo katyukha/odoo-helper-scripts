@@ -3,7 +3,7 @@
 
 if [ -z $ODOO_HELPER_LIB ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
-    echo "Reinstall it (see Readme on https://github.com/katyukha/odoo-helper-scripts/)";
+    echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 

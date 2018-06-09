@@ -35,13 +35,13 @@ if [ -f "$ODOO_HELPER_SYS_CONF" ]; then
 fi
 
 # Configure paths
-INSTALL_PATH=${ODOO_HELPER_ROOT:-/opt/odoo-helper-scripts};
+INSTALL_PATH=${ODOO_HELPER_INSTALL_PATH:-/opt/odoo-helper-scripts};
 ODOO_HELPER_LIB=${ODOO_HELPER_LIB:-$INSTALL_PATH/lib};
 ODOO_HELPER_BIN=${ODOO_HELPER_BIN:-$INSTALL_PATH/bin};
 
 # clone repo
 if [ ! -d $INSTALL_PATH ]; then
-    git clone -q https://github.com/katyukha/odoo-helper-scripts $INSTALL_PATH;
+    git clone -q https://gitlab.com/katyukha/odoo-helper-scripts $INSTALL_PATH;
     (cd $INSTALL_PATH && git checkout -q $ODOO_HELPER_BRANCH);
     # TODO: may be it is good idea to pull changes from repository if it is already exists?
     # TODO: implement here some sort of upgrade mechanism?
