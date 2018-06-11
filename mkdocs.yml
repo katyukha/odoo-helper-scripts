@@ -10,7 +10,9 @@ theme: cinder
 
 pages:
   - Home: index.md
-  - Installation: installation.md
+  - User Guide:
+      - Quick Start: quick-start-guide.md
+      - Installation: installation.md
   - Frequently Used Commands: frequently-used-commands.md
   - Reference:
       - Configuration: odoo-helper-configuration.md
