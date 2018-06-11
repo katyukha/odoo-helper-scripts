@@ -1,3 +1,11 @@
+# Copyright © 2016-2018 Dmytro Katyukha <dmytro.katyukha@gmail.com>
+
+#######################################################################
+# This Source Code Form is subject to the terms of the Mozilla Public #
+# License, v. 2.0. If a copy of the MPL was not distributed with this #
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
+#######################################################################
+
 # Prepare for test (if running on CI)
 if [ ! -z $CI_RUN ]; then
     echo -e "\e[33m Running as in CI environment \e[0m";
