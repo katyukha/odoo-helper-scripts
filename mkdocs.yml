@@ -16,4 +16,5 @@ pages:
       - Configuration: odoo-helper-configuration.md
       - Project Directory Structure: project-directory-structure.md
       - odoo-requirements.txt format: odoo-requirements-txt.md
+  - Relase Notes: release-notes.md
 

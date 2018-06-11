@@ -7,3 +7,5 @@
 /coverage/
 /venv/
 /site/
+/public/
+/docs/release-notes.md

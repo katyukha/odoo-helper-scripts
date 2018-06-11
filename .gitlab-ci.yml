@@ -53,8 +53,7 @@ pages:
         - pip install mkdocs mkdocs-cinder
 
     script:
-        - mkdocs build
-        - mv site public
+        - bash build_docs.bash
     artifacts:
         paths:
             - public

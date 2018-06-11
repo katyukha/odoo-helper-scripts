@@ -1,18 +1,18 @@
-# Changelog
+# Release Notes
 
-## Version 0.1.7
+## Release 0.1.7
 
 - Add `--color` option to `odoo-helper addons list` command. At this time this option colors output  by following rules:
-  - green - addon is linked to *custom addons*
-  - red - addons is not present in *custom addons*
-  - yellow - addons is present in *custom addon*, but link point's to anouther place
+    - green - addon is linked to *custom addons*
+    - red - addons is not present in *custom addons*
+    - yellow - addons is present in *custom addon*, but link point's to anouther place
 
-## Version 0.1.6 (2018-06-04)
+## Release 0.1.6 (2018-06-04)
 
 - Improve `odoo-helper addons update-py-deps` command, now it aloso updates repository level dependencies
   (those, mentioned in repository's `requirements.txt`)
 - Added `odoo-helper doc-utils` command. Have following subcommands
-  - `odoo-helper doc-utils addons-list` command to print info about addons in repo in [Markdown](https://en.wikipedia.org/wiki/Markdown) format
+    - `odoo-helper doc-utils addons-list` command to print info about addons in repo in [Markdown](https://en.wikipedia.org/wiki/Markdown) format
 - Move linters to separate subcommand `odoo-helper lint`.
   Run `odoo-helper lint --help` for details
 - Added `odoo-helper lint style` commant.
@@ -20,10 +20,10 @@
 - `odoo-helper lint pylint` skip addons with `'installable': False`
 - `odoo-helper lint flake8` skip addons with `'installable': False`
 - `odoo-helper addons list` command now have extra options and can search for addons in multiple paths:
-  - `--installable`
-  - `--by-name`  (used by default)
-  - `--by-path`
-  - `--recursive`
+    - `--installable`
+    - `--by-name`  (used by default)
+    - `--by-path`
+    - `--recursive`
 - `odoo-helper addons (install|update|uninstall)` command now have
   extra options `--dir <addon path>` and `--dir-r <addon-path>` which can be used
   to install/update/uninstall all installable addons in specified directory
@@ -38,24 +38,24 @@
 - Added option `--dir-r|--directory-r` for `odoo-helper test` command,
   to recursively search for addons to be tested in specified directory
 - Added `--log` option for following commands:
-  - `odoo-helper start --log`
-  - `odoo-helper restart --log`
-  - `odoo-helper addons install --log`
-  - `odoo-helper addons update --log`
-  - `odoo-helper addons uninstall --log`
+    - `odoo-helper start --log`
+    - `odoo-helper restart --log`
+    - `odoo-helper addons install --log`
+    - `odoo-helper addons update --log`
+    - `odoo-helper addons uninstall --log`
 - Command `odoo-helper server log`: automatically move to end of log file after open  (`+G` for `less` command)
 - Added command `odoo-helper postgres start-activity` to display running postgres connections
 - Added command `odoo-helper install reinstall-odoo` to easily spwitch betwen two installation modes:
-  - `download` - download Odoo source as archive (faster)
-  - `clone` - clone Odoo source as git repo (better handle updates, multiple remotes, multiple branches, etc).
+    - `download` - download Odoo source as archive (faster)
+    - `clone` - clone Odoo source as git repo (better handle updates, multiple remotes, multiple branches, etc).
 - Show if it is *Git Install* in output of `odoo-helper status` command
 - Show Odoo server url in output of following command:
-  - `odoo-helper status`
-  - `odoo-helper server status`
-  - `odoo-helper server start`
+    - `odoo-helper status`
+    - `odoo-helper server status`
+    - `odoo-helper server start`
 
 
-## Version 0.1.5 (2018-01-12)
+## Release 0.1.5 (2018-01-12)
 
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) together with
   [virtualenv](https://virtualenv.pypa.io/en/stable/) to be able to install
@@ -86,13 +86,13 @@
   `odoo-helper pip` command. For example: 
   `odoo-helper --oca pip install odoo10-addon-mis-builder` will use [OCA simple](https://wheelhouse.odoo-community.org/) index.
 - `odoo-helper status`: print versions of following tools used in current project.
-  - NodeJS
-  - npm
-  - Less.JS
-  - Pylint
-  - Flake8
-  - ESLint
-  - Pylint Odoo
+    - NodeJS
+    - npm
+    - Less.JS
+    - Pylint
+    - Flake8
+    - ESLint
+    - Pylint Odoo
 - Do not require [erppeek](https://github.com/tinyerp/erppeek).
   This project seems to be abandoned.
 - Do not force install following python packages: *six*, *num2words*
@@ -105,7 +105,7 @@
 - Bugfix in processing OCA depenencies: handle cases, when file ends without newline
 
 
-## Version 0.1.4 (2017-11-13)
+## Release 0.1.4 (2017-11-13)
 
 - Added command `odoo-helper odoo`
 - Added command `odoo-helper odoo recompute`, that allows to recompute stored fields.
@@ -115,7 +115,7 @@
 - Added command `odoo-helper postgres speedify`
 
 
-## Version 0.1.3 (2017-10-28)
+## Release 0.1.3 (2017-10-28)
 
 - use [codecov](https://codecov.io) for code coverage
 - renamed command `odoo-helper print_config` to `odoo-helper print-config`
@@ -124,14 +124,14 @@
 - Added aliase `odoo-helper-log`
 - Added `odoo-helper postgres psql` command
 - Removed old unused options
-  - `odoo-helper --addons-dir <addons_directory>`
-  - `odoo-helper --downloads-dir <downloads_directory>`
-  - `odoo-helper --virtual-env <virtual_env_dir>`
-  - `odoo-helper test --tmp-dirs`
-  - `odoo-helper test --no-rm-tmp-dirs`
+    - `odoo-helper --addons-dir <addons_directory>`
+    - `odoo-helper --downloads-dir <downloads_directory>`
+    - `odoo-helper --virtual-env <virtual_env_dir>`
+    - `odoo-helper test --tmp-dirs`
+    - `odoo-helper test --no-rm-tmp-dirs`
 
 
-## Version 0.1.2 (2017-10-04)
+## Release 0.1.2 (2017-10-04)
 
 - `odoo-install --python` option added. Now it is possible to install Odoo 11
   in python3 virtual environment
@@ -164,17 +164,17 @@
   So, when odoo-helper-scripts provides some new configuration params after update,
   user will be notified about them and asked to update project config file
 - `odoo-helper scaffold` have new features and subcommands:
-  - `odoo-helper scaffold repo` create repository. place it in repo dir
-  - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
-  - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
+    - `odoo-helper scaffold repo` create repository. place it in repo dir
+    - `odoo-helper scaffold addon` create new addon. place it in repo and automaticaly link.
+    - `odoo-helper scaffold model` create new model in addon. (Still work in progress)
 
 
-## Version 0.1.1 (2017-06-08)
+## Release 0.1.1 (2017-06-08)
 
 - Support of Odoo 10.0
 - Support of [setuptools-odoo](https://pypi.python.org/pypi/setuptools-odoo)
-  - Automaticaly install in env
-  - Wrap pip with automaticaly set `PIP_EXTRA_INDEX_URL` environment variable with [OCA Wheelhouse](https://wheelhouse.odoo-community.org/)
+    - Automaticaly install in env
+    - Wrap pip with automaticaly set `PIP_EXTRA_INDEX_URL` environment variable with [OCA Wheelhouse](https://wheelhouse.odoo-community.org/)
 - Added shortcut script `odoo-helper-restart` to restart server.
 - Added `odoo-helper db rename` command
 - Added `odoo-helper install reinstall-venv` option
@@ -184,37 +184,37 @@
 - `odoo-helper fetch`: added experimental support of Mercurial
 - `odoo-helper test --coverage-html` option added.
 - `odoo-helper db create` new options added:
-  - `--demo` load demo data (default: not load)
-  - `--lang <lang` choose language of database
-  - `--help` display help message
+    - `--demo` load demo data (default: not load)
+    - `--lang <lang` choose language of database
+    - `--help` display help message
 - `odoo-install --single-branch` option added. This allow to disable `single-branch` clone.
 - Added `pychart` for install
   `pychart` package is broken on pypi, so replace it with Python-Chart
 
 
-## Version 0.1.0 (2017-03-06)
+## Release 0.1.0 (2017-03-06)
 
 - Added ``odoo-helper addons pull_updates`` command
 - Added basic support of Odoo 10
 - Added ``odoo-helper --version`` command
 - Refactored ``odoo-install`` script:
-  - Always install python extra utils
-  - Removed following options (primery goal of this, is to simplify ``odoo-install`` script):
-    - ``--extra-utils``: extrautils are installed by default
-    - ``--install-sys-deps``: use instead separate command: ``odoo-helper install``
-    - ``--install-and-conf-postgres``: use instead separate command: ``odoo-helper install`` or ``odoo-helper postgres``
-    - ``--use-system-packages``: seems to be not useful
-    - ``--use-shallow-clone``: seems to be not useful
-    - ``--use-unbuffer``: seems to be not useful
-  - Added following options:
-    - ``--odoo-version``: this option is useful in case of using custom
-      repository and custom branch with name different then odoo's version branches
-  - Fixed bug with ``--conf-opt-*`` and ``--test-conf-opt-*`` options
+    - Always install python extra utils
+    - Removed following options (primery goal of this, is to simplify ``odoo-install`` script):
+        - ``--extra-utils``: extrautils are installed by default
+        - ``--install-sys-deps``: use instead separate command: ``odoo-helper install``
+        - ``--install-and-conf-postgres``: use instead separate command: ``odoo-helper install`` or ``odoo-helper postgres``
+        - ``--use-system-packages``: seems to be not useful
+        - ``--use-shallow-clone``: seems to be not useful
+        - ``--use-unbuffer``: seems to be not useful
+    - Added following options:
+        - ``--odoo-version``: this option is useful in case of using custom
+          repository and custom branch with name different then odoo's version branches
+    - Fixed bug with ``--conf-opt-*`` and ``--test-conf-opt-*`` options
 - Completely refactored ``odoo-helper test`` command
-  - removed ``--reinit-base``
-  - added ``--coverage`` options
-  - Added subcommand ``odoo-helper test flake8``
-  - Added subcommand ``odoo-helper test pylint``
+    - removed ``--reinit-base``
+    - added ``--coverage`` options
+    - Added subcommand ``odoo-helper test flake8``
+    - Added subcommand ``odoo-helper test pylint``
 - ``odoo-helper addons update-list`` command: ran for all databases if no db specified
 - suppress git feedback in ``odoo-helper system update``
 - improve system-wide install script: allow to choose odoo-helper branch or
@@ -224,31 +224,31 @@
   that directory
 - odoo-helper: added ``--no-colors`` option
 - ``odoo-helper tr`` command improved:
-  - ``import`` and ``load`` subcommands can be ran on all databases
-  - ``import`` subcommand: added ability to search addons in directory
-  - bugfix in ``tr import``: import translations only for installed addons
+    - ``import`` and ``load`` subcommands can be ran on all databases
+    - ``import`` subcommand: added ability to search addons in directory
+    - bugfix in ``tr import``: import translations only for installed addons
 - Added ``addons test-installed`` command
   This allows to find databases where this addon is installed
 - Bugfix: ``addons check_updates`` command: show repositories that caused errors when checking for updates
 - ``addons status`` command now shows repository's remores
 - ``odoo-helper fetch`` and ``odoo-helper link`` commands refactored:
-  - Added recursion protection for both of therm, to avoid infinite recursion
-  - ``odoo-helepr fetch`` filter-out uninstallable addons, on linking muti-addon repo
-  - ``odoo-helper link`` now is recursive, thus it will look for odoo addons
+    - Added recursion protection for both of therm, to avoid infinite recursion
+    - ``odoo-helepr fetch`` filter-out uninstallable addons, on linking muti-addon repo
+    - ``odoo-helper link`` now is recursive, thus it will look for odoo addons
     recursively in a specified directory and link them all.
 - Added ``odoo-helper install`` command, which allows to install
   system dependencies for specific odoo version without installing odoo itself
 - Added ``odoo-helper addons install --no-restart`` option
 - Added ``odoo-helper addons update --no-restart`` option
 - Added following shortcuts:
-  - ``odoo-helper pip`` to run pip for current project
-  - ``odoo-helper start`` for ``odoo-helper server start``
-  - ``odoo-helper stop`` for ``odoo-helper server stop``
-  - ``odoo-helper restart`` for ``odoo-helper server restart``
-  - ``odoo-helper log`` for ``odoo-helper server log``
+    - ``odoo-helper pip`` to run pip for current project
+    - ``odoo-helper start`` for ``odoo-helper server start``
+    - ``odoo-helper stop`` for ``odoo-helper server stop``
+    - ``odoo-helper restart`` for ``odoo-helper server restart``
+    - ``odoo-helper log`` for ``odoo-helper server log``
 
 
-## Version 0.0.10 (2016-09-08)
+## Release 0.0.10 (2016-09-08)
 
 - Bugfixes in ``odoo-helper test`` command
 - Added ``odoo-helper addons check_updates`` command
@@ -261,7 +261,7 @@
 - Bugfixes and improvements in ``odoo-helper tr`` command
 
 
-## Version 0.0.9 (2016-08-17)
+## Release 0.0.9 (2016-08-17)
 
 - Added ``odoo-helper scaffold <addon_name> [addon_path]`` shortcut command
 - Added ``odoo-helper tr`` subcommand that simplifies translation management
@@ -275,7 +275,7 @@
 - Refactored ``odoo-helper server auto-update`` and ``odoo-helper update_odoo``
 
 
-## Version 0.0.8 (2016-06-08)
+## Release 0.0.8 (2016-06-08)
 
 - Bugfix in ``odoo-helper link .`` command
 - Added aditional extra_python depenencies:
@@ -286,7 +286,7 @@
 - Added experimental command ``odoo-helper db backup-all``.
 
 
-## Version 0.0.7 (2016-04-18)
+## Release 0.0.7 (2016-04-18)
 
 - odoo-helper system lib-path command makes available to use some parts of this project from outside
 - Added new db commands: dump, restore, backup
@@ -294,14 +294,14 @@
 - odoo-install related fixes
 
 
-## Version 0.0.6 (2016-03-19)
+## Release 0.0.6 (2016-03-19)
 
 - Added 'odoo-helper exec <cmd> [args]' command
 - Added simple auto-update mechanism
 - odoo-helper addons: Added ability to list addons not under git
 
 
-## Version 0.0.5 (2016-02-29)
+## Release 0.0.5 (2016-02-29)
 
 - Added support to manage server state via init script
 - Separate *repository* directory to store repositories fetched by this scripts
@@ -309,18 +309,18 @@
 - Added basic support of OCA dependency files (oca\_dependencies.txt)
 
 
-## Version 0.0.4 (2016-02-17)
+## Release 0.0.4 (2016-02-17)
 
 - Added ability to specify config options on odoo-install
 - Added automatic processing of pip requirements file placed in repo.
 - Added better check if postgres installed on attempt to install it.
 
 
-## Version 0.0.3 (2015-12-16)
+## Release 0.0.3 (2015-12-16)
 
 - Added `odoo-helper status` command
 - Added `odoo-helper db` command
 
-## Version 0.0.2 (2015-12-01)
+## Release 0.0.2 (2015-12-01)
 
 - Initial release
