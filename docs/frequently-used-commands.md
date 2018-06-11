@@ -54,8 +54,8 @@ Brief list of frequently used odoo-helper commands
 - `odoo-helper tr regenerate --lang uk_UA --file uk <addon1> [addon2]...` - regenerate translations for specified language for specified addons
 
 ### Other
-- `odoo-helper pip` - run `pip` inside current project's virtual environment [virtualenv](https://virtualenv.pypa.io/en/stable/).
-- `odoo-helper npm` - run `npm` inside current project's virtual environment [nodeenv](https://pypi.python.org/pypi/nodeenv)
+- `odoo-helper pip` - run [pip](https://pypi.org/project/pip/) inside current project's virtual environment [virtualenv](https://virtualenv.pypa.io/en/stable/).
+- `odoo-helper npm` - run [npm](https://www.npmjs.com/) inside current project's virtual environment [nodeenv](https://pypi.python.org/pypi/nodeenv)
 - `odoo-helper exec my-command` - run command inside project's virtual env
 
 
