@@ -1,6 +1,7 @@
 # Installation of odoo-helper-scripts
 
-Installation of *odoo-helper-scripts* consists of two steps:
+Installation of *odoo-helper-scripts* consists of three steps:
+
 1. Install *odoo-helper-scripts*
 2. Install system dependencies for *odoo-helper-scripts*
 3. Install dependencies for specific *Odoo* version
@@ -12,6 +13,7 @@ only supported on debian-like systems (using apt)
 
 ## Installing odoo-helper-scripts itself
 There are two options to install *odoo-helper-scripts*:
+
 - *user-space* installation
 - *system-wide* installation
 
@@ -38,10 +40,10 @@ If this directory does not exists at installation time, then it will be created.
 1. *command not found `odoo-helper`* after installation. Ususaly this happens, because there is
    no `$HOME/bin` directory or it is not in `$PATH` before installation.
    After installation this directory will be created, but additional steps may be required to add it to `$PATH`
-   - restart shell session (for example open new terminal window or tab).
-     This may help if shell is configured to use `$HOME/bin` directory if it is exists.
-   - if *bash* is used as shell, then it may be enough to source `.profile` file (`$ source $HOME/.profile`)
-   - add `$HOME/bin` directory to `$PATH` in your shell start-up configration ([Stack Exchange Question](https://unix.stackexchange.com/questions/381228/home-bin-dir-is-not-on-the-path))
+    - restart shell session (for example open new terminal window or tab).
+      This may help if shell is configured to use `$HOME/bin` directory if it is exists.
+    - if *bash* is used as shell, then it may be enough to source `.profile` file (`$ source $HOME/.profile`)
+    - add `$HOME/bin` directory to `$PATH` in your shell start-up configration ([Stack Exchange Question](https://unix.stackexchange.com/questions/381228/home-bin-dir-is-not-on-the-path))
 
 ### System-wide installation
 
@@ -50,6 +52,7 @@ To install (system-wide) just do folowing:
 ```bash
 # Install odoo-helper-scripts
 wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash | sudo bash -s
+```
 
 or more explicit way:
 
@@ -74,7 +77,7 @@ odoo-helper install pre-requirements
 ```
 
 On other operation systems it may require to install system dependencies manualy
-For example following command will isntall system dependencies for *OpenSUSE* linux
+For example following command will isntall system dependencies for [OpenSUSE](https://www.opensuse.org/) linux
 
 ```bash
 zypper install git wget python-setuptools gcc postgresql-devel python-devel expect-devel libevent-devel libjpeg-devel libfreetype6-devel zlib-devel libxml2-devel libxslt-devel cyrus-sasl-devel openldap2-devel libssl43 libffi-devel

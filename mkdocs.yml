@@ -1,10 +1,19 @@
 site_name: odoo-helper-scripts
+site_author: Dmytro Katyukha
+site_description: 'Just a simple collection of odoo scripts. mostly to ease addons development process (allows to install and manage odoo instances in virtualenv)'
 site_url: https://odoo-helper-scripts.gitlab.io
+
+repo_url: https://gitlab.com/katyukha/odoo-helper-scripts
+repo_name: GitLab
+
 theme: cinder
+
 pages:
   - Home: index.md
   - Installation: installation.md
   - Frequently Used Commands: frequently-used-commands.md
   - Reference:
       - Configuration: odoo-helper-configuration.md
+      - Project Directory Structure: project-directory-structure.md
       - odoo-requirements.txt format: odoo-requirements-txt.md
+
