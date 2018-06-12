@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 SCRIPT=$0;
 SCRIPT_NAME=`basename $SCRIPT`;
