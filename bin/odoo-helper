@@ -278,8 +278,12 @@ function show_project_status {
 
 function odoo_helper_print_version {
     echo -e "Version: ${GREENC}$ODOO_HELPER_VERSION${NC}";
-    echo -e "Branch:  ${BLUEC}$(git_get_branch_name $ODOO_HELPER_ROOT)${NC}";
-    echo -e "Commit:  ${BLUEC}$(git_get_current_commit $ODOO_HELPER_ROOT)${NC}";
+
+    if git_is_git_repo "$ODOO_HELPER_ROOT"; then
+        echo -e "Branch:  ${BLUEC}$(git_get_branch_name $ODOO_HELPER_ROOT)${NC}";
+        echo -e "Commit:  ${BLUEC}$(git_get_current_commit $ODOO_HELPER_ROOT)${NC}";
+    fi
+
     echo -e "Path:    ${YELLOWC}$ODOO_HELPER_ROOT${NC}";
 }
 

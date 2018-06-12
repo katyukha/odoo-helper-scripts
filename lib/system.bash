@@ -26,6 +26,11 @@ set -e; # fail on errors
 function system_update_odoo_helper_scripts {
     local scripts_branch=$1;
 
+    if ! git_is_git_repo "$ODOO_HELPER_ROOT"; then
+        echoe -e "${REDC}ERROR${NC} this action is not available for non-git installs";
+        return 1
+    fi
+
     # update
     local cdir=$(pwd);
     cd $ODOO_HELPER_ROOT;

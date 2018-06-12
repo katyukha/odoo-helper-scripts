@@ -77,3 +77,7 @@ or its subdirectories. Thus*odoo-helper* could find project/instance [config fil
 
 See [Frequently used commands](./frequently-used-commands.md) for more info about available commands
 or just run `odoo-helper --help`
+
+## Support
+
+Have you any quetions? Just [fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new) or [send email](mailto:incoming+katyukha/odoo-helper-scripts@incoming.gitlab.com)

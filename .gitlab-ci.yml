@@ -17,10 +17,13 @@ variables:
 cache:
     paths:
         - .cache
-        # - /var/cache/apt/archives
-        # - /var/lib/apt/lists
+
+stages:
+    - test
+    - package
 
 tests:
+    stage: test
     before_script:
         # Setup PIP Cache
         - mkdir -p .cache && chmod a+rwx -R .cache
@@ -43,7 +46,26 @@ tests:
         paths:
              - coverage
 
+build_packages:
+    stage: package
+    image: ubuntu
+    variables:
+        ODOO_HELPER_ROOT: $CI_PROJECT_DIR
+        ODOO_HELPER_BIN: $CI_PROJECT_DIR/bin
+        ODOO_HELPER_LIB: $CI_PROJECT_DIR/lib
+    before_script:
+        - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc
+        - gem install fpm
+    script:
+        - bash build_packages.bash
+    artifacts:
+        paths:
+            - build/*.deb
+    only:
+        - tags
+
 pages:
+    stage: test
     image: python:alpine
 
     before_script:

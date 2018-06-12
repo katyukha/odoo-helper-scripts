@@ -88,12 +88,16 @@ odoo-helper install pre-requirements
 
 ## Test your OS support
 
-It is possible to run basic tests via docker. For this task, odoo-helper-scripts repo
-contains script ```run_docker_test.bash```. Run ```bash run_docker_test.bash --help``` to
-see all available options for that script.
+It is possible to run basic tests via docker.
+For this task, odoo-helper-scripts repo contains script `run_docker_test.bash`.
+Run `bash run_docker_test.bash --help` to see all available options for that script.
 
 For example to test, how odoo-helper-scripts will work on debian:stretch, do following:
-```cd $ODOO_HELPER_ROOT; bash run_docker_test.bash --docker-ti --docker-image debian:stretch```
+
+```bash
+cd $ODOO_HELPER_ROOT
+bash run_docker_test.bash --docker-ti --docker-image debian:stretch
+```
 
 
 ## Usage
@@ -103,7 +107,7 @@ And after install you will have available folowing scripts in your path:
 - odoo-install
 - odoo-helper
 
-Each script have ``-h`` or ``--help`` option which display most relevant information
+Each script have `-h` or `--help` option which display most relevant information
 about script and all possible options and subcommands of script
 
 Also there are some aliases for common commands:
@@ -120,3 +124,7 @@ For more info look at [documentation](https://katyukha.gitlab.io/odoo-helper-scr
 Also look at [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/)
 
 Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).
+
+## Support
+
+Have you any quetions? Just [fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new) or [send email](mailto:incoming+katyukha/odoo-helper-scripts@incoming.gitlab.com)
