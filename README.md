@@ -38,6 +38,7 @@
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
+- Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
 
 
 ## Documentation
@@ -53,13 +54,17 @@ So use ``--help`` option, which is available for most of commands.
 ## Usage note
 
 This script collection is designed to simplify life of addons developer.
-This project ***is not*** designed, to install and configure production ready Odoo instances!!!
+This project ***is not*** designed, to install and configure production ready Odoo instances!
 To install Odoo in production read [Odoo official installation doc](https://www.odoo.com/documentation/10.0/setup/install.html) first.
 Also, it is possible to manage almost any Odoo intance with this project, if it will be configured right.
+
 
 ## Installation
 
 For full list of installation options look at [installation documentation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
+
+*Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
+but this feature is still experimental*
 
 To install *odoo-helper-scripts* system-wide do folowing:
 
@@ -88,12 +93,16 @@ odoo-helper install pre-requirements
 
 ## Test your OS support
 
-It is possible to run basic tests via docker. For this task, odoo-helper-scripts repo
-contains script ```run_docker_test.bash```. Run ```bash run_docker_test.bash --help``` to
-see all available options for that script.
+It is possible to run basic tests via docker.
+For this task, odoo-helper-scripts repo contains script `scripts/run_docker_test.bash`.
+Run `bash scripts/run_docker_test.bash --help` to see all available options for that script.
 
 For example to test, how odoo-helper-scripts will work on debian:stretch, do following:
-```cd $ODOO_HELPER_ROOT; bash run_docker_test.bash --docker-ti --docker-image debian:stretch```
+
+```bash
+cd $ODOO_HELPER_ROOT
+bash scripts/run_docker_test.bash --docker-ti --docker-image debian:stretch
+```
 
 
 ## Usage
@@ -103,7 +112,7 @@ And after install you will have available folowing scripts in your path:
 - odoo-install
 - odoo-helper
 
-Each script have ``-h`` or ``--help`` option which display most relevant information
+Each script have `-h` or `--help` option which display most relevant information
 about script and all possible options and subcommands of script
 
 Also there are some aliases for common commands:
@@ -120,3 +129,7 @@ For more info look at [documentation](https://katyukha.gitlab.io/odoo-helper-scr
 Also look at [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/)
 
 Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).
+
+## Support
+
+Have you any quetions? Just [fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new) or [send email](mailto:incoming+katyukha/odoo-helper-scripts@incoming.gitlab.com)

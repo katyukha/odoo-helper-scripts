@@ -5,6 +5,7 @@ require 'simplecov-console'
 SimpleCov.start do
     SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
         #SimpleCov::Formatter::Codecov,
+        SimpleCov::Formatter::HTMLFormatter,
         SimpleCov::Formatter::Console
     ])
     add_filter ".git/"
