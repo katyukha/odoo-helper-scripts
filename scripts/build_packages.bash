@@ -1,9 +1,17 @@
 #!/bin/env bash
+SCRIPT=$0;
+SCRIPT_NAME=`basename $SCRIPT`;
+SCRIPT_DIR=$(readlink -f "$(dirname $SCRIPT)");
+WORK_DIR=$(pwd);
+PROJECT_DIR="$(readlink -f $SCRIPT_DIR/..)";
 
-mkdir -p build;
-rm -f build/*;
+BUILD_DIR="$PROJECT_DIR/build";
 
-deb_version=$(bin/odoo-helper exec echo "\$ODOO_HELPER_VERSION" 2>/dev/null);
+
+mkdir -p $BUILD_DIR;
+rm -f $BUILD_DIR/*;
+
+deb_version=${CI_COMMIT_REF_NAME:-$($PROJECT_DIR/bin/odoo-helper exec echo "\$ODOO_HELPER_VERSION" 2>/dev/null)};
 
 deb_depends="git wget lsb-release procps
     python-setuptools libevent-dev g++ libpq-dev
@@ -12,7 +20,7 @@ deb_depends="git wget lsb-release procps
     libsasl2-dev libldap2-dev libssl-dev libffi-dev";
 deb_depends_opt=$(for dep in $deb_depends; do echo "--depends $dep"; done);
 
-fpm -s dir -t deb -p build/ \
+fpm -s dir -t deb -p $BUILD_DIR/ \
     --name odoo-helper-scripts \
     --description "Just a simple collection of odoo scripts. mostly to ease addons development process (allows to install and manage odoo instances in virtualenv)" \
     --config-files /etc/odoo-helper.conf \
@@ -27,8 +35,8 @@ fpm -s dir -t deb -p build/ \
     --license "Mozilla Public License, v. 2.0" \
     --deb-recommends expect-dev \
     --deb-recommends tcl8.6 \
-    bin/=/usr/bin/ \
-    lib/=/opt/odoo-helper-scripts/lib/ \
-    CHANGELOG.md=/opt/odoo-helper-scripts/ \
-    defaults/odoo-helper.conf=/etc/
+    $PROJECT_DIR/bin/=/usr/bin/ \
+    $PROJECT_DIR/lib/=/opt/odoo-helper-scripts/lib/ \
+    $PROJECT_DIR/CHANGELOG.md=/opt/odoo-helper-scripts/ \
+    $PROJECT_DIR/defaults/odoo-helper.conf=/etc/
     

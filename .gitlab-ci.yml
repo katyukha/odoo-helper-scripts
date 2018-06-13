@@ -47,7 +47,8 @@ tests:
              - coverage
 
 build_packages:
-    stage: package
+    #stage: package
+    stage: test
     image: ubuntu
     variables:
         ODOO_HELPER_ROOT: $CI_PROJECT_DIR
@@ -57,12 +58,10 @@ build_packages:
         - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc
         - gem install fpm
     script:
-        - bash build_packages.bash
+        - bash scripts/build_packages.bash
     artifacts:
         paths:
-            - build/*.deb
-    only:
-        - tags
+            - build/odoo-helper-scripts_${CI_COMMIT_REF_NAME}-ubuntu_all.deb
 
 pages:
     stage: test
@@ -72,7 +71,7 @@ pages:
         - pip install mkdocs mkdocs-cinder
 
     script:
-        - sh build_docs.sh
+        - sh scripts/build_docs.sh
     artifacts:
         paths:
             - public

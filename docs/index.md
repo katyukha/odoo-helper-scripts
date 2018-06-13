@@ -1,8 +1,15 @@
 # odoo-helper-scripts documentation
 
-At this moment, here is only basic documentation
+*Documentation is work-in-progress, so here is only basic documentation*
 
-See also [Quick Start Guide](./quick-start-guide.md) and [Frequently used commands](./frequently-used-commands.md)
+Quick links:
+
+- [Quick Start Guide](./quick-start-guide.md) 
+- [Frequently used commands](./frequently-used-commands.md)
+
+## Overview
+
+This project aims to simplify development process of Odoo addons as much as possible.
 
 ## odoo-helper-scripts installation
 

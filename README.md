@@ -37,7 +37,8 @@
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
-    - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
+    - Other linux systems - in most cases should work, but system dependecies must be installed manualy.$a
+- Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
 
 
 ## Documentation
@@ -53,9 +54,10 @@ So use ``--help`` option, which is available for most of commands.
 ## Usage note
 
 This script collection is designed to simplify life of addons developer.
-This project ***is not*** designed, to install and configure production ready Odoo instances!!!
+This project ***is not*** designed, to install and configure production ready Odoo instances!
 To install Odoo in production read [Odoo official installation doc](https://www.odoo.com/documentation/10.0/setup/install.html) first.
 Also, it is possible to manage almost any Odoo intance with this project, if it will be configured right.
+
 
 ## Installation
 
