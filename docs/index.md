@@ -11,9 +11,50 @@ Quick links:
 
 This project aims to simplify development process of Odoo addons as much as possible.
 
-## odoo-helper-scripts installation
+
+## Features
+
+- Easily manage few instances of odoo that ran on same machine
+- High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
+- Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install [node.js](https://nodejs.org/en/), [phantom.js](http://phantomjs.org/), etc in isolated [virtualenv](https://virtualenv.pypa.io/en/stable/)
+- Powerful testing capabilities, including support for:
+    - python and js code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
+    - python code check via [flake8](https://pypi.python.org/pypi/flake8)
+    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)  (**experimental**)
+    - compute test code coverage via [coverage.py](https://coverage.readthedocs.io)
+    - Test web tours via [phantom.js](http://phantomjs.org/)
+- Easy addons installation
+    - Automatiacly resolve and fetch dependencies
+        - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
+        - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
+    - Specific file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
+    - installation from *git* repositories
+    - installation from *Mercurial* repositories (**experimental**)
+    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi) (automatically process *requirements.txt* files in repository and anddon directories.
+    - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
+    - works good with long recursive dependencies.
+      One of the reasons for this script collection development was,
+      ability to automaticaly install more that 50 addons,
+      that depend on each other, and where each addon have it's own git repo.
+- Supported odoo versions:
+    - *7.0* (some functionality may not work),
+    - *8.0*
+    - *9.0*
+    - *10.0*
+    - *11.0*
+- OS support:
+    - On *Ubuntu* should work nice
+    - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
+    - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
+- Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
+
+
+## Installation
 
 For full list of installation options look at [installation documentation](./installation.md)
+
+*Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](./installation#install-as-deb-package)*,
+but this feature is still experimental*
 
 To install *odoo-helper-scripts* system-wide do folowing:
 

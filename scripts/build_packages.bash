@@ -1,4 +1,5 @@
 #!/bin/env bash
+
 SCRIPT=$0;
 SCRIPT_NAME=`basename $SCRIPT`;
 SCRIPT_DIR=$(readlink -f "$(dirname $SCRIPT)");

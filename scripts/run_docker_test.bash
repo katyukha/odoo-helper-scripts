@@ -9,8 +9,9 @@
 #######################################################################
 
 SCRIPT=$0;
-SCRIPT_NAME=`basename $SCRIPT`;
-PROJECT_DIR=$(readlink -f "$(dirname $SCRIPT)");
+SCRIPT_NAME=$(basename $SCRIPT);
+SCRIPT_DIR=$(dirname $SCRIPT);
+PROJECT_DIR=$(readlink -f "$SCRIPT_DIR/..");
 WORK_DIR=`pwd`;
 
 
