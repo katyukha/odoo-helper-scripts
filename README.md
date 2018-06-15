@@ -4,6 +4,10 @@
 | ------------- |:---------------|:--------------|:------------|
 | Dev           | [![pipeline status](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/pipeline.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![coverage report](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/coverage.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-dev-yellow.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/blob/dev/CHANGELOG.md) |
 
+## Canonical source
+
+The canonical source of odoo-helper-scripts is hosted [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).
+
 ## Features
 
 - Easily manage few instances of odoo that ran on same machine
