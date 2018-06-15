@@ -1,7 +1,7 @@
 # Odoo helper scripts collection
 
 | Master        | [![pipeline status](https://gitlab.com/katyukha/odoo-helper-scripts/badges/master/pipeline.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/master) |  [![coverage report](https://gitlab.com/katyukha/odoo-helper-scripts/badges/master/coverage.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/master)| [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-master-brightgreen.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/blob/master/CHANGELOG.md)              |
-| ------------- |:---------------|:--------------|:------------|:------------|:------------|:----------|
+| ------------- |:---------------|:--------------|:------------|
 | Dev           | [![pipeline status](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/pipeline.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![coverage report](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/coverage.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-dev-yellow.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/blob/dev/CHANGELOG.md) |
 
 ## Features
