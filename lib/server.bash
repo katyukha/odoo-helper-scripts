@@ -218,6 +218,9 @@ function server_restart {
 # WARN: only for odoo 8.0+
 # Update odoo sources
 function server_auto_update {
+    echoe -e "${YELLOWC}DEPRECATED${NC}: ${BLUEC}odoo-helper server auto-update${NC} deprecated!";
+    echoe -e "Use ${BLUEC}odoo-helper install reinstall-odoo${NC} or ${BLUEC}odoo-helper update-odoo${NC} instead";
+
     # Stop odoo server
     if server_is_running; then
         echoe -e "${BLUEC}Stopping server...${NC}";
@@ -269,7 +272,7 @@ function server {
         stop            - stop background running server
         restart [--log] - restart background server
         status          - status of background server
-        auto-update     - automatiacly update server. (WARN: experimental feature. may be buggy)
+        auto-update     - automatiacly update server. (WARN: deprecated feature)
         log             - open server log
         ps              - print running odoo processes
         -h|--help|help  - display this message

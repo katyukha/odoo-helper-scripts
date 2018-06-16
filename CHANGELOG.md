@@ -2,10 +2,18 @@
 
 ## Unreleased
 
-- Add `--color` option to `odoo-helper addons list` command. At this time this option colors output  by following rules:
+### Added
+- `--color` option to `odoo-helper addons list` command.
+  At this time this option colors output  by following rules:
     - green - addon is linked to *custom addons*
     - red - addons is not present in *custom addons*
     - yellow - addons is present in *custom addon*, but link point's to anouther place
+
+### Deprecations
+- `odoo-helper server auto-update` use instead:
+  - `odoo-helper intall reinstall-odoo`
+  - `odoo-helper upate-odoo`
+
 
 ## Release 0.1.6 (2018-06-04)
 
