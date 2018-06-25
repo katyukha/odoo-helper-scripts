@@ -8,4 +8,5 @@ PROJECT_DIR="$(readlink -f $SCRIPT_DIR/..)";
 
 
 cp -f $PROJECT_DIR/CHANGELOG.md $PROJECT_DIR/docs/release-notes.md;
+cp -f $PROJECT_DIR/CONTRIBUTING.md $PROJECT_DIR/docs/contributing.md;
 mkdocs build -d $PROJECT_DIR/public

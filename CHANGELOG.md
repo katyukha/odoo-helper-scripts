@@ -1,6 +1,6 @@
 # Release Notes
 
-## Release 0.1.7
+## Unreleased
 
 - Add `--color` option to `odoo-helper addons list` command. At this time this option colors output  by following rules:
     - green - addon is linked to *custom addons*
