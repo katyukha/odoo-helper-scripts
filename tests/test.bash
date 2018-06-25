@@ -11,10 +11,10 @@
 # this script run's basic tests
 
 SCRIPT=$0;
-SCRIPT_NAME=`basename $SCRIPT`;
-PROJECT_DIR=$(readlink -f "`dirname $SCRIPT`/..");
+SCRIPT_NAME=$(basename $SCRIPT);
+PROJECT_DIR=$(readlink -f "$(dirname $SCRIPT)/..");
 TEST_TMP_DIR="${TEST_TMP_DIR:-$PROJECT_DIR/test-temp}";
-WORK_DIR=`pwd`;
+WORK_DIR=$(pwd);
 
 ERROR=;
 

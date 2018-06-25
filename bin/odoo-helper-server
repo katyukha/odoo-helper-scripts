@@ -13,9 +13,9 @@
 
 
 SCRIPT=$0;
-SCRIPT_NAME=`basename $SCRIPT`;
-F=`readlink -f $SCRIPT`;  # full script path;
-WORKDIR=`pwd`;
+SCRIPT_NAME=$(basename $SCRIPT);
+F=(readlink -f $SCRIPT);  # full script path;
+WORKDIR=$(pwd);
 
 # load basic conf
 if [ -f "/etc/odoo-helper.conf" ]; then

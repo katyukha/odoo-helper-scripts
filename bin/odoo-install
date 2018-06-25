@@ -12,9 +12,9 @@
 # Odoo install helper script
 
 SCRIPT=$0;
-SCRIPT_NAME=`basename $SCRIPT`;
-F=`readlink -f $SCRIPT`;  # full script path;
-WORKDIR=`pwd`;
+SCRIPT_NAME=$(basename $SCRIPT);
+F=$(readlink -f $SCRIPT);  # full script path;
+WORKDIR=$(pwd);
 
 
 # load basic conf
@@ -118,7 +118,7 @@ function parse_options {
         local key="$1";
         case $key in
             --install-dir|-i)
-                PROJECT_ROOT_DIR=`readlink -f $2`;
+                PROJECT_ROOT_DIR=$(readlink -f $2);
                 shift;
             ;;
             --odoo-repo)
@@ -183,7 +183,7 @@ function parse_options {
 }
 
 function install_odoo {
-    local save_dir=`pwd`;
+    local save_dir=$(pwd);
     cd "$PROJECT_ROOT_DIR";
 
     # if not installed odoo, install it
