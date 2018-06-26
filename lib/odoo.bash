@@ -36,6 +36,14 @@ function odoo_get_conf_val {
     local key=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
+    if [ -z "$conf_file" ]; then
+        return 1;
+    fi
+
+    if [ ! -f "$conf_file" ]; then
+        return 2;
+    fi
+
     echo $(awk -F " *= *" "/$key/ {print \$2}" $conf_file);
 }
 
@@ -47,13 +55,13 @@ function odoo_get_conf_val_http_host {
 }
 
 function odoo_get_conf_val_http_port {
-    local host="$(odoo_get_conf_val 'http_port')";
-    host="${host:-$(odoo_get_conf_val 'xmlrpc_port')}";
-    host="${host:-8069}";
-    echo "$host";
+    local port="$(odoo_get_conf_val 'http_port')";
+    port="${port:-$(odoo_get_conf_val 'xmlrpc_port')}";
+    port="${port:-8069}";
+    echo "$port";
 }
 
-function odoo_gen_server_url {
+function odoo_get_server_url {
     echo "http://$(odoo_get_conf_val_http_host):$(odoo_get_conf_val_http_port)/";
 }
 
@@ -246,6 +254,7 @@ function odoo_command {
     local usage="Usage:
 
         $SCRIPT_NAME odoo recompute --help                - recompute stored fields for database
+        $SCRIPT_NAME odoo server-url                      - print URL to access this odoo instance
         $SCRIPT_NAME odoo --help                          - show this help message
 
     ";
@@ -263,6 +272,11 @@ function odoo_command {
                 shift;
                 odoo_recompute_stored_fields $@;
                 return 0;
+            ;;
+            server-url)
+                shift;
+                odoo_get_server_url;
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";

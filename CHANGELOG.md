@@ -8,6 +8,7 @@
     - green - addon is linked to *custom addons*
     - red - addons is not present in *custom addons*
     - yellow - addons is present in *custom addon*, but link point's to anouther place
+- Added `odoo-helper odoo server-url` command
 
 ### Deprecations
 - `odoo-helper server auto-update` use instead:

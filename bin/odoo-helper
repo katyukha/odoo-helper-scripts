@@ -223,7 +223,7 @@ function show_project_status {
     if [ $pid -gt 0 ]; then
         local server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
         if [ -z "$INIT_SCRIPT" ]; then
-            local server_url="${BLUEC}$(odoo_gen_server_url)${NC}";
+            local server_url="${BLUEC}$(odoo_get_server_url)${NC}";
         else
             local server_url="";
         fi

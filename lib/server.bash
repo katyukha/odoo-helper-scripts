@@ -126,7 +126,7 @@ function server_start {
             echoe -e "Process ID: ${YELLOWC}${odoo_pid}${NC}";
 
             if [ -z "$INIT_SCRIPT" ]; then
-                echoe -e "Server URL: ${BLUEC}$(odoo_gen_server_url)${NC}";
+                echoe -e "Server URL: ${BLUEC}$(odoo_get_server_url)${NC}";
             fi
         fi
     fi
@@ -183,7 +183,7 @@ function server_status {
         if [ $pid -gt 0 ]; then
             echoe -e "${GREENC}Server process already running: PID=${YELLOWC}${pid}${GREENC}.${NC}";
             if [ -z "$INIT_SCRIPT" ]; then
-                echoe -e "${GREENC}Server URL:${NC} ${BLUEC}$(odoo_gen_server_url)${NC}";
+                echoe -e "${GREENC}Server URL:${NC} ${BLUEC}$(odoo_get_server_url)${NC}";
             fi
         elif [ $pid -eq -2 ]; then
             echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
