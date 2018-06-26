@@ -11,6 +11,9 @@
 - Added `odoo-helper odoo server-url` command
 - Added `odoo-helper system is-project` command
 - Added `odoo-helper system get-venv-dir` command
+- Added new options to `odoo-helper addons update/install/uninstall` commands:
+    - `--tdb|--test-db` use test database
+    - `--cdb|--conf-db` use default database from odoo config
 
 ### Deprecations
 - `odoo-helper server auto-update` use instead:

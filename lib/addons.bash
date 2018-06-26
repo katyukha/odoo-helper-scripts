@@ -177,7 +177,6 @@ function _addon_list_in_directory_display {
 #
 # Note: this funtion lists addon paths
 function addons_list_in_directory {
-    # TODO: add ability to filter only installable addons
     # Process all args that starts with '-' (ie. options)
     local usage="
     Usage:
@@ -192,7 +191,7 @@ function addons_list_in_directory {
         --by-name         - display only addon names
         --by-path         - display addon path
         --color           - color result by link-status
-        -h|--help|help    - display this help message
+        -h|--help         - display this help message
 
     Note:
 
@@ -471,6 +470,8 @@ function addons_install_update {
                                    If not specified, then command applied to
                                    all databases available for
                                    this odoo instance
+        --cdb|--conf-db          - default database from config file
+        --tdb|--test-db          - database used for tests
         --no-restart             - do not restart server during addons update
                                    By default server will be stopped before
                                    command and restarted after command finishes.
@@ -495,6 +496,12 @@ function addons_install_update {
             -d|--db)
                 dbs=$dbs$'\n'$2;
                 shift;
+            ;;
+            --cdb|--conf-db)
+                dbs=$(odoo_get_conf_val db_name);
+            ;;
+            --tdb|--test-db)
+                dbs=$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE);
             ;;
             --dir)
                 todo_addons="$todo_addons,$(join_by , $(addons_list_in_directory --installable --by-name $2))";
