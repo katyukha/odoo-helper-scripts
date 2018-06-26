@@ -59,14 +59,50 @@ function system_update_odoo_helper_scripts {
     cd $cdir;
 }
 
+# Check if specified directory or current directory is odoo-hleper project
+function system_is_odoo_helper_project {
+    local dir_name=${1:-$(pwd)};
+    local save_dir=$(pwd);
+
+    cd $dir_name;
+    config_load_project 2>/dev/null;
+    cd $save_dir;
+    if [ -z $PROJECT_ROOT_DIR ]; then
+        return 1;
+    else
+        return 0;
+    fi
+}
+
+# Return odoo-helper path to virtualenv directory
+function system_get_venv_dir {
+    local dir_name=${1:-$(pwd)};
+    local save_dir=$(pwd);
+
+    cd $dir_name;
+    config_load_project 2>/dev/null;
+    cd $save_dir;
+    if [ ! -z $PROJECT_ROOT_DIR ]; then
+        echo "${VENV_DIR}";
+    else
+        echoe -e "${REDC}ERROR${NC}: directory ${YELLOWC}${dir_name}${NC} is not under odoo-helper project";
+    fi
+}
+
 
 # system entry point
 function system_entry_point {
     local usage="Usage:
 
-        $SCRIPT_NAME system update [branch]      - update odoo-helper-scripts (to specified branch / commit)
-        $SCRIPT_NAME system lib-path <lib name>  - print path to lib with specified name
-        $SCRIPT_NAME system --help              - show this help message
+        $SCRIPT_NAME system update [branch]        - update odoo-helper-scripts (to specified branch / commit)
+        $SCRIPT_NAME system lib-path <lib name>    - print path to lib with specified name
+        $SCRIPT_NAME system is-project [path]      - check if specified dir is odoo-helper project
+                                                     if dirname is not specified then current dir checked
+        $SCRIPT_NAME system get-venv-dir [path]    - if path is part of odoo-helper project than print path
+                                                     to virtualenv directory for this project.
+                                                     if path is not specified, then current working directory
+                                                     is used instead
+        $SCRIPT_NAME system --help                 - show this help message
 
     ";
 
@@ -87,6 +123,16 @@ function system_entry_point {
             lib-path)
                 shift;
                 oh_get_lib_path "$@"
+                return;
+            ;;
+            is-project)
+                shift;
+                system_is_odoo_helper_project $@;
+                return
+            ;;
+            get-venv-dir)
+                shift;
+                system_get_venv_dir $@;
                 return;
             ;;
             -h|--help|help)
