@@ -19,6 +19,7 @@
 - `odoo-helper server auto-update` use instead:
   - `odoo-helper intall reinstall-odoo`
   - `odoo-helper upate-odoo`
+- Support of Odoo 7.0 is now deprecated and will be removed in one of next releases
 
 
 ## Release 0.1.6 (2018-06-04)

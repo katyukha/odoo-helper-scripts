@@ -550,6 +550,7 @@ function odoo_run_setup_py {
     odoo_gevent_install_workaround;
 
     if [ "$ODOO_VERSION" == "7.0" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
         install_odoo_workaround_70;
     fi
 

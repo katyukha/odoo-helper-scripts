@@ -307,8 +307,8 @@ function fetch_module {
            # same as previous but via --github option
            $SCRIPT_NAME fetch --github katyukha/base_tags
 
-           # fetch project_sla module from project-service repository of OCA using branch 7.0
-           $SCRIPT_NAME fetch --oca project-service -m project_sla -b 7.0
+           # fetch project_sla module from project repository of OCA using branch 8.0
+           $SCRIPT_NAME fetch --oca project -m project_sla -b 8.0
 
         Also note that if using -p or --python option, You may install packages directly from vcs
         using syntax like
