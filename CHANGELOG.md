@@ -14,6 +14,7 @@
 - New options to `odoo-helper addons update/install/uninstall` commands:
     - `--tdb|--test-db` use test database
     - `--cdb|--conf-db` use default database from odoo config
+- Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
 
 ### Deprecations
 - `odoo-helper server auto-update` use instead:

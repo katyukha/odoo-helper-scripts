@@ -95,6 +95,7 @@ function print_usage {
         print-config                        - print current configuration
         status                              - show project status
         start|stop|restart|log              - shortcuts for server commands
+        psql                                - shortcut for postgres psql command
         pylint                              - shortcut for 'lint pylint' command
         flake8                              - shortcut for 'lint flake8' command
         style                               - shortcut for 'lint style' command
@@ -411,6 +412,11 @@ function odoo_helper_main {
             postgres)
                 shift;
                 postgres_command "$@";
+                return;
+            ;;
+            psql)
+                shift;
+                postgres_command psql "$@";
                 return;
             ;;
             install)
