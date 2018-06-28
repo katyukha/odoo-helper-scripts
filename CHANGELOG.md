@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+
 - `--color` option to `odoo-helper addons list` command.
   At this time this option colors output  by following rules:
     - green - addon is linked to *custom addons*
@@ -15,8 +16,14 @@
     - `--tdb|--test-db` use test database
     - `--cdb|--conf-db` use default database from odoo config
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
+- alias to `--version` option - `version`: `odoo-helper version`
+
+### Modified
+
+- `odoo-helper addons list` will search for addons in current directory in addons path is not specified
 
 ### Deprecations
+
 - `odoo-helper server auto-update` use instead:
   - `odoo-helper intall reinstall-odoo`
   - `odoo-helper upate-odoo`

@@ -106,7 +106,7 @@ function print_usage {
                                               will be used to install OCA addons.
         npm <npm arguments>                 - Run npm installed in current project's environment
         help | --help | -h                  - display this help message
-        --version                           - display odoo-helper version and exit
+        --version|version                   - display odoo-helper version and exit
     
     Global options:
         --use-copy                          - if set, then downloaded modules, repositories will
@@ -309,7 +309,7 @@ function odoo_helper_main {
                 print_usage;
                 return 0;
             ;;
-            --version)
+            --version|version)
                 odoo_helper_print_version;
                 return 0;
             ;;
@@ -485,4 +485,3 @@ function odoo_helper_main {
 }
 
 odoo_helper_main "$@";
-

@@ -121,6 +121,7 @@ odoo-helper start
 ```
 
 And login to just created database with following default credentials:
+
 - login: admin
 - password: admin
 

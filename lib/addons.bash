@@ -232,6 +232,10 @@ function addons_list_in_directory {
         shift
     done
 
+    if [ -z "$@" ]; then
+        set - $(pwd);
+    fi
+
     for addons_path in $@; do
         # Look for addons
         if [ -d $addons_path ]; then
