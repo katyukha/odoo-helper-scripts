@@ -4,14 +4,15 @@
 
 ### Added
 
-- `--color` option to `odoo-helper addons list` command.
+- New `--color` option to `odoo-helper addons list` command.
   At this time this option colors output  by following rules:
     - green - addon is linked to *custom addons*
     - red - addons is not present in *custom addons*
     - yellow - addons is present in *custom addon*, but link point's to anouther place
-- `odoo-helper odoo server-url` command
-- `odoo-helper system is-project` command
-- `odoo-helper system get-venv-dir` command
+- New `--not-linked` option to `odoo-helper addons list` command
+- New `odoo-helper odoo server-url` command
+- New `odoo-helper system is-project` command
+- New `odoo-helper system get-venv-dir` command
 - New options to `odoo-helper addons update/install/uninstall` commands:
     - `--tdb|--test-db` use test database
     - `--cdb|--conf-db` use default database from odoo config
