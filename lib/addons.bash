@@ -195,7 +195,7 @@ function addons_list_in_directory {
     local usage="
     Usage:
 
-        $SCRIPT_NAME addons list [options] <path> [path2 [pathn]]
+        $SCRIPT_NAME addons list [options] [path [path2 [pathn]]]
         $SCRIPT_NAME addons list --help
 
     Options:
@@ -218,6 +218,8 @@ function addons_list_in_directory {
     local color_mode='off';
     local installable_only=0;
     local not_linked_only=0;
+    local recursive_options=;
+
     while [[ $1 == -* ]]
     do
         local key="$1";
@@ -228,21 +230,27 @@ function addons_list_in_directory {
             ;;
             -r|--recursive)
                 local recursive=1;
+                recursive_options="$recursive_options --recursive";
             ;;
             --installable)
                 installable_only=1;
+                recursive_options="$recursive_options --installable";
             ;;
             --not-linked)
                 not_linked_only=1;
+                recursive_options="$recursive_options --not-linked";
             ;;
             --by-name)
                 name_mode='name';
+                recursive_options="$recursive_options --by-name";
             ;;
             --by-path)
                 name_mode='path';
+                recursive_options="$recursive_options --by-path";
             ;;
             --color)
                 color_mode='link';
+                recursive_options="$recursive_options --color";
             ;;
             *)
                 echo "Unknown option $key";
@@ -252,8 +260,9 @@ function addons_list_in_directory {
         shift
     done
 
-    if [ -z "$@" ]; then
-        set - $(pwd);
+    if [ -z "$1" ]; then
+        addons_list_in_directory $recursive_options $(pwd);
+        return;
     fi
 
     for addons_path in $@; do
@@ -271,7 +280,7 @@ function addons_list_in_directory {
                         _addons_list_in_directory_display "$addon" $name_mode $color_mode;
                     fi
                 elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
-                    addons_list_in_directory "$addon";
+                    addons_list_in_directory $recursive_options "$addon";
                 fi
             done
         fi

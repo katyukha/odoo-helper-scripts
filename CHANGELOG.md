@@ -19,9 +19,14 @@
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
 - alias to `--version` option - `version`: `odoo-helper version`
 
+### Fix
+
+- `odoo-helper addons list` bugfix `--recursive` option:
+  forward options to recursive calls
+
 ### Modified
 
-- `odoo-helper addons list` will search for addons in current directory in addons path is not specified
+- `odoo-helper addons list` will search for addons in current directory if addons path is not specified
 
 ### Deprecations
 
