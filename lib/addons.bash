@@ -461,10 +461,10 @@ function addons_install_update_internal {
     local todo_addons="$1"; shift;
 
     if [ "$cmd" == "install" ]; then
-        server_run -d $db -i $todo_addons --stop-after-init --no-xmlrpc;
+        server_run -- -d $db -i $todo_addons --stop-after-init --no-xmlrpc;
         return $?
     elif [ "$cmd" == "update" ]; then
-        server_run -d $db -u $todo_addons --stop-after-init --no-xmlrpc;
+        server_run -- -d $db -u $todo_addons --stop-after-init --no-xmlrpc;
         return $?
     elif [ "$cmd" == "uninstall" ]; then
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";

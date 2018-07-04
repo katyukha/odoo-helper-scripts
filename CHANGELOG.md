@@ -8,7 +8,7 @@
   At this time this option colors output  by following rules:
     - green - addon is linked to *custom addons*
     - red - addons is not present in *custom addons*
-    - yellow - addons is present in *custom addon*, but link point's to anouther place
+    - yellow - addons is present in *custom addon*, but link point's to another place
 - New `--not-linked` option to `odoo-helper addons list` command
 - New `odoo-helper odoo server-url` command
 - New `odoo-helper system is-project` command
@@ -18,6 +18,12 @@
     - `--cdb|--conf-db` use default database from odoo config
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
 - alias to `--version` option - `version`: `odoo-helper version`
+- New options for `odoo-helper server run` command
+    - `--coverage`: run with code coverage enabled
+    - `--test-conf`: run with test configuratuon
+    - `--help`: show help message
+    - `--`: options delimiter - all options after this
+      will be passed directly to Odoo
 
 ### Fix
 

@@ -30,22 +30,13 @@ set -e; # fail on errors
 # test_run_server <with_coverage 0|1> [server options]
 function test_run_server {
     local with_coverage=$1; shift;
-    local SERVER=`get_server_script`;
-    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}][${YELLOWC}coverage:${with_coverage}${BLUEC}]${NC}: $SERVER $@";
+    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}][${YELLOWC}coverage:${with_coverage}${BLUEC}]${NC}: $@";
 
     # enable test coverage
     if [ $with_coverage -eq 1 ]; then
-        if [ -z $COVERAGE_INCLUDE ]; then
-            local COVERAGE_INCLUDE="$(pwd)/*";
-        fi
-        if ! check_command coverage >/dev/null 2>&1; then
-            echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found. Please, run *${BLUEC}odoo-helper install py-tools${BLUEC}* or *${BLUEC}odoo-helper pip install coverage${NC}*.";
-            return 1
-        fi
-        exec_conf $ODOO_TEST_CONF_FILE execu "coverage run --rcfile=$ODOO_HELPER_LIB/default_config/coverage.cfg \
-            --include='$COVERAGE_INCLUDE' $SERVER --stop-after-init --workers=0 $@";
+        server_run --coverage --test-conf -- --stop-after-init --workers=0 $@;
     else
-        exec_conf $ODOO_TEST_CONF_FILE execu "$SERVER --stop-after-init --workers=0 $@";
+        server_run --test-conf -- --stop-after-init --workers=0 $@;
     fi
 }
 
@@ -263,7 +254,12 @@ function test_module {
         $SCRIPT_NAME test pylint ./my_cool_module  # check addon with pylint
         $SCRIPT_NAME test flake8 ./my_cool_module  # check addon with flake8
         $SCRIPT_NAME test style ./my_cool_module   # run stylelint standard checks for addon
-        
+
+    Notes:
+        To handle coverage right, it is recommended to run tests
+        being inside repository root directory or inside addon root directory,
+        because, by default, only files in current working directory included
+        in coverage report.
     ";
 
     # Parse command line options and run commands

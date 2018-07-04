@@ -72,17 +72,81 @@ function server_log {
     less +G $@ -- ${LOG_FILE:-$LOG_DIR/odoo.log};
 }
 
-# server_run <arg1> .. <argN>
-# all arguments will be passed to odoo server
+# server_run [options] <arg1> .. <argN>
+# all arguments (except options) will be passed to odoo server
+# available options
+#   --test-conf
+#   --coverage
 function server_run {
+    local usage="
+    Run odoo server
+
+    Usage:
+
+        $SCRIPT_NAME server run [options] -- [odoo options]
+
+    Options:
+        --test-conf     - run odoo-server with test configuration file
+        --coverage      - run odoo with coverage mode enabled
+        -h|--help|help  - display this message
+
+    Options after '--' will be passed directly to Odoo.
+
+    For example:
+        $ odoo-helper server run --test-conf -- workers=2
+
+    For --coverage option files in current working directory will be covered
+    To add customa paths use environement variable COVERAGE_INCLUDE
+    ";
+    local server_conf="$ODOO_CONF_FILE";
+    local with_coverage=0;
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            --test-conf)
+                server_conf="$ODOO_TEST_CONF_FILE";
+                shift;
+            ;;
+            --coverage)
+                with_coverage=1;
+                shift;
+            ;;
+            --help|-h|help)
+                echo "$usage";
+                return 0;
+            ;;
+            --)
+                shift;
+                break;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
     local SERVER=`get_server_script`;
-    echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
     if [ ! -z $SERVER_RUN_USER ]; then
         local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
         echov "Using server run opt: $sudo_opt";
     fi
 
-    exec_conf $ODOO_CONF_FILE execu "$sudo_opt $SERVER $@";
+
+    if [ "$with_coverage" -eq 1 ]; then
+        local coverage_include="${COVERAGE_INCLUDE:-$(pwd)/*}";
+
+        if ! check_command coverage >/dev/null 2>&1; then
+            echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found." \
+               " Please, run *${BLUEC}odoo-helper install py-tools${BLUEC}* or " \
+               " *${BLUEC}odoo-helper pip install coverage${NC}*.";
+            return 1
+        fi
+        exec_conf $server_conf execu "coverage run --rcfile=$coverage_conf \
+            --include='$coverage_include' $SERVER $@";
+    else
+        echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
+        exec_conf $server_conf execu "$sudo_opt $SERVER $@";
+    fi
 }
 
 function server_start {
@@ -101,7 +165,7 @@ function server_start {
             return 1;
         fi
 
-        server_run --pidfile=$ODOO_PID_FILE "$@" &
+        server_run -- --pidfile=$ODOO_PID_FILE "$@" &
 
         # Wait until Odoo server started
         local odoo_pid=;
@@ -267,7 +331,7 @@ function server {
     args - arguments that usualy will be passed forward to openerp-server script
 
     Commands:
-        run             - run the server. if no command supply, this one will be used
+        run [--help]    - run the server. if no command supply, this one will be used
         start [--log]   - start server in background
         stop            - stop background running server
         restart [--log] - restart background server
