@@ -358,7 +358,7 @@ function odoo_helper_main {
             server)
                 shift;
                 config_load_project;
-                server "$@";
+                server_command "$@";
                 return;
             ;;
             addons)
@@ -444,7 +444,7 @@ function odoo_helper_main {
             # Server shortcuts
             start|stop|restart|log)
                 config_load_project;
-                server $@;
+                server_command $@;
                 return;
             ;;
             # Lint shortcuts

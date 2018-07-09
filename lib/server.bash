@@ -358,7 +358,7 @@ function server_ps {
 # server [options] <command> <args>
 # server [options] start <args>
 # server [options] stop <args>
-function server {
+function server_command {
     local usage="
     Usage 
 
@@ -367,19 +367,19 @@ function server {
     args - arguments that usualy will be passed forward to openerp-server script
 
     Commands:
-        run [--help]    - run the server. if no command supply, this one will be used
-        start [--log]   - start server in background
-        stop            - stop background running server
-        restart [--log] - restart background server
-        status          - status of background server
-        auto-update     - automatiacly update server. (WARN: deprecated feature)
-        log             - open server log
-        ps              - print running odoo processes
-        -h|--help|help  - display this message
+        run [--help]     - run the server. if no command supply, this one will be used
+        start [--help]   - start server in background
+        stop             - stop background running server
+        restart [--help] - restart background server
+        status           - status of background server
+        auto-update      - automatiacly update server. (WARN: deprecated feature)
+        log              - open server log
+        ps               - print running odoo processes
+        -h|--help|help   - display this message
 
     Options:
         --use-test-conf     - Use test configuration file for server
-        -u|--user           - Name of user to run server as
+        -u|--user           - [sudo] Name of user to run server as
     ";
 
     while [[ $# -gt 0 ]]
@@ -391,8 +391,9 @@ function server {
                 return 0;
             ;;
             --use-test-conf)
+                # TODO: do we realy need this?
                 ODOO_CONF_FILE=$ODOO_TEST_CONF_FILE;
-                echo -e "${YELLOWC}NOTE${NC}: Using test configuration file: $ODOO_TEST_CONF_FILE";
+                echoe -e "${YELLOWC}NOTE${NC}: Using test configuration file: $ODOO_TEST_CONF_FILE";
             ;;
             -u|--user)
                 SERVER_RUN_USER=$2;
