@@ -79,7 +79,7 @@ function server_log {
 #   --coverage
 function server_run {
     local usage="
-    Run odoo server
+    Run Odoo server in foreground
 
     Usage:
 
@@ -151,10 +151,54 @@ function server_run {
 }
 
 function server_start {
-    if [ "$1" == "--log" ]; then
-        local log_after_start=1;
-        shift;
-    fi
+    local usage="
+    Start Odoo server in background
+
+    Usage:
+
+        $SCRIPT_NAME server start [options] -- [odoo options]
+
+    Options:
+        --test-conf     - start odoo-server with test configuration file
+        --coverage      - start odoo with coverage mode enabled
+        --log           - open logfile after server been started
+        -h|--help|help  - display this message
+
+    Options after '--' will be passed directly to Odoo.
+
+    For example:
+        $ odoo-helper server start --test-conf -- workers=2
+
+    For --coverage option files in current working directory will be covered
+    To add customa paths use environement variable COVERAGE_INCLUDE
+    ";
+    local server_run_opts="";
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            --test-conf|--coverage)
+                server_run_opts="$server_run_opts $key";
+                server_conf="$ODOO_TEST_CONF_FILE";
+                shift;
+            ;;
+            --log)
+                local log_after_start=1;
+                shift;
+            ;;
+            --help|-h|help)
+                echo "$usage";
+                return 0;
+            ;;
+            --)
+                shift;
+                break;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
 
     if [ ! -z $INIT_SCRIPT ]; then
         echo -e "${YELLOWC}Starting server via init script: $INIT_SCRIPT ${NC}";
@@ -166,7 +210,7 @@ function server_start {
             return 1;
         fi
 
-        server_run -- --pidfile=$ODOO_PID_FILE "$@" &
+        server_run $server_run_opts -- --pidfile=$ODOO_PID_FILE "$@" &
 
         # Wait until Odoo server started
         local odoo_pid=;
@@ -261,21 +305,12 @@ function server_status {
 }
 
 function server_restart {
-    if [ "$1" == "--log" ]; then
-        local log_after_start=1;
-        shift;
-    fi
-
     if [ ! -z $INIT_SCRIPT ]; then
         echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT restart;
     else
         server_stop;
         server_start "$@";
-    fi
-
-    if [ ! -z $log_after_start ]; then
-        server_log;
     fi
 }
 
