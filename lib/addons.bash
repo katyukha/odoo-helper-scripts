@@ -498,26 +498,29 @@ function addons_install_update {
 
     Options
 
-        -d|--db <database>       - database to $cmd addons on.
-                                   may be specified multiple times.
-                                   If not specified, then command applied to
-                                   all databases available for
-                                   this odoo instance
-        --cdb|--conf-db          - default database from config file
-        --tdb|--test-db          - database used for tests
-        --no-restart             - do not restart server during addons update
-                                   By default server will be stopped before
-                                   command and restarted after command finishes.
-                                   If command return non-zero exit code, then
-                                   server will not be restarted.
-        --start                  - Start odoo server on $cmd success.
-        --log                    - Open log after $cmd
-        --dir <addon path>       - directory to $cmd addons from.
-                                   Searches for all installable addons
-                                   in specified directory.
-                                   May be specified multiple times
-        --dir-r <addon path>     - Same as --dir, but searches for addons recursively.
-                                   May be specified multiple times
+        -d|--db <database>     - database to $cmd addons on.
+                                 may be specified multiple times.
+                                 If not specified, then command applied to
+                                 all databases available for
+                                 this odoo instance
+        --cdb|--conf-db        - default database from config file
+        --tdb|--test-db        - database used for tests
+        --no-restart           - do not restart server during addons update
+                                 By default server will be stopped before
+                                 command and restarted after command finishes.
+                                 If command return non-zero exit code, then
+                                 server will not be restarted.
+        --start                - Start odoo server on $cmd success.
+        --log                  - Open log after $cmd
+        --dir <addon path>     - directory to $cmd addons from.
+                                 Searches for all installable addons
+                                 in specified directory.
+                                 May be specified multiple times
+        --dir-r <addon path>   - Same as --dir, but searches for addons recursively.
+                                 May be specified multiple times
+        -m|--module <addon>    - $cmd addon name. This option is added
+                                 to be consistend with *odoo-helper test* command.
+                                 Could be specified multiple times
     ";
     local need_start=;
     local dbs="";
@@ -553,9 +556,18 @@ function addons_install_update {
             --log)
                 local open_logs=1;
             ;;
+            -m|--module)
+                # To be consistent with *odoo-helper test* command
+                todo_addons="$todo_addons,$2";
+                shift;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${1}${NC}!"
+                return 1;
             ;;
             *)
                 todo_addons="$todo_addons,$1";

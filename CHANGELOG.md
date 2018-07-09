@@ -16,6 +16,9 @@
 - New options to `odoo-helper addons update/install/uninstall` commands:
     - `--tdb|--test-db` use test database
     - `--cdb|--conf-db` use default database from odoo config
+    - `-m` or `--module`. Option is added to be consistend with
+      `odoo-helper test` command, which used this toption to specify
+      addons (modules) to be tested
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
 - alias to `--version` option - `version`: `odoo-helper version`
 - New options for `odoo-helper server run` command
