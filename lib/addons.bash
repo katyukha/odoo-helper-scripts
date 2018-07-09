@@ -64,6 +64,40 @@ function addons_get_addon_path {
     echo "$addon_path";
 }
 
+# Echo name of addon specified by path
+# addons_get_addon_name <addon path>
+function addons_get_addon_name {
+    local addon=$1;
+    if [ -d "$addon" ] && is_odoo_module $addon; then
+        local addon_path="$(readlink -f $addon)";
+        echo "$(basename $addon_path)";
+    else
+        # If addon does not points to a directory, then we think that it is
+        # name of addon
+        echo "$addon";
+    fi
+}
+
+
+# Check if specified addons name or path is odoo addon
+# addons_is_odoo_addon <addon name or path>
+function addons_is_odoo_addon {
+    local addon=$1;
+
+    if [ -z "$addon" ]; then
+        return 1;
+    elif [ -d "$addon" ] && is_odoo_module $addon; then
+        local addon_path="$(readlink -f $addon)";
+    else
+        local addon_path="$(addons_get_addon_path $addon)";
+    fi
+
+    if [ -z "$addon_path" ]; then
+        return 2;
+    fi
+}
+
+
 # Check if addon is installable
 #
 # Return 0 if addon is installable else 1;
@@ -558,7 +592,12 @@ function addons_install_update {
             ;;
             -m|--module)
                 # To be consistent with *odoo-helper test* command
-                todo_addons="$todo_addons,$2";
+                if ! addons_is_odoo_addon "$2"; then
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${2}${NC} is not Odoo addon!";
+                    return 1;
+                else
+                    todo_addons="$todo_addons,$(addons_get_addon_name $2)";
+                fi
                 shift;
             ;;
             -h|--help|help)
@@ -570,7 +609,12 @@ function addons_install_update {
                 return 1;
             ;;
             *)
-                todo_addons="$todo_addons,$1";
+                if ! addons_is_odoo_addon "$1"; then
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${1}${NC} is not Odoo addon!";
+                    return 1;
+                else
+                    todo_addons="$todo_addons,$(addons_get_addon_name $1)";
+                fi
             ;;
         esac
         shift

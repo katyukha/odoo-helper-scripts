@@ -301,7 +301,12 @@ function test_module {
                 with_coverage_skip_covered=1
             ;;
             -m|--module)
-                modules="$modules $2";  # add module to module list
+                if ! addons_is_odoo_addon "$2"; then
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${2}${NC} is not Odoo addon!";
+                    return 1;
+                else
+                    modules="$modules $(addons_get_addon_name $2)";  # add module to module list
+                fi
                 shift;
             ;;
             -d|--dir|--directory)

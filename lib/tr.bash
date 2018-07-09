@@ -54,7 +54,11 @@ function tr_parse_addons {
             elif [[ "$1" =~ ^--dir-r=(.*)$ ]]; then
                 addons="$addons $(join_by ' '  $(addons_list_in_directory --installable --recursive --by-name ${BASH_REMATCH[1]}))";
             else
-                addons="$addons $1";
+                if addons_is_odoo_addon "$1"; then
+                    addons="$addons $1";
+                else
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${1}${NC} is not Odoo addon! Skipped...";
+                fi
             fi
             shift;
         done
