@@ -335,7 +335,7 @@ function server_auto_update {
     odoo_update_sources;
 
     echoe -e "${BLUEC}update databases...${NC}";
-    addons_install_update "update" all;
+    addons_install_update update base;
 
     # Start server again if it was stopped
     if [ ! -z $need_start ]; then
