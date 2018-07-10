@@ -282,10 +282,10 @@ odoo-helper addons list --recursive ./custom_addons;
 odoo-helper addons list --installable ./custom_addons;
 odoo-helper addons list --color --recursive ./repositories;
 odoo-helper addons update-list
-odoo-helper addons install bus_enchanced;
-odoo-helper addons test-installed bus_enchanced;  # find databases where this addons is installed
-odoo-helper addons update bus_enchanced;
-odoo-helper addons uninstall bus_enchanced;
+odoo-helper addons install bus_enhanced;
+odoo-helper addons test-installed bus_enhanced;  # find databases where this addons is installed
+odoo-helper addons update bus_enhanced;
+odoo-helper addons uninstall bus_enhanced;
 
 # Update python dependencies of addons
 odoo-helper addons update-py-deps
