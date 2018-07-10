@@ -87,13 +87,50 @@ function odoo_db_create {
     fi
 }
 
-# odoo_db_drop <name> [odoo_conf_file]
+# odoo_db_drop [options] <name> [odoo_conf_file]
 function odoo_db_drop {
+    local usage="
+    Drop database
+
+    Usage:
+
+        $SCRIPT_NAME db drop [options] <dbname> [conf file] - drop database
+        $SCRIPT_NAME db drop --help                         - show this help message
+
+    Options:
+
+        -q|--quite    do not show messages
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -q|--quite)
+                local opt_quite=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
     if ! odoo_db_exists -q $db_name; then
-        echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
         return 1;
     fi
 
@@ -101,10 +138,10 @@ function odoo_db_drop {
     python_cmd="$python_cmd cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name');"
     
     if ! run_python_cmd "$python_cmd"; then
-        echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
         return 1;
     else
-        echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+        [ -z $opt_quite ] && echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
         return 0;
     fi
 }

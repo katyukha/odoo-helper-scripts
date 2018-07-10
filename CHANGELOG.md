@@ -21,13 +21,15 @@
       addons (modules) to be tested
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
 - Shortcut `odoo-helper ps` for `odoo-helper server ps`
-- alias to `--version` option - `version`: `odoo-helper version`
+- Alias to `--version` option - `version`: `odoo-helper version`
 - New options for `odoo-helper server run` command
     - `--coverage`: run with code coverage enabled
     - `--test-conf`: run with test configuratuon
     - `--help`: show help message
     - `--`: options delimiter - all options after this
       will be passed directly to Odoo
+- Help message and new options to `odoo-helper db drop` command
+    - option `-q` or `--quite` to hide messages produced by this command
 
 ### Fix
 
