@@ -635,7 +635,7 @@ function addons_install_update {
             -m|--module)
                 # To be consistent with *odoo-helper test* command
                 if ! addons_is_odoo_addon "$2"; then
-                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${2}${NC} is not Odoo addon!";
+                    echoe -e "${REDC}ERROR${NC}: Cannot $cmd ${YELLOWC}${2}${NC} is not Odoo addon!";
                     return 1;
                 else
                     todo_addons="$todo_addons,$(addons_get_addon_name $2)";
@@ -652,7 +652,7 @@ function addons_install_update {
             ;;
             *)
                 if [ "$cmd" != "uninstall" ] && ! addons_is_odoo_addon "$1"; then
-                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${1}${NC} is not Odoo addon!";
+                    echoe -e "${REDC}ERROR${NC}: Cannot ${cmd} ${YELLOWC}${1}${NC} - it is not Odoo addon!";
                     return 1;
                 else
                     todo_addons="$todo_addons,$(addons_get_addon_name $1)";
