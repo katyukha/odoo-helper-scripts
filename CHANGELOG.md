@@ -34,9 +34,20 @@
 - `odoo-helper addons list` bugfix `--recursive` option:
   forward options to recursive calls
 
-### Modified
+### Changed
 
 - `odoo-helper addons list` will search for addons in current directory if addons path is not specified
+- `odoo-helper addons update-list` possible options and arguments changed
+    - Before
+        - first argument is database name and seconf is config file.
+          last one wasn't used a log
+        - if no arguments supplied then update addons list for all databases
+    - After
+        - added `--help` option
+        - added `--tdb` or `--test-db` option to use test database
+        - added `--cdb` or `--conf-db` option to use database specified in default odoo config
+        - all arguments are considered as database names.
+          This allows us to keep partial backward compatability
 
 ### Deprecations
 

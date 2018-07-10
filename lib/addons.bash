@@ -155,21 +155,63 @@ function addons_update_module_list_db {
 
 
 # Update list of addons visible in system for db or all databases
-# addons_update_module_list [db] [conf_file]
+# addons_update_module_list [options] [db] 
 function addons_update_module_list {
-    local db=$1;
+    local usage="
+    Usage:
+        $SCRIPT_NAME addons update-list [options] [db]    - update module list
+        $SCRIPT_NAME addons update-list --help
 
-    # TODO: improve performance of all databases case
+    Description:
+        Update list of addons (apps)  in specified databases.
+        If no databases specified, then all databases will be updated.
 
-    if [ ! -z $db ]; then
-        echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
-        addons_update_module_list_db $db;
-    else
-        for db in $(odoo_db_list); do
-            echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
-            addons_update_module_list_db $db;
-        done
+    Options:
+        --cdb|--conf-db        - use default database from config file
+        --tdb|--test-db        - use database used for tests
+        -h|--help|help         - show this help message
+    ";
+    local dbs="";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --cdb|--conf-db)
+                dbs="$dbs $(odoo_get_conf_val db_name)";
+            ;;
+            --tdb|--test-db)
+                dbs="$dbs $(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${1}${NC}!"
+                return 1;
+            ;;
+            *)
+                if odoo_db_exists -q "$1"; then
+                    dbs="$dbs $1";
+                else
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${1}${NC} is not database name or such database is not available for this Odoo instance!";
+                    return 1;
+                fi
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z "$dbs" ]; then
+        dbs="$(odoo_db_list)";
     fi
+
+    dbs=($dbs);
+
+    for db in ${dbs[@]}; do
+        echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
+        addons_update_module_list_db "$db";
+    done
 }
 
 # _addons_list_in_directory_display <addon_path> <name_mode> <color model>
