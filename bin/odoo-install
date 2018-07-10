@@ -77,12 +77,14 @@ function print_usage {
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
          --odoo-version <odoo version> - odoo version to install. default: $ODOO_VERSION
-         -b|--branch <branch>          - specify odoo branch to install. default: $ODOO_BRANCH
+         -b|--odoo-branch <branch>     - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
                                          from diferent branch, use this option.
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
+         --git                         - Same as '--download-archive off'
+         --archive                     - Same as '--download-archive on'
          --single-branch on|off        - if on, then odoo will clone only single branch,
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
@@ -139,6 +141,12 @@ function parse_options {
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
                 shift;
+            ;;
+            --git)
+                DOWNLOAD_ARCHIVE='off';
+            ;;
+            --archive)
+                DOWNLOAD_ARCHIVE='on';
             ;;
             --single-branch)
                 CLONE_SINGLE_BRANCH=$2;
