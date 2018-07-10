@@ -20,6 +20,7 @@
       `odoo-helper test` command, which used this toption to specify
       addons (modules) to be tested
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
+- Shortcut `odoo-helper ps` for `odoo-helper server ps`
 - alias to `--version` option - `version`: `odoo-helper version`
 - New options for `odoo-helper server run` command
     - `--coverage`: run with code coverage enabled

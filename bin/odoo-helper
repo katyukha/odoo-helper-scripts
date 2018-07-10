@@ -94,11 +94,6 @@ function print_usage {
         scaffold [--help]                   - Scaffold repo, addon, model, etc
         print-config                        - print current configuration
         status                              - show project status
-        start|stop|restart|log              - shortcuts for server commands
-        psql                                - shortcut for postgres psql command
-        pylint                              - shortcut for 'lint pylint' command
-        flake8                              - shortcut for 'lint flake8' command
-        style                               - shortcut for 'lint style' command
         system [--help]                     - odoo-helper related functions
         exec <cmd> [args]                   - exec command in project environment. Useful if virtualenv is used
         pip [--oca] <pip arguments>         - shortcut to run project-specific pip.
@@ -107,6 +102,18 @@ function print_usage {
         npm <npm arguments>                 - Run npm installed in current project's environment
         help | --help | -h                  - display this help message
         --version|version                   - display odoo-helper version and exit
+
+    Shortcuts (aliases):
+        start                               - shortcut for 'server start' commands
+        stop                                - shortcut for 'server stop' commands
+        restart                             - shortcut for 'server restart' commands
+        log                                 - shortcut for 'server log' commands
+        ps                                  - shortcut for 'server ps' command
+        psql                                - shortcut for 'postgres psql' command
+        pylint                              - shortcut for 'lint pylint' command
+        flake8                              - shortcut for 'lint flake8' command
+        style                               - shortcut for 'lint style' command
+
     
     Global options:
         --use-copy                          - if set, then downloaded modules, repositories will
@@ -442,7 +449,7 @@ function odoo_helper_main {
                 return;
             ;;
             # Server shortcuts
-            start|stop|restart|log)
+            start|stop|restart|log|ps)
                 config_load_project;
                 server_command $@;
                 return;
