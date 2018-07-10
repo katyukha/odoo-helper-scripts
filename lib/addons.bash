@@ -651,7 +651,7 @@ function addons_install_update {
                 return 1;
             ;;
             *)
-                if ! addons_is_odoo_addon "$1"; then
+                if [ "$cmd" != "uninstall" ] && ! addons_is_odoo_addon "$1"; then
                     echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${1}${NC} is not Odoo addon!";
                     return 1;
                 else
