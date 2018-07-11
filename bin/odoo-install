@@ -285,6 +285,25 @@ generate_conf;
 generate_test_conf;
 #---------------------------------------------
 
-echo -e "${GREENC}Odoo seems to be successfully installed!${NC}";
-echo -e "Edit configuration at ${BLUEC}$ODOO_CONF_FILE${NC}";
-echo -e "Use ${YELLOWC}odoo-helper${NC} project to manage this odoo instance";
+echo -e "${GREENC}Odoo has been successfully installed!${NC}";
+echo -e "";
+echo -e "Installation path:"
+echo -e "    ${BLUEC}${PROJECT_ROOT_DIR}${NC}";
+echo -e "Odoo configuration path:"
+echo -e "    ${BLUEC}${ODOO_CONF_FILE}${NC}";
+echo -e "odoo-helper-scripts instance configuration path:";
+echo -e "    ${BLUEC}${PROJECT_ROOT_DIR}/${CONF_FILE_NAME}${NC}";
+echo -e "";
+echo -e "Use ${YELLOWC}odoo-helper${NC} command to manage this Odoo instance.";
+echo -e "First change current working directory to somewhere inside ";
+echo -e "Odoo installation path:";
+echo -e "    ${BLUEC}cd ${PROJECT_ROOT_DIR}${NC}";
+echo -e "Start odoo server with:";
+echo -e "    ${BLUEC}odoo-helper server start${NC}";
+echo -e "Or check server status with:";
+echo -e "    ${BLUEC}odoo-helper server status${NC}";
+echo -e "";
+echo -e "For more info look at documentation:";
+echo -e "    ${LBLUEC}https://katyukha.gitlab.io/odoo-helper-scripts/${NC}";
+echo -e "Or quick start guide:";
+echo -e "    ${LBLUEC}https://katyukha.gitlab.io/odoo-helper-scripts/quick-start-guide/#manage-installed-odoo${NC}";
