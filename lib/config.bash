@@ -119,9 +119,10 @@ function config_check_project_config {
 
 # Load project configuration. No args provided
 function config_load_project {
+    local work_dir="${1:-$(pwd)}";
     if [ -z $PROJECT_ROOT_DIR ]; then
         # Load project conf, only if it is not loaded yet.
-        local project_conf=`search_file_up $WORKDIR $CONF_FILE_NAME`;
+        local project_conf="$(search_file_up $work_dir $CONF_FILE_NAME)";
         if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
             echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
             ODOO_HELPER_PROJECT_CONF=$project_conf;

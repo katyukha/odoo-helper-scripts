@@ -179,7 +179,6 @@ function server_start {
         case $key in
             --test-conf|--coverage)
                 server_run_opts="$server_run_opts $key";
-                server_conf="$ODOO_TEST_CONF_FILE";
                 shift;
             ;;
             --log)

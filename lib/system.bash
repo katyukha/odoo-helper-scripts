@@ -61,8 +61,13 @@ function system_update_odoo_helper_scripts {
 
 # Check if specified directory or current directory is odoo-hleper project
 function system_is_odoo_helper_project {
-    local dir_name=${1:-$(pwd)};
+    local dir_name="$(readlink -f ${1:-$(pwd)})";
     local save_dir=$(pwd);
+
+    if [ ! -d "$dir_name" ]; then
+        echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${dir_name}${NC} does not exists or is not a directory!";
+        return 2;
+    fi
 
     cd $dir_name;
     config_load_project 2>/dev/null;
@@ -76,8 +81,13 @@ function system_is_odoo_helper_project {
 
 # Return odoo-helper path to virtualenv directory
 function system_get_venv_dir {
-    local dir_name=${1:-$(pwd)};
+    local dir_name="$(readlink -f ${1:-$(pwd)})";
     local save_dir=$(pwd);
+
+    if [ ! -d "$dir_name" ]; then
+        echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${dir_name}${NC} does not exists or is not a directory!";
+        return 2;
+    fi
 
     cd $dir_name;
     config_load_project 2>/dev/null;
@@ -86,6 +96,7 @@ function system_get_venv_dir {
         echo "${VENV_DIR}";
     else
         echoe -e "${REDC}ERROR${NC}: directory ${YELLOWC}${dir_name}${NC} is not under odoo-helper project";
+        return 1;
     fi
 }
 

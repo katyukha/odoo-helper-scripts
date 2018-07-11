@@ -114,6 +114,7 @@ odoo-install -i odoo-7.0 --odoo-version 7.0 \
     --db-user odoo7 --db-pass odoo
 cd odoo-7.0
 
+echo "";
 echo "Generated odoo config:"
 echo "$(cat ./conf/odoo.conf)"
 echo "";
@@ -197,6 +198,7 @@ odoo-install --install-dir odoo-8.0 --odoo-version 8.0 \
 
 cd odoo-8.0
 
+echo "";
 echo "Generated odoo config:"
 echo "$(cat ./conf/odoo.conf)"
 echo "";
@@ -261,6 +263,7 @@ odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
 
 cd odoo-9.0;
 
+echo "";
 echo "Generated odoo config:"
 echo "$(cat ./conf/odoo.conf)"
 echo "";
@@ -378,6 +381,7 @@ odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
 
 cd odoo-10.0;
 
+echo "";
 echo "Generated odoo config:"
 echo "$(cat ./conf/odoo.conf)"
 echo "";
@@ -484,7 +488,7 @@ if ! [[ "$(odoo-helper exec python --version 2>&1)" == "Python 3."* ]]; then
     exit 3;
 fi
 
-
+echo "";
 echo "Generated odoo config:"
 echo "$(cat ./conf/odoo.conf)"
 echo "";
@@ -508,8 +512,8 @@ Test how translation-related commands work
 ${NC}"
 odoo-helper db create --demo test-11-db;
 odoo-helper tr load --lang uk_UA --db test-11-db;
-odoo-helper tr export test-11-db uk_UA uk-test test-11-db web;
-odoo-helper tr import test-11-db uk_UA uk-test test-11-db web;
+odoo-helper tr export test-11-db uk_UA uk-test web;
+odoo-helper tr import test-11-db uk_UA uk-test web;
 
 # Install oca/partner-contact addons
 odoo-helper fetch --oca partner-contact;
@@ -551,10 +555,30 @@ odoo-helper-db --help
 odoo-helper-fetch --help
 odoo-helper-server --help
 odoo-helper-test --help
+odoo-helper-restart
+odoo-helper stop # ensure server stopped
 
 # There is also shortcut for odoo.py command
 odoo-helper odoo-py --help
 
+
+echo -e "${YELLOWC}
+==========================================
+Test Unitilty commands
+==========================================
+${NC}"
+
+echo -e "${YELLOWC}Print server url:${NC}";
+odoo-helper odoo server-url
+
+# Check that specified directory is inside odoo-helper project
+odoo-helper system is-project ./repositories;
+
+echo -e "${YELLOWC}Print path to virtualenv directory of current odoo-helper project:${NC}";
+odoo-helper system get-venv-dir;
+
+echo -e "${YELLOWC}Print path to virtualenv directory of odoo 10.0 project:${NC}";
+odoo-helper system get-venv-dir ../odoo-10.0;
 
 echo -e "${YELLOWC}
 ==========================================
@@ -564,4 +588,11 @@ ${NC}"
 
 odoo-helper install js-tools
 odoo-helper fetch --oca web
-odoo-helper lint style ./repositories/web | true
+odoo-helper lint style ./repositories/web || true
+
+
+echo -e "${GREENC}
+==========================================
+Tests finished
+==========================================
+${NC}"
