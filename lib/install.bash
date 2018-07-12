@@ -446,7 +446,7 @@ function install_js_tools {
 function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
     # setuptools, so we do not need to upgrade them
-    exec_pip -q install python-slugify setuptools-odoo cffi jinja2;
+    exec_pip -q install phonenumbers python-slugify setuptools-odoo cffi jinja2;
 
     if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
         exec_pip -q install Python-Chart;

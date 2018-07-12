@@ -54,6 +54,8 @@
         - added `--cdb` or `--conf-db` option to use database specified in default odoo config
         - all arguments are considered as database names.
           This allows us to keep partial backward compatability
+- `odoo-install` now will automaticaly install [phonenumbers](https://github.com/daviddrysdale/python-phonenumbers)
+  python package.
 
 ### Deprecations
 
