@@ -218,3 +218,29 @@ function git_is_clean {
         return 1;  # repo is dirty
     fi
 }
+
+
+# git_get_commit_date <repo_path> <commit or ref>
+# Show date of specified commit
+function git_get_commit_date {
+    local repo_path="$1";
+    local commit_ref="$2";
+    (cd $repo_path && git show -s  --date=short --format=%cd "$commit_ref");
+}
+
+# git_get_current_commit_date <repo_path>
+# Show date of current commit in repo
+function git_get_current_commit_date {
+    local repo_path="$1";
+    local commit_ref="$(git_get_current_commit $repo_path)";
+    git_get_commit_date "$repo_path" "$commit_ref";
+}
+
+# git_get_files_changed <repo_path> <ref start> <ref end>
+# Find changed files betwen two git refs
+function git_get_files_changed {
+    local repo_path="$1"; shift;
+    local ref_start="$1"; shift;
+    local ref_end="$1"; shift;
+    (cd "$repo_path" && git diff --names-only  "${ref_start}..${ref_end}");
+}

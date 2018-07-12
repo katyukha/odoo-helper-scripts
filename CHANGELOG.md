@@ -56,6 +56,7 @@
           This allows us to keep partial backward compatability
 - `odoo-install` now will automaticaly install [phonenumbers](https://github.com/daviddrysdale/python-phonenumbers)
   python package.
+- display commit date in output of `odoo-helper --version`
 
 ### Deprecations
 
