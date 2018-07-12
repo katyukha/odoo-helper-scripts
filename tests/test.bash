@@ -531,6 +531,7 @@ ${NC}"
 odoo-helper server start
 odoo-helper db list
 odoo-helper postgres stat-activity
+odoo-helper postgres stat-connections
 odoo-helper stop
 
 
@@ -588,7 +589,8 @@ ${NC}"
 
 odoo-helper install js-tools
 odoo-helper fetch --oca web
-odoo-helper lint style ./repositories/web || true
+odoo-helper lint style ./repositories/web/web_widget_color || true
+odoo-helper lint style ./repositories/web/web_widget_datepicker_options || true
 
 
 echo -e "${GREENC}

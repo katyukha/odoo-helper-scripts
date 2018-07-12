@@ -127,6 +127,33 @@ PGAPPNAME="odoo-helper-pgstat" postgres_psql << EOF
 EOF
 }
 
+# Show information about connections used by postgresql server
+#
+function postgres_psql_connection_info {
+PGAPPNAME="odoo-helper-pgstat" postgres_psql << EOF
+    WITH t_used_conn AS (
+        SELECT count(*) AS used_connections
+        FROM pg_stat_activity
+        WHERE application_name != 'odoo-helper-pgstat'
+    ),
+    t_reserved_conn AS (
+        SELECT setting::int AS reserved_connections
+        FROM pg_settings
+        WHERE name='superuser_reserved_connections'
+    ),
+    t_max_conn AS (
+        SELECT setting::int AS max_connections
+        FROM pg_settings
+        WHERE name='max_connections'
+    )
+    SELECT max_connections,
+           used_connections,
+           reserved_connections,
+           max_connections - used_connections - reserved_connections AS free_connections
+    FROM t_used_conn, t_reserved_conn, t_max_conn
+EOF
+}
+
 # Configure local postgresql instance to be faster but less safe
 #
 # postgres_config_local_speed_unsafe
@@ -136,11 +163,11 @@ function postgres_config_speedify_unsafe {
     # Stop postgres
     sudo service postgresql stop
 
-	# Disable fsync, etc
-	sudo sed -ri "s/#fsync = on/fsync = off/g" $postgres_config;
-	sudo sed -ri "s/#synchronous_commit = on/synchronous_commit = off/g" $postgres_config;
-	sudo sed -ri "s/#full_page_writes = on/full_page_writes = off/g" $postgres_config;
-	sudo sed -ri "s/#work_mem = 4MB/work_mem = 8MB/g" $postgres_config;
+    # Disable fsync, etc
+    sudo sed -ri "s/#fsync = on/fsync = off/g" $postgres_config;
+    sudo sed -ri "s/#synchronous_commit = on/synchronous_commit = off/g" $postgres_config;
+    sudo sed -ri "s/#full_page_writes = on/full_page_writes = off/g" $postgres_config;
+    sudo sed -ri "s/#work_mem = 4MB/work_mem = 8MB/g" $postgres_config;
 
     # Start postgres
     sudo service postgresql start
@@ -160,6 +187,8 @@ function postgres_command {
                                                                      It automaticaly uses credentials used by odoo
         $SCRIPT_NAME postgres stat-activity                        - list running postgres queries in database
                                                                      print data from pg_stat_activity table.
+        $SCRIPT_NAME postgres stat-connections                     - show statistics about postgres connections:
+                                                                     used, reserved, free connections
         $SCRIPT_NAME postgres speedify                             - [local][sudo] Modify local postgres config
                                                                      to make it faster. But also makes postgres unsafe.
                                                                      Usualy this is normal for dev machines,
@@ -185,7 +214,7 @@ function postgres_command {
             speedify)
                 postgres_config_speedify_unsafe;
                 return;
-			;;
+            ;;
             psql)
                 shift;
                 config_load_project;
@@ -196,6 +225,12 @@ function postgres_command {
                 shift;
                 config_load_project;
                 postgres_psql_stat_activity $@;
+                return;
+            ;;
+            stat-connections)
+                shift;
+                config_load_project;
+                postgres_psql_connection_info $@;
                 return;
             ;;
             -h|--help|help)

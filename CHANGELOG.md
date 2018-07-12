@@ -33,6 +33,7 @@
 - New options to `odoo-install` command
     - `--git` - shortcut for `--download-archive off`
     - `--archive` - shortcut for `--download-archive on`
+- New command `odoo-helper postgres stat-connections`
 
 ### Fix
 
