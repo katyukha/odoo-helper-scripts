@@ -34,6 +34,7 @@
     - `--git` - shortcut for `--download-archive off`
     - `--archive` - shortcut for `--download-archive on`
 - New command `odoo-helper postgres stat-connections`
+- New shortcut `odoo-helper pg` for `odoo-helper postgres`
 
 ### Fix
 
@@ -45,8 +46,8 @@
 - `odoo-helper addons list` will search for addons in current directory if addons path is not specified
 - `odoo-helper addons update-list` possible options and arguments changed
     - Before
-        - first argument is database name and seconf is config file.
-          last one wasn't used a log
+        - first argument is database name and second is config file.
+          last one wasn't used a lot
         - if no arguments supplied then update addons list for all databases
     - After
         - added `--help` option

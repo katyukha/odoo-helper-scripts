@@ -104,7 +104,7 @@ function print_usage {
     if it breaks somehow. It will automaticaly detect if odoo sources were downloaded or
     virtual environment created and will not do this operations second time.
 
-    For bug reports use github issues: https://gitlab.com/katyukha/odoo-helper-scripts/issues
+    For bug reports use gitlab issues: https://gitlab.com/katyukha/odoo-helper-scripts/issues
     ";
 }
 

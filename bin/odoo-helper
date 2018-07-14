@@ -113,6 +113,7 @@ function print_usage {
         pylint                              - shortcut for 'lint pylint' command
         flake8                              - shortcut for 'lint flake8' command
         style                               - shortcut for 'lint style' command
+        pg                                  - shortcut for 'postgres' command
 
     
     Global options:
@@ -417,7 +418,7 @@ function odoo_helper_main {
                 tr_main "$@";
                 return;
             ;;
-            postgres)
+            postgres|pg)
                 shift;
                 postgres_command "$@";
                 return;
