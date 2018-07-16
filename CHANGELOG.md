@@ -19,6 +19,8 @@
     - `-m` or `--module`. Option is added to be consistend with
       `odoo-helper test` command, which used this toption to specify
       addons (modules) to be tested
+    - `--ual` - Update Apps List. When this option is specified, apps (addons)
+      list will be updated before install/update/uninstall addon
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
 - Shortcut `odoo-helper ps` for `odoo-helper server ps`
 - Alias to `--version` option - `version`: `odoo-helper version`

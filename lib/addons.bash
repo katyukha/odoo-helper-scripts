@@ -597,8 +597,14 @@ function addons_install_update {
         -m|--module <addon>    - $cmd addon name. This option is added
                                  to be consistend with *odoo-helper test* command.
                                  Could be specified multiple times
+        --ual                  - update apps list first.
+                                 Sync new addons available for Odoo to database.
+                                 This is usualy required on install of addon
+                                 that was just fetched from repository,
+                                 and is not yet present in Odoo database
     ";
     local need_start=;
+    local update_addons_list=0;
     local dbs="";
     local todo_addons="";
     while [[ $# -gt 0 ]]
@@ -642,6 +648,9 @@ function addons_install_update {
                 fi
                 shift;
             ;;
+            --ual)
+                local update_addons_list=1;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -680,6 +689,10 @@ function addons_install_update {
     if [ -z $no_restart_server ] && [ $(server_get_pid) -gt 0 ]; then
         server_stop;
         local need_start=1;
+    fi
+
+    if [ "$update_addons_list" -eq 1 ]; then
+        addons_update_module_list $dbs;
     fi
 
     for db in $dbs; do
