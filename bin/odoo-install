@@ -93,8 +93,8 @@ function print_usage {
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
 
-         --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xml_rpc_port 9999'
-         --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xml_rpc_port 9998'
+         --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
+         --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xmlrpc_port 9998'
          --verbose|--vv                - show extra output
 
     After instalation configs will be generated in 'conf' directory
@@ -283,7 +283,7 @@ echo -e "${BLUEC}Generating configurations...${NC}";
 echo "$(config_print)" > $PROJECT_ROOT_DIR/$CONF_FILE_NAME;
 generate_conf;
 generate_test_conf;
-#---------------------------------------------
+#------------------------------------------------------------------------
 
 echo -e "${GREENC}Odoo has been successfully installed!${NC}";
 echo -e "";
