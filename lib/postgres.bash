@@ -158,19 +158,15 @@ EOF
 #
 # postgres_config_local_speed_unsafe
 function postgres_config_speedify_unsafe {
-    local postgres_config="$(sudo -u postgres psql -qSt -c 'SHOW config_file')";
+    if ! postgres_test_connection; then
+        return 1;
+    fi
 
-    # Stop postgres
-    sudo service postgresql stop
-
-    # Disable fsync, etc
-    sudo sed -ri "s/#fsync = on/fsync = off/g" $postgres_config;
-    sudo sed -ri "s/#synchronous_commit = on/synchronous_commit = off/g" $postgres_config;
-    sudo sed -ri "s/#full_page_writes = on/full_page_writes = off/g" $postgres_config;
-    sudo sed -ri "s/#work_mem = 4MB/work_mem = 8MB/g" $postgres_config;
-
-    # Start postgres
-    sudo service postgresql start
+    sudo -u postgres -H psql -qc "ALTER SYSTEM SET fsync TO off;";
+    sudo -u postgres -H psql -qc "ALTER SYSTEM SET synchronous_commit TO off;";
+    sudo -u postgres -H psql -qc "ALTER SYSTEM SET full_page_writes TO off;";
+    sudo service postgresql restart
+    echoe -e "Postgres speedify: ${GREENC}OK${NC}";
 }
 
 # Parse command line args

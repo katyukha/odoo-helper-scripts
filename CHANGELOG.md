@@ -60,6 +60,7 @@
 - `odoo-install` now will automaticaly install [phonenumbers](https://github.com/daviddrysdale/python-phonenumbers)
   python package.
 - display commit date in output of `odoo-helper --version`
+- `odoo-helper postgres speedify` use SQL `ALTER SYSTEM` instead of modifiying postgresql config file
 
 ### Deprecations
 
