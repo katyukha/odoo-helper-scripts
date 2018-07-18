@@ -68,6 +68,9 @@
   - `odoo-helper intall reinstall-odoo`
   - `odoo-helper upate-odoo`
 - Support of Odoo 7.0 is now deprecated and will be removed in one of next releases
+- `odoo-helper fetch -p` and `odoo-helper fetch --python` options.
+  Use `odoo-helper pip install` command instead.
+  Or place `requirements.txt` file inside repository root or addo root directory.
 
 
 ## Release 0.1.6 (2018-06-04)

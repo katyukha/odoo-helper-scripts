@@ -295,8 +295,8 @@ function fetch_module {
             -b|--branch <branch>     - name fo repository branch to clone
             --requirements <file>    - path to requirements file to fetch required modules
                                        NOTE: requirements file must end with newline.
-            -p|--python <package>    - fetch python dependency. (it use pip to install package)
-            -p|--python <vcs>+<repository>  - install python dependency directly from VCS
+            -p|--python <package>    - fetch python dependency. (it use pip to install package) (deprecated)
+            -p|--python <vcs>+<repository>  - install python dependency directly from VCS (deprecated)
 
         Note that in one call only one option of (-r, --github, --oca) must be present in one line.
 
@@ -382,6 +382,9 @@ function fetch_module {
                 shift;
             ;;
             -p|--python)
+                echoe -e "${YELLOWC}WARNING${NC}: ${YELLOWC}-p${NC} and ${YELLOWC}--python${NC} options for ${BLUEC}odoo-helper fetch${NC} command are deprecated.";
+                echoe -e "Use ${YELLOWC}odoo-helper pip install${NC} to istall python dependencies.";
+                echoe -e "Also ${YELLOWC}requirements.txt${NC} file will be automaticaly processed if it is placed in repository root or addon root directory";
                 PYTHON_INSTALL=1;
                 fetch_python_dep $2
                 shift;
