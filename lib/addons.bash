@@ -281,6 +281,8 @@ function addons_list_in_directory {
         --not-linked      - display addons that are not present in custom_addons dir
         --by-name         - display only addon names
         --by-path         - display addon path
+        --filter <expr>   - filter addons by expression.
+                            expression is a string suitable for 'grep' command
         --color           - color result by link-status
         -h|--help         - display this help message
 
@@ -295,6 +297,7 @@ function addons_list_in_directory {
     local installable_only=0;
     local not_linked_only=0;
     local recursive_options=;
+    local filter_expr="";
 
     while [[ $1 == -* ]]
     do
@@ -328,6 +331,11 @@ function addons_list_in_directory {
                 color_mode='link';
                 recursive_options="$recursive_options --color";
             ;;
+            --filter)
+                filter_expr="$2";
+                recursive_options="$recursive_options --filter $2";
+                shift;
+            ;;
             *)
                 echo "Unknown option $key";
                 return 1;
@@ -360,7 +368,7 @@ function addons_list_in_directory {
                 fi
             done
         fi
-    done | sort -u;
+    done | sort -u | grep -e "$filter_expr";
 }
 
 

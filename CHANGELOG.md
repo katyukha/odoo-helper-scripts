@@ -10,6 +10,7 @@
     - red - addons is not present in *custom addons*
     - yellow - addons is present in *custom addon*, but link point's to another place
 - New `--not-linked` option to `odoo-helper addons list` command
+- New `--filter` option to `odoo-helper addons list` command
 - New `odoo-helper odoo server-url` command
 - New `odoo-helper system is-project` command
 - New `odoo-helper system get-venv-dir` command
