@@ -149,14 +149,17 @@ function random_string {
 # Try to find file in start_path, if found, print path, if not found,
 # then try to find it in parent directory recursively
 function search_file_up {
-    local path=$1;
+    local path="$(readlink -f $1)";
     while [[ "$path" != "/" ]];
     do
         if [ -e "$path/$2" ]; then
             echo "$path/$2";
             return 0;
+        elif [ ! -z "$path" ] && [ "$path" != "/" ]; then
+            path="$(dirname $path)";
+        else
+            break;
         fi
-        path=`dirname $path`;
     done
 }
 
