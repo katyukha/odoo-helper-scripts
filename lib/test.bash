@@ -181,6 +181,10 @@ function test_run_tests {
 
     # Create new test database if required
     local test_db_name="$(test_get_or_create_db $recreate_db $create_test_db)";
+    if [ $? -ne 0 ]; then
+        echo "${REDC}ERROR${NC} Cannot use or create test database!";
+        return 1;
+    fi
     local test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
 
     # Remove log file if it is present before test, otherwise

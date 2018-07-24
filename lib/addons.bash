@@ -283,6 +283,7 @@ function addons_list_in_directory {
         --by-path         - display addon path
         --filter <expr>   - filter addons by expression.
                             expression is a string suitable for 'grep' command
+                            (this option is experimental and its bechavior may be changed)
         --color           - color result by link-status
         -h|--help         - display this help message
 
