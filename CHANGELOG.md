@@ -38,6 +38,9 @@
     - `--archive` - shortcut for `--download-archive on`
 - New command `odoo-helper postgres stat-connections`
 - New shortcut `odoo-helper pg` for `odoo-helper postgres`
+- New command `odoo-helper git` with git-related helpers.
+- New command `odoo-helper git changed-addons` that displays
+  list of addons that have been changed between two specified git revisions
 
 ### Fix
 

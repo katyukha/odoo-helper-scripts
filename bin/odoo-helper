@@ -80,6 +80,7 @@ function print_usage {
         db [--help]                         - database management (list, create, drop, etc...)
         tr [--help]                         - manage translations (import, export, load, ...)
         postgres [--help]                   - manage local instance of postgresql server
+        git [--help]                        - git-related commands
         install [--help]                    - install related stuff (sys-deps, ...)
         generate-requirements [addons dir]  - parse addons dir, find all addons that are
                                               git repositories and print odoo-requirements.txt content
@@ -421,6 +422,11 @@ function odoo_helper_main {
             postgres|pg)
                 shift;
                 postgres_command "$@";
+                return;
+            ;;
+            git)
+                shift;
+                git_command "$@";
                 return;
             ;;
             psql)

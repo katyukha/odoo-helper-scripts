@@ -236,11 +236,106 @@ function git_get_current_commit_date {
     git_get_commit_date "$repo_path" "$commit_ref";
 }
 
-# git_get_files_changed <repo_path> <ref start> <ref end>
+# git_get_files_changed <repo_path> <ref_start> <ref_end>
 # Find changed files betwen two git refs
 function git_get_files_changed {
     local repo_path="$1"; shift;
     local ref_start="$1"; shift;
     local ref_end="$1"; shift;
-    (cd "$repo_path" && git diff --names-only  "${ref_start}..${ref_end}");
+    (cd "$repo_path" && git diff --name-only  "${ref_start}..${ref_end}");
+}
+
+
+# git_get_addons_changed <repo_path> <ref_start> <ref_end>
+# Get list of addons that have changes betwen specified revisions
+# Prints paths to addons
+function git_get_addons_changed {
+    local usage="
+    Print list of paths of addons changed between specified git revisions
+
+    Usage:
+        $SCRIPT_NAME git changed-addons [options] <repo> <start> <end>
+
+    Options:
+        -h|--help|help  - print this help message end exit
+
+    Parametrs:
+        <repo>    - path to git repository to search for changed addons in
+        <start>   - git start revision
+        <end>     - git end revision
+    ";
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                shift;
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
+    local repo_path="$1"; shift;
+    local ref_start="$1"; shift;
+    local ref_end="$1"; shift;
+
+    local changed_files=( $(git_get_files_changed $repo_path $ref_start $ref_end) );
+    for file_path in "${changed_files[@]}"; do
+        local manifest_path="$(search_file_up $file_path __manifest__.py)";
+        if [ -z "$manifest_path" ]; then
+            local manifest_path="$(search_file_up $file_path __openerp__.py)";
+        fi
+        if [ ! -z "$manifest_path" ]; then
+            local addon_path="$(dirname $(readlink -f $manifest_path))";
+            echo "$addon_path";
+        fi
+    done | sort -u;
+}
+
+
+function git_command {
+    local usage="
+    Git-related commands
+
+    NOTE: This command is experimental and everything may be changed.
+
+    Usage:
+        $SCRIPT_NAME git changed-addons [--help]  - show list of addons changed
+        $SCRIPT_NAME git -h|--help|help           - show this help message
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            changed-addons)
+                shift;
+                git_get_addons_changed "$@";
+                return;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
 }
