@@ -54,6 +54,7 @@ ohelper_require "system";
 ohelper_require "scaffold";
 ohelper_require "doc-utils";
 ohelper_require "lint";
+ohelper_require "ci";
 # ----------------------------------------------------------------------------------------
 
 function print_usage {
@@ -81,6 +82,7 @@ function print_usage {
         tr [--help]                         - manage translations (import, export, load, ...)
         postgres [--help]                   - manage local instance of postgresql server
         git [--help]                        - git-related commands
+        ci [--help]                         - commands usefule for Continious Integration
         install [--help]                    - install related stuff (sys-deps, ...)
         generate-requirements [addons dir]  - parse addons dir, find all addons that are
                                               git repositories and print odoo-requirements.txt content
@@ -427,6 +429,12 @@ function odoo_helper_main {
             git)
                 shift;
                 git_command "$@";
+                return;
+            ;;
+            ci)
+                shift;
+                config_load_project;
+                ci_command "$@";
                 return;
             ;;
             psql)

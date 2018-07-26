@@ -236,16 +236,6 @@ function git_get_current_commit_date {
     git_get_commit_date "$repo_path" "$commit_ref";
 }
 
-# git_get_files_changed <repo_path> <ref_start> <ref_end>
-# Find changed files betwen two git refs
-function git_get_files_changed {
-    local repo_path="$1"; shift;
-    local ref_start="$1"; shift;
-    local ref_end="$1"; shift;
-    (cd "$repo_path" && git diff --name-only  "${ref_start}..${ref_end}");
-}
-
-
 # git_get_addons_changed <repo_path> <ref_start> <ref_end>
 # Get list of addons that have changes betwen specified revisions
 # Prints paths to addons
@@ -258,6 +248,7 @@ function git_get_addons_changed {
 
     Options:
         -h|--help|help  - print this help message end exit
+        --exclude-trans - exclude translations
 
     Parametrs:
         <repo>    - path to git repository to search for changed addons in
@@ -278,6 +269,10 @@ function git_get_addons_changed {
                 shift;
                 return 0;
             ;;
+            --exclude-trans)
+                local exclude_translations=1;
+                shift;
+            ;;
             *)
                 break;
             ;;
@@ -288,7 +283,11 @@ function git_get_addons_changed {
     local ref_start="$1"; shift;
     local ref_end="$1"; shift;
 
-    local changed_files=( $(git_get_files_changed $repo_path $ref_start $ref_end) );
+    if [ -n "$exclude_translations" ]; then
+        local changed_files=( $(cd "$repo_path" && git diff --name-only  "${ref_start}..${ref_end}" -- ':(exclude)*.po' ':(exclude)*.pot') );
+    else
+        local changed_files=( $(cd "$repo_path" && git diff --name-only  "${ref_start}..${ref_end}") );
+    fi
     for file_path in "${changed_files[@]}"; do
         local manifest_path="$(search_file_up $file_path __manifest__.py)";
         if [ -z "$manifest_path" ]; then
