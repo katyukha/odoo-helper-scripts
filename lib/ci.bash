@@ -65,7 +65,7 @@ function ci_check_versions_git {
     local ref_end="$1"; shift;
     local cdir="$(pwd)";
 
-    local changed_addons=( $(git_get_addons_changed --exclude-trans $repo_path $ref_start $ref_end) );
+    local changed_addons=( $(git_get_addons_changed --exclude-trans "$repo_path" "$ref_start" "$ref_end") );
     local result=0;
     for addon_path in "${changed_addons[@]}"; do
         cd "$addon_path";
@@ -86,7 +86,7 @@ function ci_check_versions_git {
         if [ -z "$manifest_content_before" ]; then
             local version_before="${ODOO_VERSION}.0.0.0";
         else
-            local file_name="/tmp/oh-ci-vc-git-$ref_start-$(random_string)";
+            local file_name="/tmp/oh-ci-vc-git-before-$(random_string)";
             echo "$manifest_content_before" > $file_name;
             local version_before=$(run_python_cmd "print(eval(open('$file_name', 'rt').read()).get('version', '${ODOO_VERSION}.1.0.0'))");
             if [ $? -ne 0 ]; then
@@ -100,11 +100,11 @@ function ci_check_versions_git {
             echoe -e "${YELLOWC}WARNING${NC} cannot find manifest in second revision. it seems that it was removed.";
             continue
         fi
-        local file_name="/tmp/oh-ci-vc-git-$ref_end-$(random_string)";
+        local file_name="/tmp/oh-ci-vc-git-after-$(random_string)";
         echo "$manifest_content_after" > $file_name;
         local version_after=$(run_python_cmd "print(eval(open('$file_name', 'rt').read()).get('version', '${ODOO_VERSION}.1.0.0'))");
         if [ $? -ne 0 ]; then
-            echoe -e "${REDC}ERRoR${NC} Cannot read version from manifest in second revision! It seems that manifest is broken!";
+            echoe -e "${REDC}ERROR${NC} Cannot read version from manifest in second revision! It seems that manifest is broken!";
             result=1;
             rm -f "$file_name";
             continue
