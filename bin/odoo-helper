@@ -13,8 +13,7 @@
 
 
 SCRIPT=$0;
-SCRIPT_NAME=$(basename $SCRIPT);
-F=$(readlink -f $SCRIPT);  # full script path;
+SCRIPT_NAME=$(basename "$SCRIPT");
 WORKDIR=$(pwd);
 
 # load basic conf
@@ -29,14 +28,14 @@ fi
 set -e;  # Fail on errors
 
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
 # Load common functions
-source $ODOO_HELPER_LIB/common.bash; 
+source "$ODOO_HELPER_LIB/common.bash";
 
 ohelper_require "config";
 ohelper_require "fetch";
@@ -141,10 +140,14 @@ function print_usage {
 }
 
 function show_project_tools_versions {
-    local python_version="${BLUEC}$(execv python --version 2>&1)${NC}";
-    local node_version="${BLUEC}$(execv node --version 2>&1)${NC}";
-    local npm_version="${BLUEC}$(execv npm --version 2>&1)${NC}";
-    local lessc_version="${BLUEC}$(execv lessc --version 2>&1)${NC}";
+    local python_version;
+    local node_version;
+    local npm_version;
+    local lessc_version;
+    python_version="${BLUEC}$(execv python --version 2>&1)${NC}";
+    node_version="${BLUEC}$(execv node --version 2>&1)${NC}";
+    npm_version="${BLUEC}$(execv npm --version 2>&1)${NC}";
+    lessc_version="${BLUEC}$(execv lessc --version 2>&1)${NC}";
     echo -e "
     Tools versions:
         Python: $python_version
@@ -155,35 +158,40 @@ function show_project_tools_versions {
 }
 
 function show_project_ci_tools_versions {
-    if check_command flake8 2>&1 >/dev/null; then
-        local flake8_version="${BLUEC}$(execv flake8 --version 2>&1)${NC}";
+    local flake8_version;
+    local pylint_version;
+    local eslint_version;
+    local pylint_odoo_version;
+    local stylelint_version;
+    if check_command flake8 >/dev/null 2>&1; then
+        flake8_version="${BLUEC}$(execv flake8 --version 2>&1)${NC}";
     else
-        local flake8_version="${REDC}Not installed${NC}"
+        flake8_version="${REDC}Not installed${NC}"
     fi
 
-    if check_command pylint 2>&1 >/dev/null; then
-        local pylint_version="${BLUEC}$(lint_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
+    if check_command pylint >/dev/null 2>&1; then
+        pylint_version="${BLUEC}$(lint_run_pylint --version 2>&1 | tr '\n' ' ')${NC}";
     else
-        local pylint_version="${REDC}Not installed${NC}"
+        pylint_version="${REDC}Not installed${NC}"
     fi
 
-    if check_command eslint 2>&1 >/dev/null; then
-        local eslint_version="${BLUEC}$(execv eslint --version 2>&1)${NC}";
+    if check_command eslint >/dev/null 2>&1; then
+        eslint_version="${BLUEC}$(execv eslint --version 2>&1)${NC}";
     else
-        local eslint_version="${REDC}Not installed${NC}"
+        eslint_version="${REDC}Not installed${NC}"
     fi
 
     if run_python_cmd "import pylint_odoo" >/dev/null 2>&1 ; then
-        local pylint_odoo_version=$(run_python_cmd "import pkg_resources; print(pkg_resources.get_distribution('pylint_odoo').version)");
+        pylint_odoo_version=$(run_python_cmd "import pkg_resources; print(pkg_resources.get_distribution('pylint_odoo').version)");
         pylint_odoo_version="${BLUEC}${pylint_odoo_version}${NC}";
     else
-        local pylint_odoo_version="${REDC}Not installed${NC}";
+        pylint_odoo_version="${REDC}Not installed${NC}";
     fi
 
-    if check_command stylelint 2>&1 >/dev/null; then
-        local stylelint_version="${BLUEC}$(execv stylelint --version)${NC}";
+    if check_command stylelint >/dev/null 2>&1; then
+        stylelint_version="${BLUEC}$(execv stylelint --version)${NC}";
     else
-        local stylelint_version="${REDC}Not installed${NC}";
+        stylelint_version="${REDC}Not installed${NC}";
     fi
 
     echo -e "
@@ -198,13 +206,20 @@ function show_project_ci_tools_versions {
 
 # display project status
 function show_project_status {
+    local pid;
+    local server_status;
+    local server_url;
+    local project_dir;
+    local branch;
+    local version;
+    local is_git_install;
     local usage="
     Show odoo-helper project status
 
          $SCRIPT_NAME status [--tools-versions] [--ci-tools-versions]
     ";
 
-    if [ -z $PROJECT_ROOT_DIR ]; then
+    if [ -z "$PROJECT_ROOT_DIR" ]; then
         echoe -e "${REDC}ERROR${NC}: Not inside odoo-helper project!";
         return 1;
     fi
@@ -230,42 +245,42 @@ function show_project_status {
         shift;
     done;
 
-    local pid=$(server_get_pid);
+    pid=$(server_get_pid);
 
-    if [ $pid -gt 0 ]; then
-        local server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
+    if [ "$pid" -gt 0 ]; then
+        server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
         if [ -z "$INIT_SCRIPT" ]; then
-            local server_url="${BLUEC}$(odoo_get_server_url)${NC}";
+            server_url="${BLUEC}$(odoo_get_server_url)${NC}";
         else
-            local server_url="";
+            server_url="";
         fi
     else
-        local server_status="${REDC}Stopped${NC}";
-        local server_url="";
+        server_status="${REDC}Stopped${NC}";
+        server_url="";
     fi
 
-    if [ -z $PROJECT_ROOT_DIR ]; then
-        local project_dir="${REDC}No project found${NC}";
+    if [ -z "$PROJECT_ROOT_DIR" ]; then
+        project_dir="${REDC}No project found${NC}";
     else
-        local project_dir="${GREENC}$PROJECT_ROOT_DIR${NC}";
+        project_dir="${GREENC}$PROJECT_ROOT_DIR${NC}";
     fi
 
-    if [ -z $ODOO_BRANCH ]; then
-        local branch="${REDC}Not defined${NC}";
+    if [ -z "$ODOO_BRANCH" ]; then
+        branch="${REDC}Not defined${NC}";
     else
-        local branch="${GREENC}$ODOO_BRANCH${NC}";
+        branch="${GREENC}$ODOO_BRANCH${NC}";
     fi
 
-    if [ -z $ODOO_VERSION ]; then
-        local version="${REDC}Not defined${NC}";
+    if [ -z "$ODOO_VERSION" ]; then
+        version="${REDC}Not defined${NC}";
     else
-        local version="${GREENC}$ODOO_VERSION${NC}";
+        version="${GREENC}$ODOO_VERSION${NC}";
     fi
 
-    if [ -d $ODOO_PATH/.git ]; then
-        local is_git_install="${GREENC}Yes${NC}";
+    if [ -d "$ODOO_PATH"/.git ]; then
+        is_git_install="${GREENC}Yes${NC}";
     else
-        local is_git_install="${YELLOWC}No${NC}";
+        is_git_install="${YELLOWC}No${NC}";
     fi
 
     echo -e "
@@ -304,7 +319,7 @@ function odoo_helper_print_version {
 function odoo_helper_main {
     # Parse command line options and run commands
     if [[ $# -lt 1 ]]; then
-        echo "No options/commands supplied $#: $@";
+        echo "No options/commands supplied $#: $*";
 
         # load configuration files at startup
         config_load_project;
@@ -352,7 +367,7 @@ function odoo_helper_main {
             doc-utils)
                 shift;
                 config_load_project;
-                doc_utils_command $@;
+                doc_utils_command "$@";
                 return;
             ;;
             update-odoo|update_odoo)
@@ -456,7 +471,7 @@ function odoo_helper_main {
             status)
                 shift;
                 config_load_project;
-                show_project_status $@;
+                show_project_status "$@";
                 return;
             ;;
             system)
@@ -467,7 +482,7 @@ function odoo_helper_main {
             # Server shortcuts
             start|stop|restart|log|ps)
                 config_load_project;
-                server_command $@;
+                server_command "$@";
                 return;
             ;;
             # Lint shortcuts
@@ -479,8 +494,8 @@ function odoo_helper_main {
             exec)
                 shift;
                 config_load_project;
-                if [ ! -z $ODOO_CONF_FILE ]; then
-                    exec_conf $ODOO_CONF_FILE execv $@;
+                if [ ! -z "$ODOO_CONF_FILE" ]; then
+                    exec_conf "$ODOO_CONF_FILE" execv "$@";
                 else
                     execv "$@";
                 fi
