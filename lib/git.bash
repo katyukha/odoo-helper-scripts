@@ -247,8 +247,9 @@ function git_get_addons_changed {
         $SCRIPT_NAME git changed-addons [options] <repo> <start> <end>
 
     Options:
+        --ignore-trans  - ignore changed translations
+                          Note: this option may not work on old git versions
         -h|--help|help  - print this help message end exit
-        --exclude-trans - exclude translations
 
     Parametrs:
         <repo>    - path to git repository to search for changed addons in
@@ -269,7 +270,7 @@ function git_get_addons_changed {
                 shift;
                 return 0;
             ;;
-            --exclude-trans)
+            --ignore-trans)
                 local exclude_translations=1;
                 shift;
             ;;

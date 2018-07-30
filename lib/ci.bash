@@ -33,6 +33,8 @@ function ci_check_versions_git {
         $SCRIPT_NAME ci check-versions-git [options] <repo> <start> <end>
 
     Options:
+        --ignore-trans  - ignore translations
+                          Note: this option may not work on old git versions
         -h|--help|help  - print this help message end exit
 
     Parametrs:
@@ -45,6 +47,7 @@ function ci_check_versions_git {
         return 0;
     fi
 
+    local git_changed_extra_opts;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -53,6 +56,10 @@ function ci_check_versions_git {
                 echo "$usage";
                 shift;
                 return 0;
+            ;;
+            --ignore-trans)
+                git_changed_extra_opts="$git_changed_extra_opts --ignore-trans";
+                shift;
             ;;
             *)
                 break;
@@ -65,10 +72,13 @@ function ci_check_versions_git {
     local ref_end="$1"; shift;
     local cdir="$(pwd)";
 
-    local changed_addons=( $(git_get_addons_changed --exclude-trans "$repo_path" "$ref_start" "$ref_end") );
+    local changed_addons=( $(git_get_addons_changed $git_changed_extra_opts "$repo_path" "$ref_start" "$ref_end") );
     local result=0;
     for addon_path in "${changed_addons[@]}"; do
         cd "$addon_path";
+        local addon_name=$(basename "$addon_path");
+
+        echoe -e "${BLUEC}Checking version of ${YELLOWC}${addon_name}${BLUEC} addon ...${NC}";
 
         # Get manifest content at start revision
         local manifest_content_before="$(git show -q ${ref_start}:./__manifest__.py 2>/dev/null)";
@@ -111,13 +121,20 @@ function ci_check_versions_git {
         fi
         rm -f "$file_name";
 
+        if ! [[ "$version_after" =~ ^${ODOO_VERSION}.[0-9]+.[0-9]+.[0-9]+ ]]; then
+            echoe -e "${REDC}FAIL${NC}: Wrong version format. Correct version must match format: ${YELLOWC}${ODOO_VERSION}.X.Y.Z${NC}. Got ${YELLOWC}${version_after}${NC}";
+            result=1;
+            continue;
+        fi
+
         # Compare version
         # NOTE: here we inverse pythons True to bash zero status code
         if ! run_python_cmd "from pkg_resources import parse_version as V; exit(V('${version_before}') < V('${version_after}'));"; then
             # version before is less that version_after
-            echoe -e "$(basename $addon_path): ${GREENC}OK${NC}";
+            echoe -e "${GREENC}OK${NC}";
         else
-            echoe -e "$(basename $addon_path): ${REDC}FAIL${NC} - incorrect new version! new version (${YELLOWC}${version_after}${NC}) must be greater than old version (${YELLOWC}${version_before}${NC})";
+            echoe -e "${REDC}FAIL${NC}: incorrect new version!"
+            echoe -e "${BLUEC}-----${NC} new version ${YELLOWC}${version_after}${NC} must be greater than old version ${YELLOWC}${version_before}${NC}";
             result=1;
         fi
 
