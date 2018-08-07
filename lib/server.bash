@@ -141,7 +141,7 @@ function server_run {
                " *${BLUEC}odoo-helper pip install coverage${NC}*.";
             return 1
         fi
-        echo -e "${LBLUEC}Running server [coverage]${NC}: $SERVER $@";
+        echo -e "${LBLUEC}Running server [${YELLOWC}coverage${LBLUEC}]${NC}: $SERVER $@";
         exec_conf $server_conf execu "coverage run --rcfile=$coverage_conf \
             --include='$coverage_include' $SERVER $@";
     else
