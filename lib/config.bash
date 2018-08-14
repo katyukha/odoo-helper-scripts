@@ -78,7 +78,7 @@ function config_set_defaults {
 function config_get_default_tool_conf {
     local default_conf_dir="${ODOO_HELPER_LIB}/default_config";
     local tool_name="$1";
-    local tool_conf="$default_config/$tool_name";
+    local tool_conf="$default_conf_dir/$tool_name";
     if [ -f "$tool_conf" ]; then
         echo "$tool_conf";
     else

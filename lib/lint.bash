@@ -20,6 +20,7 @@ fi
 ohelper_require "utils";
 ohelper_require "addons";
 ohelper_require "odoo";
+ohelper_require "config";
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -138,20 +139,33 @@ function lint_run_pylint {
 
 # lint_run_stylelint_internal <addon path>
 function lint_run_stylelint_internal {
-    local addon_path=$1;
-    local stylelint_config_path=$ODOO_HELPER_LIB/default_config/stylelint-default.json;
+    local addon_path="$1";
+    local save_dir;
+    local stylelint_default_conf;
+    local stylelint_less_conf;
+    local stylelint_scss_conf;
     local res=0;
 
-    local save_dir=$(pwd);
+    save_dir=$(pwd);
     cd $addon_path;
+
+    stylelint_default_conf=$(config_get_default_tool_conf "stylelint-default.json");
+    stylelint_less_conf=$(config_get_default_tool_conf "stylelint-default-less.json");
+    stylelint_scss_conf=$(config_get_default_tool_conf "stylelint-default-scss.json");
 
     echoe -e "${BLUEC}Processing addon ${YELLOWC}$(basename $addon_path)${BLUEC} ...${NC}";
 
-    if ! execu stylelint --config $stylelint_config_path \
-            "$addon_path/**/*.css" \
-            "$addon_path/**/*.scss" \
-            "$addon_path/**/*.less"; then
+    if ! execu stylelint --config "$stylelint_default_conf" "$addon_path/**/*.css"; then
         res=1;
+    fi
+    if ! execu stylelint --config "$stylelint_less_conf" "$addon_path/**/*.less"; then
+        res=1;
+    fi
+    if ! execu stylelint --config "$stylelint_scss_conf" "$addon_path/**/*.scss"; then
+        res=1;
+    fi
+
+    if [ ! "$res" -eq "0" ]; then
         echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${REDC}FAIL${NC}";
     else
         echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${GREENC}OK${NC}";
