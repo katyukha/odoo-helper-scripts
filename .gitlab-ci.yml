@@ -41,12 +41,23 @@ tests:
         paths:
              - coverage
 
-pages:
-    image: python:alpine
 
+dev-docs:
+    image: python:alpine
     before_script:
         - pip install mkdocs mkdocs-cinder
+    script:
+        - sh scripts/build_docs.sh
+    artifacts:
+        paths:
+            - public
+    except:
+        - master
 
+pages:
+    image: python:alpine
+    before_script:
+        - pip install mkdocs mkdocs-cinder
     script:
         - sh scripts/build_docs.sh
     artifacts:
