@@ -146,6 +146,11 @@ function lint_run_stylelint_internal {
     local stylelint_scss_conf;
     local res=0;
 
+    if [ -z "$addon_path" ]; then
+        echoe -e "${REDC}ERROR${NC}: stylelint - no Odoo addon path specified";
+        return 1;
+    fi
+
     save_dir=$(pwd);
     cd $addon_path;
 
@@ -155,13 +160,13 @@ function lint_run_stylelint_internal {
 
     echoe -e "${BLUEC}Processing addon ${YELLOWC}$(basename $addon_path)${BLUEC} ...${NC}";
 
-    if ! execu stylelint --config "$stylelint_default_conf" "$addon_path/**/*.css"; then
+    if ! execu stylelint --config "$stylelint_default_conf" "$addon_path/**/*.css" "!$addon_path/static/lib/**"; then
         res=1;
     fi
-    if ! execu stylelint --config "$stylelint_less_conf" "$addon_path/**/*.less"; then
+    if ! execu stylelint --config "$stylelint_less_conf" "$addon_path/**/*.less" "!$addon_path/static/lib/**"; then
         res=1;
     fi
-    if ! execu stylelint --config "$stylelint_scss_conf" "$addon_path/**/*.scss"; then
+    if ! execu stylelint --config "$stylelint_scss_conf" "$addon_path/**/*.scss" "!$addon_path/static/lib/**"; then
         res=1;
     fi
 
