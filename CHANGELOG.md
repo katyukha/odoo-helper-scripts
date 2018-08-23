@@ -69,6 +69,7 @@
 - `odoo-helper lint style` now have separate configs for *.css*, *.less*, *.scss*.
   The only differece is that *.less* and *.scss* configs have default indentation set to 4 spaces and
   *.css* config have default indentation set to 2 spaces
+- `odoo-helper lint style` status changed from *experimental* to *alpha*
 
 ### Deprecations
 

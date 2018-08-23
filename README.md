@@ -16,7 +16,7 @@ The canonical source of odoo-helper-scripts is hosted [GitLab](https://gitlab.co
 - Powerful testing capabilities, including support for:
     - python and js code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
     - python code check via [flake8](https://pypi.python.org/pypi/flake8)
-    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)  (**experimental**)
+    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)  (**alpha**)
     - compute test code coverage via [coverage.py](https://coverage.readthedocs.io)
     - Test web tours via [phantom.js](http://phantomjs.org/)
 - Easy addons installation

@@ -29,9 +29,9 @@ Brief list of frequently used odoo-helper commands
 - `odoo-helper test -m <module> --create-test-db` - test single module on just created clean database. database dropt after tests
 
 ### Linters
-- `odoo-helper lint pylint .` - run pylint for all addons in current directory
-- `odoo-helper lint flake8 .` - run flake8 for all addons in current directory
-- `odoo-helper lint style .` - run stylelint for all addons in current directories
+- `odoo-helper lint pylint .` - run [pylint](https://www.pylint.org/) with [pylint\_odoo](https://pypi.org/project/pylint-odoo/) for all addons in current directory
+- `odoo-helper lint flake8 .` - run [flake8](http://flake8.pycqa.org/en/latest/) for all addons in current directory
+- `odoo-helper lint style .` - run [stylelint](https://stylelint.io/) for all addons in current directories
 - `odoo-helper pylint` - alias for `odoo-helper lint pylint`
 - `odoo-helper flake8` - alias for `odoo-helper lint flake8`
 - `odoo-helper style` - alias for odoo-helper lint style`
