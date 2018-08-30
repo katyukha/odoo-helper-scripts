@@ -341,6 +341,13 @@ function test_module {
         shift;
     done;
 
+    # Print warning and return if there is no modules specified
+    modules=$(trim "$modules");
+	if [ -z "$modules" ]; then
+        echo -e "${YELLOWC}WARNING${NC}: There is no addons to test";
+		return 0;
+	fi
+
     # Run tests
     if test_run_tests ${recreate_db:-0} ${create_test_db:-0} \
         ${fail_on_warn:-0} ${with_coverage:-0} $modules;

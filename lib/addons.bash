@@ -246,11 +246,20 @@ function _addons_list_in_directory_display {
     echo -e "$result";
 }
 
-# _addons_list_in_directory_filter <addon_path> <installable 1|0> <not-linked 1|0>
+# _addons_list_in_directory_filter <addon_path> <installable 1|0> <not-linked 1|0> <filter_expr>
+# filer_expr is string that contains regular expression to filter addons with
 function _addons_list_in_directory_filter {
     local addon_path=$1;
     local installable=$2;
     local not_linked=$3;
+    local filter_expr=$4;
+
+    local addon_name=$(addons_get_addon_name "$addon_path");
+
+    if [ -n "$filter_expr" ] && ! [[ "$addon_name" =~ $filter_expr ]]; then
+        return 1;
+    fi
+
     if [ $installable -eq 1 ] && ! addons_is_installable $addon_path; then
         return 1;
     fi
@@ -282,7 +291,7 @@ function addons_list_in_directory {
         --by-name         - display only addon names
         --by-path         - display addon path
         --filter <expr>   - filter addons by expression.
-                            expression is a string suitable for 'grep' command
+                            expression is a string that is bash regular expression
                             (this option is experimental and its bechavior may be changed)
         --color           - color result by link-status
         -h|--help         - display this help message
@@ -354,14 +363,14 @@ function addons_list_in_directory {
         # Look for addons
         if [ -d $addons_path ]; then
             if is_odoo_module $addons_path; then
-                if _addons_list_in_directory_filter "$addons_path" $installable_only $not_linked_only; then
+                if _addons_list_in_directory_filter "$addons_path" "$installable_only" "$not_linked_only" "$filter_expr"; then
                     _addons_list_in_directory_display "$addons_path" $name_mode $color_mode;
                 fi
             fi
 
             for addon in "$addons_path"/*; do
                 if is_odoo_module $addon; then
-                    if _addons_list_in_directory_filter "$addon" $installable_only $not_linked_only; then
+                    if _addons_list_in_directory_filter "$addon" "$installable_only" "$not_linked_only" "$filter_expr"; then
                         _addons_list_in_directory_display "$addon" $name_mode $color_mode;
                     fi
                 elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
@@ -369,7 +378,7 @@ function addons_list_in_directory {
                 fi
             done
         fi
-    done | sort -u | grep -e "$filter_expr";
+    done | sort -u
 }
 
 
