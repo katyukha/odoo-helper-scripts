@@ -8,6 +8,8 @@ repo_name: GitLab
 
 theme: cinder
 
+google_analytics: ['UA-122240221-1', 'katyukha.gitlab.io/odoo-helper-scripts/']
+
 pages:
   - Home: index.md
   - User Guide:

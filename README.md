@@ -6,7 +6,7 @@
 
 ## Canonical source
 
-The canonical source of odoo-helper-scripts is hosted [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).
+The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).
 
 ## Features
 
