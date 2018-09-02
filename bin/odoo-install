@@ -90,6 +90,7 @@ function print_usage {
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
+         --pypy                        - [experimental] Use PyPy as interpreter
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
@@ -177,6 +178,9 @@ function parse_options {
                 local opt_name="${key#--test-conf-opt-}"
                 TEST_CONF_OPTIONS[$opt_name]=$2;
                 shift;
+            ;;
+            --pypy)
+                ODOO_USE_PYPY=1;
             ;;
             -h|--help|help)
                 # Check environment for config

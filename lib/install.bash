@@ -350,6 +350,8 @@ function install_odoo_py_requirements_for_version {
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 # Install correct version of greenlet for for gevent.
                 echo "greenlet==0.4.9";
+            elif [ -n "$ODOO_USE_PYPY" ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
+                echo "psycopg2cffi-compat";
             else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;
@@ -567,12 +569,42 @@ function odoo_run_setup_py {
 }
 
 
+function install_pypy {
+    local system_arch;
+    local py_version_number;
+    local pypy_download_link;
+    local pypy_name;
+    system_arch=$(dpkg --print-architecture);
+    py_version_number=$(odoo_get_python_version_number);
+
+    if [ "$system_arch" == "amd64" ]; then
+        pypy_name="pypy${py_version_number}-v6.0.0-linux64";
+    elif [ "system_arch" == "i386" ]; then
+        pypy_name="pypy${py_version_number}-v6.0.0-linux32";
+    else
+        echoe -e "${REDC}ERROR${NC}: cannot install pypy on architecture ${YELLOWC}${system_arch}${NC}";
+        return 1;
+    fi
+
+    echoe -e "${BLUEC}Downloading pypy...${NC}";
+    pypy_download_link="https://bitbucket.org/pypy/pypy/downloads/$pypy_name.tar.bz2";
+    wget -T 2 -q -O "$DOWNLOADS_DIR/$pypy_name.tar.bz2" "$pypy_download_link";
+    (cd "$DOWNLOADS_DIR" && tar -xjf "$pypy_name.tar.bz2");
+    mv "$DOWNLOADS_DIR/$pypy_name" "$PROJECT_ROOT_DIR/pypy";
+    rm -r "$DOWNLOADS_DIR/$pypy_name.tar.bz2";
+}
+
+
 # Install odoo intself.
 # Require that odoo is downloaded and directory tree structure created
 function install_odoo_install {
     # Install virtual environment
     echoe -e "${BLUEC}Installing virtualenv...${NC}";
-    install_virtual_env;
+    if [ ! -z $ODOO_USE_PYPY ] && install_pypy; then
+        VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/pypy/bin/pypy$(odoo_get_python_version_number)" install_virtual_env;
+    else
+        install_virtual_env;
+    fi
 
     # Install python requirements
     echoe -e "${BLUEC}Installing python pre-requirements...${NC}";
