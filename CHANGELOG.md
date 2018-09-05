@@ -47,6 +47,7 @@
 
 - `odoo-helper addons list` bugfix `--recursive` option:
   forward options to recursive calls
+- `odoo-helper db drop` check result of drop function, and if it is False that fail
 
 ### Changed
 
@@ -70,6 +71,11 @@
   The only differece is that *.less* and *.scss* configs have default indentation set to 4 spaces and
   *.css* config have default indentation set to 2 spaces
 - `odoo-helper lint style` status changed from *experimental* to *alpha*
+- `odoo-helper test`
+    - use default test database named `<dbuser>-odoo-test`
+    - created temporary databases are prefixed with `test-`
+- `odoo-install` do not set automatically `db_filter` and `db_name` for test config file
+
 
 ### Deprecations
 
@@ -80,6 +86,9 @@
 - `odoo-helper fetch -p` and `odoo-helper fetch --python` options are deprecated.
   Use `odoo-helper pip install` command instead.
   Or place `requirements.txt` file inside repository root or addon root directory.
+- It is not recommended now to use `db_name` and `db_filter` in test config file,
+  because, if either of them is defined,
+  then it is not allowed to drop databases that do not match  `db_name` or `db_filter` 
 
 
 ## Release 0.1.6 (2018-06-04)

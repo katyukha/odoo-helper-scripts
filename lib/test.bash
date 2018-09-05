@@ -74,13 +74,17 @@ function test_module_impl {
 function test_get_or_create_db {
     local recreate_db=$1;
     local create_test_db=$2;
+    local test_db_name;
 
     if [ $create_test_db -eq 1 ]; then
-        local test_db_name="$(< /dev/urandom tr -dc a-z0-9 | head -c24)";
-        odoo_db_create --demo $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
+        test_db_name="test-$(< /dev/urandom tr -dc a-z0-9 | head -c24)";
+        odoo_db_create --demo "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2;
     else
-        # name of test database expected to be defined in ODOO_TEST_CONF_FILE
-        local test_db_name="$(odoo_get_conf_val db_name $ODOO_TEST_CONF_FILE)";
+        test_db_name=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE");
+        if [ -n "$test_db_name" ]; then
+            test_db_name=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
+            test_db_name="$test_db_name-odoo-test";
+        fi
     fi
 
     if [ $recreate_db -eq 1 ] && odoo_db_exists -q $test_db_name; then
@@ -179,6 +183,8 @@ function test_run_tests {
     local with_coverage=$4;
     shift; shift; shift; shift;
 
+    local res=0;
+
     # Create new test database if required
     local test_db_name="$(test_get_or_create_db $recreate_db $create_test_db)";
     if [ $? -ne 0 ]; then
@@ -195,7 +201,9 @@ function test_run_tests {
 
     trap "test_run_tests_handle_sigint $create_test_db $test_db_name" SIGINT;
 
-    test_run_tests_for_modules $with_coverage $test_db_name $test_log_file $@;
+    if ! test_run_tests_for_modules $with_coverage $test_db_name $test_log_file $@; then
+        res=2
+    fi
 
     # Combine test coverage results
     if [ $with_coverage -eq 1 ]; then
@@ -204,15 +212,33 @@ function test_run_tests {
 
     # Drop created test db
     if [ $create_test_db -eq 1 ]; then
-        echo  -e "${BLUEC}Droping test database: $test_db_name${NC}";
-        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE
+        echo  -e "${BLUEC}Droping test database: ${YELLOWC}${test_db_name}${NC}";
+        odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE"
     fi
 
-    if test_parse_log_file $test_db_name $test_log_file $fail_on_warn; then
-        echo -e "TEST RESULT: ${GREENC}OK${NC}";
-    else
+    if [ "$res" -eq 2 ]; then
+        echo -e "${REDC}ERROR${NC}: Some error happened during test!";
+    elif ! test_parse_log_file $test_db_name $test_log_file $fail_on_warn; then
         echo -e "TEST RESULT: ${REDC}FAIL${NC}";
-        return 1;
+        res=1;
+    else
+        echo -e "TEST RESULT: ${GREENC}OK${NC}";
+        res=0;
+    fi
+    return $res
+}
+
+
+function _test_check_conf_options {
+    local dbname;
+    local dbfilter;
+    dbname=$(odoo_get_conf_val "db_name" "$ODOO_TEST_CONF_FILE")
+    dbfilter=$(odoo_get_conf_val "db_filter" "$ODOO_TEST_CONF_FILE")
+    if [ -n "$dbname" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: Test conf ${BLUEC}${ODOO_TEST_CONF_FILE}${NC} contains ${BLUEC}db_name${NC} option, which may deny to drop test databases. Now it is set to ${YELLOWC}${dbname}${NC}";
+    fi
+    if [ -n "$dbfilter" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: Test conf ${BLUEC}${ODOO_TEST_CONF_FILE}${NC} contains ${BLUEC}db_filter${NC} option, which may deny to drop test databases. Now it is set to ${YELLOWC}${dbname}${NC}";
     fi
 }
 
@@ -347,6 +373,8 @@ function test_module {
         echo -e "${YELLOWC}WARNING${NC}: There is no addons to test";
 		return 0;
 	fi
+
+    _test_check_conf_options;
 
     # Run tests
     if test_run_tests ${recreate_db:-0} ${create_test_db:-0} \

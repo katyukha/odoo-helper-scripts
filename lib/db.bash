@@ -134,8 +134,10 @@ function odoo_db_drop {
         return 1;
     fi
 
+    echov -e "${LBLUEC}Dropping database ${YELLOWC}${dbname}${LBLUEC} using conf file ${YELLOWC}${conf_file}${NC}";
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name');"
+    python_cmd="$python_cmd exit(int(not(cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name'))));";
+    echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
     
     if ! run_python_cmd "$python_cmd"; then
         [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";

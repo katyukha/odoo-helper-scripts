@@ -247,8 +247,6 @@ function generate_test_conf {
     ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
     ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-$DB_USER}";
     ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-$DB_PASSWORD}";
-    ODOO_CONF_OPTIONS[db_name]="${ODOO_CONF_OPTIONS['db_name']:-$DB_USER-odoo-test}";
-    ODOO_CONF_OPTIONS[db_filter]="${ODOO_CONF_OPTIONS['db_filter']:-$DB_USER-odoo-test}";
     ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-8269}";
     ODOO_CONF_OPTIONS[xmlrpcs_port]="${ODOO_CONF_OPTIONS['xmlrpcs_port']:-8271}";
     ODOO_CONF_OPTIONS[http_port]="${ODOO_CONF_OPTIONS['http_port']:-8269}";

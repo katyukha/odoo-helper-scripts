@@ -44,21 +44,28 @@ function odoo_get_conf_val {
         return 2;
     fi
 
-    echo $(awk -F " *= *" "/$key/ {print \$2}" $conf_file);
+    echo $(awk -F " *= *" "/^$key/ {print \$2}" $conf_file);
+}
+
+# odoo_get_conf_val_default <key> <default> [conf file]
+# Get value from odoo config or return default value
+function odoo_get_conf_val_default {
+    local value;
+
+    value=$(odoo_get_conf_val "$1" "$3");
+    if [ -n "$value" ]; then
+        echo "$value";
+    else
+        echo "$2";
+    fi
 }
 
 function odoo_get_conf_val_http_host {
-    local host="$(odoo_get_conf_val 'http_interface')";
-    host="${host:-$(odoo_get_conf_val 'xmlrpc_interface')}";
-    host="${host:-localhost}";
-    echo "$host";
+    echo $(odoo_get_conf_val_default 'http_interface' $(odoo_get_conf_val_default 'xmlrpc_interface' 'localhost'));
 }
 
 function odoo_get_conf_val_http_port {
-    local port="$(odoo_get_conf_val 'http_port')";
-    port="${port:-$(odoo_get_conf_val 'xmlrpc_port')}";
-    port="${port:-8069}";
-    echo "$port";
+    echo $(odoo_get_conf_val_default 'http_port' $(odoo_get_conf_val_default 'xmlrpc_port' '8069'));
 }
 
 function odoo_get_server_url {
