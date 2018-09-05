@@ -81,13 +81,13 @@ function test_get_or_create_db {
         odoo_db_create --demo "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2;
     else
         test_db_name=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE");
-        if [ -n "$test_db_name" ]; then
+        if [ -z "$test_db_name" ]; then
             test_db_name=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
             test_db_name="$test_db_name-odoo-test";
         fi
     fi
 
-    if [ $recreate_db -eq 1 ] && odoo_db_exists -q $test_db_name; then
+    if [ "$recreate_db" -eq 1 ] && odoo_db_exists -q "$test_db_name"; then
         odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
     fi
     echo "$test_db_name";
@@ -184,14 +184,16 @@ function test_run_tests {
     shift; shift; shift; shift;
 
     local res=0;
+    local test_db_name;
+    local test_log_file;
 
     # Create new test database if required
-    local test_db_name="$(test_get_or_create_db $recreate_db $create_test_db)";
-    if [ $? -ne 0 ]; then
-        echo "${REDC}ERROR${NC} Cannot use or create test database!";
+    test_db_name="$(test_get_or_create_db $recreate_db $create_test_db)";
+    if [ $? -ne 0 ] || [ -z "$test_db_name" ]; then
+        echoe -e "${REDC}ERROR${NC} Cannot use or create test database!";
         return 1;
     fi
-    local test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
+    test_log_file="${LOG_DIR:-.}/odoo.test.db.$test_db_name.log";
 
     # Remove log file if it is present before test, otherwise
     # it will be appended, wich could lead to incorrect test results
