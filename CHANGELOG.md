@@ -22,6 +22,7 @@
       addons (modules) to be tested
     - `--ual` - Update Apps List. When this option is specified, apps (addons)
       list will be updated before install/update/uninstall addon
+    - `all` - install or update all addons. Does not work for uninstall.
 - Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
 - Shortcut `odoo-helper ps` for `odoo-helper server ps`
 - Alias to `--version` option - `version`: `odoo-helper version`

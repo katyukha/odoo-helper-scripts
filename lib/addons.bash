@@ -589,6 +589,7 @@ function addons_install_update {
     local usage="Usage:
 
         $SCRIPT_NAME addons $cmd [options] <addons>    - $cmd some addons
+        $SCRIPT_NAME addons $cmd [options] all         - $cmd all addons
         $SCRIPT_NAME addons $cmd --help
 
     Options
@@ -677,6 +678,14 @@ function addons_install_update {
             -*)
                 echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${1}${NC}!"
                 return 1;
+            ;;
+            all)
+                if [ "$cmd" == "uninstall" ]; then
+                    echoe -e "${REDC}ERROR${NC}: Cannot uninstall all addons!";
+                    return 1;
+                else
+                    todo_addons="all";
+                fi
             ;;
             *)
                 if [ "$cmd" != "uninstall" ] && ! addons_is_odoo_addon "$1"; then
