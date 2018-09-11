@@ -92,7 +92,7 @@ function link_module {
     local MODULE_NAME=$3
 
     if [ -z $REPO_PATH ]; then
-        echo -e "${REDC}Bad repo path fot link: $REPO_PATH${NC}";
+        echo -e "${REDC}Bad repo path for link: ${YELLOWC}${REPO_PATH}${NC}";
         return 2;
     fi
 

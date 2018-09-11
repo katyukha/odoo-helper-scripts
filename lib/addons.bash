@@ -442,7 +442,8 @@ function addons_git_pull_updates {
         IFS=$'\n' git_status=( $(git_parse_status $addon_repo || echo '') );
         local git_remote_status=${git_status[1]};
         if [[ $git_remote_status == _BEHIND_* ]] && [[ $git_remote_status != *_AHEAD_* ]]; then
-            (cd $addon_repo && git pull && link_module .);
+            # link module (not forced)
+            (cd $addon_repo && git pull && link_module off .);
         fi
     done
 
