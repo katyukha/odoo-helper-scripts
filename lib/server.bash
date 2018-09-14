@@ -125,7 +125,7 @@ function server_run {
             ;;
         esac
     done
-    local SERVER=`get_server_script`;
+    local SERVER=$(get_server_script);
     if [ ! -z $SERVER_RUN_USER ]; then
         local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
         echov "Using server run opt: $sudo_opt";
@@ -133,7 +133,10 @@ function server_run {
 
 
     if [ "$with_coverage" -eq 1 ]; then
-        local coverage_include="${COVERAGE_INCLUDE:-$(pwd)/*}";
+        local coverage_include;
+        local coverage_conf;
+        coverage_include="${COVERAGE_INCLUDE:-$(pwd)/*}";
+        coverage_conf=$(config_get_default_tool_conf "coverage.cfg");
 
         if ! check_command coverage >/dev/null 2>&1; then
             echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found." \
