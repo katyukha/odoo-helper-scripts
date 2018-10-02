@@ -142,9 +142,14 @@ function link_command {
     Usage: 
 
         $SCRIPT_NAME link [-f|--force] <repo_path> [<module_name>]
+
+    Options:
+        -f|--force   - rewrite links if already exists
+        --ual        - update addons list after link
     ";
 
     local force=off;
+    local ual;
 
     # Parse command line options and run commands
     if [[ $# -lt 1 ]]; then
@@ -164,7 +169,10 @@ function link_command {
                 return 0;
             ;;
             -f|--force)
-                local force=on;
+                force=on;
+            ;;
+            --ual)
+                ual=1;
             ;;
             *)
                 echo "Unknown option $key";
@@ -174,5 +182,9 @@ function link_command {
         shift
     done
 
-    link_module $force "$@"
+    link_module $force "$@";
+
+    if [ -n "$ual" ]; then
+        addons_update_module_list;
+    fi
 }
