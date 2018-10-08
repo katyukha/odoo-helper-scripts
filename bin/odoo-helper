@@ -330,7 +330,7 @@ function odoo_helper_browse {
         echoe -e "${REDC}ERROR${NC}: cannot open in browser: odoo not started";
         return 2;
     fi
-    if ! check_command xdg-open; then
+    if ! check_command xdg-open >/dev/null 2>&1; then
         echoe -e "${REDC}ERROR${NC}: ${YELLOWC}xdg-open${NC} not installed.";
         return 3;
     elif [ -z "$server_url" ]; then

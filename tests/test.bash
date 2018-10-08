@@ -284,11 +284,18 @@ odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
 odoo-helper addons list --installable ./custom_addons;
 odoo-helper addons list --color --recursive ./repositories;
-odoo-helper addons update-list
+odoo-helper addons update-list --help;
+odoo-helper addons update-list;
 odoo-helper addons install bus_enhanced;
 odoo-helper addons test-installed bus_enhanced;  # find databases where this addons is installed
-odoo-helper addons update bus_enhanced;
+odoo-helper addons update -m bus_enhanced;
 odoo-helper addons uninstall bus_enhanced;
+
+# uninstall addon that is not installed
+odoo-helper addons uninstall account;
+
+# uninstall all addons (error)
+odoo-helper addons uninstall all || true;
 
 # Update python dependencies of addons
 odoo-helper addons update-py-deps
@@ -437,7 +444,11 @@ odoo-helper addons update base
 odoo-helper fetch --oca account-financial-reporting
 
 # Clone repository explicitly and link it
-(cd repositories && git clone -b 10.0 https://github.com/OCA/contract && odoo-helper link contract)
+(cd repositories && \
+    git clone -b 10.0 https://github.com/OCA/contract && \
+    odoo-helper addons list --color contract && \
+    odoo-helper link contract && \
+    odoo-helper addons list --color contract)
 
 # Update addons list
 odoo-helper addons update-list
@@ -451,6 +462,7 @@ odoo-helper fetch --requirements /tmp/odoo-requirements.txt
 odoo-helper install reinstall-venv;
 odoo-helper server status
 odoo-helper start
+odoo-helper status
 odoo-helper server status
 odoo-helper stop
 
@@ -522,6 +534,9 @@ odoo-helper fetch --oca partner-contact;
 odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
 odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
 
+# Update addons list on specific db
+odoo-helper addons update-list test-11-db
+
 
 echo -e "${YELLOWC}
 ==========================================
@@ -556,6 +571,7 @@ odoo-helper-db --help
 odoo-helper-fetch --help
 odoo-helper-server --help
 odoo-helper-test --help
+odoo-helper git --help
 odoo-helper-restart
 odoo-helper stop # ensure server stopped
 
