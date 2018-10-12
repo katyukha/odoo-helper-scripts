@@ -330,12 +330,12 @@ function fetch_module {
     local REPO_TYPE=git;
 
     # Check if first argument is git repository
-    if [ -n "$1" ] && git ls-remote "$1" > /dev/null 2>&1; then
+    if [ "$1" == -* ] && git ls-remote "$1" > /dev/null 2>&1; then
         REPOSITORY="$1";
         shift;
     fi
 
-    while [[ $# -gt 1 ]]
+    while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
