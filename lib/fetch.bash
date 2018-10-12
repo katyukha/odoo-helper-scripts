@@ -316,7 +316,7 @@ function fetch_module {
            $SCRIPT_NAME fetch -p <vcs>
     ";
 
-    if [[ $# -lt 2 ]]; then
+    if [[ $# -lt 1 ]]; then
         echo "$usage";
         exit 0;
     fi
@@ -328,6 +328,12 @@ function fetch_module {
     local REPO_BRANCH_OPT=;
     local PYTHON_INSTALL=;
     local REPO_TYPE=git;
+
+    # Check if first argument is git repository
+    if [ -n "$1" ] && git ls-remote "$1" > /dev/null 2>&1; then
+        REPOSITORY="$1";
+        shift;
+    fi
 
     while [[ $# -gt 1 ]]
     do
