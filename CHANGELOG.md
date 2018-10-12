@@ -45,6 +45,7 @@
   The goal of this command is to be sure that addon version number was updated.
 - New option `--ual` for `odoo-helper link` command.
 - New command `odoo-helper browse` that opens running odoo instance in webbrowser
+- Experimental support of Odoo 12.0
 
 ### Fix
 

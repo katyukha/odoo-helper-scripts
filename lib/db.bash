@@ -361,7 +361,7 @@ function odoo_db_command {
     do
         local key="$1";
         case $key in
-            list)
+            ls|list)
                 shift;
                 odoo_db_list "$@";
                 return;

@@ -294,7 +294,7 @@ function install_parse_debian_control_file {
             python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
                 continue
             ;;
-            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text)
+            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass)
                 continue
             ;;
             python-libxslt1|python-simplejson|python-unittest2)
@@ -392,7 +392,7 @@ function install_system_prerequirements {
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools libevent-dev g++ libpq-dev \
+        python-setuptools libevent-dev g++ libpq-dev libsass-dev \
         python-dev python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig;

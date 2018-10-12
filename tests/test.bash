@@ -614,3 +614,49 @@ echo -e "${GREENC}
 Tests finished
 ==========================================
 ${NC}"
+
+echo -e "${YELLOWC}
+=================================
+Install and check Odoo 12.0 (Py3)
+=================================
+${NC}"
+
+cd ../;
+odoo-helper install sys-deps -y 12.0;
+odoo-helper postgres user-create odoo12 odoo;
+odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo12 --db-pass odoo
+
+cd odoo-12.0;
+
+# Install py-tools and js-tools
+odoo-helper install py-tools;
+odoo-helper install js-tools;
+
+# Test python version
+echo -e "${YELLOWC}Ensure that it is Py3${NC}";
+odoo-helper exec python --version
+if ! [[ "$(odoo-helper exec python --version 2>&1)" == "Python 3."* ]]; then
+    echo -e "${REDC}FAIL${NC}: No py3";
+    exit 3;
+fi
+
+echo "";
+echo "Generated odoo config:"
+echo "$(cat ./conf/odoo.conf)"
+echo "";
+
+odoo-helper server run --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status
+odoo-helper server status
+odoo-helper start
+odoo-helper ps
+odoo-helper status
+odoo-helper server status
+odoo-helper stop
+
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions
