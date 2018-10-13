@@ -293,6 +293,11 @@ function tr_regenerate {
         --dir  <addons path>  - look for addons at specified directory
         --dir-r <addons path> - look for addons at specified directory and its subdirectories
 
+    Examples
+
+        $SCRIPT_NAME tr regenerate --lang uk_UA --file uk project product
+        $SCRIPT_NAME tr regenerate --lang ru_RU --file ru project product
+
     this command automaticaly creates new temporary database with specified lang
     and demo_data, installs there specified list of addons
     end exports translations for specified addons
