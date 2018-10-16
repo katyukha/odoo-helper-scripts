@@ -335,7 +335,7 @@ function tr_regenerate {
     done
 
     # Create temporary database
-    local tmp_db_name=$(random_string 24);
+    local tmp_db_name="test-tr-$(random_string 24)";
     odoo_db_create --lang $lang --demo $tmp_db_name;
     
     # install addons
@@ -409,7 +409,7 @@ function tr_translation_rate {
     done
 
     # Create temporary database
-    local tmp_db_name=$(random_string 24);
+    local tmp_db_name="test-tr-$(random_string 24)";
     odoo_db_create --lang $lang --demo $tmp_db_name;
 
     local addons_cs=$(join_by , $addons);  # coma-separated
