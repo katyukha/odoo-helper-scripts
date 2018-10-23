@@ -334,6 +334,16 @@ function tr_regenerate {
         shift
     done
 
+    if [ -z "$lang" ]; then
+        echoe -e "${REDC}ERROR${NC}: argument 'lang' is required!";
+        return 1;
+    fi
+
+    if [ -z "$file_name" ]; then
+        echoe -e "${REDC}ERROR${NC}: argument 'file' is required!";
+        return 2;
+    fi
+
     # Create temporary database
     local tmp_db_name="test-tr-$(random_string 24)";
     odoo_db_create --lang $lang --demo $tmp_db_name;
