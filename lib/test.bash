@@ -170,7 +170,7 @@ function test_run_tests_handle_sigint {
         odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE;
     fi
 
-    exit 1;
+    exit 1;  # TODO: Use return here?
 }
 
 

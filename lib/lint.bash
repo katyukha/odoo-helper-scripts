@@ -203,7 +203,7 @@ function lint_run_stylelint {
         echo "No options supplied $#: $@";
         echo "";
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $1 == -* ]]
@@ -251,7 +251,7 @@ function lint_command {
         echo "No options supplied $#: $@";
         echo "";
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]

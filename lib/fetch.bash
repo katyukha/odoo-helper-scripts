@@ -318,7 +318,7 @@ function fetch_module {
 
     if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     local REPOSITORY=;
