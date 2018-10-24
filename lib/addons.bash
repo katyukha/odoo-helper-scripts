@@ -443,12 +443,17 @@ function addons_git_pull_updates {
         local git_remote_status=${git_status[1]};
         if [[ $git_remote_status == _BEHIND_* ]] && [[ $git_remote_status != *_AHEAD_* ]]; then
             # link module (not forced)
-            (cd $addon_repo && git pull && link_module off .);
+            (cd $addon_repo && \
+                echoe -e "${BLUEC}Pulling updates for ${YELLOWC}${addon_repo}${BLUEC}...${NC}" && \
+                git pull && \
+                echoe -e "${BLUEC}Linking repository ${YELLOWC}${addon_repo}${BLUEC}...${NC}" && \
+                link_module off . && \
+                echoe -e "${BLUEC}Pull ${YELLOWC}${addon_repo}${BLUEC}: ${GREENC}OK${NC}");
         fi
     done
 
     # update list available modules for all databases
-    addons_update_module_list
+    addons_update_module_list;
 }
 
 

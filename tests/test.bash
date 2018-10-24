@@ -530,6 +530,9 @@ odoo-helper tr import test-11-db uk_UA uk-test web;
 # Install oca/partner-contact addons
 odoo-helper fetch --oca partner-contact;
 
+# Fetch oca/web passing only repo url and branch to fetch command
+odoo-helper fetch https://github.com/oca/web --branch 11.0;
+
 # Regenerate Ukrainian translations for all addons in partner-contact
 odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
 odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;

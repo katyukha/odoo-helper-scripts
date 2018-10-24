@@ -63,7 +63,7 @@ function fetch_requirements {
         echov "Processing requirements file $REQUIREMENTS_FILE";
         while read -r line; do
             if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
-                if fetch_module $line; then
+                if fetch_module "$line"; then
                     echoe -e "Line ${GREENC}OK${NC}: $line";
                 else
                     echoe -e "Line ${REDC}FAIL${NC}: $line";
@@ -149,7 +149,7 @@ function fetch_oca_requirements {
                opt="$opt --branch ${line[2]}";
            fi
            
-           if fetch_module $opt; then
+           if fetch_module "$opt"; then
                echo -e "Line ${GREENC}OK${NC}: $opt";
            else
                echo -e "Line ${GREENC}FAIL${NC}: $opt";
@@ -330,7 +330,7 @@ function fetch_module {
     local REPO_TYPE=git;
 
     # Check if first argument is git repository
-    if [ "$1" == -* ] && git ls-remote "$1" > /dev/null 2>&1; then
+    if [ "$1" != -* ] && git ls-remote "$1" > /dev/null 2>&1; then
         REPOSITORY="$1";
         shift;
     fi
@@ -342,7 +342,7 @@ function fetch_module {
             -r|--repo)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="$2";
                 shift;
@@ -350,7 +350,7 @@ function fetch_module {
             --hg)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="$2";
                 REPO_TYPE=hg;
@@ -359,7 +359,7 @@ function fetch_module {
             --github)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="https://github.com/$2";
                 shift;
@@ -367,7 +367,7 @@ function fetch_module {
             --oca)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="https://github.com/OCA/$2";
                 # for backward compatability (if odoo version not defined,
@@ -397,15 +397,15 @@ function fetch_module {
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             --requirements)
                 fetch_requirements $2;
-                exit 0;
+                return 0;
             ;;
             *)
-                echo "Unknown option $key";
-                exit 1;
+                echoe -e "${REDC}ERROR${NC}: Unknown option $key";
+                return 1;
             ;;
         esac
         shift
@@ -419,7 +419,7 @@ function fetch_module {
         echo "No git repository supplied to fetch module from!";
         echo "";
         print_usage;
-        exit 2;
+        return 2;
     fi
 
     REPO_NAME=${REPO_NAME:-$(get_repo_name $REPOSITORY)};
