@@ -46,6 +46,7 @@
 - New option `--ual` for `odoo-helper link` command.
 - New command `odoo-helper browse` that opens running odoo instance in webbrowser
 - Experimental support of Odoo 12.0
+- Added colors to `odoo-helper tr rate` command output
 
 ### Fix
 
