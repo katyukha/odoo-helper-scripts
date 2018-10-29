@@ -246,18 +246,22 @@ function show_project_status {
         shift;
     done;
 
-    pid=$(server_get_pid);
-
-    if [ "$pid" -gt 0 ]; then
-        server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
-        if [ -z "$INIT_SCRIPT" ]; then
-            server_url="${BLUEC}$(odoo_get_server_url)${NC}";
+    if [ ! -z $INIT_SCRIPT ]; then
+        server_status="run ${YELLOWC}${INIT_SCRIPT} status${NC}";
+        server_url="";
+    else
+        pid=$(server_get_pid);
+        if [ "$pid" -gt 0 ]; then
+            server_status="${GREENC}Running (${YELLOWC}$pid${GREENC})${NC}";
+            if [ -z "$INIT_SCRIPT" ]; then
+                server_url="${BLUEC}$(odoo_get_server_url)${NC}";
+            else
+                server_url="";
+            fi
         else
+            server_status="${REDC}Stopped${NC}";
             server_url="";
         fi
-    else
-        server_status="${REDC}Stopped${NC}";
-        server_url="";
     fi
 
     if [ -z "$PROJECT_ROOT_DIR" ]; then
