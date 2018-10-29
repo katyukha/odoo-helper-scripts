@@ -63,7 +63,7 @@ function fetch_requirements {
         echov "Processing requirements file $REQUIREMENTS_FILE";
         while read -r line; do
             if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
-                if fetch_module "$line"; then
+                if fetch_module $line; then
                     echoe -e "Line ${GREENC}OK${NC}: $line";
                 else
                     echoe -e "Line ${REDC}FAIL${NC}: $line";
@@ -137,7 +137,7 @@ function fetch_oca_requirements {
            local opt=""; #"--name ${line[0]}";
 
            # if there are no url specified then use --oca shortcut
-           if [ -z ${line[1]} ]; then
+           if [ -z "${line[1]}" ]; then
                opt="$opt --oca ${line[0]}";
            else
                # else, specify url directly
@@ -145,11 +145,11 @@ function fetch_oca_requirements {
            fi
 
            # add branch if it spcified in file
-           if [ ! -z ${line[2]} ]; then
+           if [ ! -z "${line[2]}" ]; then
                opt="$opt --branch ${line[2]}";
            fi
            
-           if fetch_module "$opt"; then
+           if fetch_module $opt; then
                echo -e "Line ${GREENC}OK${NC}: $opt";
            else
                echo -e "Line ${GREENC}FAIL${NC}: $opt";
@@ -166,7 +166,7 @@ function fetch_oca_requirements {
 # base_tags
 function get_repo_name {
     if [ -z "$2" ]; then
-        local R=`basename $1`;  # get repository name
+        local R=$(basename "$1");  # get repository name
         R=${R%.git};  # remove .git suffix from name
         echo $R;
     else
