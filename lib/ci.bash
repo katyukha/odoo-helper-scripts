@@ -143,6 +143,56 @@ function ci_check_versions_git {
     return $result;
 }
 
+
+# Ensure that all addons in specified directory have icons
+# ci_ensure_addons_have_icons <addon path>
+function ci_ensure_addons_have_icons {
+    local usage="
+    Ensure that all addons in specified directory have icons.
+
+    Usage:
+
+        $SCRIPT_NAME ci ensure-icons <addon path>  - ensure addons have icons
+        $SCRIPT_NAME ci ensure-icons --help        - print this help message
+    ";
+
+    # Parse options
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    local addons_path="$1";
+    if [ ! -d "$addons_path" ]; then
+        echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${addons_path}${NC} is not a directory!";
+        return 1;
+    fi
+
+    local res=0;
+    for addon in $(addons_list_in_directory --installable "$1"); do
+        if [ ! -f "$addon/static/description/icon.png" ]; then
+            echoe -e "${REDC}ERROR${NC}: addon ${YELLOWC}${addon}${NC} have no icon!";
+            res=1;
+        fi
+    done
+
+    return $res;
+}
+
 function ci_command {
     local usage="
     This command provides subcommands useful in Continious Integration process
@@ -150,7 +200,8 @@ function ci_command {
     NOTE: This command is experimental and everything may be changed.
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [--help]  - show list of addons changed
+        $SCRIPT_NAME ci check-versions-git [--help]  - ensure versions of changed addons were updated
+        $SCRIPT_NAME ci ensure-icons <addon path>    - ensure all addons in specified directory have icons
         $SCRIPT_NAME ci -h|--help|help               - show this help message
     ";
 
@@ -166,6 +217,11 @@ function ci_command {
             check-versions-git)
                 shift;
                 ci_check_versions_git "$@";
+                return;
+            ;;
+            ensure-icons)
+                shift;
+                ci_ensure_addons_have_icons "$@";
                 return;
             ;;
             -h|--help|help)
