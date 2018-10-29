@@ -80,6 +80,7 @@
     - use default test database named `<dbuser>-odoo-test`
     - created temporary databases are prefixed with `test-`
 - `odoo-install` do not set automatically `db_filter` and `db_name` for test config file
+- `odoo-helper tr rate` if there is no translation terms for addon compute it's rate as 100%
 
 
 ### Deprecations

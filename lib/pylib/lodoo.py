@@ -80,7 +80,8 @@ class LocalRegistry(object):
         self._env = None
 
         if self.odoo._api_v7:
-            self.registry = self.odoo.modules.registry.RegistryManager.get(self._dbname)
+            self.registry = self.odoo.modules.registry.RegistryManager.get(
+                self._dbname)
             self.cursor = self.registry.db.cursor()
         else:
             # For odoo 8, 9, 10, 11, +(?) there is special
@@ -151,9 +152,9 @@ class LocalRegistry(object):
 
             if trans_total:
                 addon_data['rate'] = 1.0 - (float(trans_fail) /
-                                              float(trans_total))
+                                            float(trans_total))
             else:
-                addon_data['rate'] = 0.0
+                addon_data['rate'] = 1.0
 
             addon_data['rate'] *= 100.0
 
@@ -207,10 +208,6 @@ class LocalRegistry(object):
         # Print translation rate by addon
         for addon, rate_data in translation_rate['by_addon'].items():
             print(format_addon_rate(addon, rate_data, colored=colored))
-            # print(row_format_str % (
-                  # addon, rate_data['terms_total'],
-                  # rate_data['terms_untranslated'],
-                  # rate_data['rate']))
 
         # Print total translation rate
         print(spacer_str)
