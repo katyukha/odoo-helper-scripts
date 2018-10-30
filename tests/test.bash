@@ -160,6 +160,10 @@ echo -e "${YELLOWC}
 Fetch and test 'https://github.com/katyukha/base_tags' addon
 ============================================================
 ${NC}"
+# Print help message for fetch command
+odoo-helper fetch --help
+echo -e "${BLUEC}---${NC}";
+
 # Let's install base_tags addon into this odoo installation
 odoo-helper fetch --github katyukha/base_tags --branch master
 
@@ -663,3 +667,10 @@ odoo-helper stop
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
+
+# Fetch oca/contract
+odoo-helper fetch --oca contract
+
+# Create test database
+odoo-helper db create --demo --lang en_US odoo12-odoo-test
+odoo-helper db drop odoo12-odoo-test
