@@ -501,7 +501,7 @@ function addons_show_status {
                 local ignore_no_git_repo=1;
             ;;
             *)
-                echo "Unknown option: $key";
+                echoe "Unknown option: $key";
                 return 1;
             ;;
         esac;
@@ -512,7 +512,7 @@ function addons_show_status {
     for addon_repo in $(addons_list_repositories $addons_dir); do
         IFS=$'\n' git_status=( $(git_parse_status $addon_repo || echo '') );
         if [ -z $git_status ]; then
-            echo -e "No info available for addon $addon_repo";
+            echoe -e "No info available for addon $addon_repo";
             continue;
         fi
 
@@ -527,24 +527,24 @@ function addons_show_status {
         fi
 
         # Display addon status
-        echo -e "Addon status for ${BLUEC}$addon_repo${NC}'";
-        echo -e "\tRepo branch:          ${git_status[0]}";
-        echo -e "\tRepo remote:          $(git_get_remote_url $addon_repo)";
-        [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Remote: ${git_status[1]}${NC}";
-        [ ${git_status[1]} != "." ] && echo -e "\t${YELLOWC}Upstream: ${git_status[2]}${NC}";
-        [ ${git_status[3]} -eq 1 ]  && echo -e "\t${GREENC}Repo is clean!${NC}";
-        [ ${git_status[4]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[4]} files staged for commit${NC}";
-        [ ${git_status[5]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[5]} files changed${NC}";
-        [ ${git_status[6]} -gt 0 ]  && echo -e "\t${REDC}${git_status[6]} conflicts${NC}";
-        [ ${git_status[7]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[7]} untracked files${NC}";
-        [ ${git_status[8]} -gt 0 ]  && echo -e "\t${YELLOWC}${git_status[8]} stashed${NC}";
+        echoe -e "Addon status for ${BLUEC}$addon_repo${NC}'";
+        echoe -e "\tRepo branch:          ${git_status[0]}";
+        echoe -e "\tRepo remote:          $(git_get_remote_url $addon_repo)";
+        [ ${git_status[1]} != "." ] && echoe -e "\t${YELLOWC}Remote: ${git_status[1]}${NC}";
+        [ ${git_status[1]} != "." ] && echoe -e "\t${YELLOWC}Upstream: ${git_status[2]}${NC}";
+        [ ${git_status[3]} -eq 1 ]  && echoe -e "\t${GREENC}Repo is clean!${NC}";
+        [ ${git_status[4]} -gt 0 ]  && echoe -e "\t${YELLOWC}${git_status[4]} files staged for commit${NC}";
+        [ ${git_status[5]} -gt 0 ]  && echoe -e "\t${YELLOWC}${git_status[5]} files changed${NC}";
+        [ ${git_status[6]} -gt 0 ]  && echoe -e "\t${REDC}${git_status[6]} conflicts${NC}";
+        [ ${git_status[7]} -gt 0 ]  && echoe -e "\t${YELLOWC}${git_status[7]} untracked files${NC}";
+        [ ${git_status[8]} -gt 0 ]  && echoe -e "\t${YELLOWC}${git_status[8]} stashed${NC}";
 
     done;
 
     if [ -z $ignore_no_git_repo ]; then
         for addon_path in $(addons_list_no_repository $addons_dir); do
-            echo -e "Addon status for ${BLUEC}$addon_path${NC}'";
-            echo -e "\t${REDC}Warning: not under git controll${NC}";
+            echoe -e "Addon status for ${BLUEC}$addon_path${NC}'";
+            echoe -e "\t${REDC}Warning: not under git controll${NC}";
         done
     fi
 }
