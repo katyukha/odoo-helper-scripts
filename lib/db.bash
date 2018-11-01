@@ -36,12 +36,15 @@ function odoo_db_create {
            --demo         - load demo-data (default: no demo-data)
            --lang <lang>  - specified language for this db.
                             <lang> is language code like 'en_US'...
+           --recreate     - if database with such name exists,
+                            then drop it first
            --help         - display this help message
     ";
 
     # Parse options
     local demo_data='False';
     local db_lang="en_US";
+    local db_recreate=;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -53,6 +56,10 @@ function odoo_db_create {
             --lang)
                 db_lang=$2;
                 shift; shift;
+            ;;
+            --recreate)
+                db_recreate=1;
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -67,12 +74,22 @@ function odoo_db_create {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
     
-    if [ -z $db_name ]; then
+    if [ -z "$db_name" ]; then
         echoe -e "${REDC}ERROR${NC}: dbname not specified!!!";
         return 1;
     fi
 
     echov -e "${BLUEC}Creating odoo database ${YELLOWC}$db_name${BLUEC} using conf file ${YELLOWC}$conf_file${NC}";
+
+    if odoo_db_exists -q "$db_name" "$conf_file"; then
+        if [ -n "$db_recreate" ]; then
+            echoe -e "${YELLOWC}WARNING${NC}: dropting existing database ${YELLOWC}${db_name}${NC}";
+            odoo_db_drop "$db_name" "$conf_file";
+        else
+            echoe -e "${REDC}ERROR${NC}: database ${YELLOWC}${db_name}${NC} already exists!";
+            return 2;
+        fi
+    fi
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.create_database(cl.odoo.tools.config['admin_passwd'], '$db_name', $demo_data, '$db_lang');"

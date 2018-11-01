@@ -49,6 +49,9 @@
 - New command `odoo-helper browse` that opens running odoo instance in webbrowser
 - Experimental support of Odoo 12.0
 - Added colors to `odoo-helper tr rate` command output
+- Added option `--recreate` to `odoo-helper db create` command.
+  If database with such name already exists,
+  then it will be dropt before creation of new database.
 
 ### Fix
 
