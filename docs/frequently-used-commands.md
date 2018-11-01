@@ -7,7 +7,8 @@ Brief list of frequently used odoo-helper commands
 - `odoo-helper restart` - restart odoo server
 - `odoo-helper stop` - stop odoo-helper server
 - `odoo-helper log` - see odoo server logs
-- `odoo-helper server ps` - display odoo server processes for current project
+- `odoo-helper ps` - display odoo server processes for current project
+- `odoo-helper browse` - open running odoo installation in browser
 
 ### Odoo addons management
 - `odoo-helper addons list <path>` - list odoo addons in specified directory
@@ -15,10 +16,15 @@ Brief list of frequently used odoo-helper commands
 - `odoo-helper addons install <addon1> [addonn]` - install specified odoo addons for all databases available for this server
 - `odoo-helper addons update <addon1> [addonn]` - update specified odoo addons for all databases available for this server
 - `odoo-helper addons uninstall <addon1> [addonn]` - uninstall specified odoo addons for all databases available for this server
+- `odoo-helper addons update --dir <path>` - find all installable addons in specified directory and update them
+- `odoo-helper addons install --dir <path>` - find all installable addons in specified directory and install them
 
 ### Postgres related
 - `odoo-helper postgres psql [-d database]` - connect to db via psql (same credentials as used by odoo server)
+- `odoo-helper psql [-d database]` - shortcut for `odoo-helper postgres psql` command
 - `sudo odoo-helper postgres user-create <user name> <password>` - create postgres user for odoo
+- `odoo-helper postgres stat-activity` - list running postgres queries
+- `odoo-helper postgres stat-connections` - show postgres connections statistics
 
 ### Tests
 - `odoo-helper test -m <module>` - test single module
@@ -52,10 +58,11 @@ Brief list of frequently used odoo-helper commands
 
 ### Translation management
 - `odoo-helper tr regenerate --lang uk_UA --file uk <addon1> [addon2]...` - regenerate translations for specified language for specified addons
+- `odoo-helper tr regenerate --lang uk_UA --file uk --dir <path>` - regenerate translations for specified language for all installable addon in specified path
+- `odoo-helper tr rate --lang uk_UA <addon1> [addon2]...` - print translation rate for specified addons
+- `odoo-helper tr rate --lang uk_UA --dir <path>` - print translation rate for all installable addons in specified directory
 
 ### Other
 - `odoo-helper pip` - run [pip](https://pypi.org/project/pip/) inside current project's virtual environment [virtualenv](https://virtualenv.pypa.io/en/stable/).
 - `odoo-helper npm` - run [npm](https://www.npmjs.com/) inside current project's virtual environment [nodeenv](https://pypi.python.org/pypi/nodeenv)
 - `odoo-helper exec my-command` - run command inside project's virtual env
-
-
