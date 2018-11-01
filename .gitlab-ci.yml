@@ -42,19 +42,23 @@ tests:
         paths:
              - coverage
 
-
-dev-docs:
-    image: python:alpine
+build_packages:
+    image: ubuntu
+    variables:
+        ODOO_HELPER_ROOT: $CI_PROJECT_DIR
+        ODOO_HELPER_BIN: $CI_PROJECT_DIR/bin
+        ODOO_HELPER_LIB: $CI_PROJECT_DIR/lib
     before_script:
-        - pip install mkdocs mkdocs-cinder
+        - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc
+        - gem install fpm
     script:
-        - sh scripts/build_docs.sh
+        - bash scripts/build_packages.bash
     artifacts:
         paths:
-            - public
-    except:
-        - master
-
+            - build/*.deb
+    only:
+        - tags
+ 
 pages:
     image: python:alpine
     before_script:
