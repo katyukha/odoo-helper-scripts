@@ -62,7 +62,9 @@ build_packages:
 pages:
     image: python:alpine
     before_script:
-        - pip install mkdocs mkdocs-cinder
+        - apk update && apk add --no-cache git
+        - pip install mkdocs
+        - pip install git+https://github.com/katyukha/cinder.git@fix-google-analytics#egg=mkdocs-cinder
     script:
         - sh scripts/build_docs.sh
     artifacts:

@@ -2,11 +2,14 @@ site_name: odoo-helper-scripts
 site_author: Dmytro Katyukha
 site_description: 'Just a simple collection of odoo scripts. mostly to ease addons development process (allows to install and manage odoo instances in virtualenv)'
 site_url: https://odoo-helper-scripts.gitlab.io
+copyright: "odoo-helper-scripts project is licensed under the <a href='https://www.mozilla.org/en-US/MPL/2.0/'>Mozilla Public License 2.0</a>"
 
 repo_url: https://gitlab.com/katyukha/odoo-helper-scripts
 repo_name: GitLab
 
 theme: cinder
+
+google_analytics: ['UA-122240221-1', 'katyukha.gitlab.io/odoo-helper-scripts/']
 
 pages:
   - Home: index.md
