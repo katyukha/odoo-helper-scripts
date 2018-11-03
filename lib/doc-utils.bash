@@ -43,15 +43,18 @@ function doc_utils_addons_list_addon_info_header {
         if ! [[ $field =~ $field_regex ]]; then
             echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
         else
+            local t_name;
             local field_type=${BASH_REMATCH[1]};
             local field_name=${BASH_REMATCH[2]};
 
             if [ "$field_type" == "manifest" ]; then
-                local t_name="${field_name^}";
+                t_name="${field_name^}";
             elif [ "$field_type" == "system" ] && [ "$field_name" == "name" ]; then
-                local t_name="System Name";
+                t_name="System Name";
             elif [ "$field_type" == "system" ] && [ "$field_name" == "git_repo" ]; then
-                local t_name="Git URL";
+                t_name="Git URL";
+            elif [ "$field_type" == "system" ] && [ "$field_name" == "dependencies" ]; then
+                t_name="Dependencies";
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
                 continue
@@ -60,7 +63,7 @@ function doc_utils_addons_list_addon_info_header {
             if [ "$format" == "md" ]; then
                 result="${result} ${t_name} |";
             elif [ "$format" == "csv" ]; then
-                result="${result}${t_name};";
+                result="${result}\"${t_name}\";";
             fi
 
         fi
@@ -106,26 +109,30 @@ function doc_utils_addons_list_addon_info {
         if ! [[ $field =~ $field_regex ]]; then
             echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
         else
+            local t_res="";
             local field_type=${BASH_REMATCH[1]};
             local field_name=${BASH_REMATCH[2]};
 
             if [ "$field_type" == "manifest" ]; then
-                local t_res=$(addons_get_manifest_key $addon $field_name | tr '\n' ' ');
+                t_res=$(addons_get_manifest_key $addon $field_name | tr '\n' ' ');
             elif [ "$field_type" == "system" ] && [ "$field_name" == "name" ]; then
-                local t_res=$(basename $addon);
+                t_res=$(basename $addon);
             elif [ "$field_type" == "system" ] && [ "$field_name" == "git_repo" ]; then
                 if git_is_git_repo $addon; then
-                    local t_res=$(git_get_remote_url $addon);
+                    t_res=$(git_get_remote_url $addon);
                 else
-                    local t_res="Not in git repository";
+                    t_res="Not in git repository";
                 fi
+            elif [ "$field_type" == "system" ] && [ "$field_name" == "dependencies" ]; then
+                local manifest_file=$(addons_get_manifest_file "$addon");
+                t_res=$(run_python_cmd "print(', '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
             fi
             if [ "$format" == "md" ]; then
                 result="${result} ${t_res} |";
             elif [ "$format" == "csv" ]; then
-                result="${result}${t_res};";
+                result="${result}\"${t_res}\";";
             fi
         fi
     done
@@ -145,6 +152,7 @@ function doc_utils_addons_list {
         --git-repo                 - display git repository
         --sys-name                 - display system name
         --no-header                - do not display header
+        --dependencies             - display dependencies list separated by coma
         --format <md|csv>          - output format. default: md
 
     Description
@@ -186,6 +194,9 @@ function doc_utils_addons_list {
             ;;
             --git-repo)
                 field_names="$field_names system-git_repo";
+            ;;
+            --dependencies)
+                field_names="$field_names system-dependencies";
             ;;
             --no-header)
                 local no_header=1;

@@ -52,6 +52,8 @@
 - Added option `--recreate` to `odoo-helper db create` command.
   If database with such name already exists,
   then it will be dropt before creation of new database.
+- Added special option `--dependencies` to
+  `odoo-helper doc-utils addons-list` command
 
 ### Fix
 

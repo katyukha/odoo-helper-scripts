@@ -473,8 +473,8 @@ odoo-helper stop
 # Test doc-utils. List all addons available in *contract* addon
 odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo ./repositories/contract
 
-# Same but in CSV format
-odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo --format csv ./repositories/contract
+# Same but in CSV format and with list of dependencies
+odoo-helper doc-utils addons-list --sys-name -f name -f version --dependencies -f summary -f application --git-repo --format csv ./repositories/contract
 
 
 echo -e "${YELLOWC}
