@@ -189,6 +189,23 @@ EOF
 #
 # postgres_config_local_speed_unsafe
 function postgres_config_speedify_unsafe {
+    local usage="
+    Speedify postgres by disabling fsync, synchronous_commit and full_page_writes
+
+    WARNNING: this make postgres unsafe, and have to be used only for development
+
+    Usage:
+
+        $SCRIPT_NAME postgres speedify
+        $SCRIPT_NAME postgres speedify --help
+    ";
+    case $1 in
+        -h|--help|help)
+            echo "$usage";
+            return 0;
+        ;;
+    esac
+
     if ! postgres_test_connection; then
         return 1;
     fi
@@ -239,7 +256,8 @@ function postgres_command {
                 return;
             ;;
             speedify)
-                postgres_config_speedify_unsafe;
+                shift;
+                postgres_config_speedify_unsafe "$@";
                 return;
             ;;
             psql)
