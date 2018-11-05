@@ -288,6 +288,8 @@ odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
 odoo-helper addons list --installable ./custom_addons;
 odoo-helper addons list --color --recursive ./repositories;
+odoo-helper addons list --not-linked ./repositories;
+odoo-helper addons list --by-path ./repositories;
 odoo-helper addons update-list --help;
 odoo-helper addons update-list;
 odoo-helper addons install bus_enhanced;
@@ -424,6 +426,7 @@ odoo-helper tr rate --lang uk_UA partner_firstname;
 odoo-helper install py-tools
 odoo-helper pylint ./repositories/partner-contact/partner_firstname || true;
 odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
+odoo-helper addons list --filter "first" ./repositories/partner-contact
 
 # Show project status
 odoo-helper status
@@ -438,6 +441,7 @@ odoo-helper print-config
 odoo-helper server auto-update
 
 # Pull odoo addons update
+(cd ./repositories/partner-contact && git co HEAD^^^1)
 odoo-helper addons pull-updates
 
 # Update odoo base addon
@@ -677,6 +681,8 @@ odoo-helper status  --tools-versions --ci-tools-versions
 
 # Fetch oca/contract
 odoo-helper fetch --oca contract
+
+odoo-helper addons install --ual --dir ./repositories/contract
 
 # Create test database
 odoo-helper db create --demo --lang en_US odoo12-odoo-test
