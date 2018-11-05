@@ -451,7 +451,7 @@ odoo-helper fetch --oca account-financial-reporting
 (cd repositories && \
     git clone -b 10.0 https://github.com/OCA/contract && \
     odoo-helper addons list --color contract && \
-    odoo-helper link contract && \
+    odoo-helper link --ual contract && \
     odoo-helper addons list --color contract)
 
 # Update addons list
@@ -533,6 +533,13 @@ odoo-helper tr import test-11-db uk_UA uk-test web;
 
 # Install oca/partner-contact addons
 odoo-helper fetch --oca partner-contact;
+
+# Check oca/partner-contact with ci commands
+odoo-helper ci ensure-icons repositories/partner-contact || true
+odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 HEAD || true
+
+# Show addons changed
+odoo-helper git changed-addons repositories/partner-contact HEAD^^^1 HEAD
 
 # Fetch oca/web passing only repo url and branch to fetch command
 odoo-helper fetch https://github.com/oca/web --branch 11.0;

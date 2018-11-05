@@ -124,8 +124,7 @@ function doc_utils_addons_list_addon_info {
                     t_res="Not in git repository";
                 fi
             elif [ "$field_type" == "system" ] && [ "$field_name" == "dependencies" ]; then
-                local manifest_file=$(addons_get_manifest_file "$addon");
-                t_res=$(run_python_cmd "print(', '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
+                t_res=$(addons_get_addon_dependencies "$addon");
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
             fi

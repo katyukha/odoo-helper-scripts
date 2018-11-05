@@ -349,13 +349,13 @@ function tr_regenerate {
     odoo_db_create --lang $lang --demo $tmp_db_name;
     
     # install addons
-    if addons_install_update "install" --no-restart -d $tmp_db_name $addons; then
+    if addons_install_update "install" --no-restart -d "$tmp_db_name" $addons; then
         # export translations
-        tr_export $tmp_db_name $lang $file_name $addons;
+        tr_export "$tmp_db_name" "$lang" "$file_name" $addons;
     fi
 
     # Drop temporary database
-    odoo_db_drop $tmp_db_name;
+    odoo_db_drop "$tmp_db_name";
 
 }
 

@@ -141,6 +141,7 @@ function ci_check_versions_git {
     fi
 
     local git_changed_extra_opts;
+    local check_repo_version=0;
     while [[ $# -gt 0 ]]
     do
         local key="$1";

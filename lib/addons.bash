@@ -116,8 +116,8 @@ function addons_is_installable {
 # Get list of addon dependencies
 # addons_get_addon_dependencies <addon path>
 function addons_get_addon_dependencies {
-    local addon_path=$1;
-    local manifest_file="$(addons_get_manifest_file $addon_path)";
+    local addon_path="$1";
+    local manifest_file=$(addons_get_manifest_file "$addon_path");
 
     echo $(run_python_cmd "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
 }
