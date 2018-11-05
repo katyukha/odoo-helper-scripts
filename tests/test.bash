@@ -441,7 +441,7 @@ odoo-helper print-config
 odoo-helper server auto-update
 
 # Pull odoo addons update
-(cd ./repositories/partner-contact && git co HEAD^^^1)
+(cd ./repositories/partner-contact && git checkout HEAD^^^1)
 odoo-helper addons pull-updates
 
 # Update odoo base addon
