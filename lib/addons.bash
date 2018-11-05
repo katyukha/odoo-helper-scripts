@@ -577,7 +577,7 @@ function addons_install_update_internal {
         if [ -z "$addons_uninstalled" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: Nothing to uninstall";
         else
-            echoe -e "${GREENC}OK${NC}: Following addons successfully uninstalled:\n${addons_uninstalled};";
+            echoe -e "${GREENC}OK${NC}: Following addons successfully uninstalled:\n${addons_uninstalled};\n";
         fi
         return 0;
     else
