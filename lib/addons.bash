@@ -796,7 +796,7 @@ function addons_update_py_deps {
 function addons_command {
     local usage="Usage:
 
-        $SCRIPT_NAME addons list <addons path>            - list addons in specified directory
+        $SCRIPT_NAME addons list --help                   - list addons in specified directory
         $SCRIPT_NAME addons list-repos [addons path]      - list git repositories
         $SCRIPT_NAME addons list-no-repo [addons path]    - list addons not under git repo
         $SCRIPT_NAME addons check-updates [addons path]   - Check for git updates of addons and displays status
@@ -805,7 +805,7 @@ function addons_command {
         $SCRIPT_NAME addons update --help                 - update some addon[s]
         $SCRIPT_NAME addons install --help                - install some addon[s]
         $SCRIPT_NAME addons uninstall --help              - uninstall some addon[s]
-        $SCRIPT_NAME addons update-list [db]              - update list of addons
+        $SCRIPT_NAME addons update-list --help            - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
         $SCRIPT_NAME addons update-py-deps                - update python dependencies of addons
         $SCRIPT_NAME addons generate-requirements         - generate odoo_requirements.txt for this instance

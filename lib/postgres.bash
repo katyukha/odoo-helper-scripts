@@ -71,6 +71,37 @@ function postgres_user_exists {
 #
 # postgres_user_create <username> <password>
 function postgres_user_create {
+    local usage="
+    Create postgres user for Odoo with specified usernama and password
+
+    Usage:
+
+        $SCRIPT_NAME postgres user-create <username> <password>
+        $SCRIPT_NAME postgres user-create --help
+    ";
+    if [[ $# -lt 1 ]]; then
+        echo "No options supplied $#: $@";
+        echo "";
+        echo "$usage";
+        return 0;
+    fi
+
+    # Process all args that starts with '-' (ie. options)
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local user_name="$1";
     local user_password="$2";
 
