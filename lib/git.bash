@@ -293,10 +293,9 @@ function git_get_addons_changed {
         local changed_files=( $(git diff --name-only  "${ref_start}..${ref_end}") );
     fi
     for file_path in "${changed_files[@]}"; do
-        local abs_file_path=$(readlink -f "$file_path");
-        local manifest_path=$(search_file_up "$abs_file_path" __manifest__.py);
+        local manifest_path=$(search_file_up "$file_path" __manifest__.py);
         if [ -z "$manifest_path" ]; then
-            local manifest_path=$(search_file_up "$abs_file_path" __openerp__.py);
+            local manifest_path=$(search_file_up "$file_path" __openerp__.py);
         fi
         if [ ! -z "$manifest_path" ]; then
             local addon_path=$(dirname $(readlink -f "$manifest_path"));
