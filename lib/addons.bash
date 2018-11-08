@@ -60,7 +60,9 @@ function addons_get_addon_path {
     # note addon_dirs is array
     IFS=',' read -r -a addon_dirs <<< "$addons_path";
 
-    local addon_path=$(search_file_in $addon ${addon_dirs[@]});
+    local addon_path;
+    addon_path=$(search_file_in $addon ${addon_dirs[@]});
+    addon_path=$(readlink -f "$addon_path");
     echo "$addon_path";
 }
 

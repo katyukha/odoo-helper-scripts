@@ -93,9 +93,9 @@ function tr_import_export_internal {
     IFS=',' read -r -a addons <<< "$addons_data";
     for addon in ${addons[@]}; do
         echoe -e "${BLUEC}Executing ${YELLOWC}$cmd${BLUEC} for (db=${YELLOWC}$db${BLUEC}, lang=${YELLOWC}$lang${BLUEC}).${NC} Processing addon: ${YELLOWC}$addon${NC};";
-        local addon_path=$(addons_get_addon_path $addon);
-        local i18n_dir=$addon_path/i18n;
-        local i18n_file=$i18n_dir/$file_name.po
+        local addon_path=$(addons_get_addon_path "$addon");
+        local i18n_dir="$addon_path/i18n";
+        local i18n_file="$i18n_dir/$file_name.po";
 
         # if export and there is no i18n dir, create it
         if [ "$cmd" == "export" ] && [ ! -d $i18n_dir ]; then
