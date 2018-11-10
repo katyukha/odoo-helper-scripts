@@ -400,8 +400,13 @@ function fetch_module {
                 return 0;
             ;;
             --requirements)
-                fetch_requirements $2;
-                return 0;
+                if [ -f "$2" ]; then
+                    fetch_requirements $2;
+                    return 0;
+                else
+                    echoe -e "${REDC}ERROR${NC}: Requirements file '${YELLOWC}${2}${NC}' does not exists!";
+                    return 1
+                fi
             ;;
             *)
                 echoe -e "${REDC}ERROR${NC}: Unknown option $key";
