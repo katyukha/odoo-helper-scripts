@@ -275,45 +275,46 @@ function fetch_clone_repo {
 # fetch_module -p <python module> [-p <python module>] ...
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
-    local usage="Usage:
+    local usage="
+    Usage:
         $SCRIPT_NAME fetch -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --github <github username/reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --oca <OCA reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --requirements <requirements file>
         $SCRIPT_NAME fetch -p|--python <python module>
 
-        Options:
-            -r|--repo <repo>         - git repository to get module from
-            --github <user/repo>     - allows to specify repository located on github in short format
-            --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
+    Options:
+        -r|--repo <repo>         - git repository to get module from
+        --github <user/repo>     - allows to specify repository located on github in short format
+        --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
 
-            --hg <repo>              - mercurial repository to get addon from.
+        --hg <repo>              - mercurial repository to get addon from.
 
-            -m|--module <module>     - module name to be fetched from repository
-            -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
-                                       Usualy not required
-            -b|--branch <branch>     - name fo repository branch to clone
-            --requirements <file>    - path to requirements file to fetch required modules
-                                       NOTE: requirements file must end with newline.
-            -p|--python <package>    - fetch python dependency. (it use pip to install package) (deprecated)
-            -p|--python <vcs>+<repository>  - install python dependency directly from VCS (deprecated)
+        -m|--module <module>     - module name to be fetched from repository
+        -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
+                                   Usualy not required
+        -b|--branch <branch>     - name fo repository branch to clone
+        --requirements <file>    - path to requirements file to fetch required modules
+                                   NOTE: requirements file must end with newline.
+        -p|--python <package>    - fetch python dependency. (it use pip to install package) (deprecated)
+        -p|--python <vcs>+<repository>  - install python dependency directly from VCS (deprecated)
 
-        Note that in one call only one option of (-r, --github, --oca) must be present in one line.
+    Note that in one call only one option of (-r, --github, --oca) must be present in one line.
 
-        Examples:
-           # fetch default branch of base_tags repository, link all modules placed in repository
-           $SCRIPT_NAME fetch -r https://github.com/katyukha/base_tags 
+    Examples:
+       # fetch default branch of base_tags repository, link all modules placed in repository
+       $SCRIPT_NAME fetch -r https://github.com/katyukha/base_tags 
 
-           # same as previous but via --github option
-           $SCRIPT_NAME fetch --github katyukha/base_tags
+       # same as previous but via --github option
+       $SCRIPT_NAME fetch --github katyukha/base_tags
 
-           # fetch project_sla module from project repository of OCA using branch 8.0
-           $SCRIPT_NAME fetch --oca project -m project_sla -b 8.0
+       # fetch project_sla module from project repository of OCA using branch 8.0
+       $SCRIPT_NAME fetch --oca project -m project_sla -b 8.0
 
-        Also note that if using -p or --python option, You may install packages directly from vcs
-        using syntax like
+    Also note that if using -p or --python option, You may install packages directly from vcs
+    using syntax like
 
-           $SCRIPT_NAME fetch -p <vcs>
+       $SCRIPT_NAME fetch -p <vcs>
     ";
 
     if [[ $# -lt 1 ]]; then

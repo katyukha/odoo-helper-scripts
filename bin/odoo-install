@@ -47,7 +47,8 @@ declare -A CONF_OPTIONS;
 declare -A TEST_CONF_OPTIONS;
 
 function print_usage {
-    echo "Bash script to instal dev version of Odoo in local environment
+    echo "
+    Bash script to instal dev version of Odoo in local environment
 
     Script version: $ODOO_HELPER_VERSION
 

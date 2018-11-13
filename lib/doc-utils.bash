@@ -141,7 +141,8 @@ function doc_utils_addons_list_addon_info {
 }
 # Print addons table in markdown table
 function doc_utils_addons_list {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME doc-utils addons-list [options] [addons path]   - list addons in specified directory
         $SCRIPT_NAME doc-utils addons-list --help                    - show this help message
@@ -240,7 +241,8 @@ function doc_utils_addons_list {
 
 
 function doc_utils_command {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME doc-utils addons-list --help             - list addons in specified directory
         $SCRIPT_NAME doc-utils --help                        - show this help message

@@ -62,6 +62,7 @@ build_packages:
 pages:
     image: python:alpine
     before_script:
+        - apk update && apk add --no-cache bash
         - pip install mkdocs mkdocs-cinder
     script:
         - sh scripts/build_docs.sh

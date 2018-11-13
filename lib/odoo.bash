@@ -163,7 +163,8 @@ function odoo_get_python_interpreter {
 }
 
 function odoo_recompute_stored_fields {
-    local usage="Recompute stored fields
+    local usage="
+    Recompute stored fields
 
     Usage:
 
@@ -258,7 +259,8 @@ function odoo_recompute_stored_fields {
 }
 
 function odoo_command {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME odoo recompute --help                - recompute stored fields for database
         $SCRIPT_NAME odoo server-url                      - print URL to access this odoo instance

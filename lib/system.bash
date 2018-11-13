@@ -103,7 +103,8 @@ function system_get_venv_dir {
 
 # system entry point
 function system_entry_point {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME system update [branch]        - update odoo-helper-scripts (to specified branch / commit)
         $SCRIPT_NAME system lib-path <lib name>    - print path to lib with specified name

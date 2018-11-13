@@ -796,7 +796,8 @@ function addons_update_py_deps {
 
 
 function addons_command {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME addons list --help                   - list addons in specified directory
         $SCRIPT_NAME addons list-repos [addons path]      - list git repositories

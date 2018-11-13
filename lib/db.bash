@@ -26,7 +26,8 @@ set -e; # fail on errors
 
 # odoo_db_create [options] <name> [odoo_conf_file]
 function odoo_db_create {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
 
@@ -181,7 +182,8 @@ function odoo_db_list {
 
 # odoo_db_exists [options] <dbname> [odoo_conf_file]
 function odoo_db_exists {
-    local usage=" Test if database exists
+    local usage="
+    Test if database exists
 
     Usage:
 
@@ -354,7 +356,8 @@ function odoo_db_restore {
 
 # Command line args processing
 function odoo_db_command {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME db list [odoo_conf_file]
         $SCRIPT_NAME db exists <name> [odoo_conf_file]

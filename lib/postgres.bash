@@ -219,7 +219,8 @@ function postgres_config_speedify_unsafe {
 
 # Parse command line args
 function postgres_command {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         NOTE: subcommands tagged by [local] applicable only to local postgres instance!
         NOTE: subcommands tagged by [sudo] require sudo. (they will use sudo automaticaly)

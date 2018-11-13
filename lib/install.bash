@@ -626,7 +626,8 @@ function install_reinstall_odoo {
 
 # Entry point for install subcommand
 function install_entry_point {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME install pre-requirements [-y]         - [sudo] install system preprequirements
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - [sudo] install system dependencies for odoo version

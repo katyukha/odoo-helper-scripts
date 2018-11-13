@@ -61,7 +61,8 @@ function scaffold_default {
 }
 
 function scaffold_repo {
-    local usage="Usage
+    local usage="
+    Usage
 
         $SCRIPT_NAME scaffold repo <repo name>
         $SCRIPT_NAME scaffold repo --help
@@ -101,7 +102,8 @@ function scaffold_repo {
 }
 
 function scaffold_addon {
-    local usage="Usage
+    local usage="
+    Usage
 
         $SCRIPT_NAME scaffold addon [options] <addon name>
         $SCRIPT_NAME scaffold addon --help
@@ -205,7 +207,8 @@ function scaffold_model {
 }
 
 function scaffold_parse_cmd {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME scaffold repo [--help]  - create new repository
         $SCRIPT_NAME scaffold addon [--help] - create new addon.
