@@ -196,12 +196,26 @@ function fetch_clone_repo_git {
     local repo_url=$1; shift;
     local repo_dest=$1; shift;
 
-    if [ ! -z $1 ]; then
-        local repo_branch_opt="-b $1";
+    local extra_git_opt;
+    local git_clone_opt;
+    local repo_branch_opt;
+    local git_cmd;
+
+    if [ -n "$1" ]; then
+        repo_branch_opt="-b $1";
+        git_clone_opt="$git_clone_opt $repo_branch_opt";
     fi
 
-    [ -z $VERBOSE ] && local git_clone_opt=" -q "
-    if ! git clone --recurse-submodules $git_clone_opt $repo_branch_opt $repo_url $repo_dest; then
+    if [ -n "$CI_JOB_TOKEN_GIT_HOST" ] && [ -n "$GITLAB_CI" ] && [ -n "$CI_JOB_TOKEN" ]; then
+        extra_git_opt="$extra_git_opt -c url.\"https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_JOB_TOKEN_GIT_HOST}/\".insteadOf=\"git@${CI_JOB_TOKEN_GIT_HOST}:\"";
+        extra_git_opt="$extra_git_opt -c url.\"https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_JOB_TOKEN_GIT_HOST}/\".insteadOf=\"https://${CI_JOB_TOKEN_GIT_HOST}/\"";
+        extra_git_opt="$extra_git_opt -c url.\"https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_JOB_TOKEN_GIT_HOST}/\".insteadOf=\"${CI_JOB_TOKEN_GIT_HOST}/\"";
+        echoe -e "${BLUEC}Use ${YELLOWC}gitlab-ci-token${BLUEC} for auth to repository ${YELLOWC}${CI_JOB_TOKEN_GIT_HOST}${NC}";
+    fi
+
+    [ -z $VERBOSE ] && git_clone_opt="$git_clone_opt -q "
+    git_cmd="git $extra_git_opt clone --recurse-submodules $git_clone_opt $repo_url $repo_dest";
+    if ! eval "$git_cmd"; then
         echo -e "${REDC}Cannot clone [git] '$repo_url to $repo_dest'!${NC}";
     elif [ -z "$repo_branch_opt" ]; then
         # IF repo clonned successfuly, and not branch specified then
