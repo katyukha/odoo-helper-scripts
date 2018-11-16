@@ -30,7 +30,8 @@ This project aims to simplify development process of Odoo addons as much as poss
     - Specific file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
     - installation from *git* repositories
     - installation from *Mercurial* repositories (**experimental**)
-    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi) (automatically process *requirements.txt* files in repository and anddon directories.
+    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
+    - automatically processing of [requirements.txt](https://pip.pypa.io/en/stable/user_guide/#requirements-files) files located inside repository root and addon directories.
     - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
     - works good with long recursive dependencies.
       One of the reasons for this script collection development was,

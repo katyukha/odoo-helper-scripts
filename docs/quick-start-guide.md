@@ -31,11 +31,11 @@ This step should be usualy ran one time. It install dependencies of *odoo-helper
 odoo-helper install pre-requirements
 ```
 
-Install system dependencies for specific Odoo version (in this example *10.0*)
+Install system dependencies for specific Odoo version (in this example *11.0*)
 Note, that this option requires *sudo*.
 
 ```bash
-odoo-helper install sys-deps 10.0;
+odoo-helper install sys-deps 11.0;
 ```
 
 Install [PostgreSQL Server](https://www.postgresql.org/) and create
@@ -48,10 +48,10 @@ odoo-helper install postgres odoo odoo
 
 ## Install Odoo
 
-Install *Odoo* 10.0 into *odoo-10.0* directory
+Install *Odoo* 11.0 into *odoo-11.0* directory
 
 ```bash
-odoo-install -i odoo-10.0 --odoo-version 10.0
+odoo-install -i odoo-11.0 --odoo-version 11.0
 ```
 
 ## Manage installed Odoo
@@ -60,10 +60,10 @@ Change directory to that one contains just installed Odoo instance.
 This is required to make instance-management commands work.
 
 ```bash
-cd odoo-10.0
+cd odoo-11.0
 ```
 
-Now You have *Odoo 10.0* installed in this directory.
+Now You have *Odoo 11.0* installed in this directory.
 Note, that this odoo installation uses [virtualenv](https://virtualenv.pypa.io/en/stable/)
 (`venv` directory)
 Also you will find there `odoo-helper.conf` config file
@@ -82,6 +82,12 @@ To run server in backgroud use following command:
 
 ```bash
 odoo-helper server start
+```
+
+Run command below to open current odoo isntance in browser:
+
+```bash
+odoo-helper browse
 ```
 
 By default Odoo service will be accessible on [localhost:8069](http://localhost:8069/)
@@ -138,17 +144,26 @@ odoo-helper fetch --oca contract
 Or alternatively
 
 ```bash
-odoo-helper fetch --github OCA/contract --branch 10.0
+odoo-helper fetch --github OCA/contract --branch 11.0
+```
+
+If repository have standard branch structure branches have same names as Odoo versions (series)
+then odoo-helper will automatically try to switch to right branch,
+thus it is not required to specify branch name in this case.
+So command above may look like:
+
+```bash
+odoo-helper fetch --github OCA/contract
 ```
 
 Now look at `custom_addons/` directory, there will be placed links to addons
 from [OCA repository 'contract'](https://github.com/OCA/contract)
 But repository itself is placed in `repositories/` directory
 
-But at this point fetched addons are not shown in *Apps* Odoo menu.
+At this point fetched addons are not shown in *Apps* Odoo menu.
 That's why we have to update addons list in database.
-This can be done by Odoo UI in developer mode (*Apps / Update Applications List)
-or in command line with following command:
+This can be done by Odoo UI in developer mode (*Apps / Update Applications List*)
+or  th a simple shell command:
 
 ```bash
 odoo-helper addons update-list
@@ -161,11 +176,14 @@ Also it is possible to do this via command line with following command:
 odoo-helper addons install [-d database] <addon name>
 ```
 
-For example following command will install [contract](https://github.com/OCA/contract/tree/10.0/contract) addon
+For example following command will install [contract](https://github.com/OCA/contract/tree/11.0/contract) addon
 
 ```bash
 odoo-helper addons install -d my-database contract
 ```
+
+Also if database is not specified addon will be installed to all vaiablable databases
+
 
 ## Run tests
 
@@ -207,39 +225,39 @@ dooo-helper server restart
 ## One more Odoo install
 
 So... let's install one more Odoo version
-go back to directory containing your projects (that one, where `odoo-10.0` project is placed in)
+go back to directory containing your projects (that one, where `odoo-11.0` project is placed in)
 
 ```bash
 cd ../../
 ```
 
-Let's install *Odoo* of version 11.0 here too.
-First, install *system dependencies* for *Odoo* version 11.0
+Let's install *Odoo* of version 12.0 here too.
+First, install *system dependencies* for *Odoo* version 12.0
 
 ```bash
-odoo-helper install sys-deps 11.0;
+odoo-helper install sys-deps 12.0;
 ```
 
 And when system dependencies installed, install *Odoo* itself
 
 ```bash
-odoo-install --install-dir odoo-11.0 --odoo-version 11.0
-cd odoo-11.0
+odoo-install --install-dir odoo-12.0 --odoo-version 12.0
+cd odoo-12.0
 ```
 
-and, for example,  install there [project_task_code](https://github.com/OCA/project/tree/11.0/project_task_code) addon 
-from [project](https://github.com/OCA/project) [Odoo Community Association](https://odoo-community.org/) repository
-Note that *odoo-helper* script will automaticaly fetch branch named as server version in current install (in this case *11.0*),
+and, for example,  install there [partner-contact/base_location](https://github.com/OCA/partner-contact/tree/12.0/base_location) addon 
+from [partner-contact](https://github.com/OCA/partner-contact) [Odoo Community Association](https://odoo-community.org/) repository
+Note that *odoo-helper* script will automaticaly fetch branch named as server version in current install (in this case *12.0*),
 if another branch was not specified
 
 ```bash
-odoo-helper fetch --oca project -m project_task_code
+odoo-helper fetch --oca partner-contact -m base_location
 ```
 
 and run tests for it
 
 ```bash
-odoo-helper test --create-test-db -m project_task_code
+odoo-helper test --create-test-db -m base_location
 ```
 
 Also if you want to install python packages in current installation environment,
@@ -247,14 +265,6 @@ Also if you want to install python packages in current installation environment,
 
 ```bash
 odoo-helper pip install phonenumbers
-```
-
-and as one more example, let's install aeroo-reports with dependancy to aeroolib in odoo 10.0
-
-```bash
-cd ../odoo-10.0
-odoo-helper fetch --github gisce/aeroo -n aeroo
-odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
 ```
 
 ## More

@@ -4,6 +4,10 @@
 | ------------- |:---------------|:--------------|:------------|
 | Dev           | [![pipeline status](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/pipeline.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![coverage report](https://gitlab.com/katyukha/odoo-helper-scripts/badges/dev/coverage.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/commits/dev) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-dev-yellow.svg)](https://gitlab.com/katyukha/odoo-helper-scripts/blob/dev/CHANGELOG.md) |
 
+## Overview
+
+This project aims to simplify development process of Odoo addons as much as possible.
+
 ## Canonical source
 
 The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).
@@ -26,7 +30,8 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - Specific file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
     - installation from *git* repositories
     - installation from *Mercurial* repositories (**experimental**)
-    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi) (automatically process *requirements.txt* files in repository and anddon directories.
+    - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
+    - automatically processing of [requirements.txt](https://pip.pypa.io/en/stable/user_guide/#requirements-files) files located inside repository root and addon directories.
     - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)
     - works good with long recursive dependencies.
       One of the reasons for this script collection development was,
@@ -54,6 +59,7 @@ So use ``--help`` option, which is available for most of commands.
 - [Documentation](https://katyukha.gitlab.io/odoo-helper-scripts/)
 - [Installation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
 - [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/)
+- [Command Reference](https://katyukha.gitlab.io/odoo-helper-scripts/command-reference/)
 
 
 ## Usage note
@@ -69,7 +75,7 @@ Also, it is possible to manage almost any Odoo intance with this project, if it 
 For full list of installation options look at [installation documentation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
 
 *Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
-but this feature is still experimental*
+but this feature is still experimental. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/tags) *page.*
 
 To install *odoo-helper-scripts* system-wide do folowing:
 
