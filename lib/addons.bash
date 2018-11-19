@@ -248,13 +248,14 @@ function _addons_list_in_directory_display {
     echo -e "$result";
 }
 
-# _addons_list_in_directory_filter <addon_path> <installable 1|0> <not-linked 1|0> <filter_expr>
+# _addons_list_in_directory_filter <addon_path> <installable 1|0> <not-linked 1|0> <linked 1|0> <filter_expr>
 # filer_expr is string that contains regular expression to filter addons with
 function _addons_list_in_directory_filter {
     local addon_path=$1;
     local installable=$2;
     local not_linked=$3;
-    local filter_expr=$4;
+    local linked=$4;
+    local filter_expr=$5;
 
     local addon_name=$(addons_get_addon_name "$addon_path");
 
@@ -266,6 +267,9 @@ function _addons_list_in_directory_filter {
         return 1;
     fi
     if [ $not_linked -eq 1 ] && link_is_addon_linked $addon_path; then
+        return 1;
+    fi
+    if [ $linked -eq 1 ] && ! link_is_addon_linked $addon_path; then
         return 1;
     fi
     return 0;
@@ -289,6 +293,7 @@ function addons_list_in_directory {
 
         -r|--recursive    - look for addons recursively
         --installable     - display only installable addons
+        --linked          - display only linked addons
         --not-linked      - display addons that are not present in custom_addons dir
         --by-name         - display only addon names
         --by-path         - display addon path
@@ -308,6 +313,7 @@ function addons_list_in_directory {
     local color_mode='off';
     local installable_only=0;
     local not_linked_only=0;
+    local linked_only=0;
     local recursive_options=;
     local filter_expr="";
 
@@ -326,6 +332,10 @@ function addons_list_in_directory {
             --installable)
                 installable_only=1;
                 recursive_options="$recursive_options --installable";
+            ;;
+            --linked)
+                linked_only=1;
+                recursive_options="$recursive_options --linked";
             ;;
             --not-linked)
                 not_linked_only=1;
@@ -365,14 +375,14 @@ function addons_list_in_directory {
         # Look for addons
         if [ -d $addons_path ]; then
             if is_odoo_module $addons_path; then
-                if _addons_list_in_directory_filter "$addons_path" "$installable_only" "$not_linked_only" "$filter_expr"; then
+                if _addons_list_in_directory_filter "$addons_path" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr"; then
                     _addons_list_in_directory_display "$addons_path" $name_mode $color_mode;
                 fi
             fi
 
             for addon in "$addons_path"/*; do
                 if is_odoo_module $addon; then
-                    if _addons_list_in_directory_filter "$addon" "$installable_only" "$not_linked_only" "$filter_expr"; then
+                    if _addons_list_in_directory_filter "$addon" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr"; then
                         _addons_list_in_directory_display "$addon" $name_mode $color_mode;
                     fi
                 elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
