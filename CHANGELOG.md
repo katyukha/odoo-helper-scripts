@@ -15,9 +15,9 @@
 - New `odoo-helper odoo server-url` command
 - New `odoo-helper system is-project` command
 - New `odoo-helper system get-venv-dir` command
-- New options to `odoo-helper addons update/install/uninstall` commands:
-    - `--tdb|--test-db` use test database
-    - `--cdb|--conf-db` use default database from odoo config
+- New options to `odoo-helper addons update/install/uninstall` commands
+    - `--tdb` or `--test-db` use test database
+    - `--cdb` or `--conf-db` use default database from odoo config
     - `-m` or `--module`. Option is added to be consistend with
       `odoo-helper test` command, which used this toption to specify
       addons (modules) to be tested
@@ -60,7 +60,7 @@
 
 - `odoo-helper addons list` bugfix `--recursive` option:
   forward options to recursive calls
-- `odoo-helper db drop` check result of drop function, and if it is False that fail
+- `odoo-helper db drop` check result of drop function, and if it is False then fail
 
 ### Changed
 
