@@ -37,6 +37,15 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
       One of the reasons for this script collection development was,
       ability to automaticaly install more that 50 addons,
       that depend on each other, and where each addon have it's own git repo.
+- Continious Integration related features
+    - ensure addon version changed
+    - ensure repository version changed
+    - ensure each addon have icon
+- Translation management from command line
+    - import / export translations by command from shell
+    - test translation rate for specified language
+    - regenerate translations for specified language
+    - load language (for one db or for old databases)
 - Supported odoo versions:
     - *7.0* (some functionality may not work),
     - *8.0*
@@ -66,8 +75,8 @@ So use ``--help`` option, which is available for most of commands.
 
 This script collection is designed to simplify life of addons developer.
 This project ***is not*** designed, to install and configure production ready Odoo instances!
-To install Odoo in production read [Odoo official installation doc](https://www.odoo.com/documentation/10.0/setup/install.html) first.
-Also, it is possible to manage almost any Odoo intance with this project, if it will be configured right.
+For production-ready installations contact [yodoo.systems](https://yodoo.systems) (Odoo SaaS, IaaS, PaaS)
+or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0/setup/install.html) first.
 
 
 ## Installation

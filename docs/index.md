@@ -37,6 +37,15 @@ This project aims to simplify development process of Odoo addons as much as poss
       One of the reasons for this script collection development was,
       ability to automaticaly install more that 50 addons,
       that depend on each other, and where each addon have it's own git repo.
+- Continious Integration related features
+    - ensure addon version changed
+    - ensure repository version changed
+    - ensure each addon have icon
+- Translation management from command line
+    - import / export translations by command from shell
+    - test translation rate for specified language
+    - regenerate translations for specified language
+    - load language (for one db or for old databases)
 - Supported odoo versions:
     - *7.0* (some functionality may not work),
     - *8.0*
@@ -49,6 +58,14 @@ This project aims to simplify development process of Odoo addons as much as poss
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
 - Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
+
+
+## Usage note
+
+This script collection is designed to simplify life of addons developer.
+This project ***is not*** designed, to install and configure production ready Odoo instances!
+For production-ready installations contact [yodoo.systems](https://yodoo.systems) (Odoo SaaS, IaaS, PaaS)
+or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0/setup/install.html) first.
 
 
 ## Installation
