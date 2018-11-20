@@ -142,14 +142,23 @@ function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }
 
+# Get python version number - only 2 or 3
+function odoo_get_python_version_number {
+    if [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -ge 11 ]; then
+        echo "3";
+    elif [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -lt 11 ]; then
+        echo "2";
+    fi
+}
+
 # Get python interpreter name to run odoo with
 # Returns one of: python2, python3, python
 # Default: python
 function odoo_get_python_version {
-    if [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -ge 11 ]; then
-        echo "python3";
-    elif [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -lt 11 ]; then
-        echo "python2";
+    local py_version;
+    py_version=$(odoo_get_python_version_number);
+    if [ ! -z "$py_version" ]; then
+        echo "python${py_version}";
     else
         echoe -e "${YELLOWC}WARNING${NC}: odoo version not specified, using default python executable";
         echo "python";
