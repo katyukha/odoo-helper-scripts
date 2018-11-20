@@ -220,12 +220,13 @@ function postgres_config_speedify_unsafe {
 # Parse command line args
 function postgres_command {
     local usage="
-    Usage:
 
+    Notes:
         NOTE: subcommands tagged by [local] applicable only to local postgres instance!
         NOTE: subcommands tagged by [sudo] require sudo. (they will use sudo automaticaly)
         NOTE: most of commands require sudo
 
+    Usage:
         $SCRIPT_NAME postgres psql [psql options]                  - Run psql with odoo connection params
         $SCRIPT_NAME postgres psql -d <database> [psql options]    - Run psql connected to specified database
         $SCRIPT_NAME postgres user-create <user name> <password>   - [local][sudo] Create postgres user for odoo

@@ -478,7 +478,7 @@ function addons_show_status {
     local usage="
     Usage
 
-        $SCRIPT_NAME addons show_status [options]
+        $SCRIPT_NAME addons status [options]
 
     Options:
         --addons-dir          - directory to search addons in. By default used one from
@@ -599,7 +599,7 @@ function addons_install_update_internal {
 }
 
 # Install or update addons
-# addons_install_update <install|update>
+# addons_install_update <install|update|uninstall>
 function addons_install_update {
     local cmd="$1";
     shift;

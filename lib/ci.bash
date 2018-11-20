@@ -280,9 +280,9 @@ function ci_command {
     NOTE: This command is experimental and everything may be changed.
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [--help]     - ensure versions of changed addons were updated
-        $SCRIPT_NAME ci ensure-icons <addon path>       - ensure all addons in specified directory have icons
-        $SCRIPT_NAME ci -h|--help|help                  - show this help message
+        $SCRIPT_NAME ci check-versions-git [--help]  - ensure versions of changed addons were updated
+        $SCRIPT_NAME ci ensure-icons [--help]        - ensure all addons in specified directory have icons
+        $SCRIPT_NAME ci -h|--help|help               - show this help message
     ";
 
     if [[ $# -lt 1 ]]; then
