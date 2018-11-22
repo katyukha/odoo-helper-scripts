@@ -89,6 +89,7 @@
     - created temporary databases are prefixed with `test-`
 - `odoo-install` do not set automatically `db_filter` and `db_name` for test config file
 - `odoo-helper tr rate` if there is no translation terms for addon compute it's rate as 100%
+- default flake8 config: disable W503 and W504 checks
 
 
 ### Deprecations
