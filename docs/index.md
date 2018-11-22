@@ -6,6 +6,7 @@ Quick links:
 
 - [Quick Start Guide](./quick-start-guide.md) 
 - [Frequently used commands](./frequently-used-commands.md)
+- [Command reference](./command-reference.md)
 
 ## Overview
 
@@ -64,6 +65,7 @@ This project aims to simplify development process of Odoo addons as much as poss
 
 This script collection is designed to simplify life of addons developer.
 This project ***is not*** designed, to install and configure production ready Odoo instances!
+
 For production-ready installations contact [yodoo.systems](https://yodoo.systems) (Odoo SaaS, IaaS, PaaS)
 or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0/setup/install.html) first.
 
@@ -142,7 +144,7 @@ Example of such commands may be: `odoo-helper server` or `odoo-helper db` comman
 These commands are required to be ran inside Odoo instance directory (directory with Odoo installed using `odoo-install`)
 or its subdirectories. Thus*odoo-helper* could find project/instance [config file](./odoo-helper-configuration.md).
 
-See [Frequently used commands](./frequently-used-commands.md) for more info about available commands
+See [Frequently used commands](./frequently-used-commands.md) and [Command reference](./command-reference.md) for more info about available commands
 or just run `odoo-helper --help`
 
 ## Support

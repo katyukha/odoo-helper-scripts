@@ -1,7 +1,7 @@
 # odoo\_requirements.txt
 
 *odoo_requirements.txt* parsed line by line, and each line
-must be set of options for ```odoo-helper fetch``` command.
+must be set of options for [odoo-helper fetch](./command-reference.md#odoo-helper-fetch) command.
 
 ## Format
 
@@ -46,9 +46,7 @@ must be set of options for ```odoo-helper fetch``` command.
 
 ```
 --github katyukha/base_tags --module base_tags -b master
---oca project-service -m project_sla
+--oca project -m project_description
 ```
 
 For details run ```odoo-helper fetch --help```
-
-

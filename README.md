@@ -75,6 +75,7 @@ So use ``--help`` option, which is available for most of commands.
 
 This script collection is designed to simplify life of addons developer.
 This project ***is not*** designed, to install and configure production ready Odoo instances!
+
 For production-ready installations contact [yodoo.systems](https://yodoo.systems) (Odoo SaaS, IaaS, PaaS)
 or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0/setup/install.html) first.
 
@@ -146,7 +147,7 @@ Also there are some aliases for common commands:
 - odoo-helper-test
 
 For more info look at [documentation](https://katyukha.gitlab.io/odoo-helper-scripts/). (currently documentation status is *work-in-progress*).
-Also look at [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/)
+Also look at [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/) and [Command reference](https://katyukha.gitlab.io/odoo-helper-scripts/command-reference/)
 
 Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).
 
