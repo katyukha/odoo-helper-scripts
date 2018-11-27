@@ -590,14 +590,49 @@ function install_odoo_install {
 
 # Reinstall virtual environment.
 function install_reinstall_venv {
-    if [ -z $VENV_DIR ]; then
+    local usage="
+    Recreate virtualenv environment.
+
+    Usage:
+
+        $SCRIPT_NAME install reinstall-venv [options] - reinstall virtualenv
+        $SCRIPT_NAME install --help                   - show this help message
+
+    Options:
+
+        -p|--python <python ver>  - python version to recreate virtualenv with.
+                                    Same as --python option of virtualenv
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -p|--python)
+                VIRTUALENV_PYTHON="$2";
+                shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z "$VENV_DIR" ]; then
         echo -e "${YELLOWC}This project does not use virtualenv! Do nothing...${NC}";
         return 0;
     fi
 
     # Backup old venv
-    if [ -d $VENV_DIR ]; then
-        mv $VENV_DIR $PROJECT_ROOT_DIR/venv-backup-$(random_string 4);
+    if [ -d "$VENV_DIR" ]; then
+        local venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
+        mv "$VENV_DIR" "$venv_backup_path";
+        echoe -e "${BLUEC}Old ${YELLOWC}virtualenv${BLUEC} backed up at ${YELLOWC}${venv_backup_path}${NC}";
     fi
 
     # Install odoo
@@ -639,8 +674,7 @@ function install_entry_point {
         $SCRIPT_NAME install wkhtmltopdf                   - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
                                                              and if user/password specified, create it
-        $SCRIPT_NAME install reinstall-venv                - reinstall virtual environment
-                                                             all options will be passed to virtualenv cmd directly
+        $SCRIPT_NAME install reinstall-venv [--help]       - reinstall virtual environment
         $SCRIPT_NAME install reinstall-odoo clone|download - completly reinstall odoo
                                                              (downlload or clone new sources, create new virtualenv, etc).
                                                              Options are:

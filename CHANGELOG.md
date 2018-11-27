@@ -61,6 +61,8 @@
 - `odoo-helper addons list` bugfix `--recursive` option:
   forward options to recursive calls
 - `odoo-helper db drop` check result of drop function, and if it is False then fail
+- `odoo-helper install reinstall-version` show correct help message
+  and added ability to specify python version to be used for new virtualenv
 
 ### Changed
 
