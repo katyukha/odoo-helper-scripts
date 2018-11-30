@@ -65,7 +65,7 @@ pages:
         - apk update && apk add --no-cache bash
         - pip install mkdocs mkdocs-cinder
     script:
-        - sh scripts/build_docs.sh
+        - sh scripts/build_docs.bash
     artifacts:
         paths:
             - public

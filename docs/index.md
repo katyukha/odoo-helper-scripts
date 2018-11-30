@@ -74,7 +74,7 @@ or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0
 
 For full list of installation options look at [installation documentation](./installation.md)
 
-*Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](./installation#install-as-deb-package)*,
+*Starting from 0.1.7-alpha release odoo-helper-scripts could be installed as* [.deb packages](./installation#install-as-deb-package)*,
 but this feature is still experimental*
 
 To install *odoo-helper-scripts* system-wide do folowing:

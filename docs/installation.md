@@ -14,9 +14,9 @@ only supported on debian-like systems (using apt)
 ## Installing odoo-helper-scripts itself
 There are three options to install *odoo-helper-scripts*:
 
-- *user-space* installation
-- *system-wide* installation
-- *by .deb package* (**experimental**)
+- [*user-space* installation](#user-space-installation)
+- [*system-wide* installation](#system-wide-installation)
+- [*as .deb package* (**experimental**)](#install-as-deb-package)
 
 ### User-space installation
 
@@ -73,7 +73,7 @@ After instalation *odoo-helper-scripts* code will be placed in ``/opt/odoo-helpe
 
 ***Note***: this feature is experimental!
 
-Since release *0.1.7* it is possible to install *odoo-helper-scripts* as *.deb* package.
+Since release *0.1.7-alpha* it is possible to install *odoo-helper-scripts* as *.deb* package.
 
 Look for a link on [releases page](https://gitlab.com/katyukha/odoo-helper-scripts/tags)
 

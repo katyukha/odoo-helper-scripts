@@ -1,10 +1,13 @@
 #!/bin/bash
 
 SCRIPT=$0;
-SCRIPT_NAME=`basename $SCRIPT`;
+SCRIPT_NAME=$(basename "$SCRIPT");
 SCRIPT_DIR=$(readlink -f "$(dirname $SCRIPT)");
 WORK_DIR=$(pwd);
 PROJECT_DIR="$(readlink -f $SCRIPT_DIR/..)";
+
+set -e
+
 
 # Copy changelog and contributing
 cp -f $PROJECT_DIR/CHANGELOG.md $PROJECT_DIR/docs/release-notes.md;
@@ -141,5 +144,3 @@ echo -e "~~~text\n$(odoo-helper doc-utils addons-list --help)\n~~~\n\n" >> $PROJ
 
 echo -e "### odoo-helper system\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper system --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
-
-mkdocs build -d $PROJECT_DIR/public
