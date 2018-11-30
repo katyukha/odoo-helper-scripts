@@ -283,9 +283,6 @@ function test_module {
         $SCRIPT_NAME test -d addon_dir             # test all addons in specified directory
         $SCRIPT_NAME test --dir-r addon_dir        # test all addons in specified directory
                                                    # and subdirectories
-        $SCRIPT_NAME test pylint ./my_cool_module  # check addon with pylint
-        $SCRIPT_NAME test flake8 ./my_cool_module  # check addon with flake8
-        $SCRIPT_NAME test style ./my_cool_module   # run stylelint standard checks for addon
 
     Notes:
         To handle coverage right, it is recommended to run tests
