@@ -643,10 +643,46 @@ function install_reinstall_venv {
 }
 
 function install_reinstall_odoo {
-    local reinstall_action=$1;
+    local usage="
+    Reinstall odoo. Usualy used when initialy odoo was installed as archive,
+    but we want to reinstall it as git repository to better track updates.
 
-    if [ "$reinstall_action" != "clone" ] && [ "$reinstall_action" != "download" ]; then
-        echoe -e "${REDC}ERROR${NC}: unknown odoo reinstall action '$reinstall_action'!";
+    Usage:
+
+        $SCRIPT_NAME install reinstall-odoo <type> - reinstall odoo
+        $SCRIPT_NAME install --help                - show this help message
+
+    <type> could be:
+        clone     - reinstall Odoo as git repository.
+        download  - reinstall Odoo from archive.
+    ";
+
+    local reinstall_action;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            clone|git)
+                reinstall_action="clone";
+            ;;
+            download|archive)
+                reinstall_action="download";
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo -e "${REDC}ERROR${NC}: Unknown command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    if [ -z "$reinstall_action" ]; then
+        echo -e "${REDC}ERROR${NC}: Please specify reinstall type!";
+        echo "";
+        echo "$usage";
         return 1;
     fi
 
@@ -675,7 +711,7 @@ function install_entry_point {
         $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
                                                              and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [--help]       - reinstall virtual environment
-        $SCRIPT_NAME install reinstall-odoo clone|download - completly reinstall odoo
+        $SCRIPT_NAME install reinstall-odoo [--help]       - completly reinstall odoo
                                                              (downlload or clone new sources, create new virtualenv, etc).
                                                              Options are:
                                                                 - clone odoo as git repository

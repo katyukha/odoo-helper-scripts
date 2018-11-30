@@ -35,6 +35,8 @@
       will be passed directly to Odoo
 - Help message and new options to `odoo-helper db drop` command
     - option `-q` or `--quite` to hide messages produced by this command
+- Help message to `odoo-helper install reinstall-odoo` command
+- Help message to `odoo-helper install reinstall-venv` command
 - New options to `odoo-install` command
     - `--git` - shortcut for `--download-archive off`
     - `--archive` - shortcut for `--download-archive on`

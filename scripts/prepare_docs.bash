@@ -25,6 +25,9 @@ echo -e "~~~text\n$(odoo-helper --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-r
 echo -e "### odoo-helper install\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper install reinstall-odoo\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install reinstall-odoo --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper install reinstall-venv\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install reinstall-venv --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
