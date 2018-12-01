@@ -25,7 +25,8 @@ sudo bash /tmp/odoo-helper-install.bash;
 ## Install dependencies
 
 Ensure *odoo-helper-scripts* pre-requirements are installed
-This step should be usualy ran one time. It install dependencies of *odoo-helper-scripts* itself and common odoo dependencies
+This step should be usualy ran one time.
+It installs dependencies of *odoo-helper-scripts* itself and common odoo dependencies.
 
 ```bash
 odoo-helper install pre-requirements

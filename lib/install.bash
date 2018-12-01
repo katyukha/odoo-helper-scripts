@@ -387,6 +387,39 @@ function install_and_configure_postgresql {
 
 # install_system_prerequirements
 function install_system_prerequirements {
+    local usage="
+    Install system dependencies for odoo-helper-scripts itself and
+    common dependencies for Odoo.
+
+    Usage:
+
+        $SCRIPT_NAME install pre-requirements [options]  - install requirements
+        $SCRIPT_NAME install --help                      - show this help message
+
+    Options:
+
+        -y|--yes     - Always answer yes
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -y|--yes)
+                ALWAYS_ANSWER_YES=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
     echoe -e "${BLUEC}Updating package list...${NC}"
     with_sudo apt-get update -qq || true;
 
@@ -700,7 +733,7 @@ function install_entry_point {
     local usage="
     Usage:
 
-        $SCRIPT_NAME install pre-requirements [-y]         - [sudo] install system preprequirements
+        $SCRIPT_NAME install pre-requirements [--help]     - [sudo] install system pre-requirements
         $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - [sudo] install system dependencies for odoo version
         $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
         $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
@@ -731,11 +764,7 @@ function install_entry_point {
         case $key in
             pre-requirements)
                 shift
-                if [ "$1" == "-y" ]; then
-                    ALWAYS_ANSWER_YES=1;
-                    shift;
-                fi
-                install_system_prerequirements;
+                install_system_prerequirements $@;
                 return 0;
             ;;
             sys-deps)
