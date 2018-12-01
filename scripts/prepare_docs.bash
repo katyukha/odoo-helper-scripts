@@ -31,6 +31,9 @@ echo -e "~~~text\n$(odoo-helper install pre-requirements --help)\n~~~\n\n" >> $P
 echo -e "#### odoo-helper install sys-deps\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install sys-deps --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper install py-deps\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install py-deps --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper install reinstall-odoo\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install reinstall-odoo --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

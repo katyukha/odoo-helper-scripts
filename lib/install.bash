@@ -360,6 +360,30 @@ function install_sys_deps_for_odoo_version {
 # install python requirements for specified odoo version via PIP requirements.txt
 # NOTE: not supported for odoo 7.0 and lower.
 function install_odoo_py_requirements_for_version {
+    local usage="
+    Install python dependencies for specific Odoo version.
+
+    Usage:
+
+        $SCRIPT_NAME install py-deps <odoo-version> - install python dependencies
+        $SCRIPT_NAME install --help                 - show this help message
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local odoo_version=${1:-$ODOO_VERSION};
     local odoo_major_version="${odoo_version%.*}";
     local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
@@ -771,7 +795,7 @@ function install_entry_point {
 
         $SCRIPT_NAME install pre-requirements [--help]   - [sudo] install system pre-requirements
         $SCRIPT_NAME install sys-deps [--help]           - [sudo] install system dependencies for odoo version
-        $SCRIPT_NAME install py-deps <odoo-version>      - install python dependencies for odoo version (requirements.txt)
+        $SCRIPT_NAME install py-deps [--help]            - install python dependencies for odoo version (requirements.txt)
         $SCRIPT_NAME install py-tools                    - install python tools (pylint, flake8, ...)
         $SCRIPT_NAME install js-tools                    - install javascript tools (jshint, phantomjs)
         $SCRIPT_NAME install bin-tools [-y]              - [sudo] install binary tools. at this moment it is *unbuffer*,
