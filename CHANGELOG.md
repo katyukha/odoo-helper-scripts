@@ -37,6 +37,7 @@
     - option `-q` or `--quite` to hide messages produced by this command
 - Added help messages for commands:
     - `odoo-helper install pre-requirements`
+    - `odoo-helper install sys-deps`
     - `odoo-helper install reinstall-odoo`
     - `odoo-helper install reinstall-venv`
 - New options to `odoo-install` command

@@ -28,6 +28,9 @@ echo -e "~~~text\n$(odoo-helper install --help)\n~~~\n\n" >> $PROJECT_DIR/docs/c
 echo -e "#### odoo-helper install pre-requirements\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install pre-requirements --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper install sys-deps\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install sys-deps --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper install reinstall-odoo\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install reinstall-odoo --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

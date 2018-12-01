@@ -312,7 +312,43 @@ function install_parse_debian_control_file {
 # install_sys_deps_for_odoo_version <odoo version>
 # Note that odoo version here is branch of official odoo repository
 function install_sys_deps_for_odoo_version {
+    local usage="
+    Install system dependencies for specific Odoo version.
+
+    Usage:
+
+        $SCRIPT_NAME install sys-deps [options] <odoo-version> - install deps
+        $SCRIPT_NAME install --help                            - show help msg
+
+    Options:
+
+        -y|--yes     - Always answer yes
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -y|--yes)
+                ALWAYS_ANSWER_YES=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local odoo_version=$1;
+    if [ -z "$odoo_version" ]; then
+        echoe -e "${REDC}ERROR${NC}: Odoo version is not specified!";
+        return 1;
+    fi
+
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
     wget -q -T 2 $control_url -O $tmp_control;
@@ -733,23 +769,23 @@ function install_entry_point {
     local usage="
     Usage:
 
-        $SCRIPT_NAME install pre-requirements [--help]     - [sudo] install system pre-requirements
-        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - [sudo] install system dependencies for odoo version
-        $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
-        $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
-        $SCRIPT_NAME install js-tools                      - install javascript tools (jshint, phantomjs)
-        $SCRIPT_NAME install bin-tools [-y]                - [sudo] install binary tools. at this moment it is *unbuffer*,
-                                                             which is in *expect-dev* package
-        $SCRIPT_NAME install wkhtmltopdf                   - [sudo] install wkhtmtopdf
-        $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
-                                                             and if user/password specified, create it
-        $SCRIPT_NAME install reinstall-venv [--help]       - reinstall virtual environment
-        $SCRIPT_NAME install reinstall-odoo [--help]       - completly reinstall odoo
-                                                             (downlload or clone new sources, create new virtualenv, etc).
-                                                             Options are:
-                                                                - clone odoo as git repository
-                                                                - download odoo archieve and unpack source
-        $SCRIPT_NAME install --help                        - show this help message
+        $SCRIPT_NAME install pre-requirements [--help]   - [sudo] install system pre-requirements
+        $SCRIPT_NAME install sys-deps [--help]           - [sudo] install system dependencies for odoo version
+        $SCRIPT_NAME install py-deps <odoo-version>      - install python dependencies for odoo version (requirements.txt)
+        $SCRIPT_NAME install py-tools                    - install python tools (pylint, flake8, ...)
+        $SCRIPT_NAME install js-tools                    - install javascript tools (jshint, phantomjs)
+        $SCRIPT_NAME install bin-tools [-y]              - [sudo] install binary tools. at this moment it is *unbuffer*,
+                                                           which is in *expect-dev* package
+        $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
+        $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
+                                                           and if user/password specified, create it
+        $SCRIPT_NAME install reinstall-venv [--help]     - reinstall virtual environment
+        $SCRIPT_NAME install reinstall-odoo [--help]     - completly reinstall odoo
+                                                           (downlload or clone new sources, create new virtualenv, etc).
+                                                           Options are:
+                                                              - clone odoo as git repository
+                                                              - download odoo archieve and unpack source
+        $SCRIPT_NAME install --help                      - show this help message
 
     ";
 
@@ -769,10 +805,6 @@ function install_entry_point {
             ;;
             sys-deps)
                 shift;
-                if [ "$1" == "-y" ]; then
-                    ALWAYS_ANSWER_YES=1;
-                    shift;
-                fi
                 install_sys_deps_for_odoo_version "$@";
                 return 0;
             ;;
