@@ -34,6 +34,18 @@ echo -e "~~~text\n$(odoo-helper install sys-deps --help)\n~~~\n\n" >> $PROJECT_D
 echo -e "#### odoo-helper install py-deps\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install py-deps --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper install py-tools\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install py-tools --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper install js-tools\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install js-tools --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper install bin-tools\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install bin-tools --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper install postgres\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install postgres --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper install reinstall-odoo\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install reinstall-odoo --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

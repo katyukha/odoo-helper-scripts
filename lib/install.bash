@@ -318,7 +318,7 @@ function install_sys_deps_for_odoo_version {
     Usage:
 
         $SCRIPT_NAME install sys-deps [options] <odoo-version> - install deps
-        $SCRIPT_NAME install --help                            - show help msg
+        $SCRIPT_NAME install sys-deps --help                   - show help msg
 
     Options:
 
@@ -366,7 +366,7 @@ function install_odoo_py_requirements_for_version {
     Usage:
 
         $SCRIPT_NAME install py-deps <odoo-version> - install python dependencies
-        $SCRIPT_NAME install --help                 - show this help message
+        $SCRIPT_NAME install py-deps --help         - show this help message
 
     ";
     while [[ $# -gt 0 ]]
@@ -428,6 +428,34 @@ function install_odoo_py_requirements_for_version {
 }
 
 function install_and_configure_postgresql {
+    local usage="
+    Install postgresql server and optionaly automatically create postgres user
+    for this Odoo instance.
+
+    Usage:
+
+        Install postgresql only:
+            $SCRIPT_NAME install postgres                   
+
+        Install postgresql and create postgres user:
+            $SCRIPT_NAME install postgres <user> <password>
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                break;
+            ;;
+        esac
+        shift
+    done
     local db_user=${1:-$DB_USER};
     local db_password=${2:-DB_PASSWORD};
     # Check if postgres is installed on this machine. If not, install it
@@ -435,12 +463,11 @@ function install_and_configure_postgresql {
         postgres_install_postgresql;
         echo -e "${GREENC}Postgres installed${NC}";
     else
-        echo -e "${YELLOWC}It seems that postgresql is already installed, so not installing it, just configuring...${NC}";
+        echo -e "${YELLOWC}It seems that postgresql is already installed... Skipping this step...${NC}";
     fi
 
     if [ ! -z $db_user ] && [ ! -z $db_password ]; then
         postgres_user_create $db_user $db_password;
-        echo -e "${GREENC}Postgres user $db_user created${NC}";
     fi
 }
 
@@ -454,7 +481,7 @@ function install_system_prerequirements {
     Usage:
 
         $SCRIPT_NAME install pre-requirements [options]  - install requirements
-        $SCRIPT_NAME install --help                      - show this help message
+        $SCRIPT_NAME install pre-requirements --help     - show this help message
 
     Options:
 
@@ -520,17 +547,123 @@ function install_virtual_env {
 #
 # At this moment just installs expect-dev package, that provides 'unbuffer' tool
 function install_bin_tools {
+    local usage="
+    Install extra tools.
+    This command installs expect-dev package that brings 'unbuffer' program.
+    'unbuffer' program allow to run command without buffering.
+    This is required to make odoo show collors in log.
+
+    Usage:
+
+        $SCRIPT_NAME install bin-tools [options]  - install extra tools
+        $SCRIPT_NAME install bin-tools --help     - show this help message
+
+    Options:
+
+        -y|--yes     - Always answer yes
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -y|--yes)
+                ALWAYS_ANSWER_YES=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
     install_sys_deps_internal expect-dev tcl8.6;
 }
 
 # Install extra python tools
 function install_python_tools {
-    exec_pip install setproctitle watchdog pylint-odoo coverage \
+    local usage="
+    Install extra python tools.
+
+    Following packages will be installed:
+
+        - setproctitle
+        - watchdog
+        - pylint-odoo
+        - coverage
+        - flake8
+        - flake8-colors
+
+    Usage:
+
+        $SCRIPT_NAME install py-tools [options]  - install extra tools
+        $SCRIPT_NAME install py-tools --help     - show this help message
+
+    Options:
+
+        -q|--quiet     - quiet mode. reduce output
+
+    ";
+    local pip_options;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -q|--quiet)
+                pip_options="$pip_options --quiet"
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    exec_pip $pip_options install setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors;
 }
 
 # Install extra javascript tools
 function install_js_tools {
+    local usage="
+    Install extra javascript tools.
+
+    Following packages will be installed:
+
+        - eslint
+        - phantomjs-prebuilt
+        - stylelint
+        - stylelint-config-standard
+
+    Usage:
+
+        $SCRIPT_NAME install js-tools        - install extra tools
+        $SCRIPT_NAME install js-tools --help - show this help message
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
     exec_npm install -g eslint phantomjs-prebuilt \
         stylelint stylelint-config-standard;
 }
@@ -689,7 +822,7 @@ function install_reinstall_venv {
     Usage:
 
         $SCRIPT_NAME install reinstall-venv [options] - reinstall virtualenv
-        $SCRIPT_NAME install --help                   - show this help message
+        $SCRIPT_NAME install reinstall-venv --help    - show this help message
 
     Options:
 
@@ -743,7 +876,7 @@ function install_reinstall_odoo {
     Usage:
 
         $SCRIPT_NAME install reinstall-odoo <type> - reinstall odoo
-        $SCRIPT_NAME install --help                - show this help message
+        $SCRIPT_NAME install reinstall-odoo --help - show this help message
 
     <type> could be:
         clone     - reinstall Odoo as git repository.
@@ -796,9 +929,9 @@ function install_entry_point {
         $SCRIPT_NAME install pre-requirements [--help]   - [sudo] install system pre-requirements
         $SCRIPT_NAME install sys-deps [--help]           - [sudo] install system dependencies for odoo version
         $SCRIPT_NAME install py-deps [--help]            - install python dependencies for odoo version (requirements.txt)
-        $SCRIPT_NAME install py-tools                    - install python tools (pylint, flake8, ...)
-        $SCRIPT_NAME install js-tools                    - install javascript tools (jshint, phantomjs)
-        $SCRIPT_NAME install bin-tools [-y]              - [sudo] install binary tools. at this moment it is *unbuffer*,
+        $SCRIPT_NAME install py-tools [--help]           - install python tools (pylint, flake8, ...)
+        $SCRIPT_NAME install js-tools [--help]           - install javascript tools (jshint, phantomjs)
+        $SCRIPT_NAME install bin-tools [--help]          - [sudo] install binary tools. at this moment it is *unbuffer*,
                                                            which is in *expect-dev* package
         $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
@@ -852,10 +985,6 @@ function install_entry_point {
             ;;
             bin-tools)
                 shift;
-                if [ "$1" == "-y" ]; then
-                    ALWAYS_ANSWER_YES=1;
-                    shift;
-                fi
                 install_bin_tools $@;
                 return 0;
             ;;

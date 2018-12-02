@@ -39,6 +39,10 @@
     - `odoo-helper install pre-requirements`
     - `odoo-helper install sys-deps`
     - `odoo-helper install py-deps`
+    - `odoo-helper install py-tools`
+    - `odoo-helper install js-tools`
+    - `odoo-helper install bin-tools`
+    - `odoo-helper install postgres`
     - `odoo-helper install reinstall-odoo`
     - `odoo-helper install reinstall-venv`
 - New options to `odoo-install` command
