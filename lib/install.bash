@@ -450,7 +450,6 @@ function install_and_configure_postgresql {
                 return 0;
             ;;
             *)
-                echo "Unknown option / command $key";
                 break;
             ;;
         esac
