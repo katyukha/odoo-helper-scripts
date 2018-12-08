@@ -200,7 +200,7 @@ function ci_check_versions_git {
     done;
 
     # Check repo version
-    if [ "$check_repo_version" -eq 1 ]; then
+    if [ "$check_repo_version" -eq 1 ] && [ -n "${changed_addons}" ]; then
         local repo_version_before=$(ci_git_get_repo_version_by_ref -q "$repo_path" "$ref_start");
         local repo_version_after=$(ci_git_get_repo_version_by_ref "$repo_path" "$ref_end");
         if [ -z "$repo_version_after" ]; then
