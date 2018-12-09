@@ -116,10 +116,10 @@ function install_fetch_odoo {
 # install_wkhtmltopdf_get_dw_link <os_release_name> [wkhtmltopdf version]
 function install_wkhtmltopdf_get_dw_link {
     local os_release_name=$1;
-    local version=${2:-0.12.1};
+    local version=${2:-0.12.5};
     local system_arch=$(dpkg --print-architecture);
 
-    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox-${version}_linux-${os_release_name}-${system_arch}.deb"
+    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox_${version}-1.${os_release_name}_${system_arch}.deb"
 }
 
 
@@ -136,9 +136,9 @@ function install_wkhtmltopdf_download {
 
         if [ "$(lsb_release -si)" == "Ubuntu" ]; then
             # fallback to trusty release for ubuntu systems
-            local release=trusty;
+            local release=bionic;
         elif [ "$(lsb_release -si)" == "Debian" ]; then
-            local release=jessie;
+            local release=stretch;
         else
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
             return 2;
@@ -155,14 +155,47 @@ function install_wkhtmltopdf_download {
 
 # install_wkhtmltopdf
 function install_wkhtmltopdf {
-    if ! check_command wkhtmltopdf > /dev/null; then
+    local usage="
+    Install wkhtmltopdf. It is required to print PDF reports.
+
+
+    Usage:
+
+        $SCRIPT_NAME install wkhtmltopdf [options]
+        $SCRIPT_NAME install wkhtmltopdf --help - show this help message
+
+    Options:
+
+        --update   - install even if it is already installed
+    ";
+
+    local force_install;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --update)
+                force_install=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo -e "${REDC}ERROR${NC}: Unknown command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    if ! check_command wkhtmltopdf > /dev/null || [ -n "$force_install" ]; then
         # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
-            echoe -e "${BLUEC}Downloading wkhtmltopdf...${NC}";
+            echoe -e "${BLUEC}Downloading ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
             install_wkhtmltopdf_download $wkhtmltox_path;
         fi
-        echoe -e "${BLUEC}Installing wkhtmltopdf...${NC}";
+        echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
         local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";

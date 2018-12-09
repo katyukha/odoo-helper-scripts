@@ -43,6 +43,9 @@ echo -e "~~~text\n$(odoo-helper install js-tools --help)\n~~~\n\n" >> $PROJECT_D
 echo -e "#### odoo-helper install bin-tools\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install bin-tools --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper install wkhtmltopdf\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install wkhtmltopdf --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper install postgres\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install postgres --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

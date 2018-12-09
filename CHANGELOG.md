@@ -104,8 +104,7 @@
 - default flake8 config: disable W503 and W504 checks
 - default pylint config:
     - Add proprietary licenses to allowed licenses list
-
-
+- Install newer version of [wkhtmltopdf](https://wkhtmltopdf.org/): [0.12.5](https://github.com/wkhtmltopdf/wkhtmltopdf/releases/tag/0.12.5)
 
 ### Deprecations
 
