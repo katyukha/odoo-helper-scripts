@@ -208,6 +208,8 @@ function scaffold_model {
 
 function scaffold_parse_cmd {
     local usage="
+    ${YELLOWC}WARNING${NC}: this command is experimental and not maintained.
+
     Usage:
 
         $SCRIPT_NAME scaffold repo [--help]  - create new repository

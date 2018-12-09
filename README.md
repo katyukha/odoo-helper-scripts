@@ -47,12 +47,12 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - regenerate translations for specified language
     - load language (for one db or for old databases)
 - Supported odoo versions:
-    - *7.0* (some functionality may not work),
+    - *7.0* (*deprecated*),
     - *8.0*
     - *9.0*
     - *10.0*
     - *11.0*
-    - *12.0 (experimental)*
+    - *12.0* (*experimental*)
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
