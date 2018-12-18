@@ -65,6 +65,10 @@
   then it will be dropt before creation of new database.
 - Added special option `--dependencies` to
   `odoo-helper doc-utils addons-list` command
+- Install [websocket-client](https://github.com/websocket-client/websocket-client)
+  during `py-tools` install to run test tours in Odoo 12+
+- Install `chromium-browser` durin `bin-tools` install. It is requird to run
+  tests in Odoo 12+
 
 ### Fix
 

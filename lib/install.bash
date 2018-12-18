@@ -613,7 +613,12 @@ function install_bin_tools {
         esac
         shift
     done
-    install_sys_deps_internal expect-dev tcl8.6;
+    local deps="expect-dev tcl8.6";
+    if ! check_command 'google-chrome' 'chromium' 'chromium-browser' > /dev/null; then
+        echoe -e "${YELLOWC}Google Chrome${BLUEC} seems to be not installed. ${YELLOWC}chromium-browser${BLUEC} will be installed.${NC}";
+        deps="$deps chromium-browser";
+    fi
+    install_sys_deps_internal $deps;
 }
 
 # Install extra python tools
@@ -629,6 +634,7 @@ function install_python_tools {
         - coverage
         - flake8
         - flake8-colors
+        - websocket-client  (required for tests in Odoo 12.0)
 
     Usage:
 
@@ -660,7 +666,7 @@ function install_python_tools {
         shift
     done
     exec_pip $pip_options install setproctitle watchdog pylint-odoo coverage \
-        flake8 flake8-colors;
+        flake8 flake8-colors websocket-client;
 }
 
 # Install extra javascript tools
