@@ -60,12 +60,13 @@ build_packages:
         - tags
  
 pages:
-    image: python:alpine
+    variables:
+        ODOO_HELPER_INSTALL_PATH: "$CI_PROJECT_DIR"
     before_script:
-        - apk update && apk add --no-cache bash
+        - bash install-system.bash
         - pip install mkdocs mkdocs-cinder
     script:
-        - sh scripts/build_docs.bash
+        - bash scripts/build_docs.bash
     artifacts:
         paths:
             - public
