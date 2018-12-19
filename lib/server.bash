@@ -72,24 +72,135 @@ function server_log {
     less +G $@ -- ${LOG_FILE:-$LOG_DIR/odoo.log};
 }
 
-# server_run <arg1> .. <argN>
-# all arguments will be passed to odoo server
+# server_run [options] <arg1> .. <argN>
+# all arguments (except options) will be passed to odoo server
+# available options
+#   --test-conf
+#   --coverage
 function server_run {
-    local SERVER=`get_server_script`;
-    echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
+    local usage="
+    Run Odoo server in foreground
+
+    Usage:
+
+        $SCRIPT_NAME server run [options] -- [odoo options]
+
+    Options:
+        --test-conf     - run odoo-server with test configuration file
+        --coverage      - run odoo with coverage mode enabled
+        -h|--help|help  - display this message
+
+    Options after '--' will be passed directly to Odoo.
+
+    For example:
+        $ odoo-helper server run --test-conf -- workers=2
+
+    For --coverage option files in current working directory will be covered
+    To add customa paths use environement variable COVERAGE_INCLUDE
+    ";
+    local server_conf="$ODOO_CONF_FILE";
+    local with_coverage=0;
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            --test-conf)
+                server_conf="$ODOO_TEST_CONF_FILE";
+                shift;
+            ;;
+            --coverage)
+                with_coverage=1;
+                shift;
+            ;;
+            --help|-h|help)
+                echo "$usage";
+                return 0;
+            ;;
+            --)
+                shift;
+                break;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+    local SERVER=$(get_server_script);
     if [ ! -z $SERVER_RUN_USER ]; then
         local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
         echov "Using server run opt: $sudo_opt";
     fi
 
-    exec_conf $ODOO_CONF_FILE execu "$sudo_opt $SERVER $@";
+
+    if [ "$with_coverage" -eq 1 ]; then
+        local coverage_include;
+        local coverage_conf;
+        coverage_include="${COVERAGE_INCLUDE:-$(pwd)/*}";
+        coverage_conf=$(config_get_default_tool_conf "coverage.cfg");
+
+        if ! check_command coverage >/dev/null 2>&1; then
+            echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found." \
+               " Please, run *${BLUEC}odoo-helper install py-tools${BLUEC}* or " \
+               " *${BLUEC}odoo-helper pip install coverage${NC}*.";
+            return 1
+        fi
+        echo -e "${LBLUEC}Running server [${YELLOWC}coverage${LBLUEC}]${NC}: $SERVER $@";
+        exec_conf $server_conf execu "coverage run --rcfile=$coverage_conf \
+            --include='$coverage_include' $SERVER $@";
+    else
+        echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
+        exec_conf $server_conf execu "$sudo_opt $SERVER $@";
+    fi
 }
 
 function server_start {
-    if [ "$1" == "--log" ]; then
-        local log_after_start=1;
-        shift;
-    fi
+    local usage="
+    Start Odoo server in background
+
+    Usage:
+
+        $SCRIPT_NAME server start [options] -- [odoo options]
+
+    Options:
+        --test-conf     - start odoo-server with test configuration file
+        --coverage      - start odoo with coverage mode enabled
+        --log           - open logfile after server been started
+        -h|--help|help  - display this message
+
+    Options after '--' will be passed directly to Odoo.
+
+    For example:
+        $ odoo-helper server start --test-conf -- workers=2
+
+    For --coverage option files in current working directory will be covered
+    To add customa paths use environement variable COVERAGE_INCLUDE
+    ";
+    local server_run_opts="";
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            --test-conf|--coverage)
+                server_run_opts="$server_run_opts $key";
+                shift;
+            ;;
+            --log)
+                local log_after_start=1;
+                shift;
+            ;;
+            --help|-h|help)
+                echo "$usage";
+                return 0;
+            ;;
+            --)
+                shift;
+                break;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
 
     if [ ! -z $INIT_SCRIPT ]; then
         echo -e "${YELLOWC}Starting server via init script: $INIT_SCRIPT ${NC}";
@@ -101,7 +212,7 @@ function server_start {
             return 1;
         fi
 
-        server_run --pidfile=$ODOO_PID_FILE "$@" &
+        server_run $server_run_opts -- --pidfile=$ODOO_PID_FILE "$@" &
 
         # Wait until Odoo server started
         local odoo_pid=;
@@ -126,7 +237,7 @@ function server_start {
             echoe -e "Process ID: ${YELLOWC}${odoo_pid}${NC}";
 
             if [ -z "$INIT_SCRIPT" ]; then
-                echoe -e "Server URL: ${BLUEC}$(odoo_gen_server_url)${NC}";
+                echoe -e "Server URL: ${BLUEC}$(odoo_get_server_url)${NC}";
             fi
         fi
     fi
@@ -183,7 +294,7 @@ function server_status {
         if [ $pid -gt 0 ]; then
             echoe -e "${GREENC}Server process already running: PID=${YELLOWC}${pid}${GREENC}.${NC}";
             if [ -z "$INIT_SCRIPT" ]; then
-                echoe -e "${GREENC}Server URL:${NC} ${BLUEC}$(odoo_gen_server_url)${NC}";
+                echoe -e "${GREENC}Server URL:${NC} ${BLUEC}$(odoo_get_server_url)${NC}";
             fi
         elif [ $pid -eq -2 ]; then
             echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
@@ -196,11 +307,6 @@ function server_status {
 }
 
 function server_restart {
-    if [ "$1" == "--log" ]; then
-        local log_after_start=1;
-        shift;
-    fi
-
     if [ ! -z $INIT_SCRIPT ]; then
         echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
         execu $INIT_SCRIPT restart;
@@ -208,16 +314,15 @@ function server_restart {
         server_stop;
         server_start "$@";
     fi
-
-    if [ ! -z $log_after_start ]; then
-        server_log;
-    fi
 }
 
 
 # WARN: only for odoo 8.0+
 # Update odoo sources
 function server_auto_update {
+    echoe -e "${YELLOWC}DEPRECATED${NC}: ${BLUEC}odoo-helper server auto-update${NC} deprecated!";
+    echoe -e "Use ${BLUEC}odoo-helper install reinstall-odoo${NC} or ${BLUEC}odoo-helper update-odoo${NC} instead";
+
     # Stop odoo server
     if server_is_running; then
         echoe -e "${BLUEC}Stopping server...${NC}";
@@ -232,7 +337,7 @@ function server_auto_update {
     odoo_update_sources;
 
     echoe -e "${BLUEC}update databases...${NC}";
-    addons_install_update "update" all;
+    addons_install_update update base;
 
     # Start server again if it was stopped
     if [ ! -z $need_start ]; then
@@ -255,7 +360,7 @@ function server_ps {
 # server [options] <command> <args>
 # server [options] start <args>
 # server [options] stop <args>
-function server {
+function server_command {
     local usage="
     Usage 
 
@@ -264,19 +369,19 @@ function server {
     args - arguments that usualy will be passed forward to openerp-server script
 
     Commands:
-        run             - run the server. if no command supply, this one will be used
-        start [--log]   - start server in background
-        stop            - stop background running server
-        restart [--log] - restart background server
-        status          - status of background server
-        auto-update     - automatiacly update server. (WARN: experimental feature. may be buggy)
-        log             - open server log
-        ps              - print running odoo processes
-        -h|--help|help  - display this message
+        run [--help]     - run the server. if no command supply, this one will be used
+        start [--help]   - start server in background
+        stop             - stop background running server
+        restart [--help] - restart background server
+        status           - status of background server
+        auto-update      - automatiacly update server. (WARN: deprecated feature)
+        log              - open server log
+        ps               - print running odoo processes
+        -h|--help|help   - display this message
 
     Options:
         --use-test-conf     - Use test configuration file for server
-        -u|--user           - Name of user to run server as
+        -u|--user           - [sudo] Name of user to run server as
     ";
 
     while [[ $# -gt 0 ]]
@@ -288,8 +393,9 @@ function server {
                 return 0;
             ;;
             --use-test-conf)
+                # TODO: do we realy need this?
                 ODOO_CONF_FILE=$ODOO_TEST_CONF_FILE;
-                echo -e "${YELLOWC}NOTE${NC}: Using test configuration file: $ODOO_TEST_CONF_FILE";
+                echoe -e "${YELLOWC}NOTE${NC}: Using test configuration file: $ODOO_TEST_CONF_FILE";
             ;;
             -u|--user)
                 SERVER_RUN_USER=$2;

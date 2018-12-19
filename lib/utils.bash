@@ -51,10 +51,10 @@ function execv {
 function execu {
     # Check unbuffer option
     if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
-        echo -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
-        echo -e "It could be installed via package *expect-dev*";
-        echo -e "Or by command *odoo-helper install bin-tools*";
-        echo -e "Using standard behavior${NC}";
+        echoe -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
+        echoe -e "It could be installed via package *expect-dev*";
+        echoe -e "Or by command *odoo-helper install bin-tools*";
+        echoe -e "Using standard behavior${NC}";
         USE_UNBUFFER=;
     fi
 
@@ -149,14 +149,17 @@ function random_string {
 # Try to find file in start_path, if found, print path, if not found,
 # then try to find it in parent directory recursively
 function search_file_up {
-    local path=$1;
+    local path="$(readlink -f $1)";
     while [[ "$path" != "/" ]];
     do
         if [ -e "$path/$2" ]; then
             echo "$path/$2";
             return 0;
+        elif [ ! -z "$path" ] && [ "$path" != "/" ]; then
+            path="$(dirname $path)";
+        else
+            break;
         fi
-        path=`dirname $path`;
     done
 }
 
@@ -210,6 +213,17 @@ function join_by {
     local IFS="$1";
     shift;
     echo "$*";
+}
+
+# Strip whitespaces from specified var
+# Origin: https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable
+function trim() {
+    local var="$1"
+    # remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"
+    echo -n "$var"
 }
 
 # Exec python

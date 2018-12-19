@@ -71,6 +71,37 @@ function postgres_user_exists {
 #
 # postgres_user_create <username> <password>
 function postgres_user_create {
+    local usage="
+    Create postgres user for Odoo with specified usernama and password
+
+    Usage:
+
+        $SCRIPT_NAME postgres user-create <username> <password>
+        $SCRIPT_NAME postgres user-create --help
+    ";
+    if [[ $# -lt 1 ]]; then
+        echo "No options supplied $#: $@";
+        echo "";
+        echo "$usage";
+        return 0;
+    fi
+
+    # Process all args that starts with '-' (ie. options)
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local user_name="$1";
     local user_password="$2";
 
@@ -127,39 +158,83 @@ PGAPPNAME="odoo-helper-pgstat" postgres_psql << EOF
 EOF
 }
 
+# Show information about connections used by postgresql server
+#
+function postgres_psql_connection_info {
+PGAPPNAME="odoo-helper-pgstat" postgres_psql << EOF
+    WITH t_used_conn AS (
+        SELECT count(*) AS used_connections
+        FROM pg_stat_activity
+        WHERE application_name != 'odoo-helper-pgstat'
+    ),
+    t_reserved_conn AS (
+        SELECT setting::int AS reserved_connections
+        FROM pg_settings
+        WHERE name='superuser_reserved_connections'
+    ),
+    t_max_conn AS (
+        SELECT setting::int AS max_connections
+        FROM pg_settings
+        WHERE name='max_connections'
+    )
+    SELECT max_connections,
+           used_connections,
+           reserved_connections,
+           max_connections - used_connections - reserved_connections AS free_connections
+    FROM t_used_conn, t_reserved_conn, t_max_conn
+EOF
+}
+
 # Configure local postgresql instance to be faster but less safe
 #
 # postgres_config_local_speed_unsafe
 function postgres_config_speedify_unsafe {
-    local postgres_config="$(sudo -u postgres psql -qSt -c 'SHOW config_file')";
+    local usage="
+    Speedify postgres by disabling fsync, synchronous_commit and full_page_writes
 
-    # Stop postgres
-    sudo service postgresql stop
+    WARNNING: this make postgres unsafe, and have to be used only for development
 
-	# Disable fsync, etc
-	sudo sed -ri "s/#fsync = on/fsync = off/g" $postgres_config;
-	sudo sed -ri "s/#synchronous_commit = on/synchronous_commit = off/g" $postgres_config;
-	sudo sed -ri "s/#full_page_writes = on/full_page_writes = off/g" $postgres_config;
-	sudo sed -ri "s/#work_mem = 4MB/work_mem = 8MB/g" $postgres_config;
+    Usage:
 
-    # Start postgres
-    sudo service postgresql start
+        $SCRIPT_NAME postgres speedify
+        $SCRIPT_NAME postgres speedify --help
+    ";
+    case $1 in
+        -h|--help|help)
+            echo "$usage";
+            return 0;
+        ;;
+    esac
+
+    if ! postgres_test_connection; then
+        return 1;
+    fi
+
+    sudo -u postgres -H psql -qc "ALTER SYSTEM SET fsync TO off;";
+    sudo -u postgres -H psql -qc "ALTER SYSTEM SET synchronous_commit TO off;";
+    sudo -u postgres -H psql -qc "ALTER SYSTEM SET full_page_writes TO off;";
+    sudo service postgresql restart
+    echoe -e "Postgres speedify: ${GREENC}OK${NC}";
 }
 
 # Parse command line args
 function postgres_command {
-    local usage="Usage:
+    local usage="
 
+    Notes:
         NOTE: subcommands tagged by [local] applicable only to local postgres instance!
         NOTE: subcommands tagged by [sudo] require sudo. (they will use sudo automaticaly)
         NOTE: most of commands require sudo
 
+    Usage:
         $SCRIPT_NAME postgres psql [psql options]                  - Run psql with odoo connection params
         $SCRIPT_NAME postgres psql -d <database> [psql options]    - Run psql connected to specified database
         $SCRIPT_NAME postgres user-create <user name> <password>   - [local][sudo] Create postgres user for odoo
                                                                      It automaticaly uses credentials used by odoo
         $SCRIPT_NAME postgres stat-activity                        - list running postgres queries in database
                                                                      print data from pg_stat_activity table.
+        $SCRIPT_NAME postgres stat-connections                     - show statistics about postgres connections:
+                                                                     used, reserved, free connections
         $SCRIPT_NAME postgres speedify                             - [local][sudo] Modify local postgres config
                                                                      to make it faster. But also makes postgres unsafe.
                                                                      Usualy this is normal for dev machines,
@@ -170,7 +245,7 @@ function postgres_command {
 
     if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -183,9 +258,10 @@ function postgres_command {
                 return;
             ;;
             speedify)
-                postgres_config_speedify_unsafe;
+                shift;
+                postgres_config_speedify_unsafe "$@";
                 return;
-			;;
+            ;;
             psql)
                 shift;
                 config_load_project;
@@ -196,6 +272,12 @@ function postgres_command {
                 shift;
                 config_load_project;
                 postgres_psql_stat_activity $@;
+                return;
+            ;;
+            stat-connections)
+                shift;
+                config_load_project;
+                postgres_psql_connection_info $@;
                 return;
             ;;
             -h|--help|help)

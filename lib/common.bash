@@ -48,6 +48,7 @@ function allow_colors {
     YELLOWC='\e[33m';
     BLUEC='\e[34m';
     LBLUEC='\e[94m';
+    OH_COLORS_ENABLED=1;
 }
 
 # could be used to hide colors in output
@@ -58,6 +59,7 @@ function deny_colors {
     YELLOWC='';
     BLUEC='';
     LBLUEC='';
+    OH_COLORS_ENABLED=;
 }
 
 # Allow colors by default

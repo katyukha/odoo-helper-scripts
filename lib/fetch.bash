@@ -137,7 +137,7 @@ function fetch_oca_requirements {
            local opt=""; #"--name ${line[0]}";
 
            # if there are no url specified then use --oca shortcut
-           if [ -z ${line[1]} ]; then
+           if [ -z "${line[1]}" ]; then
                opt="$opt --oca ${line[0]}";
            else
                # else, specify url directly
@@ -145,7 +145,7 @@ function fetch_oca_requirements {
            fi
 
            # add branch if it spcified in file
-           if [ ! -z ${line[2]} ]; then
+           if [ ! -z "${line[2]}" ]; then
                opt="$opt --branch ${line[2]}";
            fi
            
@@ -166,7 +166,7 @@ function fetch_oca_requirements {
 # base_tags
 function get_repo_name {
     if [ -z "$2" ]; then
-        local R=`basename $1`;  # get repository name
+        local R=$(basename "$1");  # get repository name
         R=${R%.git};  # remove .git suffix from name
         echo $R;
     else
@@ -196,12 +196,26 @@ function fetch_clone_repo_git {
     local repo_url=$1; shift;
     local repo_dest=$1; shift;
 
-    if [ ! -z $1 ]; then
-        local repo_branch_opt="-b $1";
+    local extra_git_opt;
+    local git_clone_opt;
+    local repo_branch_opt;
+    local git_cmd;
+
+    if [ -n "$1" ]; then
+        repo_branch_opt="-b $1";
+        git_clone_opt="$git_clone_opt $repo_branch_opt";
     fi
 
-    [ -z $VERBOSE ] && local git_clone_opt=" -q "
-    if ! git clone --recurse-submodules $git_clone_opt $repo_branch_opt $repo_url $repo_dest; then
+    if [ -n "$CI_JOB_TOKEN_GIT_HOST" ] && [ -n "$GITLAB_CI" ] && [ -n "$CI_JOB_TOKEN" ]; then
+        extra_git_opt="$extra_git_opt -c url.\"https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_JOB_TOKEN_GIT_HOST}/\".insteadOf=\"git@${CI_JOB_TOKEN_GIT_HOST}:\"";
+        extra_git_opt="$extra_git_opt -c url.\"https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_JOB_TOKEN_GIT_HOST}/\".insteadOf=\"https://${CI_JOB_TOKEN_GIT_HOST}/\"";
+        extra_git_opt="$extra_git_opt -c url.\"https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_JOB_TOKEN_GIT_HOST}/\".insteadOf=\"${CI_JOB_TOKEN_GIT_HOST}/\"";
+        echoe -e "${BLUEC}Use ${YELLOWC}gitlab-ci-token${BLUEC} for auth to repository ${YELLOWC}${CI_JOB_TOKEN_GIT_HOST}${NC}";
+    fi
+
+    [ -z $VERBOSE ] && git_clone_opt="$git_clone_opt -q "
+    git_cmd="git $extra_git_opt clone --recurse-submodules $git_clone_opt $repo_url $repo_dest";
+    if ! eval "$git_cmd"; then
         echo -e "${REDC}Cannot clone [git] '$repo_url to $repo_dest'!${NC}";
     elif [ -z "$repo_branch_opt" ]; then
         # IF repo clonned successfuly, and not branch specified then
@@ -275,50 +289,51 @@ function fetch_clone_repo {
 # fetch_module -p <python module> [-p <python module>] ...
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
-    local usage="Usage:
+    local usage="
+    Usage:
         $SCRIPT_NAME fetch -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --github <github username/reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --oca <OCA reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --requirements <requirements file>
         $SCRIPT_NAME fetch -p|--python <python module>
 
-        Options:
-            -r|--repo <repo>         - git repository to get module from
-            --github <user/repo>     - allows to specify repository located on github in short format
-            --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
+    Options:
+        -r|--repo <repo>         - git repository to get module from
+        --github <user/repo>     - allows to specify repository located on github in short format
+        --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
 
-            --hg <repo>              - mercurial repository to get addon from.
+        --hg <repo>              - mercurial repository to get addon from.
 
-            -m|--module <module>     - module name to be fetched from repository
-            -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
-                                       Usualy not required
-            -b|--branch <branch>     - name fo repository branch to clone
-            --requirements <file>    - path to requirements file to fetch required modules
-                                       NOTE: requirements file must end with newline.
-            -p|--python <package>    - fetch python dependency. (it use pip to install package)
-            -p|--python <vcs>+<repository>  - install python dependency directly from VCS
+        -m|--module <module>     - module name to be fetched from repository
+        -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
+                                   Usualy not required
+        -b|--branch <branch>     - name fo repository branch to clone
+        --requirements <file>    - path to requirements file to fetch required modules
+                                   NOTE: requirements file must end with newline.
+        -p|--python <package>    - fetch python dependency. (it use pip to install package) (deprecated)
+        -p|--python <vcs>+<repository>  - install python dependency directly from VCS (deprecated)
 
-        Note that in one call only one option of (-r, --github, --oca) must be present in one line.
+    Note that in one call only one option of (-r, --github, --oca) must be present in one line.
 
-        Examples:
-           # fetch default branch of base_tags repository, link all modules placed in repository
-           $SCRIPT_NAME fetch -r https://github.com/katyukha/base_tags 
+    Examples:
+       # fetch default branch of base_tags repository, link all modules placed in repository
+       $SCRIPT_NAME fetch -r https://github.com/katyukha/base_tags 
 
-           # same as previous but via --github option
-           $SCRIPT_NAME fetch --github katyukha/base_tags
+       # same as previous but via --github option
+       $SCRIPT_NAME fetch --github katyukha/base_tags
 
-           # fetch project_sla module from project-service repository of OCA using branch 7.0
-           $SCRIPT_NAME fetch --oca project-service -m project_sla -b 7.0
+       # fetch project_sla module from project repository of OCA using branch 8.0
+       $SCRIPT_NAME fetch --oca project -m project_sla -b 8.0
 
-        Also note that if using -p or --python option, You may install packages directly from vcs
-        using syntax like
+    Also note that if using -p or --python option, You may install packages directly from vcs
+    using syntax like
 
-           $SCRIPT_NAME fetch -p <vcs>
+       $SCRIPT_NAME fetch -p <vcs>
     ";
 
-    if [[ $# -lt 2 ]]; then
+    if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     local REPOSITORY=;
@@ -329,14 +344,20 @@ function fetch_module {
     local PYTHON_INSTALL=;
     local REPO_TYPE=git;
 
-    while [[ $# -gt 1 ]]
+    # Check if first argument is git repository
+    if [[ "$1" != -* ]] && git ls-remote "$1" > /dev/null 2>&1; then
+        REPOSITORY="$1";
+        shift;
+    fi
+
+    while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -r|--repo)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="$2";
                 shift;
@@ -344,7 +365,7 @@ function fetch_module {
             --hg)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="$2";
                 REPO_TYPE=hg;
@@ -353,7 +374,7 @@ function fetch_module {
             --github)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="https://github.com/$2";
                 shift;
@@ -361,7 +382,7 @@ function fetch_module {
             --oca)
                 if [ ! -z $REPOSITORY ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    exit -1;
+                    return -1;
                 fi
                 REPOSITORY="https://github.com/OCA/$2";
                 # for backward compatability (if odoo version not defined,
@@ -382,21 +403,29 @@ function fetch_module {
                 shift;
             ;;
             -p|--python)
+                echoe -e "${YELLOWC}WARNING${NC}: ${YELLOWC}-p${NC} and ${YELLOWC}--python${NC} options for ${BLUEC}odoo-helper fetch${NC} command are deprecated.";
+                echoe -e "Use ${YELLOWC}odoo-helper pip install${NC} to istall python dependencies.";
+                echoe -e "Also ${YELLOWC}requirements.txt${NC} file will be automaticaly processed if it is placed in repository root or addon root directory";
                 PYTHON_INSTALL=1;
                 fetch_python_dep $2
                 shift;
             ;;
             -h|--help|help)
                 echo "$usage";
-                exit 0;
+                return 0;
             ;;
             --requirements)
-                fetch_requirements $2;
-                exit 0;
+                if [ -f "$2" ]; then
+                    fetch_requirements $2;
+                    return 0;
+                else
+                    echoe -e "${REDC}ERROR${NC}: Requirements file '${YELLOWC}${2}${NC}' does not exists!";
+                    return 1
+                fi
             ;;
             *)
-                echo "Unknown option $key";
-                exit 1;
+                echoe -e "${REDC}ERROR${NC}: Unknown option $key";
+                return 1;
             ;;
         esac
         shift
@@ -410,7 +439,7 @@ function fetch_module {
         echo "No git repository supplied to fetch module from!";
         echo "";
         print_usage;
-        exit 2;
+        return 2;
     fi
 
     REPO_NAME=${REPO_NAME:-$(get_repo_name $REPOSITORY)};

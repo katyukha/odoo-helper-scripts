@@ -1,11 +1,128 @@
 # Release Notes
 
-## Release 0.1.7
+## Release 0.2.0 
 
-- Add `--color` option to `odoo-helper addons list` command. At this time this option colors output  by following rules:
+### Added
+
+- New `--color` option to `odoo-helper addons list` command.
+  At this time this option colors output  by following rules:
     - green - addon is linked to *custom addons*
     - red - addons is not present in *custom addons*
-    - yellow - addons is present in *custom addon*, but link point's to anouther place
+    - yellow - addons is present in *custom addon*, but link point's to another place
+- New `--not-linked` option to `odoo-helper addons list` command
+- New `--linked` option to `odoo-helper addons list` command
+- New `--filter` option to `odoo-helper addons list` command
+- New `odoo-helper odoo server-url` command
+- New `odoo-helper system is-project` command
+- New `odoo-helper system get-venv-dir` command
+- New options to `odoo-helper addons update/install/uninstall` commands
+    - `--tdb` or `--test-db` use test database
+    - `--cdb` or `--conf-db` use default database from odoo config
+    - `-m` or `--module`. Option is added to be consistend with
+      `odoo-helper test` command, which used this toption to specify
+      addons (modules) to be tested
+    - `--ual` - Update Apps List. When this option is specified, apps (addons)
+      list will be updated before install/update/uninstall addon
+    - `all` - install or update all addons. Does not work for uninstall.
+- Shortcut `odoo-helper psql` for `odoo-helper postgres psql` command
+- Shortcut `odoo-helper ps` for `odoo-helper server ps`
+- Alias to `--version` option - `version`: `odoo-helper version`
+- New options for `odoo-helper server run` command
+    - `--coverage`: run with code coverage enabled
+    - `--test-conf`: run with test configuratuon
+    - `--help`: show help message
+    - `--`: options delimiter - all options after this
+      will be passed directly to Odoo
+- Help message and new options to `odoo-helper db drop` command
+    - option `-q` or `--quite` to hide messages produced by this command
+- Added help messages for commands:
+    - `odoo-helper install pre-requirements`
+    - `odoo-helper install sys-deps`
+    - `odoo-helper install py-deps`
+    - `odoo-helper install py-tools`
+    - `odoo-helper install js-tools`
+    - `odoo-helper install bin-tools`
+    - `odoo-helper install postgres`
+    - `odoo-helper install reinstall-odoo`
+    - `odoo-helper install reinstall-venv`
+- New options to `odoo-install` command
+    - `--git` - shortcut for `--download-archive off`
+    - `--archive` - shortcut for `--download-archive on`
+- New command `odoo-helper postgres stat-connections`
+- New shortcut `odoo-helper pg` for `odoo-helper postgres`
+- New command `odoo-helper git changed-addons` that displays
+  list of addons that have been changed between two specified git revisions
+- New command `odoo-helper ci check-versions-git`.
+  The goal of this command is to be sure that addon version number was updated.
+- New command `odoo-helper ci ensure-icons`.
+  Ensure that all addons in specified directory have icons.
+- New option `--ual` for `odoo-helper link` command.
+- New command `odoo-helper browse` that opens running odoo instance in webbrowser
+- Experimental support of Odoo 12.0
+- Added colors to `odoo-helper tr rate` command output
+- Added option `--recreate` to `odoo-helper db create` command.
+  If database with such name already exists,
+  then it will be dropt before creation of new database.
+- Added special option `--dependencies` to
+  `odoo-helper doc-utils addons-list` command
+- Install [websocket-client](https://github.com/websocket-client/websocket-client)
+  during `py-tools` install to run test tours in Odoo 12+
+- Install `chromium-browser` durin `bin-tools` install. It is requird to run
+  tests in Odoo 12+
+
+### Fix
+
+- `odoo-helper addons list` bugfix `--recursive` option:
+  forward options to recursive calls
+- `odoo-helper db drop` check result of drop function, and if it is False then fail
+- `odoo-helper install reinstall-version` show correct help message
+  and added ability to specify python version to be used for new virtualenv
+
+### Changed
+
+- `odoo-helper addons list` will search for addons in current directory if addons path is not specified
+- `odoo-helper addons update-list` possible options and arguments changed
+    - Before
+        - first argument is database name and second is config file.
+          last one wasn't used a lot
+        - if no arguments supplied then update addons list for all databases
+    - After
+        - added `--help` option
+        - added `--tdb` or `--test-db` option to use test database
+        - added `--cdb` or `--conf-db` option to use database specified in default odoo config
+        - all arguments are considered as database names.
+          This allows us to keep partial backward compatability
+- `odoo-install` now will automaticaly install [phonenumbers](https://github.com/daviddrysdale/python-phonenumbers)
+  python package.
+- display commit date in output of `odoo-helper --version`
+- `odoo-helper postgres speedify` use SQL `ALTER SYSTEM` instead of modifiying postgresql config file
+- `odoo-helper lint style` now have separate configs for *.css*, *.less*, *.scss*.
+  The only differece is that *.less* and *.scss* configs have default indentation set to 4 spaces and
+  *.css* config have default indentation set to 2 spaces
+- `odoo-helper lint style` status changed from *experimental* to *alpha*
+- `odoo-helper test`
+    - use default test database named `<dbuser>-odoo-test`
+    - created temporary databases are prefixed with `test-`
+- `odoo-install` do not set automatically `db_filter` and `db_name` for test config file
+- `odoo-helper tr rate` if there is no translation terms for addon compute it's rate as 100%
+- default flake8 config: disable W503 and W504 checks
+- default pylint config:
+    - Add proprietary licenses to allowed licenses list
+- Install newer version of [wkhtmltopdf](https://wkhtmltopdf.org/): [0.12.5](https://github.com/wkhtmltopdf/wkhtmltopdf/releases/tag/0.12.5)
+
+### Deprecations
+
+- `odoo-helper server auto-update` use instead:
+  - `odoo-helper intall reinstall-odoo`
+  - `odoo-helper upate-odoo`
+- Support of Odoo 7.0 is now deprecated and will be removed in one of next releases
+- `odoo-helper fetch -p` and `odoo-helper fetch --python` options are deprecated.
+  Use `odoo-helper pip install` command instead.
+  Or place `requirements.txt` file inside repository root or addon root directory.
+- It is not recommended now to use `db_name` and `db_filter` in test config file,
+  because, if either of them is defined,
+  then it is not allowed to drop databases that do not match  `db_name` or `db_filter` 
+
 
 ## Release 0.1.6 (2018-06-04)
 

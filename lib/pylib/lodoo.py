@@ -40,6 +40,14 @@ if odoo.release.version_info < (7,):
     raise ImportError(
         "Odoo version %s is not supported!" % odoo.release.version_info)
 
+# Color constants
+NC = '\x1b[0m'
+REDC = '\x1b[31m'
+GREENC = '\x1b[32m'
+YELLOWC = '\x1b[33m'
+BLUEC = '\x1b[34m'
+LBLUEC = '\x1b[94m'
+
 # Check Odoo API version
 odoo._api_v7 = odoo.release.version_info < (8,)
 
@@ -72,7 +80,8 @@ class LocalRegistry(object):
         self._env = None
 
         if self.odoo._api_v7:
-            self.registry = self.odoo.modules.registry.RegistryManager.get(self._dbname)
+            self.registry = self.odoo.modules.registry.RegistryManager.get(
+                self._dbname)
             self.cursor = self.registry.db.cursor()
         else:
             # For odoo 8, 9, 10, 11, +(?) there is special
@@ -143,9 +152,9 @@ class LocalRegistry(object):
 
             if trans_total:
                 addon_data['rate'] = 1.0 - (float(trans_fail) /
-                                              float(trans_total))
+                                            float(trans_total))
             else:
-                addon_data['rate'] = 0.0
+                addon_data['rate'] = 1.0
 
             addon_data['rate'] *= 100.0
 
@@ -162,29 +171,46 @@ class LocalRegistry(object):
             'by_addon': rate_by_addon,
         }
 
-    def print_translation_rate(self, translation_rate):
+    def print_translation_rate(self, translation_rate, colored=False):
         """ Print translation rate computed by `compute_translation_rate`
         """
         name_col_width = max([len(i) for i in translation_rate['by_addon']])
 
         header_format_str = "%%-%ds | %%10s | %%15s | %%+10s" % name_col_width
         row_format_str = "%%-%ds | %%10s | %%15s | %%7.2f" % name_col_width
+        row_format_colored_str = (
+            "%%-%ds | %%10s | %%15s | {color}%%7.2f{nocolor}" % name_col_width)
         spacer_str = "-" * (name_col_width + 3 + 10 + 3 + 15 + 3 + 10)
 
+        def format_addon_rate(addon, rate_data, colored=colored):
+            rate = rate_data['rate']
+            format_str = row_format_str
+            if colored and rate < 75.0:
+                format_str = row_format_colored_str.format(
+                    color=REDC, nocolor=NC)
+            elif colored and rate < 90:
+                format_str = row_format_colored_str.format(
+                    color=YELLOWC, nocolor=NC)
+            elif colored:
+                format_str = row_format_colored_str.format(
+                    color=GREENC, nocolor=NC)
+            return format_str % (
+                addon, rate_data['terms_total'],
+                rate_data['terms_untranslated'],
+                rate_data['rate'],
+            )
+
         # Print header
-        print (header_format_str % (
+        print(header_format_str % (
                'Addon', 'Total', 'Untranslated', 'Rate'))
-        print (spacer_str)
+        print(spacer_str)
 
         # Print translation rate by addon
         for addon, rate_data in translation_rate['by_addon'].items():
-            print(row_format_str % (
-                  addon, rate_data['terms_total'],
-                  rate_data['terms_untranslated'],
-                  rate_data['rate']))
+            print(format_addon_rate(addon, rate_data, colored=colored))
 
         # Print total translation rate
-        print (spacer_str)
+        print(spacer_str)
         print(row_format_str % (
               'TOTAL', translation_rate['terms_total'],
               translation_rate['terms_untranslated'],

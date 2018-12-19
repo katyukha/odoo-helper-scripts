@@ -36,24 +36,39 @@ function odoo_get_conf_val {
     local key=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    echo $(awk -F " *= *" "/$key/ {print \$2}" $conf_file);
+    if [ -z "$conf_file" ]; then
+        return 1;
+    fi
+
+    if [ ! -f "$conf_file" ]; then
+        return 2;
+    fi
+
+    echo $(awk -F " *= *" "/^$key/ {print \$2}" $conf_file);
+}
+
+# odoo_get_conf_val_default <key> <default> [conf file]
+# Get value from odoo config or return default value
+function odoo_get_conf_val_default {
+    local value;
+
+    value=$(odoo_get_conf_val "$1" "$3");
+    if [ -n "$value" ]; then
+        echo "$value";
+    else
+        echo "$2";
+    fi
 }
 
 function odoo_get_conf_val_http_host {
-    local host="$(odoo_get_conf_val 'http_interface')";
-    host="${host:-$(odoo_get_conf_val 'xmlrpc_interface')}";
-    host="${host:-localhost}";
-    echo "$host";
+    echo $(odoo_get_conf_val_default 'http_interface' $(odoo_get_conf_val_default 'xmlrpc_interface' 'localhost'));
 }
 
 function odoo_get_conf_val_http_port {
-    local host="$(odoo_get_conf_val 'http_port')";
-    host="${host:-$(odoo_get_conf_val 'xmlrpc_port')}";
-    host="${host:-8069}";
-    echo "$host";
+    echo $(odoo_get_conf_val_default 'http_port' $(odoo_get_conf_val_default 'xmlrpc_port' '8069'));
 }
 
-function odoo_gen_server_url {
+function odoo_get_server_url {
     echo "http://$(odoo_get_conf_val_http_host):$(odoo_get_conf_val_http_port)/";
 }
 
@@ -127,14 +142,23 @@ function odoo_get_major_version {
     echo ${ODOO_VERSION%.*};
 }
 
+# Get python version number - only 2 or 3
+function odoo_get_python_version_number {
+    if [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -ge 11 ]; then
+        echo "3";
+    elif [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -lt 11 ]; then
+        echo "2";
+    fi
+}
+
 # Get python interpreter name to run odoo with
 # Returns one of: python2, python3, python
 # Default: python
 function odoo_get_python_version {
-    if [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -ge 11 ]; then
-        echo "python3";
-    elif [ ! -z $ODOO_VERSION ] && [ $(odoo_get_major_version) -lt 11 ]; then
-        echo "python2";
+    local py_version;
+    py_version=$(odoo_get_python_version_number);
+    if [ ! -z "$py_version" ]; then
+        echo "python${py_version}";
     else
         echoe -e "${YELLOWC}WARNING${NC}: odoo version not specified, using default python executable";
         echo "python";
@@ -148,7 +172,8 @@ function odoo_get_python_interpreter {
 }
 
 function odoo_recompute_stored_fields {
-    local usage="Recompute stored fields
+    local usage="
+    Recompute stored fields
 
     Usage:
 
@@ -243,9 +268,11 @@ function odoo_recompute_stored_fields {
 }
 
 function odoo_command {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME odoo recompute --help                - recompute stored fields for database
+        $SCRIPT_NAME odoo server-url                      - print URL to access this odoo instance
         $SCRIPT_NAME odoo --help                          - show this help message
 
     ";
@@ -263,6 +290,11 @@ function odoo_command {
                 shift;
                 odoo_recompute_stored_fields $@;
                 return 0;
+            ;;
+            server-url)
+                shift;
+                odoo_get_server_url;
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";

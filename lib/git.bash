@@ -218,3 +218,127 @@ function git_is_clean {
         return 1;  # repo is dirty
     fi
 }
+
+
+# git_get_commit_date <repo_path> <commit or ref>
+# Show date of specified commit
+function git_get_commit_date {
+    local repo_path="$1";
+    local commit_ref="$2";
+    (cd $repo_path && git show -s  --date=short --format=%cd "$commit_ref");
+}
+
+# git_get_current_commit_date <repo_path>
+# Show date of current commit in repo
+function git_get_current_commit_date {
+    local repo_path="$1";
+    local commit_ref="$(git_get_current_commit $repo_path)";
+    git_get_commit_date "$repo_path" "$commit_ref";
+}
+
+# git_get_addons_changed <repo_path> <ref_start> <ref_end>
+# Get list of addons that have changes betwen specified revisions
+# Prints paths to addons
+function git_get_addons_changed {
+    local usage="
+    Print list of paths of addons changed between specified git revisions
+
+    Usage:
+        $SCRIPT_NAME git changed-addons [options] <repo> <start> <end>
+
+    Options:
+        --ignore-trans  - ignore changed translations
+                          Note: this option may not work on old git versions
+        -h|--help|help  - print this help message end exit
+
+    Parametrs:
+        <repo>    - path to git repository to search for changed addons in
+        <start>   - git start revision
+        <end>     - git end revision
+    ";
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                shift;
+                return 0;
+            ;;
+            --ignore-trans)
+                local exclude_translations=1;
+                shift;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
+    local repo_path=$(readlink -f "$1"); shift;
+    local ref_start="$1"; shift;
+    local ref_end="$1"; shift;
+    local cdir=$(pwd);
+
+    cd "$repo_path";
+
+    if [ -n "$exclude_translations" ]; then
+        local changed_files=( $(git diff --name-only  "${ref_start}..${ref_end}" -- ':(exclude)*.po' ':(exclude)*.pot') );
+    else
+        local changed_files=( $(git diff --name-only  "${ref_start}..${ref_end}") );
+    fi
+    for file_path in "${changed_files[@]}"; do
+        local manifest_path=$(search_file_up "$file_path" __manifest__.py);
+        if [ -z "$manifest_path" ]; then
+            local manifest_path=$(search_file_up "$file_path" __openerp__.py);
+        fi
+        if [ ! -z "$manifest_path" ]; then
+            local addon_path=$(dirname $(readlink -f "$manifest_path"));
+            echo "$addon_path";
+        fi
+    done | sort -u;
+}
+
+
+function git_command {
+    local usage="
+    Git-related commands
+
+    NOTE: This command is experimental and everything may be changed.
+
+    Usage:
+        $SCRIPT_NAME git changed-addons [--help]  - show list of addons changed
+        $SCRIPT_NAME git -h|--help|help           - show this help message
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            changed-addons)
+                shift;
+                git_get_addons_changed "$@";
+                return;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+}

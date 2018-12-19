@@ -11,4 +11,6 @@ SimpleCov.start do
     add_filter ".git/"
     add_filter "/tmp/odoo-helper-tests/"
     add_filter "run_docker_test.bash"
+    add_filter "scripts/"
+    add_filter "tests/ci.bash"
 end

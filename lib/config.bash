@@ -54,25 +54,37 @@ function config_set_defaults {
         echo -e "${REDC}There is no PROJECT_ROOT_DIR set!${NC}";
         return 1;
     fi
-    PROJECT_CONFIG_VERSION=${PROJECT_CONFIG_VERSION:-$ODOO_HELPER_CONFIG_VERSION};
-    CONF_DIR=${CONF_DIR:-$PROJECT_ROOT_DIR/conf};
-    ODOO_CONF_FILE=${ODOO_CONF_FILE:-$CONF_DIR/odoo.conf};
-    ODOO_TEST_CONF_FILE=${ODOO_TEST_CONF_FILE:-$CONF_DIR/odoo.test.conf};
-    LOG_DIR=${LOG_DIR:-$PROJECT_ROOT_DIR/logs};
-    LOG_FILE=${LOG_FILE:-$LOG_DIR/odoo.log};
-    LIBS_DIR=${LIBS_DIR:-$PROJECT_ROOT_DIR/libs};
-    DOWNLOADS_DIR=${DOWNLOADS_DIR:-$PROJECT_ROOT_DIR/downloads};
-    ADDONS_DIR=${ADDONS_DIR:-$PROJECT_ROOT_DIR/custom_addons};
-    DATA_DIR=${DATA_DIR:-$PROJECT_ROOT_DIR/data};
-    BIN_DIR=${BIN_DIR:-$PROJECT_ROOT_DIR/bin};
-    VENV_DIR=${VENV_DIR:-$PROJECT_ROOT_DIR/venv};
-    ODOO_PID_FILE=${ODOO_PID_FILE:-$PROJECT_ROOT_DIR/odoo.pid};
-    ODOO_PATH=${ODOO_PATH:-$PROJECT_ROOT_DIR/odoo};
-    BACKUP_DIR=${BACKUP_DIR:-$PROJECT_ROOT_DIR/backups};
-    REPOSITORIES_DIR=${REPOSITORIES_DIR:-$PROJECT_ROOT_DIR/repositories};
-    INIT_SCRIPT=$INIT_SCRIPT;
+    PROJECT_CONFIG_VERSION="${PROJECT_CONFIG_VERSION:-$ODOO_HELPER_CONFIG_VERSION}";
+    CONF_DIR="${CONF_DIR:-$PROJECT_ROOT_DIR/conf}";
+    ODOO_CONF_FILE="${ODOO_CONF_FILE:-$CONF_DIR/odoo.conf}";
+    ODOO_TEST_CONF_FILE="${ODOO_TEST_CONF_FILE:-$CONF_DIR/odoo.test.conf}";
+    LOG_DIR="${LOG_DIR:-$PROJECT_ROOT_DIR/logs}";
+    LOG_FILE="${LOG_FILE:-$LOG_DIR/odoo.log}";
+    LIBS_DIR="${LIBS_DIR:-$PROJECT_ROOT_DIR/libs}";
+    DOWNLOADS_DIR="${DOWNLOADS_DIR:-$PROJECT_ROOT_DIR/downloads}";
+    ADDONS_DIR="${ADDONS_DIR:-$PROJECT_ROOT_DIR/custom_addons}";
+    DATA_DIR="${DATA_DIR:-$PROJECT_ROOT_DIR/data}";
+    BIN_DIR="${BIN_DIR:-$PROJECT_ROOT_DIR/bin}";
+    VENV_DIR="${VENV_DIR:-$PROJECT_ROOT_DIR/venv}";
+    ODOO_PID_FILE="${ODOO_PID_FILE:-$PROJECT_ROOT_DIR/odoo.pid}";
+    ODOO_PATH="${ODOO_PATH:-$PROJECT_ROOT_DIR/odoo}";
+    BACKUP_DIR="${BACKUP_DIR:-$PROJECT_ROOT_DIR/backups}";
+    REPOSITORIES_DIR="${REPOSITORIES_DIR:-$PROJECT_ROOT_DIR/repositories}";
+    INIT_SCRIPT="${INIT_SCRIPT}";
 }
 
+# Return default config for specified tool
+# TODO: look at project level for configuration files
+function config_get_default_tool_conf {
+    local default_conf_dir="${ODOO_HELPER_LIB}/default_config";
+    local tool_name="$1";
+    local tool_conf="$default_conf_dir/$tool_name";
+    if [ -f "$tool_conf" ]; then
+        echo "$tool_conf";
+    else
+        return 1;
+    fi
+}
 
 # Check current project configuration
 function config_check_project_config {
@@ -107,13 +119,17 @@ function config_check_project_config {
 
 # Load project configuration. No args provided
 function config_load_project {
+    local work_dir="${1:-$(pwd)}";
     if [ -z $PROJECT_ROOT_DIR ]; then
         # Load project conf, only if it is not loaded yet.
-        local project_conf=`search_file_up $WORKDIR $CONF_FILE_NAME`;
+        local project_conf="$(search_file_up $work_dir $CONF_FILE_NAME)";
         if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
             echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
             ODOO_HELPER_PROJECT_CONF=$project_conf;
             source $project_conf;
+
+            # Set configuration defaults
+            config_set_defaults;
         fi
 
         if [ -z $PROJECT_ROOT_DIR ]; then

@@ -12,9 +12,9 @@
 # Odoo install helper script
 
 SCRIPT=$0;
-SCRIPT_NAME=`basename $SCRIPT`;
-F=`readlink -f $SCRIPT`;  # full script path;
-WORKDIR=`pwd`;
+SCRIPT_NAME=$(basename $SCRIPT);
+F=$(readlink -f $SCRIPT);  # full script path;
+WORKDIR=$(pwd);
 
 
 # load basic conf
@@ -47,7 +47,8 @@ declare -A CONF_OPTIONS;
 declare -A TEST_CONF_OPTIONS;
 
 function print_usage {
-    echo "Bash script to instal dev version of Odoo in local environment
+    echo "
+    Bash script to instal dev version of Odoo in local environment
 
     Script version: $ODOO_HELPER_VERSION
 
@@ -77,12 +78,14 @@ function print_usage {
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
          --odoo-version <odoo version> - odoo version to install. default: $ODOO_VERSION
-         -b|--branch <branch>          - specify odoo branch to install. default: $ODOO_BRANCH
+         -b|--odoo-branch <branch>     - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
                                          from diferent branch, use this option.
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
+         --git                         - Same as '--download-archive off'
+         --archive                     - Same as '--download-archive on'
          --single-branch on|off        - if on, then odoo will clone only single branch,
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
@@ -91,8 +94,8 @@ function print_usage {
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
 
-         --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xml_rpc_port 9999'
-         --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xml_rpc_port 9998'
+         --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
+         --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xmlrpc_port 9998'
          --verbose|--vv                - show extra output
 
     After instalation configs will be generated in 'conf' directory
@@ -102,7 +105,7 @@ function print_usage {
     if it breaks somehow. It will automaticaly detect if odoo sources were downloaded or
     virtual environment created and will not do this operations second time.
 
-    For bug reports use github issues: https://gitlab.com/katyukha/odoo-helper-scripts/issues
+    For bug reports use gitlab issues: https://gitlab.com/katyukha/odoo-helper-scripts/issues
     ";
 }
 
@@ -118,7 +121,7 @@ function parse_options {
         local key="$1";
         case $key in
             --install-dir|-i)
-                PROJECT_ROOT_DIR=`readlink -f $2`;
+                PROJECT_ROOT_DIR=$(readlink -f $2);
                 shift;
             ;;
             --odoo-repo)
@@ -127,6 +130,9 @@ function parse_options {
             ;;
             --odoo-version)
                 ODOO_VERSION=$2;
+                if [ "$ODOO_VERSION" == "7.0" ]; then
+                    echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
+                fi
                 shift;
             ;;
             --odoo-branch|--branch|-b)
@@ -136,6 +142,12 @@ function parse_options {
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
                 shift;
+            ;;
+            --git)
+                DOWNLOAD_ARCHIVE='off';
+            ;;
+            --archive)
+                DOWNLOAD_ARCHIVE='on';
             ;;
             --single-branch)
                 CLONE_SINGLE_BRANCH=$2;
@@ -183,7 +195,7 @@ function parse_options {
 }
 
 function install_odoo {
-    local save_dir=`pwd`;
+    local save_dir=$(pwd);
     cd "$PROJECT_ROOT_DIR";
 
     # if not installed odoo, install it
@@ -236,8 +248,6 @@ function generate_test_conf {
     ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
     ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-$DB_USER}";
     ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-$DB_PASSWORD}";
-    ODOO_CONF_OPTIONS[db_name]="${ODOO_CONF_OPTIONS['db_name']:-$DB_USER-odoo-test}";
-    ODOO_CONF_OPTIONS[db_filter]="${ODOO_CONF_OPTIONS['db_filter']:-$DB_USER-odoo-test}";
     ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-8269}";
     ODOO_CONF_OPTIONS[xmlrpcs_port]="${ODOO_CONF_OPTIONS['xmlrpcs_port']:-8271}";
     ODOO_CONF_OPTIONS[http_port]="${ODOO_CONF_OPTIONS['http_port']:-8269}";
@@ -272,8 +282,27 @@ echo -e "${BLUEC}Generating configurations...${NC}";
 echo "$(config_print)" > $PROJECT_ROOT_DIR/$CONF_FILE_NAME;
 generate_conf;
 generate_test_conf;
-#---------------------------------------------
+#------------------------------------------------------------------------
 
-echo -e "${GREENC}Odoo seems to be successfully installed!${NC}";
-echo -e "Edit configuration at ${BLUEC}$ODOO_CONF_FILE${NC}";
-echo -e "Use ${YELLOWC}odoo-helper${NC} project to manage this odoo instance";
+echo -e "${GREENC}Odoo has been successfully installed!${NC}";
+echo -e "";
+echo -e "Installation path:"
+echo -e "    ${BLUEC}${PROJECT_ROOT_DIR}${NC}";
+echo -e "Odoo configuration path:"
+echo -e "    ${BLUEC}${ODOO_CONF_FILE}${NC}";
+echo -e "odoo-helper-scripts instance configuration path:";
+echo -e "    ${BLUEC}${PROJECT_ROOT_DIR}/${CONF_FILE_NAME}${NC}";
+echo -e "";
+echo -e "Use ${YELLOWC}odoo-helper${NC} command to manage this Odoo instance.";
+echo -e "First change current working directory to somewhere inside ";
+echo -e "Odoo installation path:";
+echo -e "    ${BLUEC}cd ${PROJECT_ROOT_DIR}${NC}";
+echo -e "Start odoo server with:";
+echo -e "    ${BLUEC}odoo-helper server start${NC}";
+echo -e "Or check server status with:";
+echo -e "    ${BLUEC}odoo-helper server status${NC}";
+echo -e "";
+echo -e "For more info look at documentation:";
+echo -e "    ${LBLUEC}https://katyukha.gitlab.io/odoo-helper-scripts/${NC}";
+echo -e "Or quick start guide:";
+echo -e "    ${LBLUEC}https://katyukha.gitlab.io/odoo-helper-scripts/quick-start-guide/#manage-installed-odoo${NC}";

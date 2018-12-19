@@ -26,7 +26,8 @@ set -e; # fail on errors
 
 # odoo_db_create [options] <name> [odoo_conf_file]
 function odoo_db_create {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
 
@@ -36,12 +37,15 @@ function odoo_db_create {
            --demo         - load demo-data (default: no demo-data)
            --lang <lang>  - specified language for this db.
                             <lang> is language code like 'en_US'...
+           --recreate     - if database with such name exists,
+                            then drop it first
            --help         - display this help message
     ";
 
     # Parse options
     local demo_data='False';
     local db_lang="en_US";
+    local db_recreate=;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -53,6 +57,10 @@ function odoo_db_create {
             --lang)
                 db_lang=$2;
                 shift; shift;
+            ;;
+            --recreate)
+                db_recreate=1;
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -67,12 +75,22 @@ function odoo_db_create {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
     
-    if [ -z $db_name ]; then
+    if [ -z "$db_name" ]; then
         echoe -e "${REDC}ERROR${NC}: dbname not specified!!!";
         return 1;
     fi
 
     echov -e "${BLUEC}Creating odoo database ${YELLOWC}$db_name${BLUEC} using conf file ${YELLOWC}$conf_file${NC}";
+
+    if odoo_db_exists -q "$db_name" "$conf_file"; then
+        if [ -n "$db_recreate" ]; then
+            echoe -e "${YELLOWC}WARNING${NC}: dropting existing database ${YELLOWC}${db_name}${NC}";
+            odoo_db_drop "$db_name" "$conf_file";
+        else
+            echoe -e "${REDC}ERROR${NC}: database ${YELLOWC}${db_name}${NC} already exists!";
+            return 2;
+        fi
+    fi
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.create_database(cl.odoo.tools.config['admin_passwd'], '$db_name', $demo_data, '$db_lang');"
@@ -87,24 +105,63 @@ function odoo_db_create {
     fi
 }
 
-# odoo_db_drop <name> [odoo_conf_file]
+# odoo_db_drop [options] <name> [odoo_conf_file]
 function odoo_db_drop {
+    local usage="
+    Drop database
+
+    Usage:
+
+        $SCRIPT_NAME db drop [options] <dbname> [conf file] - drop database
+        $SCRIPT_NAME db drop --help                         - show this help message
+
+    Options:
+
+        -q|--quite    do not show messages
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -q|--quite)
+                local opt_quite=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
     if ! odoo_db_exists -q $db_name; then
-        echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
         return 1;
     fi
 
+    echov -e "${LBLUEC}Dropping database ${YELLOWC}${dbname}${LBLUEC} using conf file ${YELLOWC}${conf_file}${NC}";
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name');"
+    python_cmd="$python_cmd exit(int(not(cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name'))));";
+    echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
     
     if ! run_python_cmd "$python_cmd"; then
-        echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
         return 1;
     else
-        echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+        [ -z $opt_quite ] && echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
         return 0;
     fi
 }
@@ -125,7 +182,8 @@ function odoo_db_list {
 
 # odoo_db_exists [options] <dbname> [odoo_conf_file]
 function odoo_db_exists {
-    local usage=" Test if database exists
+    local usage="
+    Test if database exists
 
     Usage:
 
@@ -298,7 +356,8 @@ function odoo_db_restore {
 
 # Command line args processing
 function odoo_db_command {
-    local usage="Usage:
+    local usage="
+    Usage:
 
         $SCRIPT_NAME db list [odoo_conf_file]
         $SCRIPT_NAME db exists <name> [odoo_conf_file]
@@ -322,7 +381,7 @@ function odoo_db_command {
     do
         local key="$1";
         case $key in
-            list)
+            ls|list)
                 shift;
                 odoo_db_list "$@";
                 return;

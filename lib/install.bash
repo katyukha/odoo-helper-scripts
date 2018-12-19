@@ -116,10 +116,10 @@ function install_fetch_odoo {
 # install_wkhtmltopdf_get_dw_link <os_release_name> [wkhtmltopdf version]
 function install_wkhtmltopdf_get_dw_link {
     local os_release_name=$1;
-    local version=${2:-0.12.1};
+    local version=${2:-0.12.5};
     local system_arch=$(dpkg --print-architecture);
 
-    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox-${version}_linux-${os_release_name}-${system_arch}.deb"
+    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox_${version}-1.${os_release_name}_${system_arch}.deb"
 }
 
 
@@ -136,9 +136,9 @@ function install_wkhtmltopdf_download {
 
         if [ "$(lsb_release -si)" == "Ubuntu" ]; then
             # fallback to trusty release for ubuntu systems
-            local release=trusty;
+            local release=bionic;
         elif [ "$(lsb_release -si)" == "Debian" ]; then
-            local release=jessie;
+            local release=stretch;
         else
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
             return 2;
@@ -155,14 +155,47 @@ function install_wkhtmltopdf_download {
 
 # install_wkhtmltopdf
 function install_wkhtmltopdf {
-    if ! check_command wkhtmltopdf > /dev/null; then
+    local usage="
+    Install wkhtmltopdf. It is required to print PDF reports.
+
+
+    Usage:
+
+        $SCRIPT_NAME install wkhtmltopdf [options]
+        $SCRIPT_NAME install wkhtmltopdf --help - show this help message
+
+    Options:
+
+        --update   - install even if it is already installed
+    ";
+
+    local force_install;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --update)
+                force_install=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo -e "${REDC}ERROR${NC}: Unknown command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    if ! check_command wkhtmltopdf > /dev/null || [ -n "$force_install" ]; then
         # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f $wkhtmltox_path ]; then
-            echoe -e "${BLUEC}Downloading wkhtmltopdf...${NC}";
+            echoe -e "${BLUEC}Downloading ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
             install_wkhtmltopdf_download $wkhtmltox_path;
         fi
-        echoe -e "${BLUEC}Installing wkhtmltopdf...${NC}";
+        echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
         local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
@@ -294,7 +327,7 @@ function install_parse_debian_control_file {
             python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
                 continue
             ;;
-            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text)
+            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass)
                 continue
             ;;
             python-libxslt1|python-simplejson|python-unittest2)
@@ -312,7 +345,43 @@ function install_parse_debian_control_file {
 # install_sys_deps_for_odoo_version <odoo version>
 # Note that odoo version here is branch of official odoo repository
 function install_sys_deps_for_odoo_version {
+    local usage="
+    Install system dependencies for specific Odoo version.
+
+    Usage:
+
+        $SCRIPT_NAME install sys-deps [options] <odoo-version> - install deps
+        $SCRIPT_NAME install sys-deps --help                   - show help msg
+
+    Options:
+
+        -y|--yes     - Always answer yes
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -y|--yes)
+                ALWAYS_ANSWER_YES=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local odoo_version=$1;
+    if [ -z "$odoo_version" ]; then
+        echoe -e "${REDC}ERROR${NC}: Odoo version is not specified!";
+        return 1;
+    fi
+
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control=$(mktemp);
     wget -q -T 2 $control_url -O $tmp_control;
@@ -324,6 +393,30 @@ function install_sys_deps_for_odoo_version {
 # install python requirements for specified odoo version via PIP requirements.txt
 # NOTE: not supported for odoo 7.0 and lower.
 function install_odoo_py_requirements_for_version {
+    local usage="
+    Install python dependencies for specific Odoo version.
+
+    Usage:
+
+        $SCRIPT_NAME install py-deps <odoo-version> - install python dependencies
+        $SCRIPT_NAME install py-deps --help         - show this help message
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local odoo_version=${1:-$ODOO_VERSION};
     local odoo_major_version="${odoo_version%.*}";
     local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
@@ -368,6 +461,33 @@ function install_odoo_py_requirements_for_version {
 }
 
 function install_and_configure_postgresql {
+    local usage="
+    Install postgresql server and optionaly automatically create postgres user
+    for this Odoo instance.
+
+    Usage:
+
+        Install postgresql only:
+            $SCRIPT_NAME install postgres                   
+
+        Install postgresql and create postgres user:
+            $SCRIPT_NAME install postgres <user> <password>
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
     local db_user=${1:-$DB_USER};
     local db_password=${2:-DB_PASSWORD};
     # Check if postgres is installed on this machine. If not, install it
@@ -375,27 +495,59 @@ function install_and_configure_postgresql {
         postgres_install_postgresql;
         echo -e "${GREENC}Postgres installed${NC}";
     else
-        echo -e "${YELLOWC}It seems that postgresql is already installed, so not installing it, just configuring...${NC}";
+        echo -e "${YELLOWC}It seems that postgresql is already installed... Skipping this step...${NC}";
     fi
 
     if [ ! -z $db_user ] && [ ! -z $db_password ]; then
         postgres_user_create $db_user $db_password;
-        echo -e "${GREENC}Postgres user $db_user created${NC}";
     fi
 }
 
 
 # install_system_prerequirements
 function install_system_prerequirements {
+    local usage="
+    Install system dependencies for odoo-helper-scripts itself and
+    common dependencies for Odoo.
+
+    Usage:
+
+        $SCRIPT_NAME install pre-requirements [options]  - install requirements
+        $SCRIPT_NAME install pre-requirements --help     - show this help message
+
+    Options:
+
+        -y|--yes     - Always answer yes
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -y|--yes)
+                ALWAYS_ANSWER_YES=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
     echoe -e "${BLUEC}Updating package list...${NC}"
     with_sudo apt-get update -qq || true;
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools libevent-dev g++ libpq-dev \
+        python-setuptools libevent-dev g++ libpq-dev libsass-dev \
         python-dev python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
-        libsasl2-dev libldap2-dev libssl-dev libffi-dev;
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig;
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
@@ -427,26 +579,141 @@ function install_virtual_env {
 #
 # At this moment just installs expect-dev package, that provides 'unbuffer' tool
 function install_bin_tools {
-    install_sys_deps_internal expect-dev tcl8.6;
+    local usage="
+    Install extra tools.
+    This command installs expect-dev package that brings 'unbuffer' program.
+    'unbuffer' program allow to run command without buffering.
+    This is required to make odoo show collors in log.
+
+    Usage:
+
+        $SCRIPT_NAME install bin-tools [options]  - install extra tools
+        $SCRIPT_NAME install bin-tools --help     - show this help message
+
+    Options:
+
+        -y|--yes     - Always answer yes
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -y|--yes)
+                ALWAYS_ANSWER_YES=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    local deps="expect-dev tcl8.6";
+    if ! check_command 'google-chrome' 'chromium' 'chromium-browser' > /dev/null; then
+        echoe -e "${YELLOWC}Google Chrome${BLUEC} seems to be not installed. ${YELLOWC}chromium-browser${BLUEC} will be installed.${NC}";
+        deps="$deps chromium-browser";
+    fi
+    install_sys_deps_internal $deps;
 }
 
 # Install extra python tools
 function install_python_tools {
-    exec_pip install setproctitle watchdog pylint-odoo coverage \
-        flake8 flake8-colors;
+    local usage="
+    Install extra python tools.
+
+    Following packages will be installed:
+
+        - setproctitle
+        - watchdog
+        - pylint-odoo
+        - coverage
+        - flake8
+        - flake8-colors
+        - websocket-client  (required for tests in Odoo 12.0)
+
+    Usage:
+
+        $SCRIPT_NAME install py-tools [options]  - install extra tools
+        $SCRIPT_NAME install py-tools --help     - show this help message
+
+    Options:
+
+        -q|--quiet     - quiet mode. reduce output
+
+    ";
+    local pip_options;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -q|--quiet)
+                pip_options="$pip_options --quiet"
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    exec_pip $pip_options install setproctitle watchdog pylint-odoo coverage \
+        flake8 flake8-colors websocket-client;
 }
 
 # Install extra javascript tools
 function install_js_tools {
-    exec_npm install -g eslint phantomjs-prebuilt \
-        stylelint stylelint-config-standard;
+    local usage="
+    Install extra javascript tools.
+
+    Following packages will be installed:
+
+        - eslint
+        - phantomjs-prebuilt (only for Odoo below 12.0)
+        - stylelint
+        - stylelint-config-standard
+
+    Usage:
+
+        $SCRIPT_NAME install js-tools        - install extra tools
+        $SCRIPT_NAME install js-tools --help - show this help message
+
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    local deps="eslint stylelint stylelint-config-standard";
+    if [ "$(odoo_get_major_version)" -lt 12 ]; then
+        deps="$deps phantomjs-prebuilt";
+    fi
+    exec_npm install -g "$deps";
 }
 
 # install_python_prerequirements
 function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
     # setuptools, so we do not need to upgrade them
-    exec_pip -q install python-slugify setuptools-odoo cffi jinja2;
+    exec_pip -q install phonenumbers python-slugify setuptools-odoo cffi jinja2;
 
     if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
         exec_pip -q install Python-Chart;
@@ -550,6 +817,7 @@ function odoo_run_setup_py {
     odoo_gevent_install_workaround;
 
     if [ "$ODOO_VERSION" == "7.0" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
         install_odoo_workaround_70;
     fi
 
@@ -589,14 +857,49 @@ function install_odoo_install {
 
 # Reinstall virtual environment.
 function install_reinstall_venv {
-    if [ -z $VENV_DIR ]; then
+    local usage="
+    Recreate virtualenv environment.
+
+    Usage:
+
+        $SCRIPT_NAME install reinstall-venv [options] - reinstall virtualenv
+        $SCRIPT_NAME install reinstall-venv --help    - show this help message
+
+    Options:
+
+        -p|--python <python ver>  - python version to recreate virtualenv with.
+                                    Same as --python option of virtualenv
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -p|--python)
+                VIRTUALENV_PYTHON="$2";
+                shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z "$VENV_DIR" ]; then
         echo -e "${YELLOWC}This project does not use virtualenv! Do nothing...${NC}";
         return 0;
     fi
 
     # Backup old venv
-    if [ -d $VENV_DIR ]; then
-        mv $VENV_DIR $PROJECT_ROOT_DIR/venv-backup-$(random_string 4);
+    if [ -d "$VENV_DIR" ]; then
+        local venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
+        mv "$VENV_DIR" "$venv_backup_path";
+        echoe -e "${BLUEC}Old ${YELLOWC}virtualenv${BLUEC} backed up at ${YELLOWC}${venv_backup_path}${NC}";
     fi
 
     # Install odoo
@@ -607,10 +910,46 @@ function install_reinstall_venv {
 }
 
 function install_reinstall_odoo {
-    local reinstall_action=$1;
+    local usage="
+    Reinstall odoo. Usualy used when initialy odoo was installed as archive,
+    but we want to reinstall it as git repository to better track updates.
 
-    if [ "$reinstall_action" != "clone" ] && [ "$reinstall_action" != "download" ]; then
-        echoe -e "${REDC}ERROR${NC}: unknown odoo reinstall action '$reinstall_action'!";
+    Usage:
+
+        $SCRIPT_NAME install reinstall-odoo <type> - reinstall odoo
+        $SCRIPT_NAME install reinstall-odoo --help - show this help message
+
+    <type> could be:
+        clone     - reinstall Odoo as git repository.
+        download  - reinstall Odoo from archive.
+    ";
+
+    local reinstall_action;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            clone|git)
+                reinstall_action="clone";
+            ;;
+            download|archive)
+                reinstall_action="download";
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo -e "${REDC}ERROR${NC}: Unknown command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    if [ -z "$reinstall_action" ]; then
+        echo -e "${REDC}ERROR${NC}: Please specify reinstall type!";
+        echo "";
+        echo "$usage";
         return 1;
     fi
 
@@ -625,32 +964,32 @@ function install_reinstall_odoo {
 
 # Entry point for install subcommand
 function install_entry_point {
-    local usage="Usage:
+    local usage="
+    Usage:
 
-        $SCRIPT_NAME install pre-requirements [-y]         - [sudo] install system preprequirements
-        $SCRIPT_NAME install sys-deps [-y] <odoo-version>  - [sudo] install system dependencies for odoo version
-        $SCRIPT_NAME install py-deps <odoo-version>        - install python dependencies for odoo version (requirements.txt)
-        $SCRIPT_NAME install py-tools                      - install python tools (pylint, flake8, ...)
-        $SCRIPT_NAME install js-tools                      - install javascript tools (jshint, phantomjs)
-        $SCRIPT_NAME install bin-tools [-y]                - [sudo] install binary tools. at this moment it is *unbuffer*,
-                                                             which is in *expect-dev* package
-        $SCRIPT_NAME install wkhtmltopdf                   - [sudo] install wkhtmtopdf
-        $SCRIPT_NAME install postgres [user] [password]    - [sudo] install postgres.
-                                                             and if user/password specified, create it
-        $SCRIPT_NAME install reinstall-venv                - reinstall virtual environment
-                                                             all options will be passed to virtualenv cmd directly
-        $SCRIPT_NAME install reinstall-odoo clone|download - completly reinstall odoo
-                                                             (downlload or clone new sources, create new virtualenv, etc).
-                                                             Options are:
-                                                                - clone odoo as git repository
-                                                                - download odoo archieve and unpack source
-        $SCRIPT_NAME install --help                        - show this help message
+        $SCRIPT_NAME install pre-requirements [--help]   - [sudo] install system pre-requirements
+        $SCRIPT_NAME install sys-deps [--help]           - [sudo] install system dependencies for odoo version
+        $SCRIPT_NAME install py-deps [--help]            - install python dependencies for odoo version (requirements.txt)
+        $SCRIPT_NAME install py-tools [--help]           - install python tools (pylint, flake8, ...)
+        $SCRIPT_NAME install js-tools [--help]           - install javascript tools (jshint, phantomjs)
+        $SCRIPT_NAME install bin-tools [--help]          - [sudo] install binary tools. at this moment it is *unbuffer*,
+                                                           which is in *expect-dev* package
+        $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
+        $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
+                                                           and if user/password specified, create it
+        $SCRIPT_NAME install reinstall-venv [--help]     - reinstall virtual environment
+        $SCRIPT_NAME install reinstall-odoo [--help]     - completly reinstall odoo
+                                                           (downlload or clone new sources, create new virtualenv, etc).
+                                                           Options are:
+                                                              - clone odoo as git repository
+                                                              - download odoo archieve and unpack source
+        $SCRIPT_NAME install --help                      - show this help message
 
     ";
 
     if [[ $# -lt 1 ]]; then
         echo "$usage";
-        exit 0;
+        return 0;
     fi
 
     while [[ $# -gt 0 ]]
@@ -659,19 +998,11 @@ function install_entry_point {
         case $key in
             pre-requirements)
                 shift
-                if [ "$1" == "-y" ]; then
-                    ALWAYS_ANSWER_YES=1;
-                    shift;
-                fi
-                install_system_prerequirements;
+                install_system_prerequirements $@;
                 return 0;
             ;;
             sys-deps)
                 shift;
-                if [ "$1" == "-y" ]; then
-                    ALWAYS_ANSWER_YES=1;
-                    shift;
-                fi
                 install_sys_deps_for_odoo_version "$@";
                 return 0;
             ;;
@@ -695,10 +1026,6 @@ function install_entry_point {
             ;;
             bin-tools)
                 shift;
-                if [ "$1" == "-y" ]; then
-                    ALWAYS_ANSWER_YES=1;
-                    shift;
-                fi
                 install_bin_tools $@;
                 return 0;
             ;;
