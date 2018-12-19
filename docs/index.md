@@ -53,7 +53,7 @@ This project aims to simplify development process of Odoo addons as much as poss
     - *9.0*
     - *10.0*
     - *11.0*
-    - *12.0* (*experimental*)
+    - *12.0*
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
@@ -74,8 +74,8 @@ or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0
 
 For full list of installation options look at [installation documentation](./installation.md)
 
-*Starting from 0.1.7-alpha release odoo-helper-scripts could be installed as* [.deb packages](./installation#install-as-deb-package)*,
-but this feature is still experimental*
+*Starting from 0.1.7-alpha release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
+but this feature is still experimental. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/tags) *page.*
 
 To install *odoo-helper-scripts* system-wide do folowing:
 
