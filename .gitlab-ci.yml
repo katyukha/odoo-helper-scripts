@@ -65,7 +65,7 @@ pages:
         - apt-get update
         - apt-get install -y python3-pip
         - bash install-system.bash
-        - python3 -m pip install mkdocs mkdocs-cinder
+        - python3 -m pip install mkdocs mkdocs-cinder==0.14.0
     script:
         - bash scripts/build_docs.bash
     artifacts:
