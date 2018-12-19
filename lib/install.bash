@@ -677,7 +677,7 @@ function install_js_tools {
     Following packages will be installed:
 
         - eslint
-        - phantomjs-prebuilt
+        - phantomjs-prebuilt (only for Odoo below 12.0)
         - stylelint
         - stylelint-config-standard
 
@@ -702,8 +702,11 @@ function install_js_tools {
         esac
         shift
     done
-    exec_npm install -g eslint phantomjs-prebuilt \
-        stylelint stylelint-config-standard;
+    local deps="eslint stylelint stylelint-config-standard";
+    if [ "$(odoo_get_major_version)" -lt 12 ]; then
+        deps="$deps phantomjs-prebuilt";
+    fi
+    exec_npm install -g "$deps";
 }
 
 # install_python_prerequirements
