@@ -60,12 +60,14 @@ build_packages:
         - tags
  
 pages:
+    image: ubuntu:18.04
     variables:
         ODOO_HELPER_INSTALL_PATH: "$CI_PROJECT_DIR"
     before_script:
         - apt-get update
+        - apt-get install python3-pip
         - bash install-system.bash
-        - pip install mkdocs mkdocs-cinder
+        - python3 -m pip install mkdocs mkdocs-cinder
     script:
         - bash scripts/build_docs.bash
     artifacts:
