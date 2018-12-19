@@ -63,7 +63,7 @@ pages:
     image: ubuntu:18.04
     before_script:
         - apt-get update
-        - apt-get install python3-pip
+        - apt-get install -y python3-pip
         - bash install-system.bash
         - python3 -m pip install mkdocs mkdocs-cinder
     script:
