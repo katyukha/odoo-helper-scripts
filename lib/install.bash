@@ -391,7 +391,6 @@ function install_sys_deps_for_odoo_version {
 }
 
 # install python requirements for specified odoo version via PIP requirements.txt
-# NOTE: not supported for odoo 7.0 and lower.
 function install_odoo_py_requirements_for_version {
     local usage="
     Install python dependencies for specific Odoo version.
@@ -777,32 +776,6 @@ function odoo_gevent_install_workaround {
 }
 
 
-function install_odoo_workaround_70 {
-    # Link libraries to virtualenv/lib dir
-    local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
-    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
-        ln -s $lib_dir/libjpeg.so $VENV_DIR/lib;
-    fi
-    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libfreetype.so ] && [ ! -f $VENV_DIR/lib/libfreetype.so ]; then
-        ln -s $lib_dir/libfreetype.so $VENV_DIR/lib;
-    fi
-    if [ ! -z $VENV_DIR ] && [ -f /usr/include/freetype2/fterrors.h ] && [ ! -d $VENV_DIR/include/freetype ]; then
-        # For ubuntu 14.04
-        ln -s /usr/include/freetype2 $VENV_DIR/include/freetype;
-    fi
-    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libz.so ] && [ ! -f $VENV_DIR/lib/libz.so ]; then
-        ln -s $lib_dir/libz.so $VENV_DIR/lib;
-    fi
-
-    # Installing requirements via pip. This should improve performance
-    exec_pip -q install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
-
-    # Force use Pillow, because PIL is too old.
-    cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
-    sed -i -r "s/PIL/Pillow/" $ODOO_PATH/setup.py;
-    sed -i -r "s/pychart/Python-Chart/" $ODOO_PATH/setup.py;
-}
-
 function odoo_gevent_install_workaround_cleanup {
     if [ ! -z $odoo_gevent_fix_applied ]; then
         mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
@@ -815,11 +788,6 @@ function odoo_gevent_install_workaround_cleanup {
 function odoo_run_setup_py {
     # Workaround for situation when setup does not install openerp-gevent script.
     odoo_gevent_install_workaround;
-
-    if [ "$ODOO_VERSION" == "7.0" ]; then
-        echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
-        install_odoo_workaround_70;
-    fi
 
     # Install dependencies via pip (it is faster if they are cached)
     install_odoo_py_requirements_for_version;

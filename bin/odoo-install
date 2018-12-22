@@ -130,9 +130,6 @@ function parse_options {
             ;;
             --odoo-version)
                 ODOO_VERSION=$2;
-                if [ "$ODOO_VERSION" == "7.0" ]; then
-                    echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
-                fi
                 shift;
             ;;
             --odoo-branch|--branch|-b)

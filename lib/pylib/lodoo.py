@@ -17,7 +17,7 @@ import pkg_resources
 # Odoo package import and start services logic are based on code:
 #     https://github.com/tinyerp/erppeek
 # With PR #92 applied: https://github.com/tinyerp/erppeek/pull/92
-# Removed support of Odoo versions less then 7.0
+# Removed support of Odoo versions less then 8.0
 
 # Import odoo package
 try:
@@ -36,7 +36,7 @@ except (ImportError, KeyError):
     except ImportError:
         raise
 
-if odoo.release.version_info < (7,):
+if odoo.release.version_info < (8,):
     raise ImportError(
         "Odoo version %s is not supported!" % odoo.release.version_info)
 
@@ -47,9 +47,6 @@ GREENC = '\x1b[32m'
 YELLOWC = '\x1b[33m'
 BLUEC = '\x1b[34m'
 LBLUEC = '\x1b[94m'
-
-# Check Odoo API version
-odoo._api_v7 = odoo.release.version_info < (8,)
 
 # Prepare odoo environments
 os.putenv('TZ', 'UTC')
@@ -79,15 +76,10 @@ class LocalRegistry(object):
         self._dbname = dbname
         self._env = None
 
-        if self.odoo._api_v7:
-            self.registry = self.odoo.modules.registry.RegistryManager.get(
-                self._dbname)
-            self.cursor = self.registry.db.cursor()
-        else:
-            # For odoo 8, 9, 10, 11, +(?) there is special
-            # function `odoo.registry` to get registry instance for db
-            self.registry = self.odoo.registry(self._dbname)
-            self.cursor = self.registry.cursor()
+        # For odoo 8, 9, 10, 11, +(?) there is special
+        # function `odoo.registry` to get registry instance for db
+        self.registry = self.odoo.registry(self._dbname)
+        self.cursor = self.registry.cursor()
 
     @property
     def odoo(self):
@@ -95,18 +87,11 @@ class LocalRegistry(object):
 
     @property
     def env(self):
-        self.require_v8_api()
-
         if self._env is None:
             self._env = self.odoo.api.Environment(
                 self.cursor, self.odoo.SUPERUSER_ID, {})
 
         return self._env
-
-    def require_v8_api(self):
-        if self.odoo._api_v7:
-            raise NotImplementedError(
-                "Using *env* is not supported for this Odoo version")
 
     def recompute_fields(self, model, fields):
         """ Recompute specifed model fields
@@ -234,13 +219,9 @@ class LocalRegistry(object):
     def call_method(self, model, method, *args, **kwargs):
         """ Simple wrapper to call local model methods for database
         """
-        if self.odoo._api_v7:
-            return getattr(self.registry[model], method)(
-                self.cursor, self.odoo.SUPERUSER_ID, *args, **kwargs)
-        else:
-            # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
-            # to get registry instance for db
-            return getattr(self.env[model], method)(*args, **kwargs)
+        # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
+        # to get registry instance for db
+        return getattr(self.env[model], method)(*args, **kwargs)
 
     def __getitem__(self, name):
         return LocalModel(self, name)
@@ -258,10 +239,8 @@ class LocalDBService(object):
     @property
     def dispatch(self):
         if self._dispatch is None:
-            if self.odoo._api_v7:
-                self._dispatch = self.odoo.netsvc.ExportService.getService('db').dispatch
-            else:   # Odoo v8
-                self._dispatch = functools.partial(self.odoo.http.dispatch_rpc, 'db')
+            self._dispatch = functools.partial(
+                self.odoo.http.dispatch_rpc, 'db')
         return self._dispatch
 
     def __getattr__(self, name):
@@ -305,9 +284,7 @@ class LOdoo(object):
         if self._odoo is None:
             odoo.tools.config.parse_config(self._options)
 
-            if odoo._api_v7:
-                odoo.service.start_internal()
-            elif not hasattr(odoo.api.Environment._local, 'environments'):
+            if not hasattr(odoo.api.Environment._local, 'environments'):
                 odoo.api.Environment._local.environments = odoo.api.Environments()
 
             self._odoo = odoo

@@ -95,97 +95,6 @@ Run odoo-helper postgres speedify
 ${NC}"
 odoo-helper postgres speedify
 
-echo -e "${YELLOWC}
-==================================================
-Test install of odoo version 7.0
-Also install dependencies and configure postgresql
-==================================================
-${NC}"
-
-# Install system dependencies for odoo version 7.0
-odoo-helper install sys-deps -y 7.0;
-
-# Install postgres and create there user with name='odoo' and password='odoo'
-odoo-helper install postgres odoo7 odoo
-
-# Install odoo 7.0
-odoo-install -i odoo-7.0 --odoo-version 7.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 \
-    --db-user odoo7 --db-pass odoo
-cd odoo-7.0
-
-echo "";
-echo "Generated odoo config:"
-echo "$(cat ./conf/odoo.conf)"
-echo "";
-
-# Now You will have odoo-7.0 installed in this directory.
-# Note, thant Odoo this odoo install uses virtual env (venv dir)
-# Also You will find there odoo-helper.conf config file
-
-echo -e "${YELLOWC}
-=================================
-Test 'odoo-helper server' command
-=================================
-${NC}"
-# So now You may run local odoo server (i.e openerp-server script).
-# Note that this command run's server in foreground.
-odoo-helper server --stop-after-init  # This will automaticaly use config file: conf/odoo.conf
-
-# Also you may run server in background using
-odoo-helper server start
-
-# there are also few additional server related commands:
-odoo-helper server status
-
-# list odoo processes
-odoo-helper server ps
-
-# odoo-helper server log    # note that this option runs less, so blocks for input
-odoo-helper server restart
-odoo-helper server stop
-odoo-helper server status
-
-# The one cool thing of odoo-helper script is that you may not remeber paths to odoo instalation,
-# and if you change directory to another inside your odoo project, everything will continue to work.
-cd custom_addons
-odoo-helper server status
-odoo-helper server restart
-odoo-helper server stop
-odoo-helper server status
-
-
-echo -e "${YELLOWC}
-============================================================
-Fetch and test 'https://github.com/katyukha/base_tags' addon
-============================================================
-${NC}"
-# Print help message for fetch command
-odoo-helper fetch --help
-echo -e "${BLUEC}---${NC}";
-
-# Let's install base_tags addon into this odoo installation
-odoo-helper fetch --github katyukha/base_tags --branch master
-
-# Now look at custom_addons/ dir, there will be placed links to addons
-# from https://github.com/katyukha/base_tags repository
-# But repository itself is placed in downloads/ directory
-# By default no branch specified when You fetch module,
-# but there are -b or --branch option which can be used to specify which branch to fetch
-
-# Now let's run tests for these just installed modules
-odoo-helper test --create-test-db -m base_tags -m product_tags
-
-# this will create test database (it will be dropt after test finishes) and 
-# run tests for modules 'base_tags' and 'product_tags'
-
-# If You need color output from Odoo, you may use '--use-unbuffer' option,
-# but it depends on 'expect-dev' package
-cd ../repositories
-odoo-helper --use-unbuffer test --create-test-db -d ./base_tags
-# So... let's install one more odoo version
-# go back to directory containing our projects (that one, where odoo-7.0 project is placed)
-cd ../../
 
 echo -e "${YELLOWC}
 ========================================================================
@@ -237,19 +146,6 @@ odoo-helper --use-unbuffer addons status
 # Or check for updates of addons
 odoo-helper --use-unbuffer addons check-updates
 
-echo -e "${YELLOWC}
-===============================================================================
-Go back to Odoo 7.0 instance, we installed at start of test
-and fetch and install there aeroo reports addon with it's dependency 'aeroolib'
-After this, generate requirements list.
-===============================================================================
-${NC}"
-
-# and as one more example, let's install aeroo-reports with dependancy to aeroolib in odoo 7.0
-cd ../odoo-7.0
-odoo-helper fetch --github gisce/aeroo -n aeroo
-odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
-odoo-helper generate_requirements
 
 echo -e "${YELLOWC}
 ==========================

@@ -48,12 +48,7 @@ function test_module_impl {
     shift; shift;  # all next arguments will be passed to server
 
     # Set correct log level (depends on odoo version)
-    if [ "$ODOO_VERSION" == "7.0" ]; then
-        echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
-        local log_level='test';
-    else
-        local log_level='info';
-    fi
+    local log_level='info';
 
     # Install module
     if ! test_run_server $with_coverage --init=$module --log-level=warn "$@"; then

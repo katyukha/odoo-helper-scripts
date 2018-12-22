@@ -9,12 +9,14 @@
   need to prefix each addons with `-m `. Now it could be done like:
   ```odoo-helper test my_addon1 my_addon2```
 
-### Fix
-
 ### Changed
 
 - Last argument of `odoo-helper ci check-versions-git` now optional.
   If it is omited, that current working tree state will be used as last revision.
+
+### Removed
+
+- Removed support of Odoo 7.0. Now minimal supported Odoo version is 8.0
 
 
 ## Release 0.2.0 (2018-12-20)
