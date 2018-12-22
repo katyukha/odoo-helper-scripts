@@ -359,8 +359,13 @@ function test_module {
                 return;
             ;;
             *)
-                echo "Unknown option: $key";
-                return 1;
+                if addons_is_odoo_addon "$key"; then
+                    local module_name=$(addons_get_addon_name "$key");
+                    modules="$modules $module_name";
+                else
+                    echo "Unknown option: $key";
+                    return 1;
+                fi
             ;;
         esac;
         shift;
