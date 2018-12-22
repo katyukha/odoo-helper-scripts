@@ -1,5 +1,19 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Added `--fix-version` option to `odoo-helper ci check-versions-git` command
+
+### Fix
+
+### Changed
+
+- Last argument of `odoo-helper ci check-versions-git` now optional.
+  If it is omited, that current working tree state will be used as last revision.
+
+
 ## Release 0.2.0 (2018-12-20)
 
 ### Added

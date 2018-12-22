@@ -43,11 +43,36 @@ function ci_ensure_versions_ok {
 # where x.x is odoo version and y.y.y repository version
 function ci_validate_version {
     local version="$1";
-    if ! [[ "$version" =~ ^${ODOO_VERSION}.[0-9]+.[0-9]+.[0-9]+ ]]; then
+    if ! [[ "$version" =~ ^${ODOO_VERSION}\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         return 1;
     fi
     return 0;
 }
+
+# ci_fix_version_serie <version>
+# Attempt to fix version serie (to be same as current odoo version)
+function ci_fix_version_serie {
+    local version="$1";
+    if [[ "$version" =~ ^[0-9]+\.[0-9]+\.([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}";
+    else
+        return 1;
+    fi
+        #echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$((${BASH_REMATCH[2]} + 1))";
+}
+
+# ci_fix_version_number <version>
+# Attempt to fix version number (increase minor part)
+function ci_fix_version_number {
+    local version="$1";
+    if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+\.[0-9]+)\.([0-9]+)$ ]]; then
+        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$((${BASH_REMATCH[2]} + 1))";
+    else
+        return 1;
+    fi
+}
+
+
 
 # ci_git_get_repo_version_by_ref [-q] <repo path> <ref>
 function ci_git_get_repo_version_by_ref {
@@ -62,9 +87,13 @@ function ci_git_get_repo_version_by_ref {
     local version;
 
     cd "$repo_path";
-    version=$(git show -q ${git_ref}:./VERSION 2>/dev/null);
+    if [ "$git_ref" == "-working-tree-" ]; then
+        version=$(cat ./VERSION 2>/dev/null);
+    else
+        version=$(git show -q ${git_ref}:./VERSION 2>/dev/null);
+    fi
     if [ $? -ne 0 ] || [ -z "$version" ]; then
-        [ -z "$quiet" ] && echoe -e "${YELLOWC}WARNING${NC}: repository version file (${BLUEC}${repo_path}/VERSION${NC}) not found (revision ${BLUEC}${git_ref}${NC}! Using default version ${BLUEC}${ODOO_VERSION}.0.0.0${NC}";
+        [ -z "$quiet" ] && echoe -e "${YELLOWC}WARNING${NC}: repository version file (${BLUEC}${repo_path}/VERSION${NC}) not found or empty (revision ${BLUEC}${git_ref}${NC}! Using default version ${BLUEC}${ODOO_VERSION}.0.0.0${NC}";
         echo "${ODOO_VERSION}.0.0.0"
         return 1;
     else
@@ -91,9 +120,17 @@ function ci_git_get_addon_version_by_ref {
     cd "$addon_path";
 
     # Get manifest content at start revision
-    local manifest_content="$(git show -q ${git_ref}:./__manifest__.py 2>/dev/null)";
-    if [ -z "$manifest_content" ]; then
-        local manifest_content="$(git show -q ${git_ref}:./__openerp__.py 2>/dev/null)";
+    if [ "$git_ref" == "-working-tree-" ]; then
+        version=$(cat ./VERSION 2>/dev/null);
+        manifest_content=$(cat ./__manifest__.py 2>/dev/null);
+        if [ -z "$manifest_content" ]; then
+            manifest_content=$(cat ./__openerp__.py 2>/dev/null);
+        fi
+    else
+        manifest_content=$(git show -q ${git_ref}:./__manifest__.py 2>/dev/null);
+        if [ -z "$manifest_content" ]; then
+            manifest_content=$(git show -q ${git_ref}:./__openerp__.py 2>/dev/null);
+        fi
     fi
 
     # Get version in first revision
@@ -115,7 +152,7 @@ function ci_check_versions_git {
     Check that versions of changed addons have been updated
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [options] <repo> <start> <end>
+        $SCRIPT_NAME ci check-versions-git [options] <repo> <start> [end]
 
     Options:
         --ignore-trans  - ignore translations
@@ -128,12 +165,14 @@ function ci_check_versions_git {
                           For example: 11.0.1.0.0
                           Version number have to be updated if at least one
                           addon changed
+        --fix-version   - [experimental] Attempt to fix versions
         -h|--help|help  - print this help message end exit
 
     Parametrs:
         <repo>    - path to git repository to search for changed addons in
         <start>   - git start revision
-        <end>     - git end revision
+        [end]     - [optional] git end revision.
+                    if not set then working tree used as end revision
     ";
     if [[ $# -lt 1 ]]; then
         echo "$usage";
@@ -141,7 +180,11 @@ function ci_check_versions_git {
     fi
 
     local git_changed_extra_opts;
+    local repo_path;
+    local ref_start;
+    local ref_end;
     local check_repo_version=0;
+    local opt_fix_version=0;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -159,15 +202,24 @@ function ci_check_versions_git {
                 check_repo_version=1;
                 shift;
             ;;
+            --fix-version)
+                opt_fix_version=1;
+                shift;
+            ;;
             *)
                 break;
             ;;
         esac
     done
 
-    local repo_path=$(readlink -f "$1"); shift;
-    local ref_start="$1"; shift;
-    local ref_end="$1"; shift;
+    repo_path=$(readlink -f "$1"); shift;
+    ref_start="$1"; shift;
+
+    if [ -n "$1" ]; then
+        ref_end="$1"; shift;
+    else
+        ref_end="-working-tree-";
+    fi
     local cdir="$(pwd)";
 
     # Check addons versions
@@ -182,9 +234,21 @@ function ci_check_versions_git {
         local version_after=$(ci_git_get_addon_version_by_ref "$addon_path" "${ref_end}");
 
         if ! ci_validate_version "$version_after"; then
-            echoe -e "${REDC}FAIL${NC}: Wrong version format. Correct version must match format: ${YELLOWC}${ODOO_VERSION}.X.Y.Z${NC}. Got ${YELLOWC}${version_after}${NC}";
-            result=1;
-            continue;
+            if [ "$opt_fix_version" -eq 1 ]; then
+                local new_version;
+                new_version=$(ci_fix_version_serie "$version_after");
+                if [ "$?" -eq 0 ]; then
+                    sed -i "s/$version_after/$new_version/g" "$(addons_get_manifest_file $addon_path)";
+                    version_after="$new_version";
+                    echoe -e "${GREENC}OK${NC}: version serie fixed for addon ${YELLOWC}${addon_name}${NC}";
+                else
+                    echoe -e "${REDC}ERROR${NC}: Cannot fix version serie ${YELLOWC}${version_after}${NC}. Skipping...";
+                fi
+            else
+                echoe -e "${REDC}FAIL${NC}: Wrong version format. Correct version must match format: ${YELLOWC}${ODOO_VERSION}.X.Y.Z${NC}. Got ${YELLOWC}${version_after}${NC}";
+                result=1;
+                continue;
+            fi
         fi
 
         # Compare version
@@ -192,9 +256,20 @@ function ci_check_versions_git {
             # version before is less that version_after
             echoe -e "${GREENC}OK${NC}";
         else
-            echoe -e "${REDC}FAIL${NC}: ${YELLOWC}${addon_name}${NC} have incorrect new version!"
-            echoe -e "${BLUEC}-----${NC} new version ${YELLOWC}${version_after}${NC} must be greater than old version ${YELLOWC}${version_before}${NC}";
-            result=1;
+            if [ "$opt_fix_version" -eq 1 ]; then
+                local new_version;
+                new_version=$(ci_fix_version_serie "$version_after");
+                if [ "$?" -eq 0 ]; then
+                    sed -i "s/$version_after/$new_version/g" "$(addons_get_manifest_file $addon_path)";
+                    echoe -e "${GREENC}OK${NC}: version number fixed for addon ${YELLOWC}${addon_name}${NC}";
+                else
+                    echoe -e "${REDC}ERROR${NC}: Cannot fix version number ${YELLOWC}${version_after}${NC}. Skipping...";
+                fi
+            else
+                echoe -e "${REDC}FAIL${NC}: ${YELLOWC}${addon_name}${NC} have incorrect new version!"
+                echoe -e "${BLUEC}-----${NC} new version ${YELLOWC}${version_after}${NC} must be greater than old version ${YELLOWC}${version_before}${NC}";
+                result=1;
+            fi
         fi
 
     done;

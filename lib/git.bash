@@ -285,12 +285,19 @@ function git_get_addons_changed {
     local ref_end="$1"; shift;
     local cdir=$(pwd);
 
+    local ref_revision;
+    if [ "$ref_end" == "-working-tree-" ]; then
+        ref_revision="$ref_start";
+    else
+        ref_revision="$ref_start..$ref_end";
+    fi
+
     cd "$repo_path";
 
     if [ -n "$exclude_translations" ]; then
-        local changed_files=( $(git diff --name-only  "${ref_start}..${ref_end}" -- ':(exclude)*.po' ':(exclude)*.pot') );
+        local changed_files=( $(git diff --name-only  "${ref_revision}" -- ':(exclude)*.po' ':(exclude)*.pot') );
     else
-        local changed_files=( $(git diff --name-only  "${ref_start}..${ref_end}") );
+        local changed_files=( $(git diff --name-only  "${ref_revision}") );
     fi
     for file_path in "${changed_files[@]}"; do
         local manifest_path=$(search_file_up "$file_path" __manifest__.py);
