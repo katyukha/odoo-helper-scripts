@@ -1,6 +1,6 @@
 # Release Notes
 
-## Release 0.2.0 
+## Release 0.2.0 (2018-12-20)
 
 ### Added
 
