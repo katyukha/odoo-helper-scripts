@@ -7,7 +7,8 @@
 - Added `--fix-version` option to `odoo-helper ci check-versions-git` command
 - Added ability to pass list of addons to `odoo-helper test` command without 
   need to prefix each addons with `-m `. Now it could be done like:
-  ```odoo-helper test my_addon1 my_addon2```
+  `odoo-helper test my_addon1 my_addon2`
+- Added `--skip` option of `odoo-helper test` command
 
 ### Changed
 
