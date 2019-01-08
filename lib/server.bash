@@ -433,8 +433,7 @@ function server_command {
             ;;
             log)
                 shift;
-                # TODO: remove backward compatability from this code
-                server_log;
+                server_log "$@";
                 return;
             ;;
             ps)

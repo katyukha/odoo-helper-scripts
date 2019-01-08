@@ -29,7 +29,7 @@ DEFAULT_ODOO_REPO="https://github.com/odoo/odoo.git";
 # Set-up defaul values for environment variables
 function install_preconfigure_env {
     ODOO_REPO=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
-    ODOO_VERSION=${ODOO_VERSION:-9.0};
+    ODOO_VERSION=${ODOO_VERSION:-12.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-${DOWNLOAD_ARCHIVE:-on}};
     CLONE_SINGLE_BRANCH=${CLONE_SINGLE_BRANCH:-on};

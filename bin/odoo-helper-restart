@@ -11,11 +11,11 @@
 
 # Use odoo-helper --help for a documentation
 
-
 SCRIPT=$0;
-SCRIPT_NAME=$(basename $SCRIPT);
-F=$(readlink -f $SCRIPT);  # full script path;
+SCRIPT_NAME=$(basename "$SCRIPT");
+F=$(readlink -f "$SCRIPT");  # full script path;
 WORKDIR=$(pwd);
+
 
 # load basic conf
 if [ -f "/etc/odoo-helper.conf" ]; then
@@ -29,11 +29,10 @@ fi
 set -e;  # Fail on errors
 
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-$ODOO_HELPER_BIN/odoo-helper server restart "$@";
-
+"$ODOO_HELPER_BIN/odoo-helper" server restart "$@";

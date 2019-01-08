@@ -19,6 +19,12 @@ cache:
     paths:
         - .cache
 
+shellcheck:
+    before_script:
+        - apt-get update -qq && apt-get install -yqq shellcheck
+    script:
+        - shellcheck -s bash -x -a --color -e SC1090,SC1091,SC2034 ./bin/*
+
 tests:
     before_script:
         # Setup PIP Cache

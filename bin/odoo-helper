@@ -246,7 +246,7 @@ function show_project_status {
         shift;
     done;
 
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ ! -z "$INIT_SCRIPT" ]; then
         server_status="run ${YELLOWC}${INIT_SCRIPT} status${NC}";
         server_url="";
     else
@@ -312,9 +312,9 @@ function odoo_helper_print_version {
     echo -e "Version: ${GREENC}$ODOO_HELPER_VERSION${NC}";
 
     if git_is_git_repo "$ODOO_HELPER_ROOT"; then
-        echo -e "Branch:  ${BLUEC}$(git_get_branch_name $ODOO_HELPER_ROOT)${NC}";
-        echo -e "Commit:  ${BLUEC}$(git_get_current_commit $ODOO_HELPER_ROOT)${NC}";
-        echo -e "Date:    ${BLUEC}$(git_get_current_commit_date $ODOO_HELPER_ROOT)${NC}";
+        echo -e "Branch:  ${BLUEC}$(git_get_branch_name "$ODOO_HELPER_ROOT")${NC}";
+        echo -e "Commit:  ${BLUEC}$(git_get_current_commit "$ODOO_HELPER_ROOT")${NC}";
+        echo -e "Date:    ${BLUEC}$(git_get_current_commit_date "$ODOO_HELPER_ROOT")${NC}";
     fi
 
     echo -e "Path:    ${YELLOWC}$ODOO_HELPER_ROOT${NC}";
