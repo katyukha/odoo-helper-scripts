@@ -20,10 +20,11 @@ cache:
         - .cache
 
 shellcheck:
+    image: koalaman/shellcheck:stable
     before_script:
-        - apt-get update -qq && apt-get install -yqq shellcheck
+        - --version
     script:
-        - shellcheck -s bash -x -a --color -e SC1090,SC1091,SC2034 ./bin/*
+        - -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/*
 
 tests:
     before_script:
