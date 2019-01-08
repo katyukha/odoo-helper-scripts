@@ -20,11 +20,11 @@ cache:
         - .cache
 
 shellcheck:
-    image: koalaman/shellcheck:stable
+    image: koalaman/shellcheck-alpine:stable
     before_script:
-        - --version
+        - shellcheck --version
     script:
-        - -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/*
+        - shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/*
 
 tests:
     before_script:

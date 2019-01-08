@@ -200,7 +200,7 @@ function is_odoo_module {
 # Run command with sudo if required
 function with_sudo {
     if [[ $UID != 0 ]]; then
-        sudo $@;
+        sudo -E $@;
     else
         $@
     fi
