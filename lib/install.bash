@@ -442,6 +442,9 @@ function install_odoo_py_requirements_for_version {
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 # Install correct version of greenlet for for gevent.
                 echo "greenlet==0.4.9";
+            elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
+                # Install correct version of greenlet for for gevent.
+                echo "psycopg2==2.7.3.1";
             else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;
