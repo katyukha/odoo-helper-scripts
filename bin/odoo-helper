@@ -246,7 +246,7 @@ function show_project_status {
         shift;
     done;
 
-    if [ ! -z "$INIT_SCRIPT" ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         server_status="run ${YELLOWC}${INIT_SCRIPT} status${NC}";
         server_url="";
     else
@@ -299,11 +299,11 @@ function show_project_status {
         Server URL:    ${server_url}
     ";
 
-    if [ ! -z $opt_show_tools_versions ]; then
+    if [ -n "$opt_show_tools_versions" ]; then
         show_project_tools_versions;
     fi
 
-    if [ ! -z $opt_show_ci_tools_versions ]; then
+    if [ -n "$opt_show_ci_tools_versions" ]; then
         show_project_ci_tools_versions;
     fi
 }
@@ -524,7 +524,7 @@ function odoo_helper_main {
             exec)
                 shift;
                 config_load_project;
-                if [ ! -z "$ODOO_CONF_FILE" ]; then
+                if [ -n "$ODOO_CONF_FILE" ]; then
                     exec_conf "$ODOO_CONF_FILE" execv "$@";
                 else
                     execv "$@";
