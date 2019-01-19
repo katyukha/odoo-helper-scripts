@@ -10,6 +10,10 @@
   `odoo-helper test my_addon1 my_addon2`
 - Added `--skip` option of `odoo-helper test` command
 
+### Fixed
+
+- running `odoo-helper tr` command will not overwrite pidfile
+
 ### Changed
 
 - Last argument of `odoo-helper ci check-versions-git` now optional.

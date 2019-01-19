@@ -108,7 +108,7 @@ function tr_import_export_internal {
         fi
 
         # do the work
-        server_run -- -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_file --modules=$addon;
+        server_run -- -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_file --modules=$addon --stop-after-init --pidfile=/dev/null;
     done
 }
 
@@ -270,7 +270,7 @@ function tr_load {
     fi
 
     for idb in $(tr_parse_db_name $db); do
-        server_run -- -d $idb --load-language=$lang --stop-after-init;
+        server_run -- -d $idb --load-language=$lang --stop-after-init --pidfile=/dev/null;
     done
 }
 
@@ -429,8 +429,8 @@ function tr_translation_rate {
         local trans_tmp_dir=$ODOO_PATH/addons/tmp;
         mkdir -p $trans_tmp_dir;
         local trans_file=$trans_tmp_dir/x-odoo-trans-${tmp_db_name}.po;
-        if server_run -- -d $tmp_db_name -l $lang --i18n-export=$trans_file --modules=$addons_cs; then
-            if ! server_run -- -d $tmp_db_name -l $lang --i18n-import=$trans_file --modules=$addons_cs; then
+        if server_run -- -d $tmp_db_name -l $lang --i18n-export=$trans_file --modules=$addons_cs --stop-after-init --pidfile=/dev/null; then
+            if ! server_run -- -d $tmp_db_name -l $lang --i18n-import=$trans_file --modules=$addons_cs --stop-after-init --pidfile=/dev/null; then
                 echoe -e "${REDC}ERROR${NC}: cannot import generated translations";
                 rm $trans_file;
                 res=11;
