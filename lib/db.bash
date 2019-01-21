@@ -253,6 +253,25 @@ function odoo_db_rename {
     fi
 }
 
+# odoo_db_copy <src_name> <new_name> [odoo_conf_file]
+function odoo_db_copy {
+    local src_db_name=$1;
+    local new_db_name=$2;
+    local conf_file=${3:-$ODOO_CONF_FILE};
+
+    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    python_cmd="$python_cmd cl.db.duplicate_database(cl.odoo.tools.config['admin_passwd'], '$src_db_name', '$new_db_name');"
+    
+    # Filestore should be created by server user, so run duplicate command as server user
+    if run_python_cmd_u "$python_cmd"; then
+        echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$src_db_name${NC} copied to ${BLUEC}$new_db_name${NC} successfuly!";
+        return 0;
+    else
+        echoe -e "${REDC}ERROR${NC}: Cannot copy databse ${BLUEC}$src_db_name${NC} to ${BLUEC}$new_db_name${NC}!";
+        return 1;
+    fi
+}
+
 # odoo_db_dump <dbname> <file-path> [format [odoo_conf_file]]
 # dump database to specified path
 function odoo_db_dump {
@@ -365,6 +384,7 @@ function odoo_db_command {
         $SCRIPT_NAME db create --help
         $SCRIPT_NAME db drop <name> [odoo_conf_file]
         $SCRIPT_NAME db rename <old_name> <new_name> [odoo_conf_file]
+        $SCRIPT_NAME db copy <src_name> <new_name> [odoo_conf_file]
         $SCRIPT_NAME db dump <name> <dump_file_path> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup <name> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup-all [format [odoo_conf_file]]
@@ -424,6 +444,11 @@ function odoo_db_command {
             rename)
                 shift;
                 odoo_db_rename "$@";
+                return;
+            ;;
+            copy)
+                shift;
+                odoo_db_copy "$@";
                 return;
             ;;
             -h|--help|help)
