@@ -14,6 +14,7 @@ rm -f $BUILD_DIR/*;
 
 x_commit_ref="${CI_COMMIT_TAG_NAME:-$CI_COMMIT_REF_NAME}";
 deb_version=${x_commit_ref:-$($PROJECT_DIR/bin/odoo-helper exec echo "\$ODOO_HELPER_VERSION" 2>/dev/null)};
+deb_version=${deb_version#v}
 
 deb_depends="git wget lsb-release procps
     python-setuptools libevent-dev g++ libpq-dev
