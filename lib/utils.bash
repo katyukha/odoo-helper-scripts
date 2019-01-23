@@ -275,3 +275,11 @@ function run_python_cmd_u {
     local python_cmd=$(run_python_cmd_prepare "$@");
     exec_py_u -c "\"$python_cmd\"";
 }
+
+
+# Check that version1 is greater or equal than version2
+#
+# version_cmp_gte <version1> <version2>
+function version_cmp_gte {
+    python -c "from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));";
+}

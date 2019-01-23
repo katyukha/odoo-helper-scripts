@@ -14,6 +14,8 @@
 ### Fixed
 
 - running `odoo-helper tr` command will not overwrite pidfile
+- installing pre-requirements. Install virtualenv less that 16.0.
+  do not update virtualenv if it is installed and greater than 15.1.0
 
 ### Changed
 

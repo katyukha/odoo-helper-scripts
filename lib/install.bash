@@ -508,6 +508,14 @@ function install_and_configure_postgresql {
     fi
 }
 
+function install_system_virtualenv {
+    if ! check_command virtualenv > /dev/null || ! version_cmp_gte $(virtualenv --version) '15.1.0'; then
+        if ! with_sudo python -m easy_install 'virtualenv>=15.1.0<16.0'; then
+            echoe -e "${YELLOWC}ERROR:${NC} Cannot install virtualenv! Please install it manualy to make odoo-helper-scripts work.";
+        fi
+    fi
+}
+
 
 # install_system_prerequirements
 function install_system_prerequirements {
@@ -558,7 +566,7 @@ function install_system_prerequirements {
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
 
-    with_sudo python -m easy_install 'virtualenv>=15.1.0';
+    install_system_virtualenv;
 }
 
 # Install virtual environment. All options will be passed directly to
