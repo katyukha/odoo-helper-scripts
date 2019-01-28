@@ -177,11 +177,16 @@ odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
 odoo-helper addons list --installable ./custom_addons;
 odoo-helper addons list --color --recursive ./repositories;
-odoo-helper addons list --not-linked ./repositories;
+odoo-helper --no-colors addons list --color --recursive ./repositories;
+odoo-helper addons list --not-linked --recursive ./repositories;
+odoo-helper addons list --linked --recursive ./repositories;
 odoo-helper addons list --by-path ./repositories;
+(cd repositories && odoo-helper addons list --recursive);
 odoo-helper addons update-list --help;
 odoo-helper addons update-list;
+odoo-helper start;
 odoo-helper addons install bus_enhanced;
+ofoo-helper stop;
 odoo-helper addons test-installed bus_enhanced;  # find databases where this addons is installed
 odoo-helper addons update -m bus_enhanced;
 odoo-helper addons uninstall bus_enhanced;
@@ -204,6 +209,9 @@ odoo-helper addons list-no-repo;
 # Generate requirements
 odoo-helper addons generate-requirements;
 
+# Generate requirements (shortcut)
+odoo-helper generate-requirements;
+
 # Reinstall odoo downloading archive
 odoo-helper install reinstall-odoo download;
 
@@ -215,6 +223,9 @@ odoo-helper status
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
+
+# Update odoo sources
+odoo-helper update-odoo
 
 
 echo -e "${YELLOWC}
@@ -255,6 +266,9 @@ odoo-helper db rename my-test-odoo-database my-test-db-renamed
 # Run psql and list all databases visible for odoo user
 # This command will automaticaly pass connection params from odoo config
 odoo-helper postgres psql -c "\l"
+
+# Run psql and list all databases visible for odoo user (shortcut)
+odoo-helper psql -c "\l"
 
 # recompute parent-store for ir.ui.menu
 odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu --parent-store
@@ -319,6 +333,9 @@ odoo-helper addons list --filter "first" ./repositories/partner-contact
 
 # Show project status
 odoo-helper status
+
+# Update odoo-sources
+odoo-helper update-odoo
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
@@ -427,6 +444,8 @@ odoo-helper fetch --oca partner-contact;
 # Check oca/partner-contact with ci commands
 odoo-helper ci ensure-icons repositories/partner-contact || true
 odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 HEAD || true
+odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 || true
+odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/partner-contact HEAD^^^1 || true
 
 # Show addons changed
 odoo-helper git changed-addons repositories/partner-contact HEAD^^^1 HEAD
@@ -541,32 +560,38 @@ if ! [[ "$(odoo-helper exec python --version 2>&1)" == "Python 3."* ]]; then
 fi
 
 echo "";
-echo "Generated odoo config:"
-echo "$(cat ./conf/odoo.conf)"
+echo "Generated odoo config:";
+echo "$(cat ./conf/odoo.conf)";
 echo "";
 
 odoo-helper server run --stop-after-init;  # test that it runs
 
 # Show project status
-odoo-helper status
-odoo-helper server status
-odoo-helper start
-odoo-helper ps
-odoo-helper status
-odoo-helper server status
-odoo-helper stop
+odoo-helper status;
+odoo-helper server status;
+odoo-helper start;
+odoo-helper ps;
+odoo-helper status;
+odoo-helper server status;
+odoo-helper stop;
 
 # Show complete odoo-helper status
-odoo-helper status  --tools-versions --ci-tools-versions
+odoo-helper status  --tools-versions --ci-tools-versions;
 
 # Fetch oca/contract
 odoo-helper fetch --oca contract
 
-odoo-helper addons install --ual --dir ./repositories/contract
+odoo-helper addons install --ual --dir ./repositories/contract;
 
-# Create test database
-odoo-helper db create --demo --lang en_US odoo12-odoo-test
-odoo-helper db drop odoo12-odoo-test
+# Database management
+odoo-helper db create --demo --lang en_US odoo12-odoo-test;
+odoo-helper db create --recreate --demo --lang en_US odoo12-odoo-test;
+odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
+odoo-helper db exists odoo12-odoo-test;
+odoo-helper db exists odoo12-odoo-tmp;
+odoo-helper db backup-all zip;
+odoo-helper db drop odoo12-odoo-test;
+odoo-helper db drop -q odoo12-odoo-tmp;
 
 
 echo -e "${GREENC}
