@@ -778,44 +778,13 @@ function install_generate_odoo_conf {
 }
 
 
-# Workaround for situation when setup does not install openerp-gevent script.
-function odoo_gevent_install_workaround {
-    if [ -f "$ODOO_PATH/openerp-gevent" ] && grep -q -e "scripts=\['openerp-server', 'odoo.py'\]," "$ODOO_PATH/setup.py";
-    then
-        echov -e "${YELLOWC}There is openerp-gevent in used in odoo, but it is not specified in setup.py${NC}"
-        echov -e "${YELLOWC}Fix will be applied${NC}"
-        cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.backup
-        sed -i -r "s/scripts=\['openerp-server', 'odoo.py'\],/scripts=\['openerp-server', 'openerp-gevent', 'odoo.py'\],/" \
-            $ODOO_PATH/setup.py;
-
-        odoo_gevent_fix_applied=1;
-    fi
-}
-
-
-function odoo_gevent_install_workaround_cleanup {
-    if [ ! -z $odoo_gevent_fix_applied ]; then
-        mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
-        unset odoo_gevent_fix_applied;
-    fi
-}
-
-
 # odoo_run_setup_py [setup.py develop arguments]
 function odoo_run_setup_py {
-    # Workaround for situation when setup does not install openerp-gevent script.
-    odoo_gevent_install_workaround;
-
     # Install dependencies via pip (it is faster if they are cached)
     install_odoo_py_requirements_for_version;
 
     # Install odoo
     (cd $ODOO_PATH && exec_py setup.py -q develop $@);
-
-     
-    # Workaround for situation when setup does not install openerp-gevent script.
-    # (Restore modified setup.py)
-    odoo_gevent_install_workaround_cleanup;
 }
 
 
@@ -834,7 +803,7 @@ function install_odoo_install {
     echoe -e "${BLUEC}Installing js pre-requirements...${NC}";
     install_js_prerequirements;
 
-    # Run setup.py with gevent workaround applied.
+    # Run setup.py
     echoe -e "${BLUEC}Installing odoo...${NC}";
     odoo_run_setup_py;  # imported from 'install' module
 }
