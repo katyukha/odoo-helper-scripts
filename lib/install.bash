@@ -439,6 +439,17 @@ function install_odoo_py_requirements_for_version {
                 # Note that gevent (1.3.1) may break odoo 10.0, 11.0
                 # and in Odoo 10.0, 11.0 working version of gevent is placed in requirements
                 echo "gevent==1.1.0";
+            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Starting from Odoo 11 python 3 is used. choose correct gevent  version
+                # for python installed in system
+                if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
+                    # Gevent have no builds for python3.6+
+                    echo "gevent==1.1.2";
+                elif exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
+                    echo "gevent==1.3.4";
+                else
+                    echo "$dependency";
+                fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 echo "greenlet==0.4.9";
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
