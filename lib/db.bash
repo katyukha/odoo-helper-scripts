@@ -264,10 +264,10 @@ function odoo_db_copy {
     
     # Filestore should be created by server user, so run duplicate command as server user
     if run_python_cmd_u "$python_cmd"; then
-        echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$src_db_name${NC} copied to ${BLUEC}$new_db_name${NC} successfuly!";
+        echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$src_db_name${NC} copied to ${YELLOWC}$new_db_name${NC} successfuly!";
         return 0;
     else
-        echoe -e "${REDC}ERROR${NC}: Cannot copy databse ${BLUEC}$src_db_name${NC} to ${BLUEC}$new_db_name${NC}!";
+        echoe -e "${REDC}ERROR${NC}: Cannot copy databse ${YELLOWC}$src_db_name${NC} to ${YELLOWC}$new_db_name${NC}!";
         return 1;
     fi
 }
