@@ -508,14 +508,6 @@ function install_and_configure_postgresql {
     fi
 }
 
-function install_system_virtualenv {
-    if ! check_command virtualenv > /dev/null || ! version_cmp_gte $(virtualenv --version) '15.1.0'; then
-        if ! with_sudo python -m easy_install 'virtualenv>=15.1.0<16.0'; then
-            echoe -e "${YELLOWC}ERROR:${NC} Cannot install virtualenv! Please install it manualy to make odoo-helper-scripts work.";
-        fi
-    fi
-}
-
 
 # install_system_prerequirements
 function install_system_prerequirements {
@@ -556,8 +548,8 @@ function install_system_prerequirements {
     with_sudo apt-get update -qq || true;
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
-    install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools libevent-dev g++ libpq-dev libsass-dev \
+    install_sys_deps_internal git wget lsb-release \
+        procps libevent-dev g++ libpq-dev libsass-dev \
         python-dev python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig;
@@ -565,8 +557,6 @@ function install_system_prerequirements {
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
-
-    install_system_virtualenv;
 }
 
 # Install virtual environment. All options will be passed directly to
@@ -576,9 +566,9 @@ function install_system_prerequirements {
 function install_virtual_env {
     if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
         if [ -z $VIRTUALENV_PYTHON ]; then
-            VIRTUALENV_PYTHON=$(odoo_get_python_version) virtualenv $@ $VENV_DIR;
+            VIRTUALENV_PYTHON=$(odoo_get_python_version) ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;
         else
-            VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
+            VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;
         fi
         exec_pip -q install nodeenv;
         execv nodeenv --python-virtualenv;  # Install node environment

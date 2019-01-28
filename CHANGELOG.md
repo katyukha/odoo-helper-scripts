@@ -21,6 +21,8 @@
 
 - Last argument of `odoo-helper ci check-versions-git` now optional.
   If it is omited, that current working tree state will be used as last revision.
+- Use won copy of virtualenv, to avoid installing it in system.
+  virtualenv is bundled into odoo-helper as git submodule now
 
 ### Removed
 

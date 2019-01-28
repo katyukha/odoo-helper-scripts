@@ -52,7 +52,7 @@ ODOO_HELPER_BIN=${ODOO_HELPER_BIN:-$INSTALL_PATH/bin};
 
 # clone repo
 if [ ! -d $INSTALL_PATH ]; then
-    git clone -q https://gitlab.com/katyukha/odoo-helper-scripts $INSTALL_PATH;
+    git clone --recurse-submodules -q https://gitlab.com/katyukha/odoo-helper-scripts $INSTALL_PATH;
     (cd $INSTALL_PATH && git checkout -q $ODOO_HELPER_BRANCH);
     # TODO: may be it is good idea to pull changes from repository if it is already exists?
     # TODO: implement here some sort of upgrade mechanism?

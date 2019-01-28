@@ -1,0 +1,3 @@
+[submodule "tools/virtualenv"]
+	path = tools/virtualenv
+	url = https://github.com/pypa/virtualenv.git

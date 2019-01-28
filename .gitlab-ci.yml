@@ -1,6 +1,7 @@
 image: ubuntu:18.04
 
 variables:
+    GIT_SUBMODULE_STRATEGY: recursive
     CI_RUN: '1'
     ODOO_HELPER_INSTALL_PATH: "$CI_PROJECT_DIR"
     TEST_TMP_DIR: "/tmp/odoo-helper-tests"
