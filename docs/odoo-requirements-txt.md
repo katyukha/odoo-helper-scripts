@@ -29,15 +29,6 @@ must be set of options for [odoo-helper fetch](./command-reference.md#odoo-helpe
 --requirements <requirements file>
 ```
 
-### Install python depenency
-
-```
--p|--python <python module>
-```
-
-***Note*** it is better to use `requirements.txt` file in the root of repository or addon.
-
-
 ## Notes
 
 ***Note*** *odoo_requirements.txt* must end with newline symbol.

@@ -136,10 +136,6 @@ odoo-helper install py-tools
 # Also we may generate html coverage report too
 (cd ./repositories/project; odoo-helper test --coverage-html -m project_sla || true);
 
-
-# also if you want to install python packages in current installation environment, you may use command:
-odoo-helper fetch -p suds  # this installs 'suds' python package
-
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
 
