@@ -298,10 +298,10 @@ function fetch_module {
 
     Examples:
        # fetch default branch of base_tags repository, link all modules placed in repository
-       $SCRIPT_NAME fetch -r https://github.com/katyukha/base_tags 
+       $SCRIPT_NAME fetch -r https://github.com/crnd-inc/generic-addons
 
        # same as previous but via --github option
-       $SCRIPT_NAME fetch --github katyukha/base_tags
+       $SCRIPT_NAME fetch --github crnd-inc/generic-addons
 
        # fetch project_sla module from project repository of OCA using branch 8.0
        $SCRIPT_NAME fetch --oca project -m project_sla -b 8.0
