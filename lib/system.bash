@@ -45,6 +45,10 @@ function system_update_odoo_helper_scripts {
         fi
     fi
 
+    # Ensure submodule inited and updated;
+    git submodule init;
+    git submodule update;
+
     # update odoo-helper bin links
     local base_path=$(dirname $ODOO_HELPER_ROOT);
     for oh_cmd in $ODOO_HELPER_BIN/*; do
