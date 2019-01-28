@@ -136,7 +136,7 @@ function postgres_psql {
 
     echoe -e "${BLUEC}Connection to psql via: '$cmd'${NC}"
     PGPASSWORD=$pgpass PGDATABASE=$default_db PGHOST=$pghost \
-        PGPORT=$pgport PGUSER=$pguser psql $@;
+        PGPORT=$pgport PGUSER=$pguser psql "$@";
 }
 
 # Show active postgres transactions
@@ -265,7 +265,7 @@ function postgres_command {
             psql)
                 shift;
                 config_load_project;
-                postgres_psql $@;
+                postgres_psql "$@";
                 return;
             ;;
             stat-activity)
