@@ -317,35 +317,6 @@ function server_restart {
 }
 
 
-# WARN: only for odoo 8.0+
-# Update odoo sources
-function server_auto_update {
-    echoe -e "${YELLOWC}DEPRECATED${NC}: ${BLUEC}odoo-helper server auto-update${NC} deprecated!";
-    echoe -e "Use ${BLUEC}odoo-helper install reinstall-odoo${NC} or ${BLUEC}odoo-helper update-odoo${NC} instead";
-
-    # Stop odoo server
-    if server_is_running; then
-        echoe -e "${BLUEC}Stopping server...${NC}";
-        server_stop;
-        local need_start=1;
-    fi
-
-    # Do database backup
-    odoo_db_backup_all zip;
-
-    # Update odoo sources
-    odoo_update_sources;
-
-    echoe -e "${BLUEC}update databases...${NC}";
-    addons_install_update update base;
-
-    # Start server again if it was stopped
-    if [ ! -z $need_start ]; then
-        echoe -e "${BLUEC}Starting server...${NC}";
-        server_start;
-    fi
-}
-
 # Print ps aux output for odoo-related processes
 function server_ps {
     local server_script=$(get_server_script);
@@ -374,7 +345,6 @@ function server_command {
         stop             - stop background running server
         restart [--help] - restart background server
         status           - status of background server
-        auto-update      - automatiacly update server. (WARN: deprecated feature)
         log              - open server log
         ps               - print running odoo processes
         -h|--help|help   - display this message
@@ -425,11 +395,6 @@ function server_command {
                 shift;
                 server_status "$@";
                 return
-            ;;
-            auto-update)
-                shift;
-                server_auto_update "$@";
-                return;
             ;;
             log)
                 shift;

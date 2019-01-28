@@ -25,6 +25,7 @@
 ### Removed
 
 - Removed support of Odoo 7.0. Now minimal supported Odoo version is 8.0
+- Removed `odoo-helper server auto-update` command that was deprecated in previous version
 
 
 ## Release 0.2.0 (2018-12-20)

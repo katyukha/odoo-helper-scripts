@@ -170,9 +170,6 @@ echo "";
 
 odoo-helper server --stop-after-init;  # test that it runs
 
-# Update odoo source code (here odoo source is under git)
-odoo-helper server auto-update
-
 # Create odoo 9 database
 odoo-helper db create test-9-db;
 
@@ -332,9 +329,6 @@ odoo-helper status  --tools-versions --ci-tools-versions
 
 # Print odoo helper configuration
 odoo-helper print-config
-
-# Update odoo source code (here odoo source is archive)
-odoo-helper server auto-update
 
 # Pull odoo addons update
 (cd ./repositories/partner-contact && git checkout HEAD^^^1)
