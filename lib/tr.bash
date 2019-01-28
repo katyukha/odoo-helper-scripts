@@ -352,6 +352,9 @@ function tr_regenerate {
     if addons_install_update "install" --no-restart -d "$tmp_db_name" $addons; then
         # export translations
         tr_export "$tmp_db_name" "$lang" "$file_name" $addons;
+    else
+        echoe -e "${REDC}ERROR${NC}: Cannot install addons ${YELLOWC}${addons}${NC}!";
+        return 3;
     fi
 
     # Drop temporary database
