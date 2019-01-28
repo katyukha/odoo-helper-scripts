@@ -450,7 +450,10 @@ function install_odoo_py_requirements_for_version {
                 echo $dependency;
             fi
         done < "$tmp_requirements" > "$tmp_requirements_post";
-        exec_pip -q install -r "$tmp_requirements_post";
+        if ! exec_pip install -r "$tmp_requirements_post"; then
+            echoe -e "${REDC}ERROR${NC}: Cannot install python dependencies.\n$(cat "$tmp_requirements_post")";
+            return 1;
+        fi
     else
         echoe -e "${REDC}ERROR${NC}: Cannot fetch python requirements for Odoo.";
     fi
