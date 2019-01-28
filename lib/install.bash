@@ -440,13 +440,10 @@ function install_odoo_py_requirements_for_version {
                 # and in Odoo 10.0, 11.0 working version of gevent is placed in requirements
                 echo "gevent==1.1.0";
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
-                # Install correct version of greenlet for for gevent.
                 echo "greenlet==0.4.9";
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
-                # Install correct version of greenlet for for gevent.
                 echo "psycopg2==2.7.3.1";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
-                # Install correct version of greenlet for for gevent.
                 echo "lxml==3.7.1";
             else
                 # Echo dependency line unchanged to rmp file
@@ -454,6 +451,8 @@ function install_odoo_py_requirements_for_version {
             fi
         done < "$tmp_requirements" > "$tmp_requirements_post";
         exec_pip -q install -r "$tmp_requirements_post";
+    else
+        echoe -e "${REDC}ERROR${NC}: Cannot fetch python requirements for Odoo.";
     fi
 
     if [ -f "$tmp_requirements" ]; then
