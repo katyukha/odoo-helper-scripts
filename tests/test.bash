@@ -513,12 +513,6 @@ odoo-helper lint style ./repositories/web/web_widget_color || true
 odoo-helper lint style ./repositories/web/web_widget_datepicker_options || true
 
 
-echo -e "${GREENC}
-==========================================
-Tests finished
-==========================================
-${NC}"
-
 echo -e "${YELLOWC}
 =================================
 Install and check Odoo 12.0 (Py3)
@@ -573,3 +567,11 @@ odoo-helper addons install --ual --dir ./repositories/contract
 # Create test database
 odoo-helper db create --demo --lang en_US odoo12-odoo-test
 odoo-helper db drop odoo12-odoo-test
+
+
+echo -e "${GREENC}
+==========================================
+Tests finished
+==========================================
+${NC}"
+
