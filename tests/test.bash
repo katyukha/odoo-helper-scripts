@@ -186,7 +186,7 @@ odoo-helper addons update-list --help;
 odoo-helper addons update-list;
 odoo-helper start;
 odoo-helper addons install bus_enhanced;
-ofoo-helper stop;
+odoo-helper stop;
 odoo-helper addons test-installed bus_enhanced;  # find databases where this addons is installed
 odoo-helper addons update -m bus_enhanced;
 odoo-helper addons uninstall bus_enhanced;
