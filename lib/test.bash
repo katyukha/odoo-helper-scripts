@@ -48,12 +48,7 @@ function test_module_impl {
     shift; shift;  # all next arguments will be passed to server
 
     # Set correct log level (depends on odoo version)
-    if [ "$ODOO_VERSION" == "7.0" ]; then
-        echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
-        local log_level='test';
-    else
-        local log_level='info';
-    fi
+    local log_level='info';
 
     # Install module
     if ! test_run_server $with_coverage --init=$module --log-level=warn "$@"; then
@@ -257,6 +252,10 @@ function test_module {
     local modules="";
     local directories="";
     local res=;
+
+    # Modules map if there is module in this map, than it have to be skipped
+    declare -A skip_modules_map;
+
     local usage="
     Usage 
 
@@ -277,6 +276,8 @@ function test_module {
         -m|--module              - specify module to test
         -d|--dir|--directory     - search for modules to test in specified directory
         --dir-r|--directory-r    - recursively search for modules to test in specified directory
+        --skip <path or name>    - skip addons specified by path or name.
+                                   could be specified multiple times.
 
     Examples:
         $SCRIPT_NAME test -m my_cool_module        # test single addon
@@ -346,6 +347,19 @@ function test_module {
                 modules="$modules $(addons_list_in_directory --recursive --installable --by-name $2)";
                 shift;
             ;;
+            --skip)
+                if addons_is_odoo_addon "$2"; then
+                    local skip_addon=$(addons_get_addon_name "$2");
+                    echoe -e "${BLUEC}Skipping addon ${YELLOWC}${skip_addon}${NC}";
+                    skip_modules_map[$skip_addon]=1;
+                else
+                    for skip_addon in $(addons_list_in_directory --by-name --recursive "$2"); do
+                        echoe -e "${BLUEC}Skipping addon ${YELLOWC}${skip_addon}${NC}";
+                        skip_modules_map["$skip_addon"]=1;
+                    done
+                fi
+                shift;
+            ;;
             flake8)
                 shift;
                 echoe -e "${YELLOWC}WARNING${NC}: 'odoo-helper test flake8' is deprecated. Use 'odoo-helper lint flake8' instead.";
@@ -359,15 +373,28 @@ function test_module {
                 return;
             ;;
             *)
-                echo "Unknown option: $key";
-                return 1;
+                if addons_is_odoo_addon "$key"; then
+                    local module_name=$(addons_get_addon_name "$key");
+                    modules="$modules $module_name";
+                else
+                    echo "Unknown option: $key";
+                    return 1;
+                fi
             ;;
         esac;
         shift;
     done;
 
-    # Print warning and return if there is no modules specified
     modules=$(trim "$modules");
+    local modules_to_test=;
+    for module in $modules; do
+        if [ -z "${skip_modules_map[$module]}" ]; then
+            modules_to_test="$modules_to_test $module";
+        fi
+    done
+
+    # Print warning and return if there is no modules specified
+    modules_to_test=$(trim "$modules_to_test");
 	if [ -z "$modules" ]; then
         echo -e "${YELLOWC}WARNING${NC}: There is no addons to test";
 		return 0;
@@ -377,7 +404,7 @@ function test_module {
 
     # Run tests
     if test_run_tests ${recreate_db:-0} ${create_test_db:-0} \
-        ${fail_on_warn:-0} ${with_coverage:-0} $modules;
+        ${fail_on_warn:-0} ${with_coverage:-0} $modules_to_test;
     then
         res=0;
     else

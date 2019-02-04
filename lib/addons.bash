@@ -96,6 +96,8 @@ function addons_is_odoo_addon {
 
     if [ -z "$addon_path" ]; then
         return 2;
+    elif ! is_odoo_module "$addon_path"; then
+        return 3;
     fi
 }
 

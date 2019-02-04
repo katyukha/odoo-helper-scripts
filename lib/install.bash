@@ -29,7 +29,7 @@ DEFAULT_ODOO_REPO="https://github.com/odoo/odoo.git";
 # Set-up defaul values for environment variables
 function install_preconfigure_env {
     ODOO_REPO=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
-    ODOO_VERSION=${ODOO_VERSION:-9.0};
+    ODOO_VERSION=${ODOO_VERSION:-12.0};
     ODOO_BRANCH=${ODOO_BRANCH:-$ODOO_VERSION};
     DOWNLOAD_ARCHIVE=${ODOO_DOWNLOAD_ARCHIVE:-${DOWNLOAD_ARCHIVE:-on}};
     CLONE_SINGLE_BRANCH=${CLONE_SINGLE_BRANCH:-on};
@@ -391,7 +391,6 @@ function install_sys_deps_for_odoo_version {
 }
 
 # install python requirements for specified odoo version via PIP requirements.txt
-# NOTE: not supported for odoo 7.0 and lower.
 function install_odoo_py_requirements_for_version {
     local usage="
     Install python dependencies for specific Odoo version.
@@ -440,15 +439,34 @@ function install_odoo_py_requirements_for_version {
                 # Note that gevent (1.3.1) may break odoo 10.0, 11.0
                 # and in Odoo 10.0, 11.0 working version of gevent is placed in requirements
                 echo "gevent==1.1.0";
+            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Starting from Odoo 11 python 3 is used. choose correct gevent  version
+                # for python installed in system
+                if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
+                    # Gevent have no builds for python3.6+
+                    echo "gevent==1.1.2";
+                elif exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
+                    echo "gevent==1.3.4";
+                else
+                    echo "$dependency";
+                fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
-                # Install correct version of greenlet for for gevent.
                 echo "greenlet==0.4.9";
+            elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
+                echo "psycopg2==2.7.3.1";
+            elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
+                echo "lxml==3.7.1";
             else
                 # Echo dependency line unchanged to rmp file
                 echo $dependency;
             fi
         done < "$tmp_requirements" > "$tmp_requirements_post";
-        exec_pip -q install -r "$tmp_requirements_post";
+        if ! exec_pip install -r "$tmp_requirements_post"; then
+            echoe -e "${REDC}ERROR${NC}: Cannot install python dependencies.\n$(cat "$tmp_requirements_post")";
+            return 1;
+        fi
+    else
+        echoe -e "${REDC}ERROR${NC}: Cannot fetch python requirements for Odoo.";
     fi
 
     if [ -f "$tmp_requirements" ]; then
@@ -543,8 +561,8 @@ function install_system_prerequirements {
     with_sudo apt-get update -qq || true;
 
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
-    install_sys_deps_internal git wget lsb-release procps \
-        python-setuptools libevent-dev g++ libpq-dev libsass-dev \
+    install_sys_deps_internal git wget lsb-release \
+        procps libevent-dev g++ libpq-dev libsass-dev \
         python-dev python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig;
@@ -552,8 +570,6 @@ function install_system_prerequirements {
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
-
-    with_sudo python -m easy_install 'virtualenv>=15.1.0';
 }
 
 # Install virtual environment. All options will be passed directly to
@@ -563,9 +579,9 @@ function install_system_prerequirements {
 function install_virtual_env {
     if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
         if [ -z $VIRTUALENV_PYTHON ]; then
-            VIRTUALENV_PYTHON=$(odoo_get_python_version) virtualenv $@ $VENV_DIR;
+            VIRTUALENV_PYTHON=$(odoo_get_python_version) ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;
         else
-            VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON virtualenv $@ $VENV_DIR;
+            VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;
         fi
         exec_pip -q install nodeenv;
         execv nodeenv --python-virtualenv;  # Install node environment
@@ -762,75 +778,13 @@ function install_generate_odoo_conf {
 }
 
 
-# Workaround for situation when setup does not install openerp-gevent script.
-function odoo_gevent_install_workaround {
-    if [ -f "$ODOO_PATH/openerp-gevent" ] && grep -q -e "scripts=\['openerp-server', 'odoo.py'\]," "$ODOO_PATH/setup.py";
-    then
-        echov -e "${YELLOWC}There is openerp-gevent in used in odoo, but it is not specified in setup.py${NC}"
-        echov -e "${YELLOWC}Fix will be applied${NC}"
-        cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.backup
-        sed -i -r "s/scripts=\['openerp-server', 'odoo.py'\],/scripts=\['openerp-server', 'openerp-gevent', 'odoo.py'\],/" \
-            $ODOO_PATH/setup.py;
-
-        odoo_gevent_fix_applied=1;
-    fi
-}
-
-
-function install_odoo_workaround_70 {
-    # Link libraries to virtualenv/lib dir
-    local lib_dir=/usr/lib/$(uname -m)-linux-gnu;
-    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libjpeg.so ] && [ ! -f $VENV_DIR/lib/libjpeg.so ]; then
-        ln -s $lib_dir/libjpeg.so $VENV_DIR/lib;
-    fi
-    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libfreetype.so ] && [ ! -f $VENV_DIR/lib/libfreetype.so ]; then
-        ln -s $lib_dir/libfreetype.so $VENV_DIR/lib;
-    fi
-    if [ ! -z $VENV_DIR ] && [ -f /usr/include/freetype2/fterrors.h ] && [ ! -d $VENV_DIR/include/freetype ]; then
-        # For ubuntu 14.04
-        ln -s /usr/include/freetype2 $VENV_DIR/include/freetype;
-    fi
-    if [ ! -z $VENV_DIR ] && [ -f $lib_dir/libz.so ] && [ ! -f $VENV_DIR/lib/libz.so ]; then
-        ln -s $lib_dir/libz.so $VENV_DIR/lib;
-    fi
-
-    # Installing requirements via pip. This should improve performance
-    exec_pip -q install -r $ODOO_HELPER_LIB/data/odoo_70_requirements.txt;
-
-    # Force use Pillow, because PIL is too old.
-    cp $ODOO_PATH/setup.py $ODOO_PATH/setup.py.7.0.backup
-    sed -i -r "s/PIL/Pillow/" $ODOO_PATH/setup.py;
-    sed -i -r "s/pychart/Python-Chart/" $ODOO_PATH/setup.py;
-}
-
-function odoo_gevent_install_workaround_cleanup {
-    if [ ! -z $odoo_gevent_fix_applied ]; then
-        mv -f $ODOO_PATH/setup.py.backup $ODOO_PATH/setup.py
-        unset odoo_gevent_fix_applied;
-    fi
-}
-
-
 # odoo_run_setup_py [setup.py develop arguments]
 function odoo_run_setup_py {
-    # Workaround for situation when setup does not install openerp-gevent script.
-    odoo_gevent_install_workaround;
-
-    if [ "$ODOO_VERSION" == "7.0" ]; then
-        echoe -e "${YELLOWC}WARNING${NC}: Support of Odoo 7.0 now is deprecated and will be removed in one of next releases";
-        install_odoo_workaround_70;
-    fi
-
     # Install dependencies via pip (it is faster if they are cached)
     install_odoo_py_requirements_for_version;
 
     # Install odoo
     (cd $ODOO_PATH && exec_py setup.py -q develop $@);
-
-     
-    # Workaround for situation when setup does not install openerp-gevent script.
-    # (Restore modified setup.py)
-    odoo_gevent_install_workaround_cleanup;
 }
 
 
@@ -849,7 +803,7 @@ function install_odoo_install {
     echoe -e "${BLUEC}Installing js pre-requirements...${NC}";
     install_js_prerequirements;
 
-    # Run setup.py with gevent workaround applied.
+    # Run setup.py
     echoe -e "${BLUEC}Installing odoo...${NC}";
     odoo_run_setup_py;  # imported from 'install' module
 }

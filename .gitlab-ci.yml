@@ -1,6 +1,7 @@
-image: ubuntu:16.04
+image: ubuntu:18.04
 
 variables:
+    GIT_SUBMODULE_STRATEGY: recursive
     CI_RUN: '1'
     ODOO_HELPER_INSTALL_PATH: "$CI_PROJECT_DIR"
     TEST_TMP_DIR: "/tmp/odoo-helper-tests"
@@ -19,7 +20,15 @@ cache:
     paths:
         - .cache
 
-tests:
+shellcheck:
+    image: koalaman/shellcheck-alpine:stable
+    before_script:
+        - shellcheck --version
+    script:
+        - shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/*
+
+
+.test:definition: &tests-definition
     before_script:
         # Setup PIP Cache
         - mkdir -p .cache && chmod a+rwx -R .cache
@@ -42,8 +51,17 @@ tests:
         paths:
              - coverage
 
+tests:ubuntu:16.04:
+    image: ubuntu:16.04
+    <<: *tests-definition
+
+tests:ubuntu:18.04:
+    image: ubuntu:18.04
+    <<: *tests-definition
+
+
 build_packages:
-    image: ubuntu
+    image: ubuntu:18.04
     variables:
         ODOO_HELPER_ROOT: $CI_PROJECT_DIR
         ODOO_HELPER_BIN: $CI_PROJECT_DIR/bin

@@ -246,7 +246,7 @@ function show_project_status {
         shift;
     done;
 
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         server_status="run ${YELLOWC}${INIT_SCRIPT} status${NC}";
         server_url="";
     else
@@ -299,11 +299,11 @@ function show_project_status {
         Server URL:    ${server_url}
     ";
 
-    if [ ! -z $opt_show_tools_versions ]; then
+    if [ -n "$opt_show_tools_versions" ]; then
         show_project_tools_versions;
     fi
 
-    if [ ! -z $opt_show_ci_tools_versions ]; then
+    if [ -n "$opt_show_ci_tools_versions" ]; then
         show_project_ci_tools_versions;
     fi
 }
@@ -312,9 +312,9 @@ function odoo_helper_print_version {
     echo -e "Version: ${GREENC}$ODOO_HELPER_VERSION${NC}";
 
     if git_is_git_repo "$ODOO_HELPER_ROOT"; then
-        echo -e "Branch:  ${BLUEC}$(git_get_branch_name $ODOO_HELPER_ROOT)${NC}";
-        echo -e "Commit:  ${BLUEC}$(git_get_current_commit $ODOO_HELPER_ROOT)${NC}";
-        echo -e "Date:    ${BLUEC}$(git_get_current_commit_date $ODOO_HELPER_ROOT)${NC}";
+        echo -e "Branch:  ${BLUEC}$(git_get_branch_name "$ODOO_HELPER_ROOT")${NC}";
+        echo -e "Commit:  ${BLUEC}$(git_get_current_commit "$ODOO_HELPER_ROOT")${NC}";
+        echo -e "Date:    ${BLUEC}$(git_get_current_commit_date "$ODOO_HELPER_ROOT")${NC}";
     fi
 
     echo -e "Path:    ${YELLOWC}$ODOO_HELPER_ROOT${NC}";
@@ -524,7 +524,7 @@ function odoo_helper_main {
             exec)
                 shift;
                 config_load_project;
-                if [ ! -z "$ODOO_CONF_FILE" ]; then
+                if [ -n "$ODOO_CONF_FILE" ]; then
                     exec_conf "$ODOO_CONF_FILE" execv "$@";
                 else
                     execv "$@";

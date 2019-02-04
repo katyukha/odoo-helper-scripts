@@ -174,21 +174,6 @@ function get_repo_name {
     fi
 }
 
-# Install python dependencies
-# fetch_python_dep <python module>
-function fetch_python_dep {
-    # Check if python dependency is vcs url like git+https://github.com/smth/smth
-    # And if it is VCS dependency install it as editable via pip
-    if [[ $1 =~ .*\+.* ]]; then
-        local install_opt="-e $1";
-    else
-        local install_opt="$1";
-    fi
-
-    exec_pip -q install $install_opt;
-}
-
-
 # Clone git repository.
 #
 # fetch_clone_repo <url> <dest> [branch]
@@ -286,7 +271,6 @@ function fetch_clone_repo {
 # fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
 # fetch_module --hg <hg repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
 # fetch_module --requirements <requirements file>
-# fetch_module -p <python module> [-p <python module>] ...
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
     local usage="
@@ -295,7 +279,6 @@ function fetch_module {
         $SCRIPT_NAME fetch --github <github username/reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --oca <OCA reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --requirements <requirements file>
-        $SCRIPT_NAME fetch -p|--python <python module>
 
     Options:
         -r|--repo <repo>         - git repository to get module from
@@ -310,25 +293,18 @@ function fetch_module {
         -b|--branch <branch>     - name fo repository branch to clone
         --requirements <file>    - path to requirements file to fetch required modules
                                    NOTE: requirements file must end with newline.
-        -p|--python <package>    - fetch python dependency. (it use pip to install package) (deprecated)
-        -p|--python <vcs>+<repository>  - install python dependency directly from VCS (deprecated)
 
     Note that in one call only one option of (-r, --github, --oca) must be present in one line.
 
     Examples:
        # fetch default branch of base_tags repository, link all modules placed in repository
-       $SCRIPT_NAME fetch -r https://github.com/katyukha/base_tags 
+       $SCRIPT_NAME fetch -r https://github.com/crnd-inc/generic-addons
 
        # same as previous but via --github option
-       $SCRIPT_NAME fetch --github katyukha/base_tags
+       $SCRIPT_NAME fetch --github crnd-inc/generic-addons
 
        # fetch project_sla module from project repository of OCA using branch 8.0
        $SCRIPT_NAME fetch --oca project -m project_sla -b 8.0
-
-    Also note that if using -p or --python option, You may install packages directly from vcs
-    using syntax like
-
-       $SCRIPT_NAME fetch -p <vcs>
     ";
 
     if [[ $# -lt 1 ]]; then
@@ -341,7 +317,6 @@ function fetch_module {
     local REPO_NAME=;
     local REPO_BRANCH=;
     local REPO_BRANCH_OPT=;
-    local PYTHON_INSTALL=;
     local REPO_TYPE=git;
 
     # Check if first argument is git repository
@@ -402,14 +377,6 @@ function fetch_module {
                 REPO_BRANCH="$2";
                 shift;
             ;;
-            -p|--python)
-                echoe -e "${YELLOWC}WARNING${NC}: ${YELLOWC}-p${NC} and ${YELLOWC}--python${NC} options for ${BLUEC}odoo-helper fetch${NC} command are deprecated.";
-                echoe -e "Use ${YELLOWC}odoo-helper pip install${NC} to istall python dependencies.";
-                echoe -e "Also ${YELLOWC}requirements.txt${NC} file will be automaticaly processed if it is placed in repository root or addon root directory";
-                PYTHON_INSTALL=1;
-                fetch_python_dep $2
-                shift;
-            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -432,10 +399,6 @@ function fetch_module {
     done
 
     if [ -z $REPOSITORY ]; then
-        if [ ! -z $PYTHON_INSTALL ]; then
-            return 0;
-        fi
-
         echo "No git repository supplied to fetch module from!";
         echo "";
         print_usage;

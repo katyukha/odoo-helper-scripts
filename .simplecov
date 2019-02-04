@@ -13,4 +13,5 @@ SimpleCov.start do
     add_filter "run_docker_test.bash"
     add_filter "scripts/"
     add_filter "tests/ci.bash"
+    add_filter "tools/virtualenv"
 end

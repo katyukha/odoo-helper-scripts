@@ -48,7 +48,6 @@ This project aims to simplify development process of Odoo addons as much as poss
     - regenerate translations for specified language
     - load language (for one db or for old databases)
 - Supported odoo versions:
-    - *7.0* (*deprecated*),
     - *8.0*
     - *9.0*
     - *10.0*

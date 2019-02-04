@@ -95,97 +95,6 @@ Run odoo-helper postgres speedify
 ${NC}"
 odoo-helper postgres speedify
 
-echo -e "${YELLOWC}
-==================================================
-Test install of odoo version 7.0
-Also install dependencies and configure postgresql
-==================================================
-${NC}"
-
-# Install system dependencies for odoo version 7.0
-odoo-helper install sys-deps -y 7.0;
-
-# Install postgres and create there user with name='odoo' and password='odoo'
-odoo-helper install postgres odoo7 odoo
-
-# Install odoo 7.0
-odoo-install -i odoo-7.0 --odoo-version 7.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 \
-    --db-user odoo7 --db-pass odoo
-cd odoo-7.0
-
-echo "";
-echo "Generated odoo config:"
-echo "$(cat ./conf/odoo.conf)"
-echo "";
-
-# Now You will have odoo-7.0 installed in this directory.
-# Note, thant Odoo this odoo install uses virtual env (venv dir)
-# Also You will find there odoo-helper.conf config file
-
-echo -e "${YELLOWC}
-=================================
-Test 'odoo-helper server' command
-=================================
-${NC}"
-# So now You may run local odoo server (i.e openerp-server script).
-# Note that this command run's server in foreground.
-odoo-helper server --stop-after-init  # This will automaticaly use config file: conf/odoo.conf
-
-# Also you may run server in background using
-odoo-helper server start
-
-# there are also few additional server related commands:
-odoo-helper server status
-
-# list odoo processes
-odoo-helper server ps
-
-# odoo-helper server log    # note that this option runs less, so blocks for input
-odoo-helper server restart
-odoo-helper server stop
-odoo-helper server status
-
-# The one cool thing of odoo-helper script is that you may not remeber paths to odoo instalation,
-# and if you change directory to another inside your odoo project, everything will continue to work.
-cd custom_addons
-odoo-helper server status
-odoo-helper server restart
-odoo-helper server stop
-odoo-helper server status
-
-
-echo -e "${YELLOWC}
-============================================================
-Fetch and test 'https://github.com/katyukha/base_tags' addon
-============================================================
-${NC}"
-# Print help message for fetch command
-odoo-helper fetch --help
-echo -e "${BLUEC}---${NC}";
-
-# Let's install base_tags addon into this odoo installation
-odoo-helper fetch --github katyukha/base_tags --branch master
-
-# Now look at custom_addons/ dir, there will be placed links to addons
-# from https://github.com/katyukha/base_tags repository
-# But repository itself is placed in downloads/ directory
-# By default no branch specified when You fetch module,
-# but there are -b or --branch option which can be used to specify which branch to fetch
-
-# Now let's run tests for these just installed modules
-odoo-helper test --create-test-db -m base_tags -m product_tags
-
-# this will create test database (it will be dropt after test finishes) and 
-# run tests for modules 'base_tags' and 'product_tags'
-
-# If You need color output from Odoo, you may use '--use-unbuffer' option,
-# but it depends on 'expect-dev' package
-cd ../repositories
-odoo-helper --use-unbuffer test --create-test-db -d ./base_tags
-# So... let's install one more odoo version
-# go back to directory containing our projects (that one, where odoo-7.0 project is placed)
-cd ../../
 
 echo -e "${YELLOWC}
 ========================================================================
@@ -227,29 +136,12 @@ odoo-helper install py-tools
 # Also we may generate html coverage report too
 (cd ./repositories/project; odoo-helper test --coverage-html -m project_sla || true);
 
-
-# also if you want to install python packages in current installation environment, you may use command:
-odoo-helper fetch -p suds  # this installs 'suds' python package
-
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
 
 # Or check for updates of addons
 odoo-helper --use-unbuffer addons check-updates
 
-echo -e "${YELLOWC}
-===============================================================================
-Go back to Odoo 7.0 instance, we installed at start of test
-and fetch and install there aeroo reports addon with it's dependency 'aeroolib'
-After this, generate requirements list.
-===============================================================================
-${NC}"
-
-# and as one more example, let's install aeroo-reports with dependancy to aeroolib in odoo 7.0
-cd ../odoo-7.0
-odoo-helper fetch --github gisce/aeroo -n aeroo
-odoo-helper fetch -p git+https://github.com/jamotion/aeroolib#egg=aeroolib
-odoo-helper generate_requirements
 
 echo -e "${YELLOWC}
 ==========================
@@ -274,9 +166,6 @@ echo "";
 
 odoo-helper server --stop-after-init;  # test that it runs
 
-# Update odoo source code (here odoo source is under git)
-odoo-helper server auto-update
-
 # Create odoo 9 database
 odoo-helper db create test-9-db;
 
@@ -288,11 +177,16 @@ odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
 odoo-helper addons list --installable ./custom_addons;
 odoo-helper addons list --color --recursive ./repositories;
-odoo-helper addons list --not-linked ./repositories;
+odoo-helper --no-colors addons list --color --recursive ./repositories;
+odoo-helper addons list --not-linked --recursive ./repositories;
+odoo-helper addons list --linked --recursive ./repositories;
 odoo-helper addons list --by-path ./repositories;
+(cd repositories && odoo-helper addons list --recursive);
 odoo-helper addons update-list --help;
 odoo-helper addons update-list;
+odoo-helper start;
 odoo-helper addons install bus_enhanced;
+odoo-helper stop;
 odoo-helper addons test-installed bus_enhanced;  # find databases where this addons is installed
 odoo-helper addons update -m bus_enhanced;
 odoo-helper addons uninstall bus_enhanced;
@@ -315,6 +209,9 @@ odoo-helper addons list-no-repo;
 # Generate requirements
 odoo-helper addons generate-requirements;
 
+# Generate requirements (shortcut)
+odoo-helper generate-requirements;
+
 # Reinstall odoo downloading archive
 odoo-helper install reinstall-odoo download;
 
@@ -326,6 +223,9 @@ odoo-helper status
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
+
+# Update odoo sources
+odoo-helper update-odoo
 
 
 echo -e "${YELLOWC}
@@ -366,6 +266,9 @@ odoo-helper db rename my-test-odoo-database my-test-db-renamed
 # Run psql and list all databases visible for odoo user
 # This command will automaticaly pass connection params from odoo config
 odoo-helper postgres psql -c "\l"
+
+# Run psql and list all databases visible for odoo user (shortcut)
+odoo-helper psql -c "\l"
 
 # recompute parent-store for ir.ui.menu
 odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu --parent-store
@@ -431,14 +334,14 @@ odoo-helper addons list --filter "first" ./repositories/partner-contact
 # Show project status
 odoo-helper status
 
+# Update odoo-sources
+odoo-helper update-odoo
+
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
 
 # Print odoo helper configuration
 odoo-helper print-config
-
-# Update odoo source code (here odoo source is archive)
-odoo-helper server auto-update
 
 # Pull odoo addons update
 (cd ./repositories/partner-contact && git checkout HEAD^^^1)
@@ -541,6 +444,8 @@ odoo-helper fetch --oca partner-contact;
 # Check oca/partner-contact with ci commands
 odoo-helper ci ensure-icons repositories/partner-contact || true
 odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 HEAD || true
+odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 || true
+odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/partner-contact HEAD^^^1 || true
 
 # Show addons changed
 odoo-helper git changed-addons repositories/partner-contact HEAD^^^1 HEAD
@@ -627,12 +532,6 @@ odoo-helper lint style ./repositories/web/web_widget_color || true
 odoo-helper lint style ./repositories/web/web_widget_datepicker_options || true
 
 
-echo -e "${GREENC}
-==========================================
-Tests finished
-==========================================
-${NC}"
-
 echo -e "${YELLOWC}
 =================================
 Install and check Odoo 12.0 (Py3)
@@ -661,29 +560,43 @@ if ! [[ "$(odoo-helper exec python --version 2>&1)" == "Python 3."* ]]; then
 fi
 
 echo "";
-echo "Generated odoo config:"
-echo "$(cat ./conf/odoo.conf)"
+echo "Generated odoo config:";
+echo "$(cat ./conf/odoo.conf)";
 echo "";
 
 odoo-helper server run --stop-after-init;  # test that it runs
 
 # Show project status
-odoo-helper status
-odoo-helper server status
-odoo-helper start
-odoo-helper ps
-odoo-helper status
-odoo-helper server status
-odoo-helper stop
+odoo-helper status;
+odoo-helper server status;
+odoo-helper start;
+odoo-helper ps;
+odoo-helper status;
+odoo-helper server status;
+odoo-helper stop;
 
 # Show complete odoo-helper status
-odoo-helper status  --tools-versions --ci-tools-versions
+odoo-helper status  --tools-versions --ci-tools-versions;
 
 # Fetch oca/contract
 odoo-helper fetch --oca contract
 
-odoo-helper addons install --ual --dir ./repositories/contract
+odoo-helper addons install --ual --dir ./repositories/contract;
 
-# Create test database
-odoo-helper db create --demo --lang en_US odoo12-odoo-test
-odoo-helper db drop odoo12-odoo-test
+# Database management
+odoo-helper db create --demo --lang en_US odoo12-odoo-test;
+odoo-helper db create --recreate --demo --lang en_US odoo12-odoo-test;
+odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
+odoo-helper db exists odoo12-odoo-test;
+odoo-helper db exists odoo12-odoo-tmp;
+odoo-helper db backup-all zip;
+odoo-helper db drop odoo12-odoo-test;
+odoo-helper db drop -q odoo12-odoo-tmp;
+
+
+echo -e "${GREENC}
+==========================================
+Tests finished
+==========================================
+${NC}"
+

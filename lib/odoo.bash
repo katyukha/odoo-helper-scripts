@@ -188,12 +188,8 @@ function odoo_recompute_stored_fields {
         -f|--field <field name> - name of field to be recomputed.
                                   could be specified multiple times,
                                   to recompute few fields at once.
-                                  NOTE: this applicable only for new-style-fields in Odoo 8.0, 9.0
         --parent-store          - recompute parent left and parent right fot selected model
                                   conflicts wiht --field option
-
-    Note: this command works only for Odoo ${YELLOWC}8.0+${NC}
-
     ";
 
     if [[ $# -lt 1 ]]; then

@@ -1,5 +1,35 @@
 # Release Notes
 
+## Release 0.3.0 (2019-02-04)
+
+### Added
+
+- Added `--fix-version` option to `odoo-helper ci check-versions-git` command
+- Added ability to pass list of addons to `odoo-helper test` command without 
+  need to prefix each addon with `-m `. Now it could be done like:
+  `odoo-helper test my_addon1 my_addon2`
+- Added `--skip` option of `odoo-helper test` command
+- Added `odoo-helper db copy` command
+
+### Fixed
+
+- running `odoo-helper tr` command will not overwrite `pidfile`
+
+### Changed
+
+- Last argument of `odoo-helper ci check-versions-git` now optional.
+  If it is omited, than current working tree state will be used as last revision.
+- Use own copy of virtualenv, to avoid installing it in system.
+  virtualenv is bundled into odoo-helper as git submodule now.
+
+### Removed
+
+- Removed support of Odoo 7.0. Now minimal supported Odoo version is 8.0
+- Removed `odoo-helper server auto-update` command that was deprecated in previous version
+- Removed `-p` and `--python` options for `odoo-helper fetch` command
+- Removed `-p` and `--python` options for `odoo_requirements.txt` file
+
+
 ## Release 0.2.0 (2018-12-20)
 
 ### Added
