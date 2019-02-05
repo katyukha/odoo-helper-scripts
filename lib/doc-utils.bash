@@ -6,21 +6,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
 #######################################################################
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 ohelper_require 'addons';
-#ohelper_require 'db';
-#ohelper_require 'server';
-#ohelper_require 'odoo';
-#ohelper_require 'fetch';
 ohelper_require 'utils';
 # ----------------------------------------------------------------------------------------
 

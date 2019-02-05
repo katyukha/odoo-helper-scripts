@@ -33,7 +33,7 @@ if [ -z "$ODOO_HELPER_ROOT" ]; then
         source "$HOME/$CONF_FILE_NAME";
     fi
 
-    if [ -z $ODOO_HELPER_ROOT ]; then
+    if [ -z "$ODOO_HELPER_ROOT" ]; then
         echo "Odoo-helper-scripts seems not been installed correctly.";
         echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
         exit 1;
@@ -70,8 +70,8 @@ allow_colors;
 # oh_get_lib_path <lib name>
 function oh_get_lib_path {
     local mod_name=$1;
-    local mod_path=$ODOO_HELPER_LIB/$mod_name.bash;
-    if [ -f $mod_path ]; then
+    local mod_path="$ODOO_HELPER_LIB/$mod_name.bash";
+    if [ -f "$mod_path" ]; then
         echo "$mod_path";
     else
         >&2 echo -e "${REDC}ERROR${NC}: module ${YELLOWC}${mod_name}${NC} could not been loaded." \
@@ -84,9 +84,11 @@ function oh_get_lib_path {
 # oh_require <module_name>
 function ohelper_require {
     local mod_name=$1;
+    local mod_path;
     if [ -z ${ODOO_HELPER_IMPORTED_MODULES[$mod_name]} ]; then
         ODOO_HELPER_IMPORTED_MODULES[$mod_name]=1;
-        source $(oh_get_lib_path $mod_name);
+        mod_path=$(oh_get_lib_path "$mod_name");
+        source "$mod_path";
     fi
 }
 
