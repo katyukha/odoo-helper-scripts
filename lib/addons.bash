@@ -387,7 +387,7 @@ function addons_list_in_directory {
                     if _addons_list_in_directory_filter "$addon" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr"; then
                         _addons_list_in_directory_display "$addon" $name_mode $color_mode;
                     fi
-                elif [ ! -z $recursive ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
+                elif [ -n "$recursive" ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
                     addons_list_in_directory $recursive_options "$addon";
                 fi
             done
@@ -564,12 +564,12 @@ function addons_show_status {
         fi
 
         # if '--only-unclean' specified, skip addons that are clean
-        if [ ! -z $only_unclean ] && [ ${git_status[3]} -eq 1 ]; then
+        if [ -n "$only_unclean" ] && [ ${git_status[3]} -eq 1 ]; then
             continue
         fi
 
         # if '--only-git-updates' specified, skip addons which is up to date
-        if [ ! -z $only_git_updates ] && [ ${git_status[1]} == "." ]; then
+        if [ -n "$only_git_updates" ] && [ ${git_status[1]} == "." ]; then
             continue
         fi
 
@@ -780,7 +780,7 @@ function addons_install_update {
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${GREENC}OK${NC}";
         else
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
-            if [ ! -z $open_logs ]; then
+            if [ -n "$open_logs" ]; then
                 server_log;
             fi
             return 1;
@@ -788,10 +788,10 @@ function addons_install_update {
     done
 
     # Start server again if it was stopped
-    if [ ! -z $need_start ] && ! server_is_running; then
+    if [ -n "$need_start" ] && ! server_is_running; then
         server_start;
     fi
-    if [ ! -z $open_logs ]; then
+    if [ -n "$open_logs" ]; then
         server_log;
     fi
 }

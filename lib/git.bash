@@ -42,9 +42,9 @@ function git_get_current_commit {
 
 # git_get_branch_name [repo_path]
 function git_get_branch_name {
-    local cdir=`pwd`;
-    if [ ! -z "$1" ]; then
-        cd $1;
+    local cdir=$(pwd);
+    if [ -n "$1" ]; then
+        cd "$1";
     fi
 
     local branch_name=$(git symbolic-ref -q HEAD);
@@ -53,24 +53,24 @@ function git_get_branch_name {
     
     echo "$branch_name"
 
-    if [ ! -z "$1" ]; then
-        cd $cdir;
+    if [ -n "$1" ]; then
+        cd "$cdir";
     fi
 }
 
 # git_get_remote_url [repo_path]
 function git_get_remote_url {
-    local cdir=`pwd`;
-    if [ ! -z "$1" ]; then
-        cd $1;
+    local cdir=$(pwd);
+    if [ -n "$1" ]; then
+        cd "$1";
     fi
 
-    local current_branch=`git_get_branch_name`;
-    local git_remote=`git config --local --get branch.$current_branch.remote`;
-    echo "`git config --local --get remote.$git_remote.url`";
+    local current_branch=$(git_get_branch_name);
+    local git_remote=$(git config --local --get branch.$current_branch.remote);
+    echo "$(git config --local --get remote.$git_remote.url)";
 
-    if [ ! -z "$1" ]; then
-        cd $cdir;
+    if [ -n "$1" ]; then
+        cd "$cdir";
     fi
 }
 
@@ -304,7 +304,7 @@ function git_get_addons_changed {
         if [ -z "$manifest_path" ]; then
             local manifest_path=$(search_file_up "$file_path" __openerp__.py);
         fi
-        if [ ! -z "$manifest_path" ]; then
+        if [ -n "$manifest_path" ]; then
             local addon_path=$(dirname $(readlink -f "$manifest_path"));
             echo "$addon_path";
         fi

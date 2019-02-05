@@ -122,7 +122,7 @@ function lint_run_pylint {
     local pylint_opts="$pylint_opts -d $pylint_disable";
 
     # Show help if requested
-    if [ ! -z $show_help ]; then
+    if [ -n "$show_help" ]; then
         execu pylint $pylint_opts;
         return;
     fi

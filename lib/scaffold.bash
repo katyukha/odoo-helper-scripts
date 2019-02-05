@@ -161,9 +161,9 @@ function scaffold_addon {
     depends=$(join_by "," $depends);
 
     # If repo specified, take it into account
-    if [ ! -z $repo ] && git_is_git_repo $REPOSITORIES_DIR/$repo; then
+    if [ -n "$repo" ] && git_is_git_repo $REPOSITORIES_DIR/$repo; then
         addon_dest=$REPOSITORIES_DIR/$repo;
-    elif [ ! -z $repo ] && git_is_git_repo $(readlink -f $repo); then
+    elif [ -n "$repo" ] && git_is_git_repo $(readlink -f $repo); then
         addon_dest=$(readlink -f $repo);
     fi
 

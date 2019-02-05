@@ -126,7 +126,7 @@ function server_run {
         esac
     done
     local SERVER=$(get_server_script);
-    if [ ! -z $SERVER_RUN_USER ]; then
+    if [ -n "$SERVER_RUN_USER" ]; then
         local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
         echov "Using server run opt: $sudo_opt";
     fi
@@ -202,9 +202,9 @@ function server_start {
         esac
     done
 
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echo -e "${YELLOWC}Starting server via init script: $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT start;
+        execu "$INIT_SCRIPT" start;
     else
         # Check if server process is already running
         if server_is_running; then
@@ -218,9 +218,9 @@ function server_start {
         local odoo_pid=;
         for stime in 2 4 8 16; do
             sleep $stime;
-            if [ -f $ODOO_PID_FILE ]; then
+            if [ -f "$ODOO_PID_FILE" ]; then
                 odoo_pid=$(cat $ODOO_PID_FILE);
-                if [ ! -z $odoo_pid ] && is_process_running $odoo_pid; then
+                if [ -n "$odoo_pid" ] && is_process_running "$odoo_pid"; then
                     break
                 else
                     odoo_pid=;
@@ -228,7 +228,7 @@ function server_start {
             fi
         done
 
-        if [ -z $odoo_pid ]; then
+        if [ -z "$odoo_pid" ]; then
             echoe -e "${REDC}ERROR${NC}: Cannot start odoo.";
             return 1;
         else
@@ -242,38 +242,38 @@ function server_start {
         fi
     fi
 
-    if [ ! -z $log_after_start ]; then
+    if [ -n "$log_after_start" ]; then
         server_log;
     fi
 }
 
 function server_stop {
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echoe -e "${YELLOWC}Soppting server via init script: $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT stop;
+        execu "$INIT_SCRIPT" stop;
     else
         local pid=$(server_get_pid);
-        if [ $pid -gt 0 ]; then
-            if kill $pid; then
+        if [ "$pid" -gt 0 ]; then
+            if kill "$pid"; then
                 # wait until server is stopped
                 for stime in 2 4 6 8; do
-                    if is_process_running $pid; then
+                    if is_process_running "$pid"; then
                         # if process alive, wait a little time
                         echov "Server still running. sleeping for $stime seconds";
-                        sleep $stime;
+                        sleep "$stime";
                     else
                         break;
                     fi
                 done
 
                 # if process still alive, it seems that it is frozen, so force kill it
-                if is_process_running $pid; then
-                    kill -SIGKILL $pid;
+                if is_process_running "$pid"; then
+                    kill -SIGKILL "$pid";
                     sleep 1;
                 fi
 
                 echoe -e "${GREENC}OK${NC}: Server stopped.";
-                rm -f $PID_FILE;
+                rm -f "$PID_FILE";
             else
                 echoe -e "${REDC}ERROR${NC}: Cannot kill process.";
             fi
@@ -286,19 +286,19 @@ function server_stop {
 }
 
 function server_status {
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echoe -e "${BLUEC}Server status via init script:${YELLOWC} $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT status;
+        execu "$INIT_SCRIPT" status;
     else
         local pid=$(server_get_pid);
-        if [ $pid -gt 0 ]; then
+        if [ "$pid" -gt 0 ]; then
             echoe -e "${GREENC}Server process already running: PID=${YELLOWC}${pid}${GREENC}.${NC}";
             if [ -z "$INIT_SCRIPT" ]; then
                 echoe -e "${GREENC}Server URL:${NC} ${BLUEC}$(odoo_get_server_url)${NC}";
             fi
-        elif [ $pid -eq -2 ]; then
+        elif [ "$pid" -eq -2 ]; then
             echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
-        elif [ $pid -eq -1 ]; then
+        elif [ "$pid" -eq -1 ]; then
             echoe -e "${REDC}Server stopped${NC}";
         else
             echoe -e "${REDC}Unknown server status!${NC}";
@@ -307,9 +307,9 @@ function server_status {
 }
 
 function server_restart {
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT restart;
+        execu "$INIT_SCRIPT" restart;
     else
         server_stop;
         server_start "$@";

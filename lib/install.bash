@@ -61,7 +61,7 @@ function install_clone_odoo {
     local odoo_repo=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
     local branch_opt=;
 
-    if [ ! -z $odoo_branch ]; then
+    if [ -n "$odoo_branch" ]; then
         branch_opt="$branch_opt --branch $odoo_branch";
     fi
 
@@ -215,7 +215,7 @@ function install_sys_deps_internal {
     # Odoo's debian/control file usualy contains this in 'Depends' section 
     # so we need to skip it before running apt-get
     echoe -e "${BLUEC}Installing system dependencies${NC}: $@";
-    if [ ! -z $ALWAYS_ANSWER_YES ]; then
+    if [ -n "$ALWAYS_ANSWER_YES" ]; then
         local opt_apt_always_yes="-yq";
     fi
     with_sudo apt-get install $opt_apt_always_yes --no-install-recommends "$@";
@@ -516,7 +516,7 @@ function install_and_configure_postgresql {
         echo -e "${YELLOWC}It seems that postgresql is already installed... Skipping this step...${NC}";
     fi
 
-    if [ ! -z $db_user ] && [ ! -z $db_password ]; then
+    if [ -n "$db_user" ] && [ -n "$db_password" ]; then
         postgres_user_create $db_user $db_password;
     fi
 }
@@ -577,8 +577,8 @@ function install_system_prerequirements {
 #
 # install_virtual_env [opts]
 function install_virtual_env {
-    if [ ! -z $VENV_DIR ] && [ ! -d $VENV_DIR ]; then
-        if [ -z $VIRTUALENV_PYTHON ]; then
+    if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
+        if [ -z "$VIRTUALENV_PYTHON" ]; then
             VIRTUALENV_PYTHON=$(odoo_get_python_version) ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;
         else
             VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;

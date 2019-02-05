@@ -39,10 +39,10 @@ function config_print {
     echo "BACKUP_DIR=$BACKUP_DIR;";
     echo "REPOSITORIES_DIR=$REPOSITORIES_DIR;";
     
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echo "INIT_SCRIPT=$INIT_SCRIPT;";
     fi
-    if [ ! -z $ODOO_REPO ]; then
+    if [ -n "$ODOO_REPO" ]; then
         echo "ODOO_REPO=$ODOO_REPO;";
     fi
 }
@@ -50,7 +50,7 @@ function config_print {
 
 # Function to configure default variables
 function config_set_defaults {
-    if [ -z $PROJECT_ROOT_DIR ]; then
+    if [ -z "$PROJECT_ROOT_DIR" ]; then
         echo -e "${REDC}There is no PROJECT_ROOT_DIR set!${NC}";
         return 1;
     fi

@@ -62,7 +62,7 @@ function fetch_requirements {
     if [ -f "$REQUIREMENTS_FILE" ] && [ ! -d "$REQUIREMENTS_FILE" ]; then
         echov "Processing requirements file $REQUIREMENTS_FILE";
         while read -r line; do
-            if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
+            if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
                 if fetch_module $line; then
                     echoe -e "Line ${GREENC}OK${NC}: $line";
                 else
@@ -133,7 +133,7 @@ function fetch_oca_requirements {
        if ! read -ra line; then
            is_read_finished=1;
        fi
-       if [ ! -z "$line" ] && [[ ! "$line" == "#"* ]]; then
+       if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
            local opt=""; #"--name ${line[0]}";
 
            # if there are no url specified then use --oca shortcut
@@ -145,7 +145,7 @@ function fetch_oca_requirements {
            fi
 
            # add branch if it spcified in file
-           if [ ! -z "${line[2]}" ]; then
+           if [ -n "${line[2]}" ]; then
                opt="$opt --branch ${line[2]}";
            fi
            
@@ -222,7 +222,7 @@ function fetch_clone_repo_hg {
     local repo_dest=$1; shift;
 
     # optional branch arg
-    if [ ! -z $1 ]; then
+    if [ -n "$1" ]; then
         local repo_branch_opt="-r $1"; shift;
     fi
 
@@ -253,7 +253,7 @@ function fetch_clone_repo {
     local repo_dest=$1; shift;
 
     # optional branch arg
-    if [ ! -z $1 ]; then
+    if [ -n "$1" ]; then
         local repo_branch=$1; shift;
     fi
 
@@ -330,7 +330,7 @@ function fetch_module {
         local key="$1";
         case $key in
             -r|--repo)
-                if [ ! -z $REPOSITORY ]; then
+                if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     return -1;
                 fi
@@ -338,7 +338,7 @@ function fetch_module {
                 shift;
             ;;
             --hg)
-                if [ ! -z $REPOSITORY ]; then
+                if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     return -1;
                 fi
@@ -347,7 +347,7 @@ function fetch_module {
                 shift;
             ;;
             --github)
-                if [ ! -z $REPOSITORY ]; then
+                if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     return -1;
                 fi
@@ -355,7 +355,7 @@ function fetch_module {
                 shift;
             ;;
             --oca)
-                if [ ! -z $REPOSITORY ]; then
+                if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
                     return -1;
                 fi
@@ -425,8 +425,8 @@ function fetch_module {
     #    - repository is already clonned
 
     # Clone
-    if [ ! -d $REPO_PATH ]; then
-        if [ ! -z $MODULE ] && [ -d "$ADDONS_DIR/$MODULE" ]; then
+    if [ ! -d "$REPO_PATH" ]; then
+        if [ -n "$MODULE" ] && [ -d "$ADDONS_DIR/$MODULE" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: The module ${BLUEC}$MODULE${NC} already present in addons dir";
             return 0;
         else

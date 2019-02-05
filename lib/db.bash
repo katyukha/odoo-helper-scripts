@@ -282,7 +282,7 @@ function odoo_db_dump {
     # determine 3-d and 4-th arguments (format and odoo_conf_file)
     if [ -f "$3" ]; then
         conf_file=$3;
-    elif [ ! -z $3 ]; then
+    elif [ -n "$3" ]; then
         local format=$3;
         local format_opt=", '$format'";
 
@@ -319,7 +319,7 @@ function odoo_db_backup {
     local db_dump_file="$BACKUP_DIR/db-backup-$db_name-$FILE_SUFFIX";
 
     # if format is passed and format is 'zip':
-    if [ ! -z $2 ] && [ "$2" == "zip" ]; then
+    if [ -n "$2" ] && [ "$2" == "zip" ]; then
         db_dump_file="$db_dump_file.zip";
     else
         db_dump_file="$db_dump_file.backup";
@@ -337,7 +337,7 @@ function odoo_db_backup_all {
     # parse args
     if [ -f "$1" ]; then
         conf_file=$1;
-    elif [ ! -z $1 ]; then
+    elif [ -n "$1" ]; then
         local format=$1;
         local format_opt=", '$format'";
 

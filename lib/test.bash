@@ -192,8 +192,8 @@ function test_run_tests {
 
     # Remove log file if it is present before test, otherwise
     # it will be appended, wich could lead to incorrect test results
-    if [ ! -z "$test_log_file" ] && [ -e "$test_log_file" ]; then
-        rm $test_log_file;
+    if [ -n "$test_log_file" ] && [ -e "$test_log_file" ]; then
+        rm "$test_log_file";
     fi
 
     trap "test_run_tests_handle_sigint $create_test_db $test_db_name" SIGINT;
@@ -403,24 +403,24 @@ function test_module {
     _test_check_conf_options;
 
     # Run tests
-    if test_run_tests ${recreate_db:-0} ${create_test_db:-0} \
-        ${fail_on_warn:-0} ${with_coverage:-0} $modules_to_test;
+    if test_run_tests "${recreate_db:-0}" "${create_test_db:-0}" \
+        "${fail_on_warn:-0}" "${with_coverage:-0}" $modules_to_test;
     then
         res=0;
     else
         res=1
     fi
 
-    if [ ! -z "$with_coverage_report_html" ]; then
-        if [ ! -z $with_coverage_skip_covered ]; then
+    if [ -n "$with_coverage_report_html" ]; then
+        if [ -n "$with_coverage_skip_covered" ]; then
             execv coverage html --skip-covered;
         else
             execv coverage html;
         fi
     fi
 
-    if [ ! -z "$with_coverage_report" ]; then
-        if [ ! -z $with_coverage_skip_covered ]; then
+    if [ -n "$with_coverage_report" ]; then
+        if [ -n "$with_coverage_skip_covered" ]; then
             execv coverage report --skip-covered;
         else
             execv coverage report;

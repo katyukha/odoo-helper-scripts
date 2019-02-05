@@ -73,10 +73,10 @@ function system_is_odoo_helper_project {
         return 2;
     fi
 
-    cd $dir_name;
+    cd "$dir_name";
     config_load_project 2>/dev/null;
-    cd $save_dir;
-    if [ -z $PROJECT_ROOT_DIR ]; then
+    cd "$save_dir";
+    if [ -z "$PROJECT_ROOT_DIR" ]; then
         return 1;
     else
         return 0;
@@ -85,7 +85,7 @@ function system_is_odoo_helper_project {
 
 # Return odoo-helper path to virtualenv directory
 function system_get_venv_dir {
-    local dir_name="$(readlink -f ${1:-$(pwd)})";
+    local dir_name=$(readlink -f "${1:-$(pwd)}");
     local save_dir=$(pwd);
 
     if [ ! -d "$dir_name" ]; then
@@ -93,10 +93,10 @@ function system_get_venv_dir {
         return 2;
     fi
 
-    cd $dir_name;
+    cd "$dir_name";
     config_load_project 2>/dev/null;
-    cd $save_dir;
-    if [ ! -z $PROJECT_ROOT_DIR ]; then
+    cd "$save_dir";
+    if [ -n "$PROJECT_ROOT_DIR" ]; then
         echo "${VENV_DIR}";
     else
         echoe -e "${REDC}ERROR${NC}: directory ${YELLOWC}${dir_name}${NC} is not under odoo-helper project";
