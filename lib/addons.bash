@@ -430,6 +430,39 @@ function addons_list_no_repository {
 # prints odoo-requirements file content (only addons which are git repositories)
 function addons_generate_requirements {
     local req_addons_dir=${1:-$ADDONS_DIR};
+    local usage="
+    Usage
+
+        $SCRIPT_NAME addons generate-requirements [addons dir]
+
+    Description
+
+        parse *addons dir*, find all addons that are
+        git repositories and print *odoo-requirements.txt* content
+        if *addons dir* is not set, then all addons available
+        for this instance will be parsed.
+        file content suitable for *fetch* subcommand.
+        for example:
+            $SCRIPT_NAME addons generate-requirements > odoo_requirements.txt
+        and you can use generated file for fetch subcommand:
+            $SCRIPT_NAME fetch --requirements odoo_requirements.txt
+    ";
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
     for repo in $(addons_list_repositories $req_addons_dir); do
       echo "--repo $(git_get_remote_url $repo) --branch $(git_get_branch_name $repo)";
     done

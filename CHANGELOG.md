@@ -1,5 +1,10 @@
 # Release Notes
 
+## Unreleased
+
+- Command *odoo-helper generate-requirements* deprecated.
+  Use *odoo-helper addons generate-requirements*
+
 ## Release 0.3.0 (2019-02-04)
 
 ### Added
