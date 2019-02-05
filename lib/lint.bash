@@ -68,8 +68,9 @@ function lint_run_flake8 {
     done
 
     local res=0;
+    local flake8_config=$(config_get_default_tool_conf "flake8.cfg");
     for path in $(addons_list_in_directory --installable $@); do
-        if ! execu flake8 --config="$ODOO_HELPER_LIB/default_config/flake8.cfg" $path; then
+        if ! execu flake8 --config="$flake8_config" $path; then
             res=1;
         fi
     done
@@ -97,7 +98,7 @@ function lint_run_pylint_internal {
 # lint_run_pylint <module1 path> [module2 path] .. [module n path]
 # lint_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
 function lint_run_pylint {
-    local pylint_rc="$ODOO_HELPER_LIB/default_config/pylint_odoo.cfg";
+    local pylint_rc=$(config_get_default_tool_conf "pylint_odoo.cfg");
     local pylint_opts="--rcfile=$pylint_rc";
     local pylint_disable="manifest-required-author";
 
