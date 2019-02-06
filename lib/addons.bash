@@ -839,6 +839,61 @@ function addons_update_py_deps {
 }
 
 
+function addons_find_installed {
+    local usage="
+    Usage
+
+        $SCRIPT_NAME addons find-installed
+
+    Description
+
+        Find all addons that installed in at least one database
+
+    Options
+
+        -h|--help|help  - show this help message
+
+    ";
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    local addons_list;
+    local addons_list_pg_str;
+    addons_list=( $(addons_list_in_directory --by-name "$ADDONS_DIR") );
+    for addon_name in "${addons_list[@]}"; do
+        addons_list_pg_str="$addons_list_pg_str, '$addon_name'";
+    done
+    addons_list_pg_str="${addons_list_pg_str#, }";
+
+    declare -A installed_addons_map;
+    local available_databases;
+    available_databases=( $(odoo_db_list) );
+    for db in "${available_databases[@]}"; do
+        local db_installed_addons;
+        db_installed_addons=$(postgres_psql -d "$db" -t -c "SELECT name FROM ir_module_module WHERE state = 'installed' AND name IN (${addons_list_pg_str})");
+        db_installed_addons=( $db_installed_addons );
+        for installed_addon in "${db_installed_addons[@]}"; do
+            installed_addons_map["$installed_addon"]=1;
+        done
+    done
+
+    for addon in "${!installed_addons_map[@]}"; do
+        echo "$addon";
+    done | sort;
+}
+
 
 function addons_command {
     local usage="
@@ -855,9 +910,14 @@ function addons_command {
         $SCRIPT_NAME addons uninstall --help              - uninstall some addon[s]
         $SCRIPT_NAME addons update-list --help            - update list of addons
         $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
+        $SCRIPT_NAME addons find-installed                - print list of addons installed in at least one db
         $SCRIPT_NAME addons update-py-deps                - update python dependencies of addons
         $SCRIPT_NAME addons generate-requirements         - generate odoo_requirements.txt for this instance
         $SCRIPT_NAME addons --help                        - show this help message
+
+    Shortcuts:
+
+        $SCRIPT_NAME addons ls  -> $SCRIPT_NAME addons list
 
     ";
 
@@ -870,7 +930,7 @@ function addons_command {
     do
         local key="$1";
         case $key in
-            list)
+            list|ls)
                 shift;
                 addons_list_in_directory --by-name $@;
                 return 0;
@@ -929,6 +989,11 @@ function addons_command {
             test-installed)
                 shift;
                 addons_test_installed $@;
+                return 0;
+            ;;
+            find-installed)
+                shift;
+                addons_find_installed $@;
                 return 0;
             ;;
             update-py-deps)

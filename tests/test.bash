@@ -578,11 +578,6 @@ odoo-helper stop;
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions;
 
-# Fetch oca/contract
-odoo-helper fetch --oca contract
-
-odoo-helper addons install --ual --dir ./repositories/contract;
-
 # Database management
 odoo-helper db create --demo --lang en_US odoo12-odoo-test;
 odoo-helper db create --recreate --demo --lang en_US odoo12-odoo-test;
@@ -590,6 +585,17 @@ odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
 odoo-helper db exists odoo12-odoo-test;
 odoo-helper db exists odoo12-odoo-tmp;
 odoo-helper db backup-all zip;
+
+# Fetch oca/contract
+odoo-helper fetch --oca contract
+
+# Install addons from OCA contract
+odoo-helper addons install --ual --dir ./repositories/contract;
+
+# Print list of installed addons
+odoo-helper addons find-installed;
+
+# Drop created databases
 odoo-helper db drop odoo12-odoo-test;
 odoo-helper db drop -q odoo12-odoo-tmp;
 

@@ -122,7 +122,6 @@ function postgres_user_create {
 #
 # postgres_psql ....
 function postgres_psql {
-    echoe -e "${BLUEC}Prepare psql cmd...${NC}"
     local pghost=$(odoo_get_conf_val db_host);
     local pgport=$(odoo_get_conf_val db_port);
     local pguser=$(odoo_get_conf_val db_user);
@@ -134,7 +133,6 @@ function postgres_psql {
         pgport=;
     fi
 
-    echoe -e "${BLUEC}Connection to psql via: '$cmd'${NC}"
     PGPASSWORD=$pgpass PGDATABASE=$default_db PGHOST=$pghost \
         PGPORT=$pgport PGUSER=$pguser psql "$@";
 }

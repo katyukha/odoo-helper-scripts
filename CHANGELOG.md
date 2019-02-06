@@ -4,6 +4,8 @@
 
 - Command *odoo-helper generate-requirements* deprecated.
   Use *odoo-helper addons generate-requirements*
+- Added command *odoo-helper addons find-installed*.
+  Scan all databases for installed addons.
 
 ## Release 0.3.0 (2019-02-04)
 
