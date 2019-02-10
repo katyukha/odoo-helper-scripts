@@ -104,10 +104,6 @@ function odoo_update_sources_archive {
 
     file_suffix="$(date -I).$(random_string 4)";
 
-    if [ -z "$VERBOSE" ]; then
-        wget_opt="$wget_opt -q";
-    fi
-
     if [ -d "$ODOO_PATH" ]; then    
         # Backup only if odoo sources directory exists
         local backup_path=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$file_suffix.tar.gz
@@ -119,8 +115,13 @@ function odoo_update_sources_archive {
     echoe -e "${LBLUEC}Downloading new sources archive...${NC}"
     odoo_archive=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$file_suffix.tar.gz
     # TODO: use odoo-repo variable here
-    wget -T 2 "$wget_opt" -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+    if [ -z "$VERBOSE" ]; then
+        wget -T 2 -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+    else
+        wget -T 2 -q -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+    fi
     rm -r "$ODOO_PATH";
+    echoe -e "${LBLUEC}Unpacking new source archive ...${NC}";
     (cd "$DOWNLOADS_DIR" && \
         tar -zxf "$odoo_archive" && \
         mv "odoo-$ODOO_BRANCH" "$ODOO_PATH");
