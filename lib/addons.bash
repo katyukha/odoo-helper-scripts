@@ -126,18 +126,6 @@ function addons_get_addon_dependencies {
     echo $(run_python_cmd "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))");
 }
 
-# Get list of installed addons
-# addons_get_installed_addons <db> [conf_file]
-function addons_get_installed_addons {
-    local db=$1;
-    local conf_file=${2:-$ODOO_CONF_FILE};
-
-    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd installed_addons=cl['$db']['ir.module.module'].search([('state', '=', 'installed')]);"
-    python_cmd="$python_cmd print(','.join(installed_addons.mapped('name')));"
-
-    run_python_cmd "$python_cmd";
-}
 
 # Update list of addons visible in system (for single db)
 # addons_update_module_list <db> [conf_file]
@@ -882,7 +870,7 @@ function addons_find_installed {
     available_databases=( $(odoo_db_list) );
     for db in "${available_databases[@]}"; do
         local db_installed_addons;
-        db_installed_addons=$(postgres_psql -d "$db" -t -c "SELECT name FROM ir_module_module WHERE state = 'installed' AND name IN (${addons_list_pg_str})");
+        db_installed_addons=$(postgres_psql -d "$db" -tA -c "SELECT name FROM ir_module_module WHERE state = 'installed' AND name IN (${addons_list_pg_str})");
         db_installed_addons=( $db_installed_addons );
         for installed_addon in "${db_installed_addons[@]}"; do
             installed_addons_map["$installed_addon"]=1;
