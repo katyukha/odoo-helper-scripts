@@ -90,49 +90,88 @@ function config_get_default_tool_conf {
 function config_check_project_config {
     local proj_conf_version=${PROJECT_CONFIG_VERSION:-0};
     local expected_conf_version=${ODOO_HELPER_CONFIG_VERSION};
-    if [[ $proj_conf_version -lt $expected_conf_version ]]; then
-        echoe -e "${YELLOWC}WARNING${NC}: Current project config version" \
-                 "${YELLOWC}${proj_conf_version}${NC} is less than " \
-                 "odoo-helper config version ${YELLOWC}${expected_conf_version}${NC}.\n" \
-                 "Please, upgrade config file for this project (${YELLOWC}$ODOO_HELPER_PROJECT_CONF${NC})!";
-        [ -z "$PROJECT_CONFIG_VERSION" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}PROJECT_CONFIG_VERSION${NC} is not specified." || true;
-        [ -z "$PROJECT_ROOT_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}PROJECT_ROOT_DIR${NC} is not specified." || true;
-        [ -z "$CONF_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}CONF_DIR${NC} is not specified." || true;
-        [ -z "$ODOO_CONF_FILE" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_CONF_FILE${NC} is not specified." || true;
-        [ -z "$ODOO_TEST_CONF_FILE" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_TEST_CONF_FILE${NC} is not specified." || true;
-        [ -z "$LOG_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}LOG_DIR${NC} is not specified." || true;
-        [ -z "$LOG_FILE" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}LOG_FILE${NC} is not specified." || true;
-        [ -z "$LIBS_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}LIBS_DIR${NC} is not specified." || true;
-        [ -z "$DOWNLOADS_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}DOWNLOADS_DIR${NC} is not specified." || true;
-        [ -z "$ADDONS_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ADDONS_DIR${NC} is not specified." || true;
-        [ -z "$DATA_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}DATA_DIR${NC} is not specified." || true;
-        [ -z "$BIN_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}BIN_DIR${NC} is not specified." || true;
-        [ -z "$ODOO_PID_FILE" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_PID_FILE${NC} is not specified." || true;
-        [ -z "$ODOO_PATH" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_PATH${NC} is not specified." || true;
-        [ -z "$BACKUP_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}BACKUP_DIR${NC} is not specified." || true;
-        [ -z "$REPOSITORIES_DIR" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}REPOSITORIES_DIR${NC} is not specified." || true;
-        [ -z "$ODOO_VERSION" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_VERSION${NC} is not specified." || true;
-        [ -z "$ODOO_BRANCH" ] && echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_BRANCH${NC} is not specified." || true;
+    if [[ $proj_conf_version -ge $expected_conf_version ]]; then
+        return 0;
+    fi
+
+    echoe -e "${YELLOWC}WARNING${NC}: Current project config version" \
+             "${YELLOWC}${proj_conf_version}${NC} is less than" \
+             "odoo-helper expected config version ${YELLOWC}${expected_conf_version}${NC}.\n" \
+             "Please, upgrade config file for this project (${YELLOWC}$ODOO_HELPER_PROJECT_CONF${NC})!";
+    if [ -z "$PROJECT_CONFIG_VERSION" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}PROJECT_CONFIG_VERSION${NC} is not specified.";
+    fi
+    if [ -z "$PROJECT_ROOT_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}PROJECT_ROOT_DIR${NC} is not specified.";
+    fi
+    if [ -z "$CONF_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}CONF_DIR${NC} is not specified.";
+    fi
+    if [ -z "$ODOO_CONF_FILE" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_CONF_FILE${NC} is not specified.";
+    fi
+    if [ -z "$ODOO_TEST_CONF_FILE" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_TEST_CONF_FILE${NC} is not specified.";
+    fi
+    if [ -z "$LOG_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}LOG_DIR${NC} is not specified.";
+    fi
+    if [ -z "$LOG_FILE" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}LOG_FILE${NC} is not specified.";
+    fi
+    if [ -z "$LIBS_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}LIBS_DIR${NC} is not specified.";
+    fi
+    if [ -z "$DOWNLOADS_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}DOWNLOADS_DIR${NC} is not specified.";
+    fi
+    if [ -z "$ADDONS_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ADDONS_DIR${NC} is not specified.";
+    fi
+    if [ -z "$DATA_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}DATA_DIR${NC} is not specified.";
+    fi
+    if [ -z "$BIN_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}BIN_DIR${NC} is not specified.";
+    fi
+    if [ -z "$ODOO_PID_FILE" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_PID_FILE${NC} is not specified.";
+    fi
+    if [ -z "$ODOO_PATH" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_PATH${NC} is not specified.";
+    fi
+    if [ -z "$BACKUP_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}BACKUP_DIR${NC} is not specified.";
+    fi
+    if [ -z "$REPOSITORIES_DIR" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}REPOSITORIES_DIR${NC} is not specified.";
+    fi
+    if [ -z "$ODOO_VERSION" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_VERSION${NC} is not specified.";
+    fi
+    if [ -z "$ODOO_BRANCH" ]; then
+        echoe -e "${YELLOWC}WARNING${NC}: config variable ${YELLOWC}ODOO_BRANCH${NC} is not specified.";
     fi
 }
 
 
 # Load project configuration. No args provided
 function config_load_project {
+    local project_conf;
     local work_dir="${1:-$(pwd)}";
-    if [ -z $PROJECT_ROOT_DIR ]; then
+    if [ -z "$PROJECT_ROOT_DIR" ]; then
         # Load project conf, only if it is not loaded yet.
-        local project_conf="$(search_file_up $work_dir $CONF_FILE_NAME)";
+        project_conf=$(search_file_up "$work_dir" "$CONF_FILE_NAME");
         if [ -f "$project_conf" ] && [ ! "$project_conf" == "$HOME/odoo-helper.conf" ]; then
             echov -e "${LBLUEC}Loading conf${NC}: $project_conf";
             ODOO_HELPER_PROJECT_CONF=$project_conf;
-            source $project_conf;
+            source "$project_conf";
 
             # Set configuration defaults
             config_set_defaults;
         fi
 
-        if [ -z $PROJECT_ROOT_DIR ]; then
+        if [ -z "$PROJECT_ROOT_DIR" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: no project config file found!";
         else
             config_check_project_config;
