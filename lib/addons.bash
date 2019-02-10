@@ -470,9 +470,49 @@ function addons_git_fetch_updates {
 }
 
 # Update git repositories
-# addons_git_pull_updates [addons path]
+# addons_git_pull_updates
 function addons_git_pull_updates {
-    local addons_dir=${1:-$ADDONS_DIR};
+    local addons_dir=${ADDONS_DIR};
+    local usage="
+    Usage
+
+        $SCRIPT_NAME addons pull-updates [options]
+
+    Options:
+        --addons-dir          - directory to search addons in. By default used one from
+                                project config
+        --ual                 - update list of addons in all databases
+        --help|-h             - diplay this help message
+    ";
+
+    # Parse command line options and run commands
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            --addons-dir)
+                local addons_dir=$2;
+                shift;
+            ;;
+            --ual)
+                local opt_ual=1;
+            ;;
+            *)
+                echoe "Unknown option: $key";
+                return 1;
+            ;;
+        esac;
+        shift;
+    done;
+
+    echo -e "${BLUEC}Checking for updates...${NC}";
+    addons_git_fetch_updates "$addons_dir";
+    echo -e "${BLUEC}Applying updates...${NC}";
+
     for addon_repo in $(addons_list_repositories $addons_dir); do
         IFS=$'\n' git_status=( $(git_parse_status $addon_repo || echo '') );
         local git_remote_status=${git_status[1]};
@@ -488,7 +528,10 @@ function addons_git_pull_updates {
     done
 
     # update list available modules for all databases
-    addons_update_module_list;
+    if [ -n "$opt_ual" ]; then
+        addons_update_module_list;
+    fi
+    echo -e "${GREENC}DONE${NC}";
 }
 
 
@@ -891,7 +934,7 @@ function addons_command {
         $SCRIPT_NAME addons list-repos [addons path]      - list git repositories
         $SCRIPT_NAME addons list-no-repo [addons path]    - list addons not under git repo
         $SCRIPT_NAME addons check-updates [addons path]   - Check for git updates of addons and displays status
-        $SCRIPT_NAME addons pull-updates [addons path]    - Pull changes from git repos
+        $SCRIPT_NAME addons pull-updates --help           - Pull changes from git repos
         $SCRIPT_NAME addons status --help                 - show addons status
         $SCRIPT_NAME addons update --help                 - update some addon[s]
         $SCRIPT_NAME addons install --help                - install some addon[s]
@@ -942,11 +985,7 @@ function addons_command {
             ;;
             pull-updates|pull_updates)
                 shift;
-                echo -e "${BLUEC}Checking for updates...${NC}";
-                addons_git_fetch_updates "$@";
-                echo -e "${BLUEC}Applying updates...${NC}";
                 addons_git_pull_updates "$@";
-                echo -e "${GREENC}DONE${NC}";
                 return 0;
             ;;
             status|show_status)

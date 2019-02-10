@@ -43,7 +43,7 @@ function fetch_requirements {
     fi
 
     # Get absolute path to requirements file
-    REQUIREMENTS_FILE=$(readlink -f $REQUIREMENTS_FILE);
+    REQUIREMENTS_FILE=$(readlink -f "$REQUIREMENTS_FILE");
 
     # Stop if file does not exists
     if [ ! -f "$REQUIREMENTS_FILE" ]; then
@@ -53,7 +53,7 @@ function fetch_requirements {
 
     # recursion protection
     local recursion_key=fetch_odoo_requirements;
-    if ! recursion_protection_easy_check $recursion_key $REQUIREMENTS_FILE; then
+    if ! recursion_protection_easy_check "$recursion_key" "$REQUIREMENTS_FILE"; then
         echoe -e "${YELLOWC}WARN${NC}: File $REQUIREMENTS_FILE already had been processed. skipping...";
         return 0
     fi
@@ -63,13 +63,13 @@ function fetch_requirements {
         echov "Processing requirements file $REQUIREMENTS_FILE";
         while read -r line; do
             if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
-                if fetch_module $line; then
+                if eval "fetch_module $line"; then
                     echoe -e "Line ${GREENC}OK${NC}: $line";
                 else
                     echoe -e "Line ${REDC}FAIL${NC}: $line";
                 fi
             fi
-        done < $REQUIREMENTS_FILE;
+        done < "$REQUIREMENTS_FILE";
     fi
 }
 
@@ -149,7 +149,7 @@ function fetch_oca_requirements {
                opt="$opt --branch ${line[2]}";
            fi
            
-           if fetch_module $opt; then
+           if eval "fetch_module $opt"; then
                echo -e "Line ${GREENC}OK${NC}: $opt";
            else
                echo -e "Line ${GREENC}FAIL${NC}: $opt";

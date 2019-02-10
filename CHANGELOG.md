@@ -28,6 +28,12 @@
   If it is omited, than current working tree state will be used as last revision.
 - Use own copy of virtualenv, to avoid installing it in system.
   virtualenv is bundled into odoo-helper as git submodule now.
+- Changed `odoo-helper pull-updates` command
+   - Now it does not update addons list automatically
+   - Added `--ual` option to update addons list
+   - Added `--help` options
+   - First positional argument not applicable for it.
+     Added option `--addons-dir` instead .
 
 ### Removed
 
