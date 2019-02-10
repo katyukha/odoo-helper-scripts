@@ -24,6 +24,8 @@ set -e; # fail on errors
 
 # update odoo-helper-scripts
 function system_update_odoo_helper_scripts {
+    local cdir;
+    local base_path;
     local scripts_branch=$1;
 
     if ! git_is_git_repo "$ODOO_HELPER_ROOT"; then
@@ -32,16 +34,16 @@ function system_update_odoo_helper_scripts {
     fi
 
     # update
-    local cdir=$(pwd);
-    cd $ODOO_HELPER_ROOT;
-    if [ -z $scripts_branch ]; then
+    cdir=$(pwd);
+    cd "$ODOO_HELPER_ROOT";
+    if [ -z "$scripts_branch" ]; then
         # TODO: if there is no configured branch to pull from, git shows
         #       message, that it does not know from where to pull
         git pull;
     else
         git fetch -q origin;
-        if ! git checkout -q origin/$scripts_branch; then
-            git checkout -q $scripts_branch;
+        if ! git checkout -q "origin/$scripts_branch"; then
+            git checkout -q "$scripts_branch";
         fi
     fi
 
@@ -50,23 +52,27 @@ function system_update_odoo_helper_scripts {
     git submodule update;
 
     # update odoo-helper bin links
-    local base_path=$(dirname $ODOO_HELPER_ROOT);
-    for oh_cmd in $ODOO_HELPER_BIN/*; do
-        if ! command -v $(basename $oh_cmd) >/dev/null 2>&1; then
-            if [[ "$base_path" == /opt* ]]; then
-                with_sudo ln -s $oh_cmd /usr/local/bin/;
-            elif [[ "$base_path" == $HOME/* ]]; then
-                ln -s $oh_cmd $HOME/bin;
+    base_path=$(dirname "$ODOO_HELPER_ROOT");
+    for oh_cmd in "$ODOO_HELPER_BIN"/*; do
+        local cmd_name;
+        cmd_name=$(basename "$oh_cmd");
+        if ! command -v "$cmd_name" >/dev/null 2>&1; then
+            if [[ "$base_path" == /opt/* ]]; then
+                with_sudo ln -s "$oh_cmd" /usr/local/bin/;
+            elif [[ "$base_path" == "$HOME"/* ]]; then
+                ln -s "$oh_cmd" "$HOME/bin";
             fi
         fi
     done
-    cd $cdir;
+    cd "$cdir";
 }
 
 # Check if specified directory or current directory is odoo-hleper project
 function system_is_odoo_helper_project {
-    local dir_name="$(readlink -f ${1:-$(pwd)})";
-    local save_dir=$(pwd);
+    local dir_name;
+    local save_dir;
+    save_dir=$(pwd);
+    dir_name=$(readlink -f "${1:-$(pwd)}");
 
     if [ ! -d "$dir_name" ]; then
         echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${dir_name}${NC} does not exists or is not a directory!";
@@ -85,8 +91,10 @@ function system_is_odoo_helper_project {
 
 # Return odoo-helper path to virtualenv directory
 function system_get_venv_dir {
-    local dir_name=$(readlink -f "${1:-$(pwd)}");
-    local save_dir=$(pwd);
+    local dir_name;
+    local save_dir;
+    save_dir=$(pwd);
+    dir_name=$(readlink -f "${1:-$(pwd)}");
 
     if [ ! -d "$dir_name" ]; then
         echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${dir_name}${NC} does not exists or is not a directory!";
@@ -143,12 +151,12 @@ function system_entry_point {
             ;;
             is-project)
                 shift;
-                system_is_odoo_helper_project $@;
+                system_is_odoo_helper_project "$@";
                 return
             ;;
             get-venv-dir)
                 shift;
-                system_get_venv_dir $@;
+                system_get_venv_dir "$@";
                 return;
             ;;
             -h|--help|help)
