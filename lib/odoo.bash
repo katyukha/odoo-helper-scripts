@@ -44,7 +44,7 @@ function odoo_get_conf_val {
         return 2;
     fi
 
-    echo $(awk -F " *= *" "/^$key/ {print \$2}" $conf_file);
+    awk -F " *= *" "/^$key/ {print \$2}" "$conf_file";
 }
 
 # odoo_get_conf_val_default <key> <default> [conf file]
@@ -61,11 +61,11 @@ function odoo_get_conf_val_default {
 }
 
 function odoo_get_conf_val_http_host {
-    echo $(odoo_get_conf_val_default 'http_interface' $(odoo_get_conf_val_default 'xmlrpc_interface' 'localhost'));
+    odoo_get_conf_val_default 'http_interface' "$(odoo_get_conf_val_default 'xmlrpc_interface' 'localhost')";
 }
 
 function odoo_get_conf_val_http_port {
-    echo $(odoo_get_conf_val_default 'http_port' $(odoo_get_conf_val_default 'xmlrpc_port' '8069'));
+    odoo_get_conf_val_default 'http_port' "$(odoo_get_conf_val_default 'xmlrpc_port' '8069')";
 }
 
 function odoo_get_server_url {
@@ -73,52 +73,62 @@ function odoo_get_server_url {
 }
 
 function odoo_update_sources_git {
-    local update_date=$(date +'%Y-%m-%d.%H-%M-%S')
+    local update_date;
+    local tag_name;
+    update_date=$(date +'%Y-%m-%d.%H-%M-%S');
 
     # Ensure odoo is repository
-    if ! git_is_git_repo $ODOO_PATH; then
+    if ! git_is_git_repo "$ODOO_PATH"; then
         echo -e "${REDC}Cannot update odoo. Odoo sources are not under git.${NC}";
         return 1;
     fi
 
     # ensure odoo repository is clean
-    if ! git_is_clean $ODOO_PATH; then
+    if ! git_is_clean "$ODOO_PATH"; then
         echo -e "${REDC}Cannot update odoo. Odoo source repo is not clean.${NC}";
         return 1;
     fi
 
     # Update odoo source
-    local tag_name="$(git_get_branch_name $ODOO_PATH)-before-update-$update_date";
-    (cd $ODOO_PATH &&
-        git tag -a $tag_name -m "Save before odoo update ($update_date)" &&
+    tag_name="$(git_get_branch_name "$ODOO_PATH")-before-update-$update_date";
+    (cd "$ODOO_PATH" &&
+        git tag -a "$tag_name" -m "Save before odoo update ($update_date)" &&
         git pull);
 }
 
 function odoo_update_sources_archive {
-    local FILE_SUFFIX=`date -I`.`random_string 4`;
-    local wget_opt="-T 2";
+    local file_suffix;
+    local wget_opt;
+    local backup_path;
+    local odoo_archive;
 
-    [ -z $VERBOSE ] && wget_opt="$wget_opt -q";
+    file_suffix="$(date -I).$(random_string 4)";
 
-    if [ -d $ODOO_PATH ]; then    
+    if [ -z "$VERBOSE" ]; then
+        wget_opt="$wget_opt -q";
+    fi
+
+    if [ -d "$ODOO_PATH" ]; then    
         # Backup only if odoo sources directory exists
-        local BACKUP_PATH=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
-        echoe -e "${LBLUEC}Saving odoo source backup:${NC} $BACKUP_PATH";
-        (cd $ODOO_PATH/.. && tar -czf $BACKUP_PATH `basename $ODOO_PATH`);
-        echoe -e "${LBLUEC}Odoo sources backup saved at:${NC} $BACKUP_PATH";
+        local backup_path=$BACKUP_DIR/odoo.sources.$ODOO_BRANCH.$file_suffix.tar.gz
+        echoe -e "${LBLUEC}Saving odoo source backup:${NC} $backup_path";
+        (cd "$ODOO_PATH/.." && tar -czf "$backup_path" "$ODOO_PATH");
+        echoe -e "${LBLUEC}Odoo sources backup saved at:${NC} $backup_path";
     fi
 
     echoe -e "${LBLUEC}Downloading new sources archive...${NC}"
-    local ODOO_ARCHIVE=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$FILE_SUFFIX.tar.gz
+    odoo_archive=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$file_suffix.tar.gz
     # TODO: use odoo-repo variable here
-    wget $wget_opt -O $ODOO_ARCHIVE https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz;
-    rm -r $ODOO_PATH;
-    (cd $DOWNLOADS_DIR && tar -zxf $ODOO_ARCHIVE && mv odoo-$ODOO_BRANCH $ODOO_PATH);
+    wget -T 2 "$wget_opt" -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+    rm -r "$ODOO_PATH";
+    (cd "$DOWNLOADS_DIR" && \
+        tar -zxf "$odoo_archive" && \
+        mv "odoo-$ODOO_BRANCH" "$ODOO_PATH");
 
 }
 
 function odoo_update_sources {
-    if git_is_git_repo $ODOO_PATH; then
+    if git_is_git_repo "$ODOO_PATH"; then
         echoe -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
         odoo_update_sources_git;
 
@@ -139,7 +149,7 @@ function odoo_update_sources {
 
 # Echo major odoo version (10, 11, ...)
 function odoo_get_major_version {
-    echo ${ODOO_VERSION%.*};
+    echo "${ODOO_VERSION%.*}";
 }
 
 # Get python version number - only 2 or 3
@@ -167,8 +177,9 @@ function odoo_get_python_version {
 
 # Get python interpreter (full path to executable) to run odoo with
 function odoo_get_python_interpreter {
-    local python_version="$(odoo_get_python_version)";
-    echo $(check_command $python_version);
+    local python_version;
+    python_version=$(odoo_get_python_version);
+    check_command "$python_version";
 }
 
 function odoo_recompute_stored_fields {
@@ -233,28 +244,28 @@ function odoo_recompute_stored_fields {
         shift
     done
 
-    if [ -z $dbname ]; then
+    if [ -z "$dbname" ]; then
         echoe -e "${REDC}ERROR${NC}: database not specified!";
         return 1;
     fi
 
-    if ! odoo_db_exists -q $dbname; then
+    if ! odoo_db_exists -q "$dbname"; then
         echoe -e "${REDC}ERROR${NC}: database ${YELLOWC}${dbname}${NC} does not exists!";
         return 2;
     fi
 
-    if [ -z $model ]; then
+    if [ -z "$model" ]; then
         echoe -e "${REDC}ERROR${NC}: model not specified!";
         return 3;
     fi
 
-    if [ -z $fields ] && [ -z $parent_store ]; then
-        echoe -e "${REDC}ERROR${NC}: no fields nor --parent-store option specified!";
+    if [ -z "$fields" ] && [ -z "$parent_store" ]; then
+        echoe -e "${REDC}ERROR${NC}: no fields nor ${YELLOWC}--parent-store${NC} option specified!";
         return 4;
     fi
 
     local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$conf_file'])['$dbname'];";
-    if [ -z $parent_store ]; then
+    if [ -z "$parent_store" ]; then
         python_cmd="$python_cmd db.recompute_fields('$model', [$fields]);"
     else
         python_cmd="$python_cmd db.recompute_parent_store('$model');"
@@ -284,7 +295,7 @@ function odoo_command {
         case $key in
             recompute)
                 shift;
-                odoo_recompute_stored_fields $@;
+                odoo_recompute_stored_fields "$@";
                 return 0;
             ;;
             server-url)
