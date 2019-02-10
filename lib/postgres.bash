@@ -56,10 +56,11 @@ function postgres_test_connection {
 #
 # postgres_user_exists <user name>
 function postgres_user_exists {
+    local user_count;
     local user_name="$1";
 
-    local user_count=$(sudo -u postgres -H psql -tA -c "SELECT count(*) FROM pg_user WHERE usename = '$user_name';");
-    if [ $user_count -eq 0 ]; then
+    user_count=$(sudo -u postgres -H psql -tA -c "SELECT count(*) FROM pg_user WHERE usename = '$user_name';");
+    if [ "$user_count" -eq 0 ]; then
         return 1;
     else
         return 0
@@ -80,7 +81,7 @@ function postgres_user_create {
         $SCRIPT_NAME postgres user-create --help
     ";
     if [[ $# -lt 1 ]]; then
-        echo "No options supplied $#: $@";
+        echo "No options supplied $#: $*";
         echo "";
         echo "$usage";
         return 0;
@@ -109,7 +110,7 @@ function postgres_user_create {
         return 1;
     fi
 
-    if ! postgres_user_exists $user_name; then
+    if ! postgres_user_exists "$user_name"; then
         sudo -u postgres -H psql -c "CREATE USER \"$user_name\" WITH CREATEDB PASSWORD '$user_password';"
         echoe -e "${GREENC}OK${NC}: Postgresql user ${BLUEC}$user_name${NC} was created for this Odoo instance";
     else
@@ -122,12 +123,17 @@ function postgres_user_create {
 #
 # postgres_psql ....
 function postgres_psql {
-    local pghost=$(odoo_get_conf_val db_host);
-    local pgport=$(odoo_get_conf_val db_port);
-    local pguser=$(odoo_get_conf_val db_user);
-    local pgpass=$(odoo_get_conf_val db_password);
-    local default_db=$(odoo_get_conf_val db_name);
-          default_db=${default_db:-postgres};
+    local pghost;
+    local pgport;
+    local pguser;
+    local pgpass;
+    local default_db;
+
+    pghost=$(odoo_get_conf_val db_host);
+    pgport=$(odoo_get_conf_val db_port);
+    pguser=$(odoo_get_conf_val db_user);
+    pgpass=$(odoo_get_conf_val db_password);
+    default_db=$(odoo_get_conf_val_default db_name postgres);
 
     if [ -z "$pgport" ] || [ "$pgport" == 'False' ]; then
         pgport=;
@@ -269,13 +275,13 @@ function postgres_command {
             stat-activity)
                 shift;
                 config_load_project;
-                postgres_psql_stat_activity $@;
+                postgres_psql_stat_activity "$@";
                 return;
             ;;
             stat-connections)
                 shift;
                 config_load_project;
-                postgres_psql_connection_info $@;
+                postgres_psql_connection_info "$@";
                 return;
             ;;
             -h|--help|help)
