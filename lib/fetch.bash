@@ -76,17 +76,17 @@ function fetch_requirements {
 # fetch_pip_requirements <filepath>
 function fetch_pip_requirements {
     local pip_requirements=${1:-$WORKDIR};
-    if [ -d $pip_requirements ]; then
+    if [ -d "$pip_requirements" ]; then
         pip_requirements=$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME;
     fi
 
-    if [ ! -f $pip_requirements ]; then
+    if [ ! -f "$pip_requirements" ]; then
         return 0;
     fi
 
     # Check recursion
     local recursion_key=fetch_pip_requirements;
-    if ! recursion_protection_easy_check $recursion_key $pip_requirements; then
+    if ! recursion_protection_easy_check "$recursion_key" "$pip_requirements"; then
         echoe -e "${YELLOWC}WARN${NC}: File $pip_requirements already had been processed. skipping...";
         return 0
     fi
@@ -103,14 +103,15 @@ function fetch_pip_requirements {
     #
     # -e ./lib/python-project
     #
-    local req_dir=$(dirname $pip_requirements);
-    (cd $req_dir && exec_pip -q install -r $pip_requirements);
+    local req_dir;
+    req_dir=$(dirname "$pip_requirements");
+    (cd "$req_dir" && exec_pip -q install -r "$pip_requirements");
 }
 
 # fetch_oca_requirements <filepath>
 function fetch_oca_requirements {
     local oca_requirements=${1:-$WORKDIR};
-    if [ -d $oca_requirements ]; then
+    if [ -d "$oca_requirements" ]; then
         oca_requirements=$oca_requirements/$OCA_REQUIREMENTS_FILE_NAME;
     fi
 
@@ -119,11 +120,11 @@ function fetch_oca_requirements {
         return 0;
     fi
 
-    oca_requirements=$(readlink -f $oca_requirements);
+    oca_requirements=$(readlink -f "$oca_requirements");
 
     # Check recursion
     local recursion_key=fetch_oca_requirements;
-    if ! recursion_protection_easy_check $recursion_key $oca_requirements; then
+    if ! recursion_protection_easy_check "$recursion_key" "$oca_requirements"; then
         echoe -e "${YELLOWC}WARN${NC}: File $oca_requirements already had been processed. skipping...";
         return 0
     fi
@@ -155,10 +156,10 @@ function fetch_oca_requirements {
                echo -e "Line ${GREENC}FAIL${NC}: $opt";
            fi
        fi
-       if [ $is_read_finished -ne 0 ]; then
+       if [ "$is_read_finished" -ne 0 ]; then
            break;
        fi
-    done < $oca_requirements;
+    done < "$oca_requirements";
 }
 
 # get_repo_name <repository> [<desired name>]
@@ -166,11 +167,12 @@ function fetch_oca_requirements {
 # base_tags
 function get_repo_name {
     if [ -z "$2" ]; then
-        local R=$(basename "$1");  # get repository name
+        local R;
+        R=$(basename "$1");  # get repository name
         R=${R%.git};  # remove .git suffix from name
-        echo $R;
+        echo "$R";
     else
-        echo $2;
+        echo "$2";
     fi
 }
 
@@ -198,7 +200,7 @@ function fetch_clone_repo_git {
         echoe -e "${BLUEC}Use ${YELLOWC}gitlab-ci-token${BLUEC} for auth to repository ${YELLOWC}${CI_JOB_TOKEN_GIT_HOST}${NC}";
     fi
 
-    [ -z $VERBOSE ] && git_clone_opt="$git_clone_opt -q "
+    [ -z "$VERBOSE" ] && git_clone_opt="$git_clone_opt -q "
     git_cmd="git $extra_git_opt clone --recurse-submodules $git_clone_opt $repo_url $repo_dest";
     if ! eval "$git_cmd"; then
         echo -e "${REDC}Cannot clone [git] '$repo_url to $repo_dest'!${NC}";
@@ -206,10 +208,10 @@ function fetch_clone_repo_git {
         # IF repo clonned successfuly, and not branch specified then
         # try to checkout to ODOO_VERSION branch if it exists.
         (
-            cd $repo_dest && \
-            [ "$(git_get_branch_name)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
-            [ $(git branch --list -a "origin/${ODOO_VERSION:-$ODOO_BRANCH}") ] && \
-            git checkout -q ${ODOO_VERSION:-$ODOO_BRANCH} || true
+            cd "$repo_dest";
+            if [ "$(git_get_branch_name)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && [[ -n $(git branch --list -a "origin/${ODOO_VERSION:-$ODOO_BRANCH}") ]]; then
+                git checkout -q "${ODOO_VERSION:-$ODOO_BRANCH}";
+            fi
         )
     fi
 }
@@ -228,16 +230,16 @@ function fetch_clone_repo_hg {
 
     if ! check_command hg; then
         echoe -e "${REDC}ERROR${NC}: Mercurial is not installed. Install it via ${BLUEC}odoo-helper pip install Mercurial${NC}."
-    elif ! execv hg clone $repo_branch_opt $repo_url $repo_dest; then
+    elif ! execv hg clone "$repo_branch_opt" "$repo_url" "$repo_dest"; then
         echoe -e "${REDC}ERROR${NC}: Cannot clone [hg] ${BLUEC}$repo_url${NC} to ${BLUEC}$repo_dest${NC}!${NC}";
     elif [ -z "$repo_branch_opt" ]; then
         # IF repo clonned successfuly, and not branch specified then
         # try to checkout to ODOO_VERSION branch if it exists.
         (
-            cd $repo_dest && \
-            [ "$(HGPLAIN=1 hg branch)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && \
-            HGPLAIN=1 execv hg branches | grep "^${ODOO_VERSION:-$ODOO_BRANCH}\s" > /dev/null && \
-            execv hg update ${ODOO_VERSION:-$ODOO_BRANCH} || true
+            cd "$repo_dest";
+            if [ "$(HGPLAIN=1 hg branch)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && HGPLAIN=1 execv hg branches | grep "^${ODOO_VERSION:-$ODOO_BRANCH}\s" > /dev/null; then
+                execv hg update "${ODOO_VERSION:-$ODOO_BRANCH}";
+            fi;
         )
     fi
 }
@@ -259,9 +261,9 @@ function fetch_clone_repo {
 
     echoe -e "${BLUEC}Clonning [${YELLOWC}$repo_type${BLUEC}]:${NC} ${YELLOWC}$repo_url${BLUEC} to ${YELLOWC}$repo_dest${BLUEC} (branch ${YELLOWC}$repo_branch${BLUEC})${NC}";
     if [ "$repo_type" == "git" ]; then
-        fetch_clone_repo_git $repo_url $repo_dest $repo_branch;
+        fetch_clone_repo_git "$repo_url" "$repo_dest" "$repo_branch";
     elif [ "$repo_type" == "hg" ]; then
-        fetch_clone_repo_hg $repo_url $repo_dest $repo_branch;
+        fetch_clone_repo_hg "$repo_url" "$repo_dest" "$repo_branch";
     else
         echoe -e "${REDC}ERROR${NC}:Unknown repo type: ${YELLOWC}$repo_type${NC}";
     fi
@@ -332,7 +334,7 @@ function fetch_module {
             -r|--repo)
                 if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    return -1;
+                    return 1;
                 fi
                 REPOSITORY="$2";
                 shift;
@@ -340,7 +342,7 @@ function fetch_module {
             --hg)
                 if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    return -1;
+                    return 2;
                 fi
                 REPOSITORY="$2";
                 REPO_TYPE=hg;
@@ -349,7 +351,7 @@ function fetch_module {
             --github)
                 if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    return -1;
+                    return 3;
                 fi
                 REPOSITORY="https://github.com/$2";
                 shift;
@@ -357,7 +359,7 @@ function fetch_module {
             --oca)
                 if [ -n "$REPOSITORY" ]; then
                     echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    return -1;
+                    return 4;
                 fi
                 REPOSITORY="https://github.com/OCA/$2";
                 # for backward compatability (if odoo version not defined,
@@ -383,7 +385,7 @@ function fetch_module {
             ;;
             --requirements)
                 if [ -f "$2" ]; then
-                    fetch_requirements $2;
+                    fetch_requirements "$2";
                     return 0;
                 else
                     echoe -e "${REDC}ERROR${NC}: Requirements file '${YELLOWC}${2}${NC}' does not exists!";
@@ -398,18 +400,18 @@ function fetch_module {
         shift
     done
 
-    if [ -z $REPOSITORY ]; then
+    if [ -z "$REPOSITORY" ]; then
         echo "No git repository supplied to fetch module from!";
         echo "";
         print_usage;
         return 2;
     fi
 
-    REPO_NAME=${REPO_NAME:-$(get_repo_name $REPOSITORY)};
+    REPO_NAME=${REPO_NAME:-$(get_repo_name "$REPOSITORY")};
     local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
 
     local recursion_key="fetch_module";
-    if ! recursion_protection_easy_check $recursion_key "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then
+    if ! recursion_protection_easy_check "$recursion_key" "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then
         echov -e "${YELLOWC}WARNING${NC}: fetch REPO__MODULE ${REPO_TYPE}__${REPO_PATH}__${MODULE:-all} already had been processed. skipping...";
         return 0
     fi
@@ -430,12 +432,12 @@ function fetch_module {
             echoe -e "${YELLOWC}WARNING${NC}: The module ${BLUEC}$MODULE${NC} already present in addons dir";
             return 0;
         else
-            fetch_clone_repo $REPO_TYPE $REPOSITORY $REPO_PATH $REPO_BRANCH;
+            fetch_clone_repo "$REPO_TYPE" "$REPOSITORY" "$REPO_PATH" "$REPO_BRANCH";
         fi
     fi
 
-    if [ -d $REPO_PATH ]; then
+    if [ -d "$REPO_PATH" ]; then
         # Link repo only if it exists
-        link_module off $REPO_PATH $MODULE;
+        link_module off "$REPO_PATH" "$MODULE";
     fi
 }
