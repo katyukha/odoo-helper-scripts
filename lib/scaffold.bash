@@ -46,17 +46,18 @@ function scaffold_default {
     local addon_dir=${2:-$REPOSITORIES_DIR};
     local addon_path=$addon_dir/$addon_name;
 
-    odoo_py scaffold $addon_name $addon_dir;
-    link_module $addon_path;
+    odoo_py scaffold "$addon_name" "$addon_dir";
+    link_module "$addon_path";
 
     # if addon is not part of some repo, create repo for it
-    if ! git_is_git_repo $addon_path; then
-        local cdir=$(pwd);
-        cd $addon_path;
+    if ! git_is_git_repo "$addon_path"; then
+        local cdir;
+        cdir=$(pwd);
+        cd "$addon_path";
         git init;
 
-        cp $TMPL_GITIGNORE ./.gitignore;
-        cd $cdir;
+        cp "$TMPL_GITIGNORE" ./.gitignore;
+        cd "$cdir";
     fi
 }
 
@@ -84,19 +85,19 @@ function scaffold_repo {
         return 1;
     fi
 
-    if [ -d $repo_path ]; then
+    if [ -d "$repo_path" ]; then
         echo -e "${REDC}ERROR:${NC} Such repository already exists!";
         return 2;
     fi
 
     # Create repo dir
-    mkdir -p $repo_path;
+    mkdir -p "$repo_path";
 
     # Init git repository
-    (cd $repo_path && git init);
+    (cd "$repo_path" && git init);
 
     # Copy .gitignore to new repo;
-    cp $TMPL_GITIGNORE $repo_path/.gitignore;
+    cp "$TMPL_GITIGNORE" "$repo_path/.gitignore";
 
     echo -e "${GREENC}Repository $repo_name created:${NC} $repo_path$";
 }
@@ -123,7 +124,10 @@ function scaffold_addon {
         return 0;
     fi
 
-    local depends="";
+    local depends;
+    local depends_cs;
+    local repo_path;
+    local default_addon_author;
     while [[ $# -gt 0 ]]
     do
         case $1 in
@@ -132,7 +136,7 @@ function scaffold_addon {
                 shift; shift;
             ;;
             --depends|-d)
-                depends="$depends \"$2\"";
+                depends+=( "'$2'" );
                 shift; shift;
             ;;
             --help|-h|help)
@@ -147,59 +151,64 @@ function scaffold_addon {
     done
 
     local addon_name=$1;
-    local addon_dest=$(pwd);
+    local addon_dest;
+    addon_dest=$(pwd);
 
-    if ! [[ "$addon_name" =~ ^[a-z0-9_]+$ ]]; then
-        echo -e "${REDC}ERROR:${NC} Wrong addon name specified. addon name should contain only 'a-z0-9_' sympbols!"
+    if [ -z "$addon_name" ]; then
+        echoe -e "${REDC}ERROR:${NC} addon_name not specified!"
+        return 2;
+    elif ! [[ "$addon_name" =~ ^[a-z0-9_]+$ ]]; then
+        echoe -e "${REDC}ERROR:${NC} Wrong addon name specified ('$addon_name'). addon name should contain only 'a-z0-9_' sympbols!"
         return 1;
     fi
 
-    if [ -z "$depends" ]; then
-        depends="\"base\""
+    if [ -z "${depends[*]}" ]; then
+        depends=( "'base'" )
     fi
 
-    depends=$(join_by "," $depends);
+    depends_cs=$(join_by "," "${depends[@]}");
 
     # If repo specified, take it into account
-    if [ -n "$repo" ] && git_is_git_repo $REPOSITORIES_DIR/$repo; then
+    repo_path=$(readlink -f "$repo")
+    if [ -n "$repo" ] && git_is_git_repo "$REPOSITORIES_DIR/$repo"; then
         addon_dest=$REPOSITORIES_DIR/$repo;
-    elif [ -n "$repo" ] && git_is_git_repo $(readlink -f $repo); then
-        addon_dest=$(readlink -f $repo);
+    elif [ -n "$repo" ] && git_is_git_repo "$repo_path"; then
+        addon_dest=$(readlink -f "$repo");
     fi
 
     local addon_path=$addon_dest/$addon_name;
 
     # Choose correct manifest filename for Odoo version
-    if [[ $(odoo_get_major_version) -lt 10 ]]; then
+    if [[ "$(odoo_get_major_version)" -lt 10 ]]; then
         local manifest_name="__openerp__.py";
     else
         local manifest_name="__manifest__.py";
     fi
 
     # Copy odoo addon skeleton
-    cp -r $TMPL_ADDON $addon_path; 
+    cp -r "$TMPL_ADDON" "$addon_path"; 
 
     # Generate manifest file for addon
-    local default_addon_author=$(git config user.name)
-    execv $TEMPLATER \
-        -D ODOO_VERSION=$ODOO_VERSION \
-        -D ADDON_NAME=$addon_name \
-        -D ADDON_AUTHOR=\"${SCAFFOLD_ADDON_AUTHOR:-$default_addon_author}\" \
-        -D ADDON_LICENCE=\"${SCAFFOLD_ADDON_LICENCE}\" \
-        -D ADDON_WEBSITE=\"${SCAFFOLD_ADDON_WEBSITE}\" \
-        -D ADDON_DEPENDS="'$depends'" \
-        $TMPL_ADDON_MANIFEST > $addon_path/$manifest_name;
+    default_addon_author=$(git config user.name)
+    execv "$TEMPLATER" \
+        -D ODOO_VERSION="\"$ODOO_VERSION\"" \
+        -D ADDON_NAME="\"$addon_name\"" \
+        -D ADDON_AUTHOR="\"${SCAFFOLD_ADDON_AUTHOR:-$default_addon_author}\"" \
+        -D ADDON_LICENCE="\"${SCAFFOLD_ADDON_LICENCE}\"" \
+        -D ADDON_WEBSITE="\"${SCAFFOLD_ADDON_WEBSITE}\"" \
+        -D ADDON_DEPENDS="\"'$depends_cs'\"" \
+        "$TMPL_ADDON_MANIFEST" > "$addon_path/$manifest_name";
 
-    execv $TEMPLATER \
-        -D ODOO_VERSION=$ODOO_VERSION \
-        -D ADDON_NAME=$addon_name \
-        -D ADDON_AUTHOR=\"${SCAFFOLD_ADDON_AUTHOR:-$default_addon_author}\" \
-        -D ADDON_LICENCE=\"${SCAFFOLD_ADDON_LICENCE}\" \
-        -D ADDON_WEBSITE=\"${SCAFFOLD_ADDON_WEBSITE}\" \
-        -D ADDON_DEPENDS="'$depends'" \
-        $TMPL_ADDON_README > $addon_path/README.rst;
+    execv "$TEMPLATER" \
+        -D ODOO_VERSION="\"$ODOO_VERSION\"" \
+        -D ADDON_NAME="\"$addon_name\"" \
+        -D ADDON_AUTHOR="\"${SCAFFOLD_ADDON_AUTHOR:-$default_addon_author}\"" \
+        -D ADDON_LICENCE="\"${SCAFFOLD_ADDON_LICENCE}\"" \
+        -D ADDON_WEBSITE="\"${SCAFFOLD_ADDON_WEBSITE}\"" \
+        -D ADDON_DEPENDS="\"'$depends_cs'\"" \
+        "$TMPL_ADDON_README" > "$addon_path/README.rst";
 
-    link_module off $addon_path;
+    link_module off "$addon_path";
 }
 
 function scaffold_model {
@@ -230,17 +239,17 @@ function scaffold_parse_cmd {
     case $key in
         repo)
             shift;
-            scaffold_repo $@;
+            scaffold_repo "$@";
             return 0;
         ;;
         addon)
             shift;
-            scaffold_addon $@;
+            scaffold_addon "$@";
             return 0;
         ;;
         model)
             shift;
-            scaffold_model $@;
+            scaffold_model "$@";
             return 0;
         ;;
         -h|--help|help)
@@ -248,7 +257,7 @@ function scaffold_parse_cmd {
             return 0;
         ;;
         *)
-            scaffold_default $@;
+            scaffold_default "$@";
             return 0;
         ;;
     esac
