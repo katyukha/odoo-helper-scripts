@@ -348,7 +348,7 @@ odoo-helper print-config
 odoo-helper addons pull-updates
 
 # Update odoo base addon
-odoo-helper addons update base
+odoo-helper-addons-update base
 
 # Fetch OCA account-financial-reporting, which seems to have
 # complicated enough dependencies for this test
@@ -490,6 +490,7 @@ ${NC}"
 odoo-helper --help
 odoo-install --help
 odoo-helper-addons --help
+odoo-helper-link --help
 odoo-helper-db --help
 odoo-helper-fetch --help
 odoo-helper-server --help

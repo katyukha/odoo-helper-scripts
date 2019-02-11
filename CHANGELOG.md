@@ -17,6 +17,9 @@
   `odoo-helper test my_addon1 my_addon2`
 - Added `--skip` option of `odoo-helper test` command
 - Added `odoo-helper db copy` command
+- Added aliases (shortcuts):
+   - `odoo-helper-link`
+   - `odoo-helper-addons-update`
 
 ### Fixed
 
