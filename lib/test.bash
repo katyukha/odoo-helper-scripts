@@ -30,34 +30,35 @@ set -e; # fail on errors
 # test_run_server <with_coverage 0|1> [server options]
 function test_run_server {
     local with_coverage=$1; shift;
-    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}][${YELLOWC}coverage:${with_coverage}${BLUEC}]${NC}: $@";
+    echo -e "${LBLUEC}Running server [${YELLOWC}test${LBLUEC}][${YELLOWC}coverage:${with_coverage}${BLUEC}]${NC}: $*";
 
     # enable test coverage
-    if [ $with_coverage -eq 1 ]; then
-        server_run --coverage --test-conf -- --stop-after-init --workers=0 $@;
+    if [ "$with_coverage" -eq 1 ]; then
+        server_run --coverage --test-conf -- --stop-after-init --workers=0 "$@";
     else
-        server_run --test-conf -- --stop-after-init --workers=0 $@;
+        server_run --test-conf -- --stop-after-init --workers=0 "$@";
     fi
 }
 
-# test_module_impl <with_coverage 0|1> <module> [extra_options]
-# example: test_module_impl base -d test1
+# test_module_impl <with_coverage 0|1> <modules> [extra_options]
+# example: test_module_impl base,mail -d test1
+#
+# param modules - is coma-separated list of addons to be tested
+#
+# extra_options will be directly passed to Odoo server
 function test_module_impl {
     local with_coverage=$1
-    local module=$2
+    local modules=$2
     shift; shift;  # all next arguments will be passed to server
 
-    # Set correct log level (depends on odoo version)
-    local log_level='info';
-
     # Install module
-    if ! test_run_server $with_coverage --init=$module --log-level=warn "$@"; then
+    if ! test_run_server "$with_coverage" --init="$modules" --log-level=warn "$@"; then
         return $?;
     fi
 
     # Test module
-    if ! test_run_server $with_coverage --update=$module \
-        --log-level=$log_level --test-enable "$@"; then
+    if ! test_run_server "$with_coverage" --update="$modules" \
+        --log-level=info --test-enable "$@"; then
         return $?;
     fi
 }
@@ -71,9 +72,11 @@ function test_get_or_create_db {
     local create_test_db=$2;
     local test_db_name;
 
-    if [ $create_test_db -eq 1 ]; then
+    if [ "$create_test_db" -eq 1 ]; then
         test_db_name="test-$(< /dev/urandom tr -dc a-z0-9 | head -c24)";
-        odoo_db_create --demo "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2;
+        if ! odoo_db_create --demo "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2; then
+            return 1;
+        fi
     else
         test_db_name=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE");
         if [ -z "$test_db_name" ]; then
@@ -83,7 +86,9 @@ function test_get_or_create_db {
     fi
 
     if [ "$recreate_db" -eq 1 ] && odoo_db_exists -q "$test_db_name"; then
-        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE 1>&2;
+        if ! odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2; then
+            return 2;
+        fi
     fi
     echo "$test_db_name";
 }
@@ -97,7 +102,8 @@ function test_run_tests_for_modules {
     local test_log_file=$3;
     shift; shift; shift;
 
-    local modules=$(join_by , $@);
+    local modules;
+    modules=$(join_by , "$@");
 
     if [ -z "$modules" ]; then
         echo -e "${REDC}ERROR:${NC} No modules supplied";
@@ -110,8 +116,8 @@ function test_run_tests_for_modules {
     fi
 
     echo -e "${BLUEC}Testing modules $modules...${NC}";
-    test_module_impl $with_coverage $modules --database $test_db_name \
-        2>&1 | tee -a $test_log_file;
+    test_module_impl "$with_coverage" "$modules" --database "$test_db_name" \
+        2>&1 | tee -a "$test_log_file";
 }
 
 
@@ -122,7 +128,7 @@ function test_parse_log_file {
     local test_log_file=$2;
     local fail_on_warn=$3;
     # remove color codes from log file
-    sed -ri "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" $test_log_file;
+    sed -ri "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" "$test_log_file";
 
     # Check log for warnings
     local warnings=0;
@@ -147,7 +153,7 @@ function test_parse_log_file {
     fi
 
     # If Test is ok but there are warnings and set option 'fail-on-warn', fail this test
-    if [ $res -eq 0 ] && [ $warnings -ne 0 ] && [ $fail_on_warn -eq 1 ]; then
+    if [ "$res" -eq 0 ] && [ "$warnings" -ne 0 ] && [ "$fail_on_warn" -eq 1 ]; then
         res=1
     fi
 
@@ -161,8 +167,8 @@ function test_run_tests_handle_sigint {
     local create_test_db=$1;
     local test_db_name=$2
 
-    if [ $create_test_db -eq 1 ]; then
-        odoo_db_drop $test_db_name $ODOO_TEST_CONF_FILE;
+    if [ "$create_test_db" -eq 1 ] && odoo_db_exists "$test_db_name"; then
+        odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE";
     fi
 
     exit 1;  # TODO: Use return here?
@@ -183,8 +189,8 @@ function test_run_tests {
     local test_log_file;
 
     # Create new test database if required
-    test_db_name="$(test_get_or_create_db $recreate_db $create_test_db)";
-    if [ $? -ne 0 ] || [ -z "$test_db_name" ]; then
+    test_db_name=$(test_get_or_create_db "$recreate_db" "$create_test_db");
+    if [ -z "$test_db_name" ]; then
         echoe -e "${REDC}ERROR${NC} Cannot use or create test database!";
         return 1;
     fi
@@ -196,26 +202,31 @@ function test_run_tests {
         rm "$test_log_file";
     fi
 
+    # TODO: Set up global handlers to remove temporary
+    # databases on SIGINT, ERR, ETC. And tests, translations, etc
+    # could just add names of created databases to that global array
+    #
+    # shellcheck disable=SC2064
     trap "test_run_tests_handle_sigint $create_test_db $test_db_name" SIGINT;
 
-    if ! test_run_tests_for_modules $with_coverage $test_db_name $test_log_file $@; then
+    if ! test_run_tests_for_modules "$with_coverage" "$test_db_name" "$test_log_file" "$@"; then
         res=2
     fi
 
     # Combine test coverage results
-    if [ $with_coverage -eq 1 ]; then
+    if [ "$with_coverage" -eq 1 ]; then
         execv coverage combine;
     fi
 
     # Drop created test db
-    if [ $create_test_db -eq 1 ]; then
+    if [ "$create_test_db" -eq 1 ]; then
         echo  -e "${BLUEC}Droping test database: ${YELLOWC}${test_db_name}${NC}";
         odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE"
     fi
 
     if [ "$res" -eq 2 ]; then
         echo -e "${REDC}ERROR${NC}: Some error happened during test!";
-    elif ! test_parse_log_file $test_db_name $test_log_file $fail_on_warn; then
+    elif ! test_parse_log_file "$test_db_name" "$test_log_file" "$fail_on_warn"; then
         echo -e "TEST RESULT: ${REDC}FAIL${NC}";
         res=1;
     else
@@ -249,8 +260,12 @@ function test_module {
     local with_coverage_report_html=;
     local with_coverage_report=;
     local with_coverage_skip_covered=;
-    local modules="";
-    local directories="";
+    local modules_list;
+    local modules=( );
+    local module;
+    local module_name;
+    local skip_addon;
+    local skip_addon_list;
     local res=;
 
     # Modules map if there is module in this map, than it have to be skipped
@@ -294,7 +309,7 @@ function test_module {
 
     # Parse command line options and run commands
     if [[ $# -lt 1 ]]; then
-        echo "No options/commands supplied $#: $@";
+        echo "No options/commands supplied $#: $*";
         echo "$usage";
         return 0;
     fi
@@ -335,47 +350,39 @@ function test_module {
                     echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${2}${NC} is not Odoo addon!";
                     return 1;
                 else
-                    modules="$modules $(addons_get_addon_name $2)";  # add module to module list
+                    module_name=$(addons_get_addon_name "$2");
+                    modules+=( "$module_name" );  # add module to module list
                 fi
                 shift;
             ;;
             -d|--dir|--directory)
-                modules="$modules $(addons_list_in_directory --installable --by-name $2)";
+                mapfile -t modules_list < <(addons_list_in_directory --installable --by-name "$2");
+                modules+=( "${modules_list[@]}" );
                 shift;
             ;;
             --dir-r|--directory-r)
-                modules="$modules $(addons_list_in_directory --recursive --installable --by-name $2)";
+                mapfile -t modules_list < <(addons_list_in_directory --recursive --installable --by-name "$2");
+                modules+=( "${modules_list[@]}" );
                 shift;
             ;;
             --skip)
                 if addons_is_odoo_addon "$2"; then
-                    local skip_addon=$(addons_get_addon_name "$2");
+                    skip_addon=$(addons_get_addon_name "$2");
                     echoe -e "${BLUEC}Skipping addon ${YELLOWC}${skip_addon}${NC}";
                     skip_modules_map[$skip_addon]=1;
                 else
-                    for skip_addon in $(addons_list_in_directory --by-name --recursive "$2"); do
+                    mapfile -t skip_addon_list < <(addons_list_in_directory --recursive --installable --by-name "$2");
+                    for skip_addon in "${skip_addon_list[@]}"; do
                         echoe -e "${BLUEC}Skipping addon ${YELLOWC}${skip_addon}${NC}";
                         skip_modules_map["$skip_addon"]=1;
                     done
                 fi
                 shift;
             ;;
-            flake8)
-                shift;
-                echoe -e "${YELLOWC}WARNING${NC}: 'odoo-helper test flake8' is deprecated. Use 'odoo-helper lint flake8' instead.";
-                lint_run_flake8 $@;
-                return;
-            ;;
-            pylint)
-                shift;
-                echoe -e "${YELLOWC}WARNING${NC}: 'odoo-helper test pylint' is deprecated. Use 'odoo-helper lint pylint' instead.";
-                lint_run_pylint $@;
-                return;
-            ;;
             *)
                 if addons_is_odoo_addon "$key"; then
-                    local module_name=$(addons_get_addon_name "$key");
-                    modules="$modules $module_name";
+                    module_name=$(addons_get_addon_name "$key");
+                    modules+=( "$module_name" );
                 else
                     echo "Unknown option: $key";
                     return 1;
@@ -385,17 +392,15 @@ function test_module {
         shift;
     done;
 
-    modules=$(trim "$modules");
-    local modules_to_test=;
-    for module in $modules; do
+    local modules_to_test=( );
+    for module in "${modules[@]}"; do
         if [ -z "${skip_modules_map[$module]}" ]; then
-            modules_to_test="$modules_to_test $module";
+            modules_to_test+=( "$module" );
         fi
     done
 
     # Print warning and return if there is no modules specified
-    modules_to_test=$(trim "$modules_to_test");
-	if [ -z "$modules" ]; then
+	if [ -z "${modules_to_test[*]}" ]; then
         echo -e "${YELLOWC}WARNING${NC}: There is no addons to test";
 		return 0;
 	fi
@@ -404,7 +409,7 @@ function test_module {
 
     # Run tests
     if test_run_tests "${recreate_db:-0}" "${create_test_db:-0}" \
-        "${fail_on_warn:-0}" "${with_coverage:-0}" $modules_to_test;
+        "${fail_on_warn:-0}" "${with_coverage:-0}" "${modules_to_test[@]}";
     then
         res=0;
     else

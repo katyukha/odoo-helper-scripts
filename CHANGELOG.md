@@ -22,6 +22,11 @@
     - `consider-using-ternary` warning enabled by default
     - `unused-import` warning enabled by default
 
+### Removed
+
+- `odoo-helper test pylint` command removed. Use `odoo-helper lint pylint`
+- `odoo-helper test flake8` command removed. Use `odoo-helper lint flake8`
+
 ### Deprecations
 
 - Command `odoo-helper generate-requirements` deprecated.
