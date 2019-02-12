@@ -147,8 +147,10 @@ function odoo_db_drop {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    if ! odoo_db_exists -q $db_name; then
-        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+    if ! odoo_db_exists -q "$db_name"; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+        fi
         return 1;
     fi
 
@@ -158,10 +160,14 @@ function odoo_db_drop {
     echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
     
     if ! run_python_cmd "$python_cmd"; then
-        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        fi
         return 1;
     else
-        [ -z $opt_quite ] && echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+        fi
         return 0;
     fi
 }
@@ -226,10 +232,14 @@ function odoo_db_exists {
     python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
     
     if run_python_cmd "$python_cmd"; then
-        [ -z $opt_quite ] && echoe -e "Database named ${YELLOWC}$db_name${NC} exists!" || true;
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database named ${YELLOWC}$db_name${NC} exists!";
+        fi
         return 0;
     else
-        [ -z $opt_quite ] && echoe -e "Database ${YELLOWC}$db_name${NC} does not exists!" || true;
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database ${YELLOWC}$db_name${NC} does not exists!";
+        fi
         return 1;
     fi
 }
@@ -309,14 +319,14 @@ function odoo_db_dump {
 # if second argument is file and it exists, then it used as config filename
 # in other cases second argument is treated as format, and third (if passed) is treated as conf file
 function odoo_db_backup {
-    if [ -z $BACKUP_DIR ]; then
+    if [ -z "$BACKUP_DIR" ]; then
         echoe -e "${REDC}ERROR${NC}: Backup dir is not configured. Add ${BLUEC}BACKUP_DIR${NC} variable to your ${BLUEC}odoo-helper.conf${NC}!";
         return 1;
     fi
 
-    local FILE_SUFFIX=`date -I`.`random_string 4`;
     local db_name=$1;
-    local db_dump_file="$BACKUP_DIR/db-backup-$db_name-$FILE_SUFFIX";
+    local db_dump_file;
+    db_dump_file="$BACKUP_DIR/db-backup-$db_name-$(date -I).$(random_string 4)";
 
     # if format is passed and format is 'zip':
     if [ -n "$2" ] && [ "$2" == "zip" ]; then
@@ -325,8 +335,8 @@ function odoo_db_backup {
         db_dump_file="$db_dump_file.backup";
     fi
 
-    odoo_db_dump $db_name $db_dump_file $2 $3;
-    echo $db_dump_file
+    odoo_db_dump "$db_name" "$db_dump_file" "$2" "$3";
+    echo "$db_dump_file"
 }
 
 # odoo_db_backup_all [format [odoo_conf_file]]
@@ -347,9 +357,11 @@ function odoo_db_backup_all {
     fi
 
     # dump databases
-    for dbname in $(odoo_db_list $conf_file); do
+    local dbnames;
+    mapfile -t dbnames < <(odoo_db_list "$conf_file");
+    for dbname in "${dbnames[@]}"; do
         echoe -e "${BLUEC}backing-up database: ${YELLOWC}$dbname${NC}";
-        odoo_db_backup $dbname $format $conf_file;
+        odoo_db_backup "$dbname" "$format" "$conf_file";
     done
 }
 
