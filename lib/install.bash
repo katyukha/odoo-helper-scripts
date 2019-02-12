@@ -227,8 +227,7 @@ function install_sys_deps_internal {
 # parse debian control file to fetch odoo dependencies
 function install_parse_debian_control_file {
     local file_path=$1;
-    local sys_deps=( );
-    local sys_deps_raw;
+    local sys_deps_raw=( );
 
     local python_cmd="import re; RE_DEPS=re.compile(r'.*Depends:(?P<deps>(\n [^,]+,)+).*', re.MULTILINE | re.DOTALL);";
     python_cmd="$python_cmd m = RE_DEPS.match(open('$file_path').read());";
@@ -338,12 +337,9 @@ function install_parse_debian_control_file {
                 continue
             ;;
             *)
-                sys_deps+=( "$dep" );
+                echo "$dep";
         esac;
-
     done
-
-    echo "${sys_deps[@]}";
 }
 
 # install_sys_deps_for_odoo_version <odoo version>
