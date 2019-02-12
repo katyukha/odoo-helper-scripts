@@ -72,12 +72,9 @@ function lint_run_flake8 {
     local flake8_config;
     flake8_config=$(config_get_default_tool_conf "flake8.cfg");
     mapfile -t addons_list < <(addons_list_in_directory --installable "$@");
-    for path in "${addons_list[@]}"; do
-        if ! execu flake8 --config="$flake8_config" "$path"; then
-            res=1;
-        fi
-    done
-    return $res;
+    if ! execu flake8 --config="$flake8_config" "${addons_list[@]}"; then
+        return 1;
+    fi
 }
 
 
