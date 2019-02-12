@@ -42,54 +42,52 @@ function install_preconfigure_env {
 # create directory tree for project
 function install_create_project_dir_tree {
     # create dirs is imported from common module
-    create_dirs $PROJECT_ROOT_DIR \
-        $ADDONS_DIR \
-        $CONF_DIR \
-        $LOG_DIR \
-        $LIBS_DIR \
-        $DOWNLOADS_DIR \
-        $BACKUP_DIR \
-        $REPOSITORIES_DIR \
-        $BIN_DIR \
-        $DATA_DIR;
+    create_dirs "$PROJECT_ROOT_DIR" \
+        "$ADDONS_DIR" \
+        "$CONF_DIR" \
+        "$LOG_DIR" \
+        "$LIBS_DIR" \
+        "$DOWNLOADS_DIR" \
+        "$BACKUP_DIR" \
+        "$REPOSITORIES_DIR" \
+        "$BIN_DIR" \
+        "$DATA_DIR";
 }
 
 # install_clone_odoo [path [branch [repo]]]
 function install_clone_odoo {
-    local odoo_path=${ODOO_PATH};
-    local odoo_branch=${ODOO_BRANCH};
-    local odoo_repo=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
-    local branch_opt=;
+    local git_opt=( );
 
-    if [ -n "$odoo_branch" ]; then
-        branch_opt="$branch_opt --branch $odoo_branch";
+    if [ -n "$ODOO_BRANCH" ]; then
+        git_opt+=( --branch "$ODOO_BRANCH" );
     fi
 
     if [ "$CLONE_SINGLE_BRANCH" == "on" ]; then
-        branch_opt="$branch_opt --single-branch";
+        git_opt+=( --single-branch );
     fi
 
-    git clone -q $branch_opt $odoo_repo $odoo_path;
+    git clone -q "${git_opt[@]}" \
+        "${ODOO_REPO:-$DEFAULT_ODOO_REPO}" \
+        "$ODOO_PATH";
 }
 
 # install_download_odoo
 function install_download_odoo {
-    local odoo_path=${ODOO_PATH};
-    local odoo_branch=${ODOO_BRANCH};
-    local odoo_repo=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
+    local clone_odoo_repo=${ODOO_REPO:-$DEFAULT_ODOO_REPO};
 
     local odoo_archive=/tmp/odoo.$ODOO_BRANCH.tar.gz
-    if [ -f $odoo_archive ]; then
-        rm $odoo_archive;
+    if [ -f "$odoo_archive" ]; then
+        rm "$odoo_archive";
     fi
 
-    if [[ $ODOO_REPO == "https://github.com"* ]]; then
-        local repo=${odoo_repo%.git};
-        local repo_base=$(basename $repo);
-        wget -q -T 2 -O $odoo_archive $repo/archive/$ODOO_BRANCH.tar.gz;
-        tar -zxf $odoo_archive;
-        mv ${repo_base}-${ODOO_BRANCH} $ODOO_PATH;
-        rm $odoo_archive;
+    if [[ "$ODOO_REPO" == "https://github.com"* ]]; then
+        local repo=${clone_odoo_repo%.git};
+        local repo_base;
+        repo_base=$(basename "$repo");
+        wget -q -T 2 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz";
+        tar -zxf "$odoo_archive";
+        mv "${repo_base}-${ODOO_BRANCH}" "$ODOO_PATH";
+        rm "$odoo_archive";
     else
         echoe -e "${REDC}ERROR${NC}: Cannot download Odoo. Download option supported only for github repositories!";
         return 1;
@@ -117,7 +115,8 @@ function install_fetch_odoo {
 function install_wkhtmltopdf_get_dw_link {
     local os_release_name=$1;
     local version=${2:-0.12.5};
-    local system_arch=$(dpkg --print-architecture);
+    local system_arch;
+    system_arch=$(dpkg --print-architecture);
 
     echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox_${version}-1.${os_release_name}_${system_arch}.deb"
 }
@@ -128,25 +127,27 @@ function install_wkhtmltopdf_get_dw_link {
 # install_wkhtmltopdf_download <path>
 function install_wkhtmltopdf_download {
     local wkhtmltox_path=$1;
-    local release=$(lsb_release -sc);
-    local download_link=$(install_wkhtmltopdf_get_dw_link $release);
+    local release;
+    local download_link;
+    release=$(lsb_release -sc);
+    download_link=$(install_wkhtmltopdf_get_dw_link "$release");
 
-    if ! wget -q -T 2 $download_link -O $wkhtmltox_path; then
+    if ! wget -q -T 2 "$download_link" -O "$wkhtmltox_path"; then
         local old_release=$release;
 
         if [ "$(lsb_release -si)" == "Ubuntu" ]; then
             # fallback to trusty release for ubuntu systems
-            local release=bionic;
+            release=bionic;
         elif [ "$(lsb_release -si)" == "Debian" ]; then
-            local release=stretch;
+            release=stretch;
         else
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
             return 2;
         fi
 
         echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
-        local download_link=$(install_wkhtmltopdf_get_dw_link $release);
-        if ! wget -q -T 2 $download_link -O $wkhtmltox_path; then
+        download_link=$(install_wkhtmltopdf_get_dw_link "$release");
+        if ! wget -q -T 2 "$download_link" -O "$wkhtmltox_path"; then
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
             return 1;
         fi
@@ -191,17 +192,18 @@ function install_wkhtmltopdf {
     if ! check_command wkhtmltopdf > /dev/null || [ -n "$force_install" ]; then
         # if wkhtmltox is not installed yet
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
-        if [ ! -f $wkhtmltox_path ]; then
+        if [ ! -f "$wkhtmltox_path" ]; then
             echoe -e "${BLUEC}Downloading ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
-            install_wkhtmltopdf_download $wkhtmltox_path;
+            install_wkhtmltopdf_download "$wkhtmltox_path";
         fi
         echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
-        local wkhtmltox_deps=$(dpkg -f $wkhtmltox_path Depends | sed -r 's/,//g');
-        if ! (install_sys_deps_internal $wkhtmltox_deps && with_sudo dpkg -i $wkhtmltox_path); then
+        local wkhtmltox_deps;
+        wkhtmltox_deps=$(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
+        if ! (install_sys_deps_internal "$wkhtmltox_deps" && with_sudo dpkg -i "$wkhtmltox_path"); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
         fi
 
-        rm $wkhtmltox_path || true;  # try to remove downloaded file, ignore errors
+        rm "$wkhtmltox_path" || true;  # try to remove downloaded file, ignore errors
 
         echoe -e "${GREENC}OK${NC}:${YELLOWC}wkhtmltopdf${NC} installed successfully!";
     else
@@ -214,7 +216,7 @@ function install_wkhtmltopdf {
 function install_sys_deps_internal {
     # Odoo's debian/control file usualy contains this in 'Depends' section 
     # so we need to skip it before running apt-get
-    echoe -e "${BLUEC}Installing system dependencies${NC}: $@";
+    echoe -e "${BLUEC}Installing system dependencies${NC}: $*";
     if [ -n "$ALWAYS_ANSWER_YES" ]; then
         local opt_apt_always_yes="-yq";
     fi
@@ -225,7 +227,8 @@ function install_sys_deps_internal {
 # parse debian control file to fetch odoo dependencies
 function install_parse_debian_control_file {
     local file_path=$1;
-    local sys_deps=;
+    local sys_deps=( );
+    local sys_deps_raw;
 
     local python_cmd="import re; RE_DEPS=re.compile(r'.*Depends:(?P<deps>(\n [^,]+,)+).*', re.MULTILINE | re.DOTALL);";
     python_cmd="$python_cmd m = RE_DEPS.match(open('$file_path').read());";
@@ -233,11 +236,12 @@ function install_parse_debian_control_file {
     python_cmd="$python_cmd deps = deps.replace(',', '').replace(' ', '').split('\n');";
     python_cmd="$python_cmd print('\n'.join(filter(lambda l: l and not l.startswith('\\\${'), deps)))";
 
-    local sys_deps_raw=$(run_python_cmd "$python_cmd");
+    mapfile -t sys_deps_raw < <(run_python_cmd "$python_cmd");
 
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
-    for dep in $sys_deps_raw; do
+    for dep in "${sys_deps_raw[@]}"; do
+        # shellcheck disable=SC2016
         case $dep in
             '${misc:Depends}')
                 continue
@@ -334,12 +338,12 @@ function install_parse_debian_control_file {
                 continue
             ;;
             *)
-            sys_deps="$sys_deps $dep";
+                sys_deps+=( "$dep" );
         esac;
 
     done
 
-    echo "$sys_deps";
+    echo "${sys_deps[@]}";
 }
 
 # install_sys_deps_for_odoo_version <odoo version>
@@ -383,11 +387,13 @@ function install_sys_deps_for_odoo_version {
     fi
 
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
-    local tmp_control=$(mktemp);
-    wget -q -T 2 $control_url -O $tmp_control;
-    local sys_deps=$(ODOO_VERSION=$odoo_version install_parse_debian_control_file $tmp_control);
-    install_sys_deps_internal $sys_deps;
-    rm $tmp_control;
+    local tmp_control;
+    tmp_control=$(mktemp);
+    wget -q -T 2 "$control_url" -O "$tmp_control";
+    local sys_deps;
+    mapfile -t sys_deps < <(ODOO_VERSION="$odoo_version" install_parse_debian_control_file "$tmp_control");
+    install_sys_deps_internal "${sys_deps[@]}";
+    rm "$tmp_control";
 }
 
 # install python requirements for specified odoo version via PIP requirements.txt
@@ -419,11 +425,13 @@ function install_odoo_py_requirements_for_version {
     local odoo_version=${1:-$ODOO_VERSION};
     local odoo_major_version="${odoo_version%.*}";
     local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
-    local tmp_requirements=$(mktemp);
-    local tmp_requirements_post=$(mktemp);
+    local tmp_requirements;
+    local tmp_requirements_post;
+    tmp_requirements=$(mktemp);
+    tmp_requirements_post=$(mktemp);
     if wget -q -T 2 "$requirements_url" -O "$tmp_requirements"; then
         # Preprocess requirements to avoid known bugs
-        while read dependency; do
+        while read -r dependency || [[ -n "$dependency" ]]; do
             dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
             if [[ "$dependency_stripped" =~ pyparsing* ]]; then
                 # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
@@ -458,7 +466,7 @@ function install_odoo_py_requirements_for_version {
                 echo "lxml==3.7.1";
             else
                 # Echo dependency line unchanged to rmp file
-                echo $dependency;
+                echo "$dependency";
             fi
         done < "$tmp_requirements" > "$tmp_requirements_post";
         if ! exec_pip install -r "$tmp_requirements_post"; then
@@ -470,11 +478,11 @@ function install_odoo_py_requirements_for_version {
     fi
 
     if [ -f "$tmp_requirements" ]; then
-        rm $tmp_requirements;
+        rm "$tmp_requirements";
     fi
 
     if [ -f "$tmp_requirements_post" ]; then
-        rm $tmp_requirements_post;
+        rm "$tmp_requirements_post";
     fi
 }
 
@@ -517,7 +525,7 @@ function install_and_configure_postgresql {
     fi
 
     if [ -n "$db_user" ] && [ -n "$db_password" ]; then
-        postgres_user_create $db_user $db_password;
+        postgres_user_create "$db_user" "$db_password";
     fi
 }
 
@@ -572,16 +580,18 @@ function install_system_prerequirements {
     fi
 }
 
-# Install virtual environment. All options will be passed directly to
-# virtualenv command. one exception is DEST_DIR, which this script provides.
+# Install virtual environment.
 #
-# install_virtual_env [opts]
+# install_virtual_env
 function install_virtual_env {
+    local venv_script=${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py;
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
         if [ -z "$VIRTUALENV_PYTHON" ]; then
-            VIRTUALENV_PYTHON=$(odoo_get_python_version) ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;
+            local venv_python_version;
+            venv_python_version=$(odoo_get_python_version);
+            VIRTUALENV_PYTHON="$venv_python_version" "$venv_script" "$VENV_DIR";
         else
-            VIRTUALENV_PYTHON=$VIRTUALENV_PYTHON ${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py $@ $VENV_DIR;
+            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$venv_script" "$VENV_DIR";
         fi
         exec_pip -q install nodeenv;
         execv nodeenv --python-virtualenv;  # Install node environment
@@ -629,12 +639,12 @@ function install_bin_tools {
         esac
         shift
     done
-    local deps="expect-dev tcl8.6";
+    local deps=( expect-dev tcl8.6 );
     if ! check_command 'google-chrome' 'chromium' 'chromium-browser' > /dev/null; then
         echoe -e "${YELLOWC}Google Chrome${BLUEC} seems to be not installed. ${YELLOWC}chromium-browser${BLUEC} will be installed.${NC}";
-        deps="$deps chromium-browser";
+        deps+=( chromium-browser );
     fi
-    install_sys_deps_internal $deps;
+    install_sys_deps_internal "${deps[@]}";
 }
 
 # Install extra python tools
@@ -662,13 +672,13 @@ function install_python_tools {
         -q|--quiet     - quiet mode. reduce output
 
     ";
-    local pip_options;
+    local pip_options=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -q|--quiet)
-                pip_options="$pip_options --quiet"
+                pip_options+=( --quiet );
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -681,7 +691,7 @@ function install_python_tools {
         esac
         shift
     done
-    exec_pip $pip_options install setproctitle watchdog pylint-odoo coverage \
+    exec_pip "${pip_options[@]}" install setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors websocket-client;
 }
 
@@ -718,11 +728,11 @@ function install_js_tools {
         esac
         shift
     done
-    local deps="eslint stylelint stylelint-config-standard";
+    local deps=( eslint stylelint stylelint-config-standard );
     if [ "$(odoo_get_major_version)" -lt 12 ]; then
-        deps="$deps phantomjs-prebuilt";
+        deps+=( phantomjs-prebuilt );
     fi
-    exec_npm install -g "$deps";
+    exec_npm install -g "${deps[@]}";
 }
 
 # install_python_prerequirements
@@ -760,31 +770,31 @@ function install_generate_odoo_conf {
     fi
 
     # default values
-    ODOO_CONF_OPTIONS[addons_path]="${ODOO_CONF_OPTIONS['addons_path']:-$addons_path}";
-    ODOO_CONF_OPTIONS[admin_passwd]="${ODOO_CONF_OPTIONS['admin_passwd']:-admin}";
-    ODOO_CONF_OPTIONS[data_dir]="${ODOO_CONF_OPTIONS['data_dir']:-$DATA_DIR}";
-    ODOO_CONF_OPTIONS[logfile]="${ODOO_CONF_OPTIONS['logfile']:-$LOG_FILE}";
-    ODOO_CONF_OPTIONS[db_host]="${ODOO_CONF_OPTIONS['db_host']:-False}";
-    ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
-    ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-odoo}";
-    ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-False}";
+    ODOO_CONF_OPTIONS['addons_path']="${ODOO_CONF_OPTIONS['addons_path']:-$addons_path}";
+    ODOO_CONF_OPTIONS['admin_passwd']="${ODOO_CONF_OPTIONS['admin_passwd']:-admin}";
+    ODOO_CONF_OPTIONS['data_dir']="${ODOO_CONF_OPTIONS['data_dir']:-$DATA_DIR}";
+    ODOO_CONF_OPTIONS['logfile']="${ODOO_CONF_OPTIONS['logfile']:-$LOG_FILE}";
+    ODOO_CONF_OPTIONS['db_host']="${ODOO_CONF_OPTIONS['db_host']:-False}";
+    ODOO_CONF_OPTIONS['db_port']="${ODOO_CONF_OPTIONS['db_port']:-False}";
+    ODOO_CONF_OPTIONS['db_user']="${ODOO_CONF_OPTIONS['db_user']:-odoo}";
+    ODOO_CONF_OPTIONS['db_password']="${ODOO_CONF_OPTIONS['db_password']:-False}";
 
     local conf_file_data="[options]";
-    for key in ${!ODOO_CONF_OPTIONS[@]}; do
+    for key in "${!ODOO_CONF_OPTIONS[@]}"; do
         conf_file_data="$conf_file_data\n$key = ${ODOO_CONF_OPTIONS[$key]}";
     done
 
-    echo -e "$conf_file_data" > $conf_file;
+    echo -e "$conf_file_data" > "$conf_file";
 }
 
 
-# odoo_run_setup_py [setup.py develop arguments]
+# odoo_run_setup_py
 function odoo_run_setup_py {
     # Install dependencies via pip (it is faster if they are cached)
     install_odoo_py_requirements_for_version;
 
     # Install odoo
-    (cd $ODOO_PATH && exec_py setup.py -q develop $@);
+    (cd "$ODOO_PATH" && exec_py setup.py -q develop);
 }
 
 
@@ -851,7 +861,8 @@ function install_reinstall_venv {
 
     # Backup old venv
     if [ -d "$VENV_DIR" ]; then
-        local venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
+        local venv_backup_path;
+        venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
         mv "$VENV_DIR" "$venv_backup_path";
         echoe -e "${BLUEC}Old ${YELLOWC}virtualenv${BLUEC} backed up at ${YELLOWC}${venv_backup_path}${NC}";
     fi
@@ -907,11 +918,11 @@ function install_reinstall_odoo {
         return 1;
     fi
 
-    if [ -d $ODOO_PATH ]; then
-        mv $ODOO_PATH $ODOO_PATH-backup-$(random_string 4);
+    if [ -d "$ODOO_PATH" ]; then
+        mv "$ODOO_PATH" "$ODOO_PATH-backup-$(random_string 4)";
     fi
 
-    install_fetch_odoo $reinstall_action;
+    install_fetch_odoo "$reinstall_action";
     install_reinstall_venv;
 }
 
@@ -952,7 +963,7 @@ function install_entry_point {
         case $key in
             pre-requirements)
                 shift
-                install_system_prerequirements $@;
+                install_system_prerequirements "$@";
                 return 0;
             ;;
             sys-deps)
@@ -963,29 +974,29 @@ function install_entry_point {
             py-deps)
                 shift;
                 config_load_project;
-                install_odoo_py_requirements_for_version $@;
+                install_odoo_py_requirements_for_version "$@";
                 return 0;
             ;;
             py-tools)
                 shift;
                 config_load_project;
-                install_python_tools $@;
+                install_python_tools "$@";
                 return 0;
             ;;
             js-tools)
                 shift;
                 config_load_project;
-                install_js_tools $@;
+                install_js_tools "$@";
                 return 0;
             ;;
             bin-tools)
                 shift;
-                install_bin_tools $@;
+                install_bin_tools "$@";
                 return 0;
             ;;
             wkhtmltopdf)
                 shift;
-                install_wkhtmltopdf $@;
+                install_wkhtmltopdf "$@";
                 return
             ;;
             reinstall-venv)
@@ -997,7 +1008,7 @@ function install_entry_point {
             reinstall-odoo)
                 shift;
                 config_load_project;
-                install_reinstall_odoo $@;
+                install_reinstall_odoo "$@";
                 return 0;
             ;;
             postgres)
