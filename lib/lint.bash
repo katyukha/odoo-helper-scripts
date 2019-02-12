@@ -45,7 +45,7 @@ function lint_run_flake8 {
     ";
     # Parse command line options
     if [[ $# -lt 1 ]]; then
-        echo "No options supplied $#: $@";
+        echo "No options supplied $#: $*";
         echo "";
         echo "$usage";
         exit 0;
@@ -68,9 +68,12 @@ function lint_run_flake8 {
     done
 
     local res=0;
-    local flake8_config=$(config_get_default_tool_conf "flake8.cfg");
-    for path in $(addons_list_in_directory --installable $@); do
-        if ! execu flake8 --config="$flake8_config" $path; then
+    local addons_list;
+    local flake8_config;
+    flake8_config=$(config_get_default_tool_conf "flake8.cfg");
+    mapfile -t addons_list < <(addons_list_in_directory --installable "$@");
+    for path in "${addons_list[@]}"; do
+        if ! execu flake8 --config="$flake8_config" "$path"; then
             res=1;
         fi
     done
@@ -114,7 +117,7 @@ function lint_run_pylint {
     fi
 
     local addons;
-    addons=( $(addons_list_in_directory --installable "$@") );
+    mapfile -t addons < <(addons_list_in_directory --installable "$@");
     execu pylint "${pylint_opts[@]}" "${addons[@]}";
     return "$?";
 }
@@ -134,14 +137,17 @@ function lint_run_stylelint_internal {
         return 1;
     fi
 
+    local addon_name;
+    addon_name=$(basename "$addon_path");
+
     save_dir=$(pwd);
-    cd $addon_path;
+    cd "$addon_path";
 
     stylelint_default_conf=$(config_get_default_tool_conf "stylelint-default.json");
     stylelint_less_conf=$(config_get_default_tool_conf "stylelint-default-less.json");
     stylelint_scss_conf=$(config_get_default_tool_conf "stylelint-default-scss.json");
 
-    echoe -e "${BLUEC}Processing addon ${YELLOWC}$(basename $addon_path)${BLUEC} ...${NC}";
+    echoe -e "${BLUEC}Processing addon ${YELLOWC}${addon_name}${BLUEC} ...${NC}";
 
     if ! execu stylelint --config "$stylelint_default_conf" "$addon_path/**/*.css" "!$addon_path/static/lib/**"; then
         res=1;
@@ -154,12 +160,12 @@ function lint_run_stylelint_internal {
     fi
 
     if [ ! "$res" -eq "0" ]; then
-        echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${REDC}FAIL${NC}";
+        echoe -e "${BLUEC}Addon ${YELLOWC}${addon_name}${BLUEC}:${REDC}FAIL${NC}";
     else
-        echoe -e "${BLUEC}Addon ${YELLOWC}$(basename $addon_path)${BLUEC}:${GREENC}OK${NC}";
+        echoe -e "${BLUEC}Addon ${YELLOWC}${addon_name}${BLUEC}:${GREENC}OK${NC}";
     fi
 
-    cd $save_dir;
+    cd "$save_dir";
 
     return $res;
 }
@@ -183,7 +189,7 @@ function lint_run_stylelint {
 
     # Parse command line options
     if [[ $# -lt 1 ]]; then
-        echo "No options supplied $#: $@";
+        echo "No options supplied $#: $*";
         echo "";
         echo "$usage";
         return 0;
@@ -207,8 +213,8 @@ function lint_run_stylelint {
 
     #-----
     local res=0;
-    for addon_path in $(addons_list_in_directory --installable $@); do
-        if ! lint_run_stylelint_internal $addon_path; then
+    for addon_path in $(addons_list_in_directory --installable "$@"); do
+        if ! lint_run_stylelint_internal "$addon_path"; then
             res=1;
         fi
     done
@@ -231,7 +237,7 @@ function lint_command {
 
     # Parse command line options and run commands
     if [[ $# -lt 1 ]]; then
-        echo "No options supplied $#: $@";
+        echo "No options supplied $#: $*";
         echo "";
         echo "$usage";
         return 0;
@@ -247,17 +253,17 @@ function lint_command {
             ;;
             flake8)
                 shift;
-                lint_run_flake8 $@;
+                lint_run_flake8 "$@";
                 return;
             ;;
             pylint)
                 shift;
-                lint_run_pylint $@;
+                lint_run_pylint "$@";
                 return;
             ;;
             style)
                 shift;
-                lint_run_stylelint $@;
+                lint_run_stylelint "$@";
                 return;
             ;;
             *)
