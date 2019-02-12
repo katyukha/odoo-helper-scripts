@@ -61,7 +61,7 @@ function fetch_requirements {
     # Process requirements file and run fetch_module subcomand for each line
     if [ -f "$REQUIREMENTS_FILE" ] && [ ! -d "$REQUIREMENTS_FILE" ]; then
         echov "Processing requirements file $REQUIREMENTS_FILE";
-        while read -r line; do
+        while read -r line || [[ -n "$line" ]]; do
             if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
                 if eval "fetch_module $line"; then
                     echoe -e "Line ${GREENC}OK${NC}: $line";
@@ -131,6 +131,7 @@ function fetch_oca_requirements {
 
     local is_read_finished=0;
     while true; do
+       # TODO: rwerite with while: IFS='' read -r line || [[ -n "$line" ]]; do
        if ! read -ra line; then
            is_read_finished=1;
        fi

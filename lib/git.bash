@@ -110,7 +110,7 @@ function git_parse_status {
     local num_changed=0
     local num_conflicts=0
     local num_untracked=0
-    while IFS='' read -r line; do
+    while IFS='' read -r line || [[ -n "$line" ]]; do
       if [ -z $line ]; then
           continue;
       fi
