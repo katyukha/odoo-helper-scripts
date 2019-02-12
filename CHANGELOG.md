@@ -2,10 +2,31 @@
 
 ## Unreleased
 
-- Command *odoo-helper generate-requirements* deprecated.
-  Use *odoo-helper addons generate-requirements*
+### Added
+
 - Added command *odoo-helper addons find-installed*.
   Scan all databases for installed addons.
+- Added aliases (shortcuts):
+    - `odoo-helper-link`
+    - `odoo-helper-addons-update`
+
+### Changed
+
+- Changed `odoo-helper pull-updates` command
+    - Now it does not update addons list automatically
+    - Added `--ual` option to update addons list
+    - Added `--help` options
+    - First positional argument not applicable for it.
+      Added option `--addons-dir` instead .
+- Refactored `odoo-helper lint pylint` command
+    - `consider-using-ternary` warning enabled by default
+    - `unused-import` warning enabled by default
+
+### Deprecations
+
+- Command `odoo-helper generate-requirements` deprecated.
+  Use `odoo-helper addons generate-requirements`
+
 
 ## Release 0.3.0 (2019-02-04)
 
@@ -17,9 +38,6 @@
   `odoo-helper test my_addon1 my_addon2`
 - Added `--skip` option of `odoo-helper test` command
 - Added `odoo-helper db copy` command
-- Added aliases (shortcuts):
-   - `odoo-helper-link`
-   - `odoo-helper-addons-update`
 
 ### Fixed
 
@@ -31,12 +49,6 @@
   If it is omited, than current working tree state will be used as last revision.
 - Use own copy of virtualenv, to avoid installing it in system.
   virtualenv is bundled into odoo-helper as git submodule now.
-- Changed `odoo-helper pull-updates` command
-   - Now it does not update addons list automatically
-   - Added `--ual` option to update addons list
-   - Added `--help` options
-   - First positional argument not applicable for it.
-     Added option `--addons-dir` instead .
 
 ### Removed
 

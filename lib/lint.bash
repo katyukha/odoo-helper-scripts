@@ -78,63 +78,45 @@ function lint_run_flake8 {
 }
 
 
-# lint_run_pylint_internal <addon_path> [options]
-function lint_run_pylint_internal {
-    local addon_dir=$(dirname $1);
-    local addon_name=$(basename $1);
-    shift;
-
-    local save_dir=$(pwd);
-    local res=0;
-    cd $addon_dir;
-    if ! execu pylint $@ $addon_name; then
-        res=1;
-    fi
-    cd $save_dir;
-    return $res;
-}
-
 # Run pylint tests for modules
 # lint_run_pylint <module1 path> [module2 path] .. [module n path]
 # lint_run_pylint [--disable=E111,E222,...] <module1 path> [module2 path] .. [module n path]
 function lint_run_pylint {
-    local pylint_rc=$(config_get_default_tool_conf "pylint_odoo.cfg");
-    local pylint_opts="--rcfile=$pylint_rc";
+    local pylint_rc
+    local pylint_opts;
     local pylint_disable="manifest-required-author";
 
+    pylint_rc=$(config_get_default_tool_conf "pylint_odoo.cfg");
+
     # specify valid odoo version for pylint manifest version check
-    pylint_opts="$pylint_opts --valid_odoo_versions=$ODOO_VERSION";
+    pylint_opts+=( "--rcfile=$pylint_rc" "--valid_odoo_versions=$ODOO_VERSION" );
 
     # Pre-process commandline arguments to be forwarded to pylint
     while [[ "$1" =~ ^--[a-zA-Z0-9\-]+(=[a-zA-Z0-9,-.]+)? ]]; do
         if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
             local pylint_disable_opt=$1;
             local pylint_disable_arg="${BASH_REMATCH[1]}";
-            pylint_disable=$(join_by , $pylint_disable_arg "manifest-required-author");
+            pylint_disable=$(join_by , "$pylint_disable_arg" "manifest-required-author");
         elif [[ "$1" =~ --help|--long-help|--version ]]; then
             local show_help=1;
-            pylint_opts="$pylint_opts $1"
+            pylint_opts+=( "$1" );
         else
-            pylint_opts="$pylint_opts $1"
+            pylint_opts+=( "$1" );
         fi
         shift;
     done
-    local pylint_opts="$pylint_opts -d $pylint_disable";
+    pylint_opts+=( "-d" "$pylint_disable" );
 
     # Show help if requested
     if [ -n "$show_help" ]; then
-        execu pylint $pylint_opts;
+        execu pylint "${pylint_opts[@]}";
         return;
     fi
 
-    local res=0;
-    for path in $(addons_list_in_directory --installable $@); do
-        if ! lint_run_pylint_internal $path $pylint_opts; then
-            res=1;
-        fi
-    done
-
-    return $res
+    local addons;
+    addons=( $(addons_list_in_directory --installable "$@") );
+    execu pylint "${pylint_opts[@]}" "${addons[@]}";
+    return "$?";
 }
 
 
