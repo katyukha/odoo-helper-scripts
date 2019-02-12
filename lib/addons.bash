@@ -831,19 +831,46 @@ function addons_install_update {
 # This function test what databases have this addon installed
 # addons_test_installed <addon>
 function addons_test_installed {
-    local addons=$(join_by , $@);
-    for db in $(odoo_db_list); do
-        local python_cmd="import lodoo; cl=lodoo.Client(['-c', '$ODOO_CONF_FILE']);";
-        python_cmd="$python_cmd Module=cl['$db'].env['ir.module.module'];";
-        python_cmd="$python_cmd is_installed=bool(Module.search([('name', 'in', '$addons'.split(',')),('state', '=', 'installed')], count=1));"
-        # returns 0 (OK) if addon is installed in database
-        # returns 1 (False) if addon is not installed in database
-        python_cmd="$python_cmd exit(not is_installed);"
+    local usage="
+    Usage
 
-        if run_python_cmd "$python_cmd" >/dev/null 2>&1; then
+        $SCRIPT_NAME addons test-installed <addon>
+
+    Description
+
+        test if addon is installed in at least one database
+        and print names of databases where this addon is installed
+
+    Options
+
+        -h|--help|help  - show this help message
+
+    ";
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    local addon_name="$1";
+
+    available_databases=( $(odoo_db_list) );
+    for db in "${available_databases[@]}"; do
+        local addon_count;
+        addon_count=$(postgres_psql -d "$db" -tA -c "SELECT count(*) FROM ir_module_module WHERE state = 'installed' AND name = '$addon_name';");
+        if [ "$addon_count" -eq 1 ]; then
             echo "$db";
         fi
-    done
+    done | sort;
 }
 
 
@@ -930,21 +957,21 @@ function addons_command {
     local usage="
     Usage:
 
-        $SCRIPT_NAME addons list --help                   - list addons in specified directory
-        $SCRIPT_NAME addons list-repos [addons path]      - list git repositories
-        $SCRIPT_NAME addons list-no-repo [addons path]    - list addons not under git repo
-        $SCRIPT_NAME addons check-updates [addons path]   - Check for git updates of addons and displays status
-        $SCRIPT_NAME addons pull-updates --help           - Pull changes from git repos
-        $SCRIPT_NAME addons status --help                 - show addons status
-        $SCRIPT_NAME addons update --help                 - update some addon[s]
-        $SCRIPT_NAME addons install --help                - install some addon[s]
-        $SCRIPT_NAME addons uninstall --help              - uninstall some addon[s]
-        $SCRIPT_NAME addons update-list --help            - update list of addons
-        $SCRIPT_NAME addons test-installed <addon>        - lists databases this addon is installed in
-        $SCRIPT_NAME addons find-installed                - print list of addons installed in at least one db
-        $SCRIPT_NAME addons update-py-deps                - update python dependencies of addons
-        $SCRIPT_NAME addons generate-requirements         - generate odoo_requirements.txt for this instance
-        $SCRIPT_NAME addons --help                        - show this help message
+        $SCRIPT_NAME addons list --help                 - list addons in specified directory
+        $SCRIPT_NAME addons list-repos [addons path]    - list git repositories
+        $SCRIPT_NAME addons list-no-repo [addons path]  - list addons not under git repo
+        $SCRIPT_NAME addons check-updates [addons path] - Check for git updates of addons and displays status
+        $SCRIPT_NAME addons pull-updates --help         - Pull changes from git repos
+        $SCRIPT_NAME addons status --help               - show addons status
+        $SCRIPT_NAME addons update --help               - update some addon[s]
+        $SCRIPT_NAME addons install --help              - install some addon[s]
+        $SCRIPT_NAME addons uninstall --help            - uninstall some addon[s]
+        $SCRIPT_NAME addons update-list --help          - update list of addons
+        $SCRIPT_NAME addons test-installed --help       - lists databases this addon is installed in
+        $SCRIPT_NAME addons find-installed              - print list of addons installed in at least one db
+        $SCRIPT_NAME addons update-py-deps              - update python dependencies of addons
+        $SCRIPT_NAME addons generate-requirements       - generate odoo_requirements.txt for this instance
+        $SCRIPT_NAME addons --help                      - show this help message
 
     Shortcuts:
 
@@ -1015,7 +1042,7 @@ function addons_command {
             ;;
             test-installed)
                 shift;
-                addons_test_installed $@;
+                addons_test_installed "$@";
                 return 0;
             ;;
             find-installed)

@@ -79,6 +79,9 @@ echo -e "~~~text\n$(odoo-helper addons status --help)\n~~~\n\n" >> $PROJECT_DIR/
 echo -e "#### odoo-helper addons generate-requirements\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper addons generate-requirements --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper addons test-installed\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper addons test-installed --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper addons find-installed\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper addons find-installed --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
