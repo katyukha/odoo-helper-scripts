@@ -315,7 +315,7 @@ function addons_list_in_directory {
     local installable_only=0;
     local not_linked_only=0;
     local linked_only=0;
-    local recursive_options=;
+    local recursive_options=( );
     local filter_expr="";
 
     while [[ $1 == -* ]]
@@ -328,35 +328,35 @@ function addons_list_in_directory {
             ;;
             -r|--recursive)
                 local recursive=1;
-                recursive_options="$recursive_options --recursive";
+                recursive_options+=( --recursive );
             ;;
             --installable)
                 installable_only=1;
-                recursive_options="$recursive_options --installable";
+                recursive_options+=( --installable );
             ;;
             --linked)
                 linked_only=1;
-                recursive_options="$recursive_options --linked";
+                recursive_options+=( --linked );
             ;;
             --not-linked)
                 not_linked_only=1;
-                recursive_options="$recursive_options --not-linked";
+                recursive_options+=( --not-linked );
             ;;
             --by-name)
                 name_mode='name';
-                recursive_options="$recursive_options --by-name";
+                recursive_options+=( --by-name );
             ;;
             --by-path)
                 name_mode='path';
-                recursive_options="$recursive_options --by-path";
+                recursive_options+=( --by-path );
             ;;
             --color)
                 color_mode='link';
-                recursive_options="$recursive_options --color";
+                recursive_options+=( --color );
             ;;
             --filter)
                 filter_expr="$2";
-                recursive_options="$recursive_options --filter $2";
+                recursive_options+=( --filter "$2" );
                 shift;
             ;;
             *)
@@ -368,7 +368,7 @@ function addons_list_in_directory {
     done
 
     if [ -z "$1" ]; then
-        addons_list_in_directory $recursive_options "$(pwd)";
+        addons_list_in_directory "${recursive_options[@]}" "$(pwd)";
         return;
     fi
 
@@ -377,7 +377,7 @@ function addons_list_in_directory {
         if [ -d "$addons_path" ]; then
             if is_odoo_module "$addons_path"; then
                 if _addons_list_in_directory_filter "$addons_path" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr"; then
-                    _addons_list_in_directory_display "$addons_path" $name_mode $color_mode;
+                    _addons_list_in_directory_display "$addons_path" "$name_mode" "$color_mode";
                 fi
             fi
 
@@ -386,8 +386,8 @@ function addons_list_in_directory {
                     if _addons_list_in_directory_filter "$addon" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr"; then
                         _addons_list_in_directory_display "$addon" "$name_mode" "$color_mode";
                     fi
-                elif [ -n "$recursive" ] && [ -d "$addon" ] && [ "$(basename $addon)" != "setup" ]; then
-                    addons_list_in_directory $recursive_options "$addon";
+                elif [ -n "$recursive" ] && [ -d "$addon" ] && [ "$(basename "$addon")" != "setup" ]; then
+                    addons_list_in_directory "${recursive_options[@]}" "$addon";
                 fi
             done
         fi
