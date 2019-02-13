@@ -169,7 +169,7 @@ function addons_update_module_list {
         --tdb|--test-db        - use database used for tests
         -h|--help|help         - show this help message
     ";
-    local dbs=( );
+    local dbs;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -202,8 +202,8 @@ function addons_update_module_list {
         shift
     done
 
-    if [ -z "${dbs[*]}" ]; then
-        mapfile -t < <(odoo_db_list);
+    if [ ${#dbs[@]} -eq 0 ]; then
+        mapfile -t dbs < <(odoo_db_list);
     fi
 
     local db;
@@ -847,7 +847,7 @@ function addons_install_update {
 
     # If no database specified, install/update addons
     # to all available databases
-    if [ -z "${dbs[*]}" ]; then
+    if [ ${#dbs[@]} -eq 0 ]; then
         # TODO: search for databases where these addons installed
         mapfile -t dbs < <(odoo_db_list);
     fi
