@@ -66,7 +66,7 @@ function ci_fix_version_serie {
 function ci_fix_version_number {
     local version="$1";
     if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+\.[0-9]+)\.([0-9]+)$ ]]; then
-        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$((${BASH_REMATCH[2]} + 1))";
+        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$(( BASH_REMATCH[2] + 1))";
     else
         return 1;
     fi
@@ -93,6 +93,7 @@ function ci_git_get_repo_version_by_ref {
     else
         version=$(git show -q "${git_ref}:./VERSION" 2>/dev/null);
     fi
+    # shellcheck disable=SC2181
     if [ "$?" -ne 0 ] || [ -z "$version" ]; then
         [ -z "$quiet" ] && echoe -e "${YELLOWC}WARNING${NC}: repository version file (${BLUEC}${repo_path}/VERSION${NC}) not found or empty (revision ${BLUEC}${git_ref}${NC}! Using default version ${BLUEC}${ODOO_VERSION}.0.0.0${NC}";
         echo "${ODOO_VERSION}.0.0.0"
@@ -140,7 +141,8 @@ function ci_git_get_addon_version_by_ref {
         version="${ODOO_VERSION}.0.0.0";
     else
         version=$(echo "$manifest_content" | execv python -c "\"import sys; print(eval(sys.stdin.read()).get('version', '${ODOO_VERSION}.1.0.0'))\"");
-        if [ $? -ne 0 ]; then
+        # shellcheck disable=SC2181
+        if [ "$?" -ne 0 ]; then
             [ -z "$quiet" ] && echoe -e "${YELLOWC}WARNING${NC} Cannot read version from manifest in first revision! Using ${BLUEC}${ODOO_VERSION}.0.0.0${NC} as default.";
         fi
     fi
@@ -181,7 +183,7 @@ function ci_check_versions_git {
         return 0;
     fi
 
-    local git_changed_extra_opts;
+    local git_changed_extra_opts=( );
     local repo_path;
     local ref_start;
     local ref_end;
@@ -198,7 +200,7 @@ function ci_check_versions_git {
                 return 0;
             ;;
             --ignore-trans)
-                git_changed_extra_opts="$git_changed_extra_opts --ignore-trans";
+                git_changed_extra_opts+=( --ignore-trans );
                 shift;
             ;;
             --repo-version)
@@ -228,7 +230,7 @@ function ci_check_versions_git {
     # Check addons versions
     local result=0;
     local changed_addons;
-    changed_addons=( $(git_get_addons_changed $git_changed_extra_opts "$repo_path" "$ref_start" "$ref_end") );
+    mapfile -t changed_addons < <(git_get_addons_changed "${git_changed_extra_opts[@]}" "$repo_path" "$ref_start" "$ref_end" | sed '/^$/d')
     local addon_path;
     for addon_path in "${changed_addons[@]}"; do
         cd "$addon_path";
@@ -236,13 +238,16 @@ function ci_check_versions_git {
         addon_name=$(basename "$addon_path");
 
         echoe -e "${BLUEC}Checking version of ${YELLOWC}${addon_name}${BLUEC} addon ...${NC}";
-        local version_before=$(ci_git_get_addon_version_by_ref -q "$addon_path" "${ref_start}");
-        local version_after=$(ci_git_get_addon_version_by_ref "$addon_path" "${ref_end}");
+        local version_after;
+        local version_before;
+        version_before=$(ci_git_get_addon_version_by_ref -q "$addon_path" "${ref_start}");
+        version_after=$(ci_git_get_addon_version_by_ref "$addon_path" "${ref_end}");
 
         if ! ci_validate_version "$version_after"; then
             if [ "$opt_fix_version" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
+                # shellcheck disable=SC2181
                 if [ "$?" -eq 0 ]; then
                     local addon_manifest_file;
                     addon_manifest_file=$(addons_get_manifest_file "$addon_path");
@@ -267,6 +272,7 @@ function ci_check_versions_git {
             if [ "$opt_fix_version" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
+                # shellcheck disable=SC2181
                 if [ "$?" -eq 0 ]; then
                     local addon_manifest_file;
                     addon_manifest_file=$(addons_get_manifest_file "$addon_path");
@@ -285,7 +291,7 @@ function ci_check_versions_git {
     done;
 
     # Check repo version
-    if [ "$check_repo_version" -eq 1 ] && [ -n "${changed_addons}" ]; then
+    if [ "$check_repo_version" -eq 1 ] && [ ${#changed_addons[@]} -gt 0 ]; then
         local repo_version_before;
         local repo_version_after;
         repo_version_before=$(ci_git_get_repo_version_by_ref -q "$repo_path" "$ref_start");

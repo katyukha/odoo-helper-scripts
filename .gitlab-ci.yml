@@ -19,16 +19,23 @@ cache:
     key: ${CI_JOB_NAME}
     paths:
         - .cache
+stages:
+  - lint
+  - test
+  - build
+  - deploy
 
 shellcheck:
     image: koalaman/shellcheck-alpine:stable
+    stage: lint
     before_script:
         - shellcheck --version
     script:
-        - shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/* ./lib/common.bash ./lib/version.bash ./lib/utils.bash ./lib/tr.bash ./lib/config.bash ./lib/odoo.bash ./lib/system.bash ./lib/postgres.bash ./lib/link.bash ./lib/recursion.bash ./lib/scaffold.bash ./lib/fetch.bash ./lib/server.bash ./lib/test.bash ./lib/lint.bash ./lib/install.bash ./lib/doc-utils.bash ./lib/db.bash ./lib/addons.bash ./lib/git.bash
+        - shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/* ./lib/*.bash
 
 
 .test:definition: &tests-definition
+    stage: test
     before_script:
         # Setup PIP Cache
         - mkdir -p .cache && chmod a+rwx -R .cache
@@ -62,6 +69,7 @@ tests:ubuntu:18.04:
 
 build_packages:
     image: ubuntu:18.04
+    stage: build
     variables:
         ODOO_HELPER_ROOT: $CI_PROJECT_DIR
         ODOO_HELPER_BIN: $CI_PROJECT_DIR/bin
@@ -79,6 +87,7 @@ build_packages:
  
 pages:
     image: ubuntu:18.04
+    stage: deploy
     before_script:
         - apt-get update
         - apt-get install -y python3-pip
