@@ -70,7 +70,7 @@ function git_get_remote_url {
 
     local git_remote;
     local current_branch;
-    current_branch=$(git_get_branch_name);
+    current_branch=$(git_get_branch_name "$1");
     git_remote=$(git config --local --get "branch.$current_branch.remote");
     git config --local --get "remote.$git_remote.url";
 
@@ -99,6 +99,11 @@ function git_get_remote_url {
 function git_parse_status {
     local path_to_repo=$1;
     local cdir;
+
+    if ! git_is_git_repo "$path_to_repo"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot get git status for ${YELLOWC}${path_to_repo}${NC} - it is not git repository";
+        return 1;
+    fi
     cdir=$(pwd);
 
     # Go to repository directory
@@ -106,12 +111,6 @@ function git_parse_status {
 
     local gitstatus;
     gitstatus=$( LC_ALL=C git status --untracked-files=all --porcelain --branch )
-
-    # if the status is fatal, exit now
-    if [[ "$?" -ne 0 ]]; then
-        echoe -e "${REDC}ERROR${NC}: Cannot get git status for ${YELLOWC}${path_to_repo}${NC}";
-        return 1;
-    fi
 
     local num_staged=0
     local num_changed=0
@@ -223,7 +222,7 @@ function git_parse_status {
 # Check if repository is clean (no uncommited changes)
 function git_is_clean {
     local git_status=;
-    mapfile -t git_status < <(git_parse_status "$1" || echo '');
+    mapfile -t git_status < <({ git_parse_status "$1" || echo ''; } | sed '/^$/d');
     if (( git_status[4] == 0 && git_status[5] == 0 && git_status[6]== 0 && git_status[7] == 0 )) ; then
         return 0;  # repo is clean
     else
@@ -311,9 +310,9 @@ function git_get_addons_changed {
 
     local changed_files;
     if [ -n "$exclude_translations" ]; then
-        mapfile -t changed_files < <(git diff --name-only  "${ref_revision}" -- ':(exclude)*.po' ':(exclude)*.pot');
+        mapfile -t changed_files < <(git diff --name-only  "${ref_revision}" -- ':(exclude)*.po' ':(exclude)*.pot' | sed '/^$/d');
     else
-        mapfile -t changed_files < <(git diff --name-only  "${ref_revision}");
+        mapfile -t changed_files < <(git diff --name-only  "${ref_revision}" | sed '/^$/d');
     fi
     for file_path in "${changed_files[@]}"; do
         local manifest_path;
