@@ -545,7 +545,7 @@ function addons_git_pull_updates {
     local addon_repositories;
     mapfile -t addon_repositories < <(addons_list_repositories "$addons_dir" | sed '/^$/d');
     for addon_repo in "${addon_repositories[@]}"; do
-        mapfile -t git_status < <( { git_parse_status "$addon_repo" || echo '' } | sed '/^$/d');
+        mapfile -t git_status < <( { git_parse_status "$addon_repo" || echo ''; } | sed '/^$/d');
         local git_remote_status=${git_status[1]};
         if [[ "$git_remote_status" == _BEHIND_* ]] && [[ "$git_remote_status" != *_AHEAD_* ]]; then
             # link module (not forced)
@@ -625,7 +625,7 @@ function addons_show_status {
 
     local addon_repo;
     for addon_repo in "${addon_repositories[@]}"; do
-        mapfile -t git_status < <({ git_parse_status "$addon_repo" || echo '' } | sed '/^$/d');
+        mapfile -t git_status < <({ git_parse_status "$addon_repo" || echo ''; } | sed '/^$/d');
         if [ -z "${git_status[*]}" ]; then
             echoe -e "No info available for addon $addon_repo";
             continue;
