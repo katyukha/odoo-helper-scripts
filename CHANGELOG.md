@@ -9,6 +9,8 @@
 - Added aliases (shortcuts):
     - `odoo-helper-link`
     - `odoo-helper-addons-update`
+- Experimental option `odoo-helper fetch --odoo-app <app_name>` that
+  will automatically download module from Odoo Market
 
 ### Changed
 

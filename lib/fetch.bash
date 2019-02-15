@@ -271,6 +271,52 @@ function fetch_clone_repo {
 
 }
 
+
+# Download module from Odoo Market
+function fetch_download_odoo_app {
+    local app_name=$1;
+
+    if [ -e "$DOWNLOADS_DIR/$app_name" ]; then
+        echo -e "${REDC}ERROR${NC}: Application ${YELLOWC}${app_name}${NC} already fetched";
+        return 1;
+    fi
+
+    local tmp_dir;
+    local download_path;
+    local download_url;
+    download_url="https://apps.odoo.com/loempia/download/${app_name}/${ODOO_VERSION}/${app_name}.zip";
+    tmp_dir=$(mktemp -d);
+    download_path="${tmp_dir}/${app_name}"
+
+    echo -e "${BLUEC}Downloading addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
+    if ! wget -q -T 2 "$download_url" -O "${download_path}.zip"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot download app ${YELLOWC}${app_name}${NC}";
+        rm -r "$tmp_dir";
+        return 2;
+    fi
+
+    echo -e "${BLUEC}Unpacking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
+    if ! (cd "$tmp_dir" && unzip -q "$app_name.zip"); then
+        echo -e "${REDC}ERROR${NC}: Cannot unzip app ${YELLOWC}${app_name}${NC}";
+        rm -r "$tmp_dir";
+        return 3;
+    else
+        rm "$download_path.zip";
+    fi
+
+    echo -e "${BLUEC}Checking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
+    if ! is_odoo_module "$download_path"; then
+        echo -e "${REDC}ERROR${NC}: Download app is not odoo module!";
+        rm -r "$tmp_dir";
+        return 4;
+    fi
+
+    mv "$download_path" "$DOWNLOADS_DIR/$app_name";
+
+    echo -e "${BLUEC}Linking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
+    link_module off "$DOWNLOADS_DIR/$app_name";
+}
+
 # fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
 # fetch_module --hg <hg repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
 # fetch_module --requirements <requirements file>
@@ -287,9 +333,10 @@ function fetch_module {
         -r|--repo <repo>         - git repository to get module from
         --github <user/repo>     - allows to specify repository located on github in short format
         --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
-
         --hg <repo>              - mercurial repository to get addon from.
-
+        --odoo-app <app_name>    - [experimental] fetch module from Odoo Apps Market.
+                                   Works only for free modules.
+                                   Does not download dependencies.
         -m|--module <module>     - module name to be fetched from repository
         -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
                                    Usualy not required
@@ -367,6 +414,10 @@ function fetch_module {
                 # then use odoo branch
                 REPO_BRANCH=${REPO_BRANCH:-${ODOO_VERSION:-$ODOO_BRANCH}};
                 shift;
+            ;;
+            --odoo-app)
+                fetch_download_odoo_app "$2";
+                return;
             ;;
             -m|--module)
                 MODULE="$2";
