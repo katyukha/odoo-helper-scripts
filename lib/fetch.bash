@@ -275,46 +275,72 @@ function fetch_clone_repo {
 # Download module from Odoo Market
 function fetch_download_odoo_app {
     local app_name=$1;
-
-    if [ -e "$DOWNLOADS_DIR/$app_name" ]; then
-        echo -e "${REDC}ERROR${NC}: Application ${YELLOWC}${app_name}${NC} already fetched";
-        return 1;
-    fi
-
     local tmp_dir;
+    local app_tmp_path;
+    local app_tmp_name;
     local download_path;
     local download_url;
-    download_url="https://apps.odoo.com/loempia/download/${app_name}/${ODOO_VERSION}/${app_name}.zip";
+    download_url="https://apps.odoo.com/loempia/download/${app_name}/${ODOO_VERSION}/${app_name}.zip?deps";
     tmp_dir=$(mktemp -d);
     download_path="${tmp_dir}/${app_name}"
 
-    echo -e "${BLUEC}Downloading addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
+    echo -e "${LBLUEC}INFO: ${BLUEC}Downloading addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
     if ! wget -q -T 2 "$download_url" -O "${download_path}.zip"; then
         echoe -e "${REDC}ERROR${NC}: Cannot download app ${YELLOWC}${app_name}${NC}";
         rm -r "$tmp_dir";
         return 2;
     fi
 
-    echo -e "${BLUEC}Unpacking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
+    echo -e "${LBLUEC}INFO: ${BLUEC}Unpacking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
     if ! (cd "$tmp_dir" && unzip -q "$app_name.zip"); then
-        echo -e "${REDC}ERROR${NC}: Cannot unzip app ${YELLOWC}${app_name}${NC}";
+        echoe -e "${REDC}ERROR${NC}: Cannot unzip app ${YELLOWC}${app_name}${NC}";
         rm -r "$tmp_dir";
         return 3;
     else
         rm "$download_path.zip";
     fi
 
-    echo -e "${BLUEC}Checking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
+    echo -e "${LBLUEC}INFO: ${BLUEC}Checking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
     if ! is_odoo_module "$download_path"; then
-        echo -e "${REDC}ERROR${NC}: Download app is not odoo module!";
+        echoe -e "${REDC}ERROR${NC}: Download app is not odoo module!";
         rm -r "$tmp_dir";
         return 4;
     fi
 
-    mv "$download_path" "$DOWNLOADS_DIR/$app_name";
+    for app in "$tmp_dir"/*; do
+        app_tmp_path=$(readlink -f "$app");
+        if ! is_odoo_module "$app"; then
+            echoe -e "${LBLUEC}INFO: ${BLUEC}Skipping ${YELLOWC}${app_tmp_path}${BLUEC}: it is not Odoo addon...${NC}";
+            continue;
+        fi
+        app_tmp_name=$(basename "$app_tmp_path");
+        if [ -e "$DOWNLOADS_DIR/$app_tmp_name" ]; then
+            local manifest_file;
+            local version_installed;
+            manifest_file=$(addons_get_manifest_file "$DOWNLOADS_DIR/$app_tmp_name");
+            version_installed=$(run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('version', '$ODOO_VERSION.0.0.0'))");
+            manifest_file=$(addons_get_manifest_file "$app_tmp_path");
+            version_downloaded=$(run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('version', '$ODOO_VERSION.0.0.0'))");
+            if version_cmp_gte "$version_installed" "$version_downloaded"; then
+                echoe -e "${YELLOWC}WARNING:${BLUEC} you have new version of ${YELLOWC}${app_tmp_name}${BLUEC} installed. Skipping...${NC}";
+                continue;
+            else
+                local backup_addon_path;
+                backup_addon_path=$DOWNLOADS_DIR/$app_tmp_name.bkp.$(date +'%Y-%m-%d.%H-%M-%S');
+                echoe -e "${YELLOWC}WARNING:${BLUEC} you have older version of ${YELLOWC}${app_tmp_name}${BLUEC} installed. Replacing...${NC}";
+                mv "$DOWNLOADS_DIR/$app_tmp_name" "$backup_addon_path";
+                echoe -e "${LBLUEC}INFO:${BLUEC} old version of ${YELLOWC}${app_tmp_name}${BLUEC} backed up at ${YELLOWC}${backup_addon_path}${BLUEC}.${NC}";
+            fi
+        fi
+        mv "$app_tmp_path" "$DOWNLOADS_DIR/$app_tmp_name";
+        echoe -e "${LBLUEC}INFO: ${BLUEC}Linking addon ${YELLOWC}${app_tmp_name}${BLUEC}...${NC}";
+        link_module off "$DOWNLOADS_DIR/$app_tmp_name";
+    done
 
-    echo -e "${BLUEC}Linking addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
-    link_module off "$DOWNLOADS_DIR/$app_name";
+    rm -r "$tmp_dir";
+    echoe -e "${GREENC}OK:${BLUEC} App ${YELLOWC}${app_name}${BLUEC} fetchec successfully...${NC}";
+    echoe "";
+    echoe -e "${LBLUEC}TIP:${BLUEC} Run ${YELLOWC}odoo-helper addons update-list${BLUEC} to update list of addons in databases${NC}";
 }
 
 # fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]

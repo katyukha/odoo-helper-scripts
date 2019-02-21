@@ -593,6 +593,14 @@ odoo-helper fetch --oca contract
 # Install addons from OCA contract
 odoo-helper addons install --ual --dir ./repositories/contract;
 
+# Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+
+# Fetch helpdesk second time testing bechavior
+# when same addons already present in system
+odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+
 # Print list of installed addons
 odoo-helper addons find-installed;
 
