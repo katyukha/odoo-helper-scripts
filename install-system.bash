@@ -76,6 +76,12 @@ echo -e "${YELLOWC}NOTE${NC}: Do not forget to install odoo-helper system depend
 echo -e "To do this for debian-like systems run following command (${YELLOWC}sudo access required${NC}):";
 echo -e "    $ ${BLUEC}odoo-helper install pre-requirements${NC}";
 echo;
+echo -e "${YELLOWC}NOTE2${NC}: Do not forget to install and configure postgresql.";
+echo -e "To do this for debian-like systems run following command (${YELLOWC}sudo access required${NC}):";
+echo -e "    $ ${BLUEC}odoo-helper install postgres${NC}";
+echo -e "Or use command below to create postgres user for Odoo too:";
+echo -e "    $ ${BLUEC}odoo-helper install postgres odoo odoo${NC}";
+echo;
 echo -e "To update odoo-helper-scripts, just run following command:";
 echo -e "    $ ${BLUEC}odoo-helper system update${NC}";
 

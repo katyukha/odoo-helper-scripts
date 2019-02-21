@@ -379,8 +379,11 @@ function fetch_module {
        # same as previous but via --github option
        $SCRIPT_NAME fetch --github crnd-inc/generic-addons
 
-       # fetch project_sla module from project repository of OCA using branch 8.0
-       $SCRIPT_NAME fetch --oca project -m project_sla -b 8.0
+       # fetch project_description module from project repository of OCA
+       $SCRIPT_NAME fetch --oca project -m project_description
+
+       # fetch bureaucrat_helpdesk_lite module from Odoo Apps
+       $SCRIPT_NAME fetch --odoo-app bureaucrat_helpdesk_lite
     ";
 
     if [[ $# -lt 1 ]]; then
