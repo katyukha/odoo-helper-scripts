@@ -33,6 +33,14 @@ shellcheck:
     script:
         - shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/* ./lib/*.bash
 
+flake8:
+    image: python:3
+    stage: lint
+    before_script:
+        - pip install flake8
+    script:
+        - flake8 ./lib/pylib/lodoo.py
+
 
 .test:definition: &tests-definition
     stage: test
