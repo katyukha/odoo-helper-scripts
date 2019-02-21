@@ -287,5 +287,5 @@ function run_python_cmd_u {
 #
 # version_cmp_gte <version1> <version2>
 function version_cmp_gte {
-    python -c "from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));";
+    exec_py -c "\"from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));\"";
 }

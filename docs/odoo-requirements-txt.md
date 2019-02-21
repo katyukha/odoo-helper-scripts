@@ -23,6 +23,12 @@ must be set of options for [odoo-helper fetch](./command-reference.md#odoo-helpe
 --oca <OCA reponame> [-b|--branch <git branch>] [-m|--module <odoo module name>] [-n|--name <repo name>]
 ```
 
+### Fetch addons direcly from [Odoo Apps](https://apps.odoo.com/apps)
+
+```
+--odoo-app <app name>
+```
+
 ### Parse another *odoo_requirments.txt* file
 
 ```
@@ -36,8 +42,9 @@ must be set of options for [odoo-helper fetch](./command-reference.md#odoo-helpe
 ## Examples
 
 ```
---github katyukha/base_tags --module base_tags -b master
+--github crnd-inc/generic-addon --module generic_tags -b 12.0
 --oca project -m project_description
+--odoo-app bureaucrat_helpdesk_lite
 ```
 
 For details run ```odoo-helper fetch --help```
