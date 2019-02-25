@@ -84,8 +84,20 @@ function install_download_odoo {
         local repo=${clone_odoo_repo%.git};
         local repo_base;
         repo_base=$(basename "$repo");
-        wget -q -T 2 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz";
-        tar -zxf "$odoo_archive";
+        echoe -e "${BLUEC}Downloading odoo...${NC}";
+        echov -e "${LBLUEC}Downloading from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz${NC}";
+        if ! wget -q -T 2 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz"; then
+            echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz}${NC}."
+            echoe -e "Remove broken download (if it is exists) ${YELLOWC}${odoo_archive}${NC}."
+            echoe -e "and try to run command below: ";
+            echoe -e "    ${BLUEC}wget --debug -T 2 -O \"$odoo_archive\" \"$repo/archive/$ODOO_BRANCH.tar.gz\"${NC}"
+            echoe  -e "and analyze its output";
+            return 2;
+        fi
+        if ! tar -zxf "$odoo_archive"; then
+            echoe -e "${REDC}ERROR${NC}: Cannot unpack downloaded archive ${YELLOWC}${odoo_archive}${NC}."
+            return 3;
+        fi
         mv "${repo_base}-${ODOO_BRANCH}" "$ODOO_PATH";
         rm "$odoo_archive";
     else
