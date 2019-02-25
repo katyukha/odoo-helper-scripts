@@ -23,6 +23,8 @@
 - Refactored `odoo-helper lint pylint` command
     - `consider-using-ternary` warning enabled by default
     - `unused-import` warning enabled by default
+- Default timeouts for `wget` increased `2` -> `15` to be able to
+  download Odoo via low-speed networks
 
 ### Removed
 

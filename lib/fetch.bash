@@ -285,7 +285,7 @@ function fetch_download_odoo_app {
     download_path="${tmp_dir}/${app_name}"
 
     echo -e "${LBLUEC}INFO: ${BLUEC}Downloading addon ${YELLOWC}${app_name}${BLUEC}...${NC}";
-    if ! wget -q -T 2 "$download_url" -O "${download_path}.zip"; then
+    if ! wget -q -T 15 "$download_url" -O "${download_path}.zip"; then
         echoe -e "${REDC}ERROR${NC}: Cannot download app ${YELLOWC}${app_name}${NC}";
         rm -r "$tmp_dir";
         return 2;

@@ -86,11 +86,11 @@ function install_download_odoo {
         repo_base=$(basename "$repo");
         echoe -e "${BLUEC}Downloading odoo...${NC}";
         echov -e "${LBLUEC}Downloading from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz${NC}";
-        if ! wget -q -T 2 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz"; then
+        if ! wget -q -T 15 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz"; then
             echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz}${NC}."
             echoe -e "Remove broken download (if it is exists) ${YELLOWC}${odoo_archive}${NC}."
             echoe -e "and try to run command below: ";
-            echoe -e "    ${BLUEC}wget --debug -T 2 -O \"$odoo_archive\" \"$repo/archive/$ODOO_BRANCH.tar.gz\"${NC}"
+            echoe -e "    ${BLUEC}wget --debug -T 15 -O \"$odoo_archive\" \"$repo/archive/$ODOO_BRANCH.tar.gz\"${NC}"
             echoe  -e "and analyze its output";
             return 2;
         fi
@@ -144,7 +144,7 @@ function install_wkhtmltopdf_download {
     release=$(lsb_release -sc);
     download_link=$(install_wkhtmltopdf_get_dw_link "$release");
 
-    if ! wget -q -T 2 "$download_link" -O "$wkhtmltox_path"; then
+    if ! wget -q -T 15 "$download_link" -O "$wkhtmltox_path"; then
         local old_release=$release;
 
         if [ "$(lsb_release -si)" == "Ubuntu" ]; then
@@ -159,7 +159,7 @@ function install_wkhtmltopdf_download {
 
         echoe -e "${YELLOWC}WARNING${NC}: Cannot find wkhtmltopdf for ${BLUEC}${old_release}${NC}. trying to install fallback for ${BLUEC}${release}${NC}.";
         download_link=$(install_wkhtmltopdf_get_dw_link "$release");
-        if ! wget -q -T 2 "$download_link" -O "$wkhtmltox_path"; then
+        if ! wget -q -T 15 "$download_link" -O "$wkhtmltox_path"; then
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
             return 1;
         fi
@@ -397,7 +397,7 @@ function install_sys_deps_for_odoo_version {
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
     local tmp_control;
     tmp_control=$(mktemp);
-    wget -q -T 2 "$control_url" -O "$tmp_control";
+    wget -q -T 15 "$control_url" -O "$tmp_control";
     local sys_deps;
     mapfile -t sys_deps < <(ODOO_VERSION="$odoo_version" install_parse_debian_control_file "$tmp_control");
     install_sys_deps_internal "${sys_deps[@]}";
@@ -437,7 +437,7 @@ function install_odoo_py_requirements_for_version {
     local tmp_requirements_post;
     tmp_requirements=$(mktemp);
     tmp_requirements_post=$(mktemp);
-    if wget -q -T 2 "$requirements_url" -O "$tmp_requirements"; then
+    if wget -q -T 15 "$requirements_url" -O "$tmp_requirements"; then
         # Preprocess requirements to avoid known bugs
         while read -r dependency || [[ -n "$dependency" ]]; do
             dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
