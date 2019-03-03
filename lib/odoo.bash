@@ -194,14 +194,14 @@ function odoo_recompute_stored_fields {
 
     Options:
 
-        -d|--dbname <dbname>    - name of database to recompute stored fields on
-        -m|--model <model name> - name of model (in 'model.name.x' format)
-                                  to recompute stored fields on
-        -f|--field <field name> - name of field to be recomputed.
-                                  could be specified multiple times,
-                                  to recompute few fields at once.
-        --parent-store          - recompute parent left and parent right fot selected model
-                                  conflicts wiht --field option
+        -d|--db|--dbname <dbname>  - name of database to recompute stored fields on
+        -m|--model <model name>    - name of model (in 'model.name.x' format)
+                                     to recompute stored fields on
+        -f|--field <field name>    - name of field to be recomputed.
+                                     could be specified multiple times,
+                                     to recompute few fields at once.
+        --parent-store             - recompute parent left and parent right fot selected model
+                                     conflicts wiht --field option
     ";
 
     if [[ $# -lt 1 ]]; then
@@ -218,7 +218,7 @@ function odoo_recompute_stored_fields {
     do
         local key="$1";
         case $key in
-            -d|--dbname)
+            -d|--db|--dbname)
                 dbname=$2;
                 shift;
             ;;

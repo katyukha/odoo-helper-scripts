@@ -11,6 +11,8 @@
     - `odoo-helper-addons-update`
 - Experimental option `odoo-helper fetch --odoo-app <app_name>` that
   will automatically download module from Odoo Market
+- Added option to `odoo-helper odoo recompute --db`
+    - same as `-d` and `--dbname`
 
 ### Changed
 
