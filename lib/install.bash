@@ -84,7 +84,6 @@ function install_download_odoo {
         local repo=${clone_odoo_repo%.git};
         local repo_base;
         repo_base=$(basename "$repo");
-        echoe -e "${BLUEC}Downloading odoo...${NC}";
         echov -e "${LBLUEC}Downloading from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz${NC}";
         if ! wget -q -T 15 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz"; then
             echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz}${NC}."

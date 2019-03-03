@@ -131,10 +131,10 @@ odoo-helper test -m project_sla
 odoo-helper install py-tools
 
 # or run tests with test-coverage enabled
-(cd ./repositories/project; odoo-helper test --coverage-report -m project_sla || true);
+(cd ./repositories/project; odoo-helper test --recreate-db --coverage-report project_sla || true);
 
 # Also we may generate html coverage report too
-(cd ./repositories/project; odoo-helper test --coverage-html -m project_sla || true);
+(cd ./repositories/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project-sla || true);
 
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
@@ -212,6 +212,9 @@ odoo-helper addons generate-requirements;
 # Generate requirements (shortcut)
 odoo-helper generate-requirements;
 
+# Update odoo sources
+odoo-helper update-odoo
+
 # Reinstall odoo downloading archive
 odoo-helper install reinstall-odoo download;
 
@@ -223,9 +226,6 @@ odoo-helper status
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
-
-# Update odoo sources
-odoo-helper update-odoo
 
 
 echo -e "${YELLOWC}
