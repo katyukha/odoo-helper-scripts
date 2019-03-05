@@ -89,7 +89,7 @@ build_packages:
         - bash scripts/build_packages.bash
     artifacts:
         paths:
-            - build/odoo-helper-scripts_${CI_COMMIT_TAG_NAME#v}-ubuntu_all.deb
+            - build/*.deb
     only:
         - tags
  
