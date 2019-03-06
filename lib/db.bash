@@ -27,19 +27,22 @@ set -e; # fail on errors
 # odoo_db_create [options] <name> [odoo_conf_file]
 function odoo_db_create {
     local usage="
+    Creates new database
+
     Usage:
 
         $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
 
-        Creates database named <name>
+    Arguments:
+       <name>         - name of new database
 
-        Options:
-           --demo         - load demo-data (default: no demo-data)
-           --lang <lang>  - specified language for this db.
-                            <lang> is language code like 'en_US'...
-           --recreate     - if database with such name exists,
-                            then drop it first
-           --help         - display this help message
+    Options:
+       --demo         - load demo-data (default: no demo-data)
+       --lang <lang>  - specified language for this db.
+                        <lang> is language code like 'en_US'...
+       --recreate     - if database with such name exists,
+                        then drop it first
+       --help         - display this help message
     ";
 
     # Parse options
@@ -273,8 +276,38 @@ function odoo_db_exists {
     fi
 }
 
-# odoo_db_rename <old_name> <new_name> [odoo_conf_file]
+# odoo_db_rename [options] <old_name> <new_name> [odoo_conf_file]
 function odoo_db_rename {
+    local usage="
+    Rename database
+
+    Usage:
+
+        $SCRIPT_NAME db rename [options] <old_name> <new_name> [odoo_conf_file]
+
+    Arguments:
+        <old_name>    - name of existing database
+        <new_name>    - new name of database
+
+    Options:
+       --help         - display this help message
+    ";
+
+    # Parse options
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
     local old_db_name=$1;
     local new_db_name=$2;
     local conf_file=${3:-$ODOO_CONF_FILE};
