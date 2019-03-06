@@ -186,11 +186,6 @@ function odoo_db_list {
         $SCRIPT_NAME db list --help                - show this help message
     ";
 
-    if [[ $# -lt 1 ]]; then
-        echo "$usage";
-        return 0;
-    fi
-
     while [[ $# -gt 0 ]]
     do
         local key="$1";
