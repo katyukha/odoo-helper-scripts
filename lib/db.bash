@@ -172,8 +172,37 @@ function odoo_db_drop {
     fi
 }
 
-# odoo_db_list [odoo_conf_file]
+# odoo_db_list [options] [odoo_conf_file]
 function odoo_db_list {
+    local usage="
+    List available database
+
+    Usage:
+
+        $SCRIPT_NAME db list [options] [conf file] - show list of databases
+        $SCRIPT_NAME db list --help                - show this help message
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local conf_file=${1:-$ODOO_CONF_FILE};
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file', '--logfile', '/dev/null']);";

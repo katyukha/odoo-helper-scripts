@@ -91,6 +91,9 @@ echo -e "~~~text\n$(odoo-helper addons pull-updates --help)\n~~~\n\n" >> $PROJEC
 echo -e "### odoo-helper db\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper db list\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db list --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper db create\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db create --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
