@@ -141,8 +141,8 @@ function server_run {
         coverage_conf=$(config_get_default_tool_conf "coverage.cfg");
         if ! check_command coverage >/dev/null 2>&1; then
             echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found." \
-               " Please, run *${BLUEC}odoo-helper install py-tools${BLUEC}* or " \
-               " *${BLUEC}odoo-helper pip install coverage${NC}*.";
+               " Please, run *${LBLUEC}odoo-helper install py-tools${NC}* or " \
+               " *${LBLUEC}odoo-helper pip install coverage${NC}*.";
             return 1
         fi
         coverage_cmd=$(check_command coverage);
