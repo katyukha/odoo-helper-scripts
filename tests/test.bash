@@ -344,7 +344,7 @@ odoo-helper status  --tools-versions --ci-tools-versions
 odoo-helper print-config
 
 # Pull odoo addons update
-(cd ./repositories/partner-contact && git checkout HEAD^^^1)
+(cd ./repositories/partner-contact && git reset --hard HEAD^^^1)
 odoo-helper addons pull-updates
 
 # Update odoo base addon
