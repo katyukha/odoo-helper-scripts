@@ -152,10 +152,10 @@ function fetch_oca_requirements {
                opts+=( "--branch" "${line[2]}" );
            fi
            
-           if eval "fetch_module ${opts[@]}"; then
-               echo -e "Line ${GREENC}OK${NC}: ${opts[@]}";
+           if fetch_module "${opts[@]}"; then
+               echo -e "Line ${GREENC}OK${NC}: ${opts[*]}";
            else
-               echo -e "Line ${GREENC}FAIL${NC}: ${opts[@]}";
+               echo -e "Line ${GREENC}FAIL${NC}: ${opts[*]}";
            fi
        fi
        if [ "$is_read_finished" -ne 0 ]; then
