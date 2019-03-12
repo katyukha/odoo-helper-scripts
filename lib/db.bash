@@ -369,15 +369,15 @@ function odoo_db_copy {
     local new_db_name=$2;
     local conf_file=${3:-$ODOO_CONF_FILE};
 
-    if ! odoo_db_exists -q "$old_db_name"; then
+    if ! odoo_db_exists -q "$src_db_name"; then
         if [ -z "$opt_quite" ]; then
-            echoe -e "${REDC}ERROR${NC}: Cannot copy database ${YELLOWC}${old_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${old_db_name}${NC} does not exists!";
+            echoe -e "${REDC}ERROR${NC}: Cannot copy database ${YELLOWC}${src_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${src_db_name}${NC} does not exists!";
         fi
         return 1;
     fi
     if odoo_db_exists -q "$new_db_name"; then
         if [ -z "$opt_quite" ]; then
-            echoe -e "${REDC}ERROR${NC}: Cannot copy database ${YELLOWC}${old_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${new_db_name}${NC} already exists!";
+            echoe -e "${REDC}ERROR${NC}: Cannot copy database ${YELLOWC}${src_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${new_db_name}${NC} already exists!";
         fi
         return 2;
     fi
