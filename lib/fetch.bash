@@ -137,24 +137,25 @@ function fetch_oca_requirements {
        fi
        if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
            local opt=""; #"--name ${line[0]}";
+           local opts=( );
 
            # if there are no url specified then use --oca shortcut
            if [ -z "${line[1]}" ]; then
-               opt="$opt --oca ${line[0]}";
+               opts+=( "--oca" "${line[0]}" );
            else
                # else, specify url directly
-               opt="$opt --repo ${line[1]}";
+               opts+=( "--repo" "${line[1]}" );
            fi
 
            # add branch if it spcified in file
            if [ -n "${line[2]}" ]; then
-               opt="$opt --branch ${line[2]}";
+               opts+=( "--branch" "${line[2]}" );
            fi
            
-           if eval "fetch_module $opt"; then
-               echo -e "Line ${GREENC}OK${NC}: $opt";
+           if eval "fetch_module ${opts[@]}"; then
+               echo -e "Line ${GREENC}OK${NC}: ${opts[@]}";
            else
-               echo -e "Line ${GREENC}FAIL${NC}: $opt";
+               echo -e "Line ${GREENC}FAIL${NC}: ${opts[@]}";
            fi
        fi
        if [ "$is_read_finished" -ne 0 ]; then
