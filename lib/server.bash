@@ -338,6 +338,8 @@ function server_ps {
 # server [options] stop <args>
 function server_command {
     local usage="
+    Manage Odoo instance
+
     Usage 
 
         $SCRIPT_NAME server [options] [command] [args]

@@ -277,6 +277,8 @@ function odoo_recompute_stored_fields {
 
 function odoo_command {
     local usage="
+    Helper functions for Odoo
+
     Usage:
 
         $SCRIPT_NAME odoo recompute --help                - recompute stored fields for database

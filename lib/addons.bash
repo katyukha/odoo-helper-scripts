@@ -1027,6 +1027,8 @@ function addons_find_installed {
 
 function addons_command {
     local usage="
+    Manage Odoo addons
+
     Usage:
 
         $SCRIPT_NAME addons list --help                 - list addons in specified directory

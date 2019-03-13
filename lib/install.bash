@@ -937,6 +937,8 @@ function install_reinstall_odoo {
 # Entry point for install subcommand
 function install_entry_point {
     local usage="
+    Install utils, fix installation, etc
+
     Usage:
 
         $SCRIPT_NAME install pre-requirements [--help]   - [sudo] install system pre-requirements

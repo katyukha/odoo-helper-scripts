@@ -487,6 +487,8 @@ function tr_translation_rate {
 
 function tr_main {
     local usage="
+    Manage translations
+
     Usage
 
         $SCRIPT_NAME tr export <db> <lang> <file_name> <addon1> [addon2] [addon3]...

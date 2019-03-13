@@ -350,6 +350,8 @@ function fetch_download_odoo_app {
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
     local usage="
+    Fetch dependencies
+
     Usage:
         $SCRIPT_NAME fetch -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
         $SCRIPT_NAME fetch --github <github username/reponame> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]

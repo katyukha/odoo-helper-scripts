@@ -224,6 +224,7 @@ function postgres_config_speedify_unsafe {
 # Parse command line args
 function postgres_command {
     local usage="
+    PostgreSQL related commands
 
     Notes:
         NOTE: subcommands tagged by [local] applicable only to local postgres instance!

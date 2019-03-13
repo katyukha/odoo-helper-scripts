@@ -272,6 +272,8 @@ function test_module {
     declare -A skip_modules_map;
 
     local usage="
+    Run tests for addons
+
     Usage 
 
         $SCRIPT_NAME test [options] [-m <module_name>] [-m <module name>] ...

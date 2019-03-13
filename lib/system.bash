@@ -116,6 +116,8 @@ function system_get_venv_dir {
 # system entry point
 function system_entry_point {
     local usage="
+    System utils for odoo-helper-scripts
+
     Usage:
 
         $SCRIPT_NAME system update [branch]        - update odoo-helper-scripts (to specified branch / commit)

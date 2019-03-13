@@ -222,6 +222,8 @@ function lint_run_stylelint {
 
 function lint_command {
     local usage="
+    Check addons with linters
+
     Usage:
 
         $SCRIPT_NAME lint flake8 <addon path> [addon path]

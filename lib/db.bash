@@ -501,15 +501,16 @@ function odoo_db_restore {
 # Command line args processing
 function odoo_db_command {
     local usage="
+    Manage odoo databases
+
     Usage:
 
-        $SCRIPT_NAME db list [odoo_conf_file]
-        $SCRIPT_NAME db exists <name> [odoo_conf_file]
-        $SCRIPT_NAME db create <name> [odoo_conf_file]
+        $SCRIPT_NAME db list --help
+        $SCRIPT_NAME db exists --help
         $SCRIPT_NAME db create --help
-        $SCRIPT_NAME db drop <name> [odoo_conf_file]
-        $SCRIPT_NAME db rename <old_name> <new_name> [odoo_conf_file]
-        $SCRIPT_NAME db copy <src_name> <new_name> [odoo_conf_file]
+        $SCRIPT_NAME db drop --help
+        $SCRIPT_NAME db rename --help
+        $SCRIPT_NAME db copy --help
         $SCRIPT_NAME db dump <name> <dump_file_path> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup <name> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup-all [format [odoo_conf_file]]
