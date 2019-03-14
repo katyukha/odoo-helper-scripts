@@ -684,8 +684,52 @@ function addons_install_update_internal {
         server_run -- -d "$db" -i "$todo_addons" --stop-after-init --no-xmlrpc --pidfile=/dev/null;
         return $?
     elif [ "$cmd" == "update" ]; then
-        server_run -- -d "$db" -u "$todo_addons" --stop-after-init --no-xmlrpc --pidfile=/dev/null;
-        return $?
+        for addon_name in "$@"; do
+            addons_list_pg_str="$addons_list_pg_str, '$addon_name'";
+        done
+        addons_list_pg_str="${addons_list_pg_str#, }";
+        local to_install_addons;
+        if ! mapfile -t to_install_addons < <(postgres_psql -d "$db" -tA -c "
+            WITH RECURSIVE dependencies AS (
+                SELECT DISTINCT ON (dep_id)
+                       m.id  AS module_id,
+                       m.name AS module_name,
+                       d.name AS dep_name,
+                       dmod.id AS dep_id,
+                       dmod.state AS dep_state
+                FROM ir_module_module AS m
+                LEFT JOIN ir_module_module_dependency AS d ON d.module_id = m.id
+                LEFT JOiN ir_module_module AS dmod ON dmod.name = d.name
+                WHERE m.name IN ($addons_list_pg_str)
+                AND m.state = 'installed'
+
+                UNION ALL
+
+                SELECT DISTINCT ON (dep_id)
+                       dependencies.module_id  AS module_id,
+                       dependencies.module_name AS module_name,
+                       d.name AS dep_name,
+                       dmod.id AS dep_id,
+                       dmod.state AS dep_state
+                FROM dependencies
+                LEFT JOIN ir_module_module_dependency AS d ON d.module_id = dependencies.dep_id
+                LEFT JOiN ir_module_module AS dmod ON dmod.name = d.name
+                WHERE d.name IS NOT NULL
+            )
+            SELECT DISTINCT ON (dep_id) dep_name
+            FROM dependencies 
+            WHERE dep_state = 'uninstalled'
+        "); then
+            return 1;
+        fi
+        if [ -n "${to_install_addons[*]}" ]; then
+            to_install_addons=$(join_by , "${to_install_addons[@]}");
+            server_run -- -d "$db" -i "$to_install_addons" -u "$todo_addons" --stop-after-init --no-xmlrpc --pidfile=/dev/null;
+            return $?
+        else
+            server_run -- -d "$db" -u "$todo_addons" --stop-after-init --no-xmlrpc --pidfile=/dev/null;
+            return $?
+        fi
     elif [ "$cmd" == "uninstall" ]; then
         local addons_uninstalled;
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
