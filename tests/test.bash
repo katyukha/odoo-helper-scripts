@@ -197,9 +197,6 @@ odoo-helper addons uninstall account;
 # uninstall all addons (error)
 odoo-helper addons uninstall all || true;
 
-# Update python dependencies of addons
-odoo-helper addons update-py-deps
-
 # List addon repositories
 odoo-helper addons list-repos;
 
@@ -218,6 +215,9 @@ odoo-helper update-odoo
 # Reinstall odoo downloading archive
 odoo-helper install reinstall-odoo download;
 
+# Reinstall python dependencies for Odoo
+odoo-helper install py-deps
+
 # Drop created database
 odoo-helper db drop test-9-db;
 
@@ -226,6 +226,9 @@ odoo-helper status
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
+
+# Install wkhtmltopdf (if it is not installed yet)
+odoo-helper install wkhtmltopdf
 
 
 echo -e "${YELLOWC}
@@ -376,6 +379,9 @@ odoo-helper start
 odoo-helper status
 odoo-helper server status
 odoo-helper stop
+
+# Update python dependencies of addons
+odoo-helper addons update-py-deps
 
 # Test doc-utils. List all addons available in *contract* addon
 odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo ./repositories/contract

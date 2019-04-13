@@ -107,6 +107,8 @@ Postgres user for odoo may be created at same time
 odoo-helper install postgres odoo_user odoo_password
 ```
 
+*Note: it is recommended to create new postgres user for each Odoo instance*
+
 For other systems it have to be installed manualy
 
 

@@ -43,4 +43,3 @@ fpm -s dir -t deb -p $BUILD_DIR/ \
     $PROJECT_DIR/tools/=/opt/odoo-helper-scripts/tools/ \
     $PROJECT_DIR/CHANGELOG.md=/opt/odoo-helper-scripts/ \
     $PROJECT_DIR/defaults/odoo-helper.conf=/etc/
-    
