@@ -146,13 +146,13 @@ function lint_run_stylelint_internal {
 
     echoe -e "${BLUEC}Processing addon ${YELLOWC}${addon_name}${BLUEC} ...${NC}";
 
-    if ! execu stylelint --config "$stylelint_default_conf" "$addon_path/**/*.css" "!$addon_path/static/lib/**"; then
+    if ! execu stylelint --allow-empty-input --config "$stylelint_default_conf" "$addon_path/**/*.css" "!$addon_path/static/lib/**"; then
         res=1;
     fi
-    if ! execu stylelint --config "$stylelint_less_conf" "$addon_path/**/*.less" "!$addon_path/static/lib/**"; then
+    if ! execu stylelint --allow-empty-input --config "$stylelint_less_conf" "$addon_path/**/*.less" "!$addon_path/static/lib/**"; then
         res=1;
     fi
-    if ! execu stylelint --config "$stylelint_scss_conf" "$addon_path/**/*.scss" "!$addon_path/static/lib/**"; then
+    if ! execu stylelint --allow-empty-input --config "$stylelint_scss_conf" "$addon_path/**/*.scss" "!$addon_path/static/lib/**"; then
         res=1;
     fi
 
