@@ -15,6 +15,12 @@
     - same as `-d` and `--dbname`
 - Added command `odoo-helper db is-demo` to check if database contains demo-data
 
+### Fixed
+
+- Fixed bug with install/update addons via `odoo-helper addons install`
+  and `odoo-helper addons update` commands, when addons were always installed with demo-data.
+  This happened, because we have to explicitly tell Odoo that we do not need to install demo-data.
+
 ### Changed
 
 - Changed `odoo-helper pull-updates` command

@@ -702,16 +702,21 @@ function addons_install_update_internal {
     local todo_addons;
     todo_addons=$(join_by , "$@");
 
+    local odoo_options=( "-d" "$db"  "--stop-after-init" "--no-xmlrpc" "--pidfile=/dev/null" );
+    if ! odoo_db_is_demo_enabled -q "$db"; then
+        odoo_options+=( "--without-demo=all" );
+    fi
+
     if [ "$cmd" == "install" ]; then
-        server_run -- -d "$db" -i "$todo_addons" --stop-after-init --no-xmlrpc --pidfile=/dev/null;
+        server_run -- -i "$todo_addons" "${odoo_options[@]}";
         return $?
     elif [ "$cmd" == "update" ]; then
-        server_run -- -d "$db" -u "$todo_addons" --stop-after-init --no-xmlrpc --pidfile=/dev/null;
+        server_run -- -u "$todo_addons" "${odoo_options[@]}";
         return $?
     elif [ "$cmd" == "uninstall" ]; then
         local addons_uninstalled;
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
-        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE', '--pidfile', '/dev/null']);";
+        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE', '--pidfile', '/dev/null', '--no-xmlrpc']);";
         python_cmd="$python_cmd db=cl['$db']; db.require_v8_api();";
         python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
         python_cmd="$python_cmd modules.button_immediate_uninstall();";
