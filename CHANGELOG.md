@@ -13,6 +13,7 @@
   will automatically download module from Odoo Market
 - Added option to `odoo-helper odoo recompute --db`
     - same as `-d` and `--dbname`
+- Added command `odoo-helper db is-demo` to check if database contains demo-data
 
 ### Changed
 

@@ -103,6 +103,9 @@ echo -e "~~~text\n$(odoo-helper db drop --help)\n~~~\n\n" >> $PROJECT_DIR/docs/c
 echo -e "#### odoo-helper db exists\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db exists --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper db is-demo\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db is-demo --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper db rename\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db rename --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

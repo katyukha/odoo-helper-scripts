@@ -124,6 +124,12 @@ odoo-helper fetch --oca project -m project_sla
 # create test database
 odoo-helper db create --demo odoo8-odoo-test
 
+# Check if db has demo-data
+odoo-helper db is-demo odoo8-odoo-test
+
+# Check if db has demo-data, but database does not exists
+odoo-helper db is-demo unexisting-database || true
+
 # and run tests for it
 odoo-helper test -m project_sla
 
@@ -168,6 +174,10 @@ odoo-helper server --stop-after-init;  # test that it runs
 
 # Create odoo 9 database
 odoo-helper db create test-9-db;
+
+# Ensure database does not have demo-data installed
+! odoo-helper db is-demo test-9-db;
+! odoo-helper db is-demo -q test-9-db;
 
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
 odoo-helper pip install Mercurial;

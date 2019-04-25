@@ -498,6 +498,68 @@ function odoo_db_restore {
     fi
 }
 
+
+function odoo_db_is_demo_enabled {
+    local usage="
+    Test if demo-data installed in database
+
+    Usage:
+
+        $SCRIPT_NAME db is-demo [options] <dbname> - test if dbname contains demo-data
+        $SCRIPT_NAME db is-demo --help             - show this help message
+
+    Options:
+
+        -q|--quite    do not show messages
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -q|--quite)
+                local opt_quite=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    local db_name=$1;
+    local conf_file=$ODOO_CONF_FILE;
+
+    if ! odoo_db_exists -q "$db_name"; then
+        echoe -e "${REDC}ERROR${NC}: Database ${YELLOWC}${db_name}${NC} does not exists!";
+        return 2;
+    fi
+
+    local demo_data_enabled;
+    demo_data_enabled=$(postgres_psql -d "$db_name" -tA -c "SELECT EXISTS (SELECT 1 FROM ir_module_module WHERE state = 'installed' AND name = 'base' AND demo = True);");
+    if [ "$demo_data_enabled" == "t" ]; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database named ${YELLOWC}$db_name${NC} contains demo data!";
+        fi
+        return 0;
+    else
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database named ${YELLOWC}$db_name${NC} does NOT contain demo data!";
+        fi
+        return 1;
+    fi
+}
+
 # Command line args processing
 function odoo_db_command {
     local usage="
@@ -507,6 +569,7 @@ function odoo_db_command {
 
         $SCRIPT_NAME db list --help
         $SCRIPT_NAME db exists --help
+        $SCRIPT_NAME db is-demo --help
         $SCRIPT_NAME db create --help
         $SCRIPT_NAME db drop --help
         $SCRIPT_NAME db rename --help
@@ -565,6 +628,11 @@ function odoo_db_command {
             exists)
                 shift;
                 odoo_db_exists "$@";
+                return;
+            ;;
+            is-demo)
+                shift;
+                odoo_db_is_demo_enabled "$@";
                 return;
             ;;
             rename)
