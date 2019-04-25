@@ -398,13 +398,18 @@ function addons_list_in_directory {
 # List addons repositories
 # Note that this function list only addons that are under git control
 #
-# addons_list_repositories [addons_path]
+# addons_list_repositories [--recursive] [addons_path]
 function addons_list_repositories {
+    local opt_addons_list=( );
+    if [ "$1" == "--recursive" ]; then
+        opt_addons_list+=( "--recursive" );
+        shift;
+    fi
     local addons_path=${1:-$ADDONS_DIR};
 
     local addon;
     local addon_list;
-    mapfile -t addon_list < <(addons_list_in_directory "$addons_path" | sed '/^$/d');
+    mapfile -t addon_list < <(addons_list_in_directory "${opt_addons_list[@]}" "$addons_path" | sed '/^$/d');
     for addon in "${addon_list[@]}"; do
         if git_is_git_repo "$addon"; then
             git_get_abs_repo_path "$addon";
@@ -506,10 +511,11 @@ function addons_git_pull_updates {
         $SCRIPT_NAME addons pull-updates [options]
 
     Options:
-        --addons-dir          - directory to search addons in. By default used one from
-                                project config
-        --ual                 - update list of addons in all databases
-        --help|-h             - diplay this help message
+        --addons-dir - directory to search addons in. By default used one from
+                       project config
+        --ual        - update list of addons in all databases
+        --do-update  - update addons (call 'addons update' command)
+        --help|-h    - diplay this help message
     ";
 
     # Parse command line options and run commands
@@ -528,6 +534,10 @@ function addons_git_pull_updates {
             --ual)
                 local opt_ual=1;
             ;;
+            --do-update)
+                local opt_do_update=1;
+                local opt_ual=1;
+            ;;
             *)
                 echoe "Unknown option: $key";
                 return 1;
@@ -543,18 +553,20 @@ function addons_git_pull_updates {
     local git_status;
     local addon_repo;
     local addon_repositories;
-    mapfile -t addon_repositories < <(addons_list_repositories "$addons_dir" | sed '/^$/d');
+    mapfile -t addon_repositories < <(addons_list_repositories --recursive "$addons_dir" | sed '/^$/d');
     for addon_repo in "${addon_repositories[@]}"; do
         mapfile -t git_status < <( { git_parse_status "$addon_repo" || echo ''; } | sed '/^$/d');
         local git_remote_status=${git_status[1]};
         if [[ "$git_remote_status" == _BEHIND_* ]] && [[ "$git_remote_status" != *_AHEAD_* ]]; then
             # link module (not forced)
-            (cd "$addon_repo" && \
+            (
+                cd "$addon_repo" && \
                 echoe -e "${BLUEC}Pulling updates for ${YELLOWC}${addon_repo}${BLUEC}...${NC}" && \
                 git pull && \
                 echoe -e "${BLUEC}Linking repository ${YELLOWC}${addon_repo}${BLUEC}...${NC}" && \
                 link_module off . && \
-                echoe -e "${BLUEC}Pull ${YELLOWC}${addon_repo}${BLUEC}: ${GREENC}OK${NC}");
+                echoe -e "${BLUEC}Pull ${YELLOWC}${addon_repo}${BLUEC}: ${GREENC}OK${NC}"
+            );
         fi
     done
 
@@ -562,6 +574,16 @@ function addons_git_pull_updates {
     if [ -n "$opt_ual" ]; then
         addons_update_module_list;
     fi
+
+    # Update addons
+    if [ -n "$opt_do_update" ]; then
+        local opt_update_dirs=( );
+        for addon_repo in "${addon_repositories[@]}"; do
+            opt_update_dirs+=( "--dir-r" "$addon_repo" );
+        done
+        addons_install_update "update" "${opt_update_dirs[@]}";
+    fi
+
     echo -e "${GREENC}DONE${NC}";
 }
 

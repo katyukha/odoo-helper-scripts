@@ -607,6 +607,14 @@ odoo-helper addons install --ual bureaucrat_helpdesk_lite;
 # when same addons already present in system
 odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
 
+# Prepare to test pull updates with --do-update option
+odoo-helper fetch --oca partner-contact;
+(cd ./repositories/partner-contact && git reset --hard HEAD^^^1);
+odoo-helper addons install --dir ./repositories/partner-contact;
+
+# Test pull-updates with --do-update option
+odoo-helper addons pull-updates --do-update;
+
 # Print list of installed addons
 odoo-helper addons find-installed;
 

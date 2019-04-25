@@ -19,6 +19,7 @@
 - Changed `odoo-helper pull-updates` command
     - Now it does not update addons list automatically
     - Added `--ual` option to update addons list
+    - Added `--do-update` option to update addons just after pull
     - Added `--help` options
     - First positional argument not applicable for it.
       Added option `--addons-dir` instead .
