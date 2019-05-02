@@ -350,7 +350,8 @@ function fetch_download_odoo_app {
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
     local usage="
-    Fetch dependencies
+    Fetch Odoo addons from various sources
+    (including git, mercurial, Odoo Apps)
 
     Usage:
         $SCRIPT_NAME fetch -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
@@ -359,25 +360,26 @@ function fetch_module {
         $SCRIPT_NAME fetch --requirements <requirements file>
 
     Options:
-        -r|--repo <repo>         - git repository to get module from
-        --github <user/repo>     - allows to specify repository located on github in short format
-        --oca <repo name>        - allows to specify Odoo Comunity Association module in simpler format
-        --hg <repo>              - mercurial repository to get addon from.
-        --odoo-app <app_name>    - [experimental] fetch module from Odoo Apps Market.
-                                   Works only for free modules.
-                                   Does not download dependencies.
-        -m|--module <module>     - module name to be fetched from repository
-        -n|--name <repo name>    - repository name. this name is used for directory to clone repository in.
-                                   Usualy not required
-        -b|--branch <branch>     - name fo repository branch to clone
-        --requirements <file>    - path to requirements file to fetch required modules
-                                   NOTE: requirements file must end with newline.
+        -r|--repo <repo>       - git repository to get module from
+        --github <user/repo>   - allows to specify repository located on github in short format
+        --oca <repo name>      - allows to specify Odoo Comunity Association module in simpler format
+        --hg <repo>            - mercurial repository to get addon from.
+        --odoo-app <app_name>  - [experimental] fetch module from Odoo Apps Market.
+                                 Works only for free modules.
+        -m|--module <module>   - module name to be fetched from repository
+        -n|--name <repo name>  - repository name. this name is used for directory to clone repository in.
+                                 Usualy not required
+        -b|--branch <branch>   - name fo repository branch to clone
+        --requirements <file>  - path to requirements file to fetch required modules
+                                 NOTE: requirements file must end with newline.
 
-    Note that in one call only one option of (-r, --github, --oca) must be present in one line.
+    Note that in one call only one option of
+    (--repo, --github, --oca, --hg, --odoo-app)
+    have to be present in one line.
 
     Examples:
        # fetch default branch of base_tags repository, link all modules placed in repository
-       $SCRIPT_NAME fetch -r https://github.com/crnd-inc/generic-addons
+       $SCRIPT_NAME fetch --repo https://github.com/crnd-inc/generic-addons
 
        # same as previous but via --github option
        $SCRIPT_NAME fetch --github crnd-inc/generic-addons

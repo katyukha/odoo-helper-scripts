@@ -174,11 +174,11 @@ function install_wkhtmltopdf {
     Usage:
 
         $SCRIPT_NAME install wkhtmltopdf [options]
-        $SCRIPT_NAME install wkhtmltopdf --help - show this help message
 
     Options:
 
         --update   - install even if it is already installed
+        --help     - show this help message
     ";
 
     local force_install;

@@ -307,6 +307,10 @@ function test_module {
         being inside repository root directory or inside addon root directory,
         because, by default, only files in current working directory included
         in coverage report.
+        Default test database name usualy computed as:
+        - value of 'db_name' param in test config file (confs/odoo.test.conf)
+        - '{db_user}-odoo-test'
+
     ";
 
     # Parse command line options and run commands
