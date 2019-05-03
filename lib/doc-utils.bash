@@ -6,21 +6,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
 #######################################################################
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 ohelper_require 'addons';
-#ohelper_require 'db';
-#ohelper_require 'server';
-#ohelper_require 'odoo';
-#ohelper_require 'fetch';
 ohelper_require 'utils';
 # ----------------------------------------------------------------------------------------
 
@@ -39,7 +35,7 @@ function doc_utils_addons_list_addon_info_header {
         local result="";
     fi
 
-    for field in $@; do
+    for field in "$@"; do
         if ! [[ $field =~ $field_regex ]]; then
             echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
         else
@@ -71,7 +67,7 @@ function doc_utils_addons_list_addon_info_header {
 
     if [ "$format" == "md" ]; then
         result="$result\n|";
-        for field in $@; do
+        for field in "$@"; do
             if ! [[ $field =~ $field_regex ]]; then
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
             else
@@ -105,7 +101,7 @@ function doc_utils_addons_list_addon_info {
     elif [ "$format" == "csv" ]; then
         local result="";
     fi
-    for field in $@; do
+    for field in "$@"; do
         if ! [[ $field =~ $field_regex ]]; then
             echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
         else
@@ -114,12 +110,12 @@ function doc_utils_addons_list_addon_info {
             local field_name=${BASH_REMATCH[2]};
 
             if [ "$field_type" == "manifest" ]; then
-                t_res=$(addons_get_manifest_key $addon $field_name | tr '\n' ' ');
+                t_res=$(addons_get_manifest_key "$addon" "$field_name" | tr '\n' ' ');
             elif [ "$field_type" == "system" ] && [ "$field_name" == "name" ]; then
-                t_res=$(basename $addon);
+                t_res=$(basename "$addon");
             elif [ "$field_type" == "system" ] && [ "$field_name" == "git_repo" ]; then
-                if git_is_git_repo $addon; then
-                    t_res=$(git_get_remote_url $addon);
+                if git_is_git_repo "$addon"; then
+                    t_res=$(git_get_remote_url "$addon");
                 else
                     t_res="Not in git repository";
                 fi
@@ -176,7 +172,7 @@ function doc_utils_addons_list {
     ";
 
     # look at doc_utils_addons_list_addon_info for info
-    local field_names=;
+    local field_names=( );
 
     local addons_path=;
     local format="md";
@@ -186,17 +182,17 @@ function doc_utils_addons_list {
         local key="$1";
         case $key in
             -f|--field)
-                field_names="$field_names manifest-$2";
+                field_names+=( "manifest-$2" );
                 shift;
             ;;
             --sys-name)
-                field_names="$field_names system-name";
+                field_names+=( system-name );
             ;;
             --git-repo)
-                field_names="$field_names system-git_repo";
+                field_names+=( system-git_repo );
             ;;
             --dependencies)
-                field_names="$field_names system-dependencies";
+                field_names+=( system-dependencies );
             ;;
             --no-header)
                 local no_header=1;
@@ -219,16 +215,21 @@ function doc_utils_addons_list {
     done
 
     addons_path=${addons_path:-$ADDONS_DIR};
-    field_names=${field_names:-"system-name manifest-name manifest-version manifest-summary"};
+    if [ ${#field_names[@]} -eq 0 ]; then
+        field_names=( system-name manifest-name manifest-version manifest-summary );
+    fi
 
-    if [ -z $no_header ]; then
-        result="$(doc_utils_addons_list_addon_info_header $format $field_names)";
+    if [ -z "$no_header" ]; then
+        result=$(doc_utils_addons_list_addon_info_header "$format" "${field_names[@]}");
     else
         result=;
     fi
 
-    for addon in $(addons_list_in_directory $addons_path); do
-        local addon_info=$(doc_utils_addons_list_addon_info $format $addon $field_names);
+    local addons_list;
+    mapfile -t addons_list < <(addons_list_in_directory "$addons_path");
+    for addon in "${addons_list[@]}"; do
+        local addon_info;
+        addon_info=$(doc_utils_addons_list_addon_info "$format" "$addon" "${field_names[@]}");
         if [ -z "$result" ]; then
             result=$addon_info;
         else
@@ -260,7 +261,7 @@ function doc_utils_command {
         case $key in
             addons-list)
                 shift;
-                doc_utils_addons_list $@;
+                doc_utils_addons_list "$@";
                 return;
             ;;
             -h|--help|help)

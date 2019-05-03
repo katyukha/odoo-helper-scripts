@@ -19,16 +19,20 @@ This project aims to simplify development process of Odoo addons as much as poss
 - High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install [node.js](https://nodejs.org/en/), [phantom.js](http://phantomjs.org/), etc in isolated [virtualenv](https://virtualenv.pypa.io/en/stable/)
 - Powerful testing capabilities, including support for:
-    - python and js code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
-    - python code check via [flake8](https://pypi.python.org/pypi/flake8)
-    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)  (**alpha**)
+    - *python* and *js* code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
+    - *python* code check via [flake8](https://pypi.python.org/pypi/flake8)
+    - styles (*.css*, *.scss*, *.less* files) check via [stylelint](https://stylelint.io/)
     - compute test code coverage via [coverage.py](https://coverage.readthedocs.io)
-    - Test web tours via [phantom.js](http://phantomjs.org/)
+    - Test web tours via [phantom.js](http://phantomjs.org/) or *chromium browser* (Odoo 12.0+)
 - Easy addons installation
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
         - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
-    - Specific file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
+    - Own file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
+    - installation directly from [Odoo Market](https://apps.odoo.com/apps) (**experimental**)
+        - Only free addons
+        - Including dependencies
+        - Semi-automatic upgrade when new version released
     - installation from *git* repositories
     - installation from *Mercurial* repositories (**experimental**)
     - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
@@ -72,9 +76,10 @@ or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0
 ## Installation
 
 For full list of installation options look at [installation documentation](./installation.md)
+or [Quick Start Guide](./quick-start-guide.md)
 
 *Starting from 0.1.7-alpha release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
-but this feature is still experimental. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/tags) *page.*
+but this feature is still in alpha. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/releases) *page.*
 
 To install *odoo-helper-scripts* system-wide do folowing:
 
@@ -99,6 +104,13 @@ sudo bash /tmp/odoo-helper-install.bash;
 #  Intall system pre-requirements for odoo-helper-scripts
 # NOTE: Works only on debian-based systems
 odoo-helper install pre-requirements
+```
+
+Do not forget to install and configure postgres:
+
+```bash
+# install postgres and create db user with name 'odoo' and password 'odoo'
+odoo-helper install postgres odoo odoo
 ```
 
 

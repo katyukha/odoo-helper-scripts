@@ -8,14 +8,14 @@
 
 # Odoo Helper Scripts: Utility functions
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 
@@ -25,8 +25,8 @@ ohelper_require "odoo";
 
 # Simple function to exec command in virtual environment if required
 function execv {
-    if [ ! -z $VENV_DIR ]; then
-        source $VENV_DIR/bin/activate;
+    if [ -n "$VENV_DIR" ]; then
+        source "$VENV_DIR/bin/activate";
     fi
 
     # Eval command and save result
@@ -37,7 +37,7 @@ function execv {
     fi
 
     # deactivate virtual environment
-    if [ ! -z $VENV_DIR ] && [ ! -z $VIRTUAL_ENV ]; then
+    if [ -n "$VENV_DIR" ] && [ -n "$VIRTUAL_ENV" ]; then
         deactivate;
     fi
 
@@ -50,7 +50,7 @@ function execv {
 # Also take in account virtualenv
 function execu {
     # Check unbuffer option
-    if [ ! -z $USE_UNBUFFER ] && ! command -v unbuffer >/dev/null 2>&1; then
+    if [ -n "$USE_UNBUFFER" ] && ! command -v unbuffer >/dev/null 2>&1; then
         echoe -e "${REDC}Command 'unbuffer' not found. Install it to use --use-unbuffer option";
         echoe -e "It could be installed via package *expect-dev*";
         echoe -e "Or by command *odoo-helper install bin-tools*";
@@ -59,13 +59,13 @@ function execu {
     fi
 
     # Decide wether to use unbuffer or not
-    if [ ! -z $USE_UNBUFFER ]; then
+    if [ -n "$USE_UNBUFFER" ]; then
         local unbuffer_opt="unbuffer";
     else
         local unbuffer_opt="";
     fi
 
-    execv "$unbuffer_opt $@";
+    execv "$unbuffer_opt" "$@";
 }
 
 # Exec command with specified odoo config
@@ -74,31 +74,31 @@ function execu {
 # exec_conf <conf> <cmd> <cmd args>
 function exec_conf {
     local conf=$1; shift;
-    OPENERP_SERVER="$conf" ODOO_RC="$conf" $@;
+    OPENERP_SERVER="$conf" ODOO_RC="$conf" "$@";
 }
 
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
 function exec_pip {
-    if [ ! -z $1 ] && [ "$1" == "--oca" ]; then
+    if [ -n "$1" ] && [ "$1" == "--oca" ]; then
         shift;
         local extra_index="$PIP_EXTRA_INDEX_URL https://wheelhouse.odoo-community.org/oca-simple";
-        PIP_EXTRA_INDEX_URL=$extra_index exec_py -m pip $@;
+        PIP_EXTRA_INDEX_URL="$extra_index" exec_py -m pip "$@";
     else
-        exec_py -m pip $@;
+        exec_py -m pip "$@";
     fi
 }
 
 # Exec npm for this project
 function exec_npm {
-    execu npm $@;
+    execu npm "$@";
 }
 
 
 # Simple function to create directories passed as arguments
 # create_dirs [dir1] [dir2] ... [dir_n]
 function create_dirs {
-    for dir in $@; do
-        if [ ! -d $dir ]; then
+    for dir in "$@"; do
+        if [ ! -d "$dir" ]; then
             mkdir -p "$dir";
         fi
     done;
@@ -108,9 +108,9 @@ function create_dirs {
 # Simple function to check if at least one command exists.
 # Returns first existing command
 function check_command {
-    for test_cmd in $@; do
+    for test_cmd in "$@"; do
         if execv "command -v $test_cmd >/dev/null 2>&1"; then
-            echo "$(execv command -v $test_cmd)";
+            execv command -v "$test_cmd";
             return 0;
         fi;
     done
@@ -121,42 +121,43 @@ function check_command {
 # echov $@
 # echo if verbose is on
 function echov {
-    if [ ! -z "$VERBOSE" ]; then
-        echoe $@;
+    if [ -n "$VERBOSE" ]; then
+        echoe "$@";
     fi
 }
 
 # echoe $@
 # echo to STDERR
 function echoe {
-    >&2 echo $@;
+    >&2 echo "$@";
 }
 
 # check if process is running
 # is_process_running <pid>
 function is_process_running {
-    kill -0 $1 >/dev/null 2>&1;
-    return $?;
+    kill -0 "$1" >/dev/null 2>&1;
+    return "$?";
 }
 
 # random_string [length]
 # default length = 8
 function random_string {
-    < /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-8};
+    < /dev/urandom tr -dc A-Za-z0-9 | head -c"${1:-8}";
 }
 
 # search_file_up <start path> <file name>
 # Try to find file in start_path, if found, print path, if not found,
 # then try to find it in parent directory recursively
 function search_file_up {
-    local path="$(readlink -f $1)";
-    while [[ "$path" != "/" ]];
+    local search_path;
+    search_path=$(readlink -f "$1");
+    while [[ "$search_path" != "/" ]];
     do
-        if [ -e "$path/$2" ]; then
-            echo "$path/$2";
+        if [ -e "$search_path/$2" ]; then
+            echo "$search_path/$2";
             return 0;
-        elif [ ! -z "$path" ] && [ "$path" != "/" ]; then
-            path="$(dirname $path)";
+        elif [ -n "$search_path" ] && [ "$search_path" != "/" ]; then
+            search_path=$(dirname "$search_path");
         else
             break;
         fi
@@ -166,14 +167,14 @@ function search_file_up {
 # Try to find file in one of directories specified
 # search_file_in <file_name> <dir1> [dir2] [dir3] ...
 function search_file_in {
+    local search_path;
     local file_name=$1;
     shift;  # skip first argument
-
     while [[ $# -gt 0 ]]  # while there at least one argumet left
     do
-        local path=$(readlink -f $1);
-        if [ -e "$path/$file_name" ]; then
-            echo "$path/$file_name";
+        search_path=$(readlink -f "$1");
+        if [ -e "$search_path/$file_name" ]; then
+            echo "$search_path/$file_name";
             return 0;
         fi
         shift
@@ -182,7 +183,7 @@ function search_file_in {
 
 # is_odoo_module <module_path>
 function is_odoo_module {
-    if [ ! -d $1 ]; then
+    if [ ! -d "$1" ]; then
        return 1;
     elif [ -f "$1/__manifest__.py" ]; then
         # Odoo 10.0+
@@ -199,10 +200,10 @@ function is_odoo_module {
 # with_sudo <args>
 # Run command with sudo if required
 function with_sudo {
-    if [[ $UID != 0 ]]; then
-        sudo -E $@;
+    if [[ "$UID" != 0 ]]; then
+        sudo -E "$@";
     else
-        $@
+        "$@";
     fi
 }
 
@@ -215,32 +216,24 @@ function join_by {
     echo "$*";
 }
 
-# Strip whitespaces from specified var
-# Origin: https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable
-function trim() {
-    local var="$1"
-    # remove leading whitespace characters
-    var="${var#"${var%%[![:space:]]*}"}"
-    # remove trailing whitespace characters
-    var="${var%"${var##*[![:space:]]}"}"
-    echo -n "$var"
-}
-
 # Exec python
 #
 function exec_py {
-    local python_exec="$(odoo_get_python_interpreter)";
-    execu $python_exec "$@";
+    local python_exec;
+    python_exec=$(odoo_get_python_interpreter);
+    execu "$python_exec" "$@";
 }
 
 # Exec python with server user (if provided)
 function exec_py_u {
-    if [ ! -z $SERVER_RUN_USER ]; then
-        local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
+    local python_exec;
+    python_exec=$(odoo_get_python_interpreter);
+    if [ -n "$SERVER_RUN_USER" ]; then
+        execu sudo -u "$SERVER_RUN_USER" -H -E "$python_exec" "$@";
+    else
+        execu "$python_exec" "$@";
     fi
 
-    local python_exec="$(odoo_get_python_interpreter)";
-    execu $sudo_opt $python_exec "$@";
 }
 
 
@@ -264,7 +257,8 @@ except Exception:
 #
 # run_python_cmd <code>
 function run_python_cmd {
-    local python_cmd=$(run_python_cmd_prepare "$1");
+    local python_cmdl
+    python_cmd=$(run_python_cmd_prepare "$1");
     exec_py -c "\"$python_cmd\"";
 }
 
@@ -272,7 +266,8 @@ function run_python_cmd {
 #
 # run_python_cmd <code>
 function run_python_cmd_u {
-    local python_cmd=$(run_python_cmd_prepare "$@");
+    local python_cmd;
+    python_cmd=$(run_python_cmd_prepare "$@");
     exec_py_u -c "\"$python_cmd\"";
 }
 
@@ -281,5 +276,5 @@ function run_python_cmd_u {
 #
 # version_cmp_gte <version1> <version2>
 function version_cmp_gte {
-    python -c "from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));";
+    exec_py -c "\"from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));\"";
 }

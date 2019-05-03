@@ -6,14 +6,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
 #######################################################################
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 ohelper_require 'db';
@@ -44,8 +44,9 @@ function get_server_script {
 # server_is_running
 function server_get_pid {
     if [ -f "$ODOO_PID_FILE" ]; then
-        local pid=`cat $ODOO_PID_FILE`;
-        if is_process_running $pid; then
+        local pid;
+        pid=$(cat "$ODOO_PID_FILE");
+        if is_process_running "$pid"; then
             echo "$pid";
         else
             echo "-2";
@@ -60,7 +61,7 @@ function server_get_pid {
 #
 # server_is_running
 function server_is_running {
-    if [ $(server_get_pid) -gt 0 ]; then
+    if [ "$(server_get_pid)" -gt 0 ]; then
         return 0;
     else
         return 1;
@@ -69,7 +70,7 @@ function server_is_running {
 
 
 function server_log {
-    less +G $@ -- ${LOG_FILE:-$LOG_DIR/odoo.log};
+    less +G "$@" -- "${LOG_FILE:-$LOG_DIR/odoo.log}";
 }
 
 # server_run [options] <arg1> .. <argN>
@@ -125,32 +126,31 @@ function server_run {
             ;;
         esac
     done
-    local SERVER=$(get_server_script);
-    if [ ! -z $SERVER_RUN_USER ]; then
-        local sudo_opt="sudo -u $SERVER_RUN_USER -H -E";
-        echov "Using server run opt: $sudo_opt";
+    local server_script;
+    local server_cmd=( );
+    server_script=$(get_server_script);
+    if [ -n "$SERVER_RUN_USER" ]; then
+        server_cmd+=( sudo -u "$SERVER_RUN_USER" -H -E -- )
     fi
-
 
     if [ "$with_coverage" -eq 1 ]; then
         local coverage_include;
         local coverage_conf;
-        coverage_include="${COVERAGE_INCLUDE:-$(pwd)/*}";
+        local coverage_cmd;
+        coverage_include=${COVERAGE_INCLUDE:-"$(pwd)"/*};
         coverage_conf=$(config_get_default_tool_conf "coverage.cfg");
-
         if ! check_command coverage >/dev/null 2>&1; then
             echoe -e "${REDC}ERROR${NC}: command *${YELLOWC}coverage${NC}* not found." \
-               " Please, run *${BLUEC}odoo-helper install py-tools${BLUEC}* or " \
-               " *${BLUEC}odoo-helper pip install coverage${NC}*.";
+               " Please, run *${LBLUEC}odoo-helper install py-tools${NC}* or " \
+               " *${LBLUEC}odoo-helper pip install coverage${NC}*.";
             return 1
         fi
-        echo -e "${LBLUEC}Running server [${YELLOWC}coverage${LBLUEC}]${NC}: $SERVER $@";
-        exec_conf $server_conf execu "coverage run --rcfile=$coverage_conf \
-            --include='$coverage_include' $SERVER $@";
-    else
-        echo -e "${LBLUEC}Running server${NC}: $SERVER $@";
-        exec_conf $server_conf execu "$sudo_opt $SERVER $@";
+        coverage_cmd=$(check_command coverage);
+        server_cmd+=( "$coverage_cmd" run "--rcfile=$coverage_conf" "--include=$coverage_include" );
     fi
+    server_cmd+=( "$server_script" );
+    echo -e "${LBLUEC}Running server${NC}: ${server_cmd[*]} $*";
+    exec_conf "$server_conf" execu "${server_cmd[@]}" "$@";
 }
 
 function server_start {
@@ -175,13 +175,13 @@ function server_start {
     For --coverage option files in current working directory will be covered
     To add customa paths use environement variable COVERAGE_INCLUDE
     ";
-    local server_run_opts="";
+    local server_run_opts=( );
     while [[ $1 == -* ]]
     do
         local key="$1";
         case $key in
             --test-conf|--coverage)
-                server_run_opts="$server_run_opts $key";
+                server_run_opts+=( "$key" );
                 shift;
             ;;
             --log)
@@ -202,9 +202,9 @@ function server_start {
         esac
     done
 
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echo -e "${YELLOWC}Starting server via init script: $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT start;
+        execu "$INIT_SCRIPT" start;
     else
         # Check if server process is already running
         if server_is_running; then
@@ -212,15 +212,15 @@ function server_start {
             return 1;
         fi
 
-        server_run $server_run_opts -- --pidfile=$ODOO_PID_FILE "$@" &
+        server_run "${server_run_opts[@]}" -- --pidfile="$ODOO_PID_FILE" "$@" &
 
         # Wait until Odoo server started
-        local odoo_pid=;
+        local odoo_pid;
         for stime in 2 4 8 16; do
-            sleep $stime;
-            if [ -f $ODOO_PID_FILE ]; then
-                odoo_pid=$(cat $ODOO_PID_FILE);
-                if [ ! -z $odoo_pid ] && is_process_running $odoo_pid; then
+            sleep "$stime";
+            if [ -f "$ODOO_PID_FILE" ]; then
+                odoo_pid=$(cat "$ODOO_PID_FILE");
+                if [ -n "$odoo_pid" ] && is_process_running "$odoo_pid"; then
                     break
                 else
                     odoo_pid=;
@@ -228,7 +228,7 @@ function server_start {
             fi
         done
 
-        if [ -z $odoo_pid ]; then
+        if [ -z "$odoo_pid" ]; then
             echoe -e "${REDC}ERROR${NC}: Cannot start odoo.";
             return 1;
         else
@@ -242,38 +242,39 @@ function server_start {
         fi
     fi
 
-    if [ ! -z $log_after_start ]; then
+    if [ -n "$log_after_start" ]; then
         server_log;
     fi
 }
 
 function server_stop {
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echoe -e "${YELLOWC}Soppting server via init script: $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT stop;
+        execu "$INIT_SCRIPT" stop;
     else
-        local pid=$(server_get_pid);
-        if [ $pid -gt 0 ]; then
-            if kill $pid; then
+        local pid;
+        pid=$(server_get_pid);
+        if [ "$pid" -gt 0 ]; then
+            if kill "$pid"; then
                 # wait until server is stopped
                 for stime in 2 4 6 8; do
-                    if is_process_running $pid; then
+                    if is_process_running "$pid"; then
                         # if process alive, wait a little time
                         echov "Server still running. sleeping for $stime seconds";
-                        sleep $stime;
+                        sleep "$stime";
                     else
                         break;
                     fi
                 done
 
                 # if process still alive, it seems that it is frozen, so force kill it
-                if is_process_running $pid; then
-                    kill -SIGKILL $pid;
+                if is_process_running "$pid"; then
+                    kill -SIGKILL "$pid";
                     sleep 1;
                 fi
 
                 echoe -e "${GREENC}OK${NC}: Server stopped.";
-                rm -f $PID_FILE;
+                rm -f "$PID_FILE";
             else
                 echoe -e "${REDC}ERROR${NC}: Cannot kill process.";
             fi
@@ -286,19 +287,20 @@ function server_stop {
 }
 
 function server_status {
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echoe -e "${BLUEC}Server status via init script:${YELLOWC} $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT status;
+        execu "$INIT_SCRIPT" status;
     else
-        local pid=$(server_get_pid);
-        if [ $pid -gt 0 ]; then
+        local pid;
+        pid=$(server_get_pid);
+        if [ "$pid" -gt 0 ]; then
             echoe -e "${GREENC}Server process already running: PID=${YELLOWC}${pid}${GREENC}.${NC}";
             if [ -z "$INIT_SCRIPT" ]; then
                 echoe -e "${GREENC}Server URL:${NC} ${BLUEC}$(odoo_get_server_url)${NC}";
             fi
-        elif [ $pid -eq -2 ]; then
+        elif [ "$pid" -eq -2 ]; then
             echoe -e "${YELLOWC}Pid file points to unexistent process.${NC}";
-        elif [ $pid -eq -1 ]; then
+        elif [ "$pid" -eq -1 ]; then
             echoe -e "${REDC}Server stopped${NC}";
         else
             echoe -e "${REDC}Unknown server status!${NC}";
@@ -307,9 +309,9 @@ function server_status {
 }
 
 function server_restart {
-    if [ ! -z $INIT_SCRIPT ]; then
+    if [ -n "$INIT_SCRIPT" ]; then
         echoe -e "${YELLOWC}Server restart via init script: $INIT_SCRIPT ${NC}";
-        execu $INIT_SCRIPT restart;
+        execu "$INIT_SCRIPT" restart;
     else
         server_stop;
         server_start "$@";
@@ -319,12 +321,15 @@ function server_restart {
 
 # Print ps aux output for odoo-related processes
 function server_ps {
-    local server_script=$(get_server_script);
+    local server_script;
+    server_script=$(get_server_script);
     if [ -z "$server_script" ]; then
         echo -e "${REDC}ERROR${NC}: this command should be called inside odoo-helper project"
         return 1;
     fi
     echo -e "${YELLOWC}Odoo processes:${NC}";
+
+    # shellcheck disable=SC2009
     ps aux | grep -e "$(get_server_script)";
 }
 
@@ -333,6 +338,8 @@ function server_ps {
 # server [options] stop <args>
 function server_command {
     local usage="
+    Manage Odoo instance
+
     Usage 
 
         $SCRIPT_NAME server [options] [command] [args]
@@ -418,8 +425,9 @@ function server_command {
 
 # odoo_py <args>
 function odoo_py {
-    echov -e "${LBLUEC}Running odoo.py with arguments${NC}:  $@";
-    local cmd=$(check_command odoo odoo-bin odoo.py);
-    exec_conf $ODOO_CONF_FILE execu $cmd "$@";
+    echov -e "${LBLUEC}Running odoo.py with arguments${NC}: $*";
+    local cmd;
+    cmd=$(check_command odoo odoo-bin odoo.py);
+    exec_conf "$ODOO_CONF_FILE" execu "$cmd" "$@";
 }
 

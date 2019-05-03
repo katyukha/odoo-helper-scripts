@@ -8,14 +8,14 @@
 
 # Recursion protection utils
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 # -----------------------------------------------------------------------------
@@ -32,7 +32,8 @@ function __recursion_get_obj_name {
 # Initialize recursion protection for key
 # recursion_protection_init <key>
 function recursion_protection_init {
-    local obj_name=$(__recursion_get_obj_name $1);
+    local obj_name;
+    obj_name=$(__recursion_get_obj_name "$1");
     if [ -z "${!obj_name:-''}" ]; then
         return 1;
     fi
@@ -51,15 +52,20 @@ function recursion_protection_init {
 # recursion_protection_check <key> <value>
 function recursion_protection_check {
     # Exit with 2 code if no key and value specified
-    if [ -z $1 ] || [ -z $2 ]; then
+    if [ -z "$1" ] || [ -z "$2" ]; then
         return 2;
     fi
 
+    local res;
+    local value;
+    local obj_name;
     local key=$1;
-    local value=$(echo "$2" | sed -r "s/[^A-Za-z0-9]/_/g");
 
-    local obj_name=$(__recursion_get_obj_name $key);
-    local res="$(eval echo \"\${${obj_name}[$value]}\")"
+    value=$(echo "$2" | sed -r "s/[^A-Za-z0-9]/_/g");
+    obj_name=$(__recursion_get_obj_name "$key");
+
+    # shellcheck disable=SC1083,SC2086
+    res=$(eval echo \"\${${obj_name}[$value]}\");
 
     if [ -z "${res:-}" ]; then
         eval "${obj_name}['$value']=1";
@@ -74,7 +80,7 @@ function recursion_protection_check {
 #
 # recursion_protection_close <key>
 function recursion_protection_close {
-    unset $(__recursion_get_obj_name $1);
+    unset "$(__recursion_get_obj_name "$1")";
 }
 
 
@@ -82,9 +88,9 @@ function recursion_protection_close {
 #
 # recursion_protection_easy_check <key> <value>
 function recursion_protection_easy_check {
-    recursion_protection_init $1 || true;
+    recursion_protection_init "$1" || true;
 
-    if recursion_protection_check $1 $2; then
+    if recursion_protection_check "$1" "$2"; then
         return 0;
     else
         return 1;

@@ -76,8 +76,23 @@ echo -e "~~~text\n$(odoo-helper addons update-list --help)\n~~~\n\n" >> $PROJECT
 echo -e "#### odoo-helper addons status\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper addons status --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper addons generate-requirements\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper addons generate-requirements --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper addons test-installed\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper addons test-installed --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper addons find-installed\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper addons find-installed --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper addons pull-updates\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper addons pull-updates --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "### odoo-helper db\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db list\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db list --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
 echo -e "#### odoo-helper db create\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db create --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
@@ -87,6 +102,15 @@ echo -e "~~~text\n$(odoo-helper db drop --help)\n~~~\n\n" >> $PROJECT_DIR/docs/c
 
 echo -e "#### odoo-helper db exists\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db exists --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db is-demo\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db is-demo --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db rename\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db rename --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db copy\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db copy --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
 echo -e "### odoo-helper fetch\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper fetch --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;

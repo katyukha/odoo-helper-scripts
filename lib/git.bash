@@ -6,14 +6,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
 #######################################################################
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 # ----------------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ set -e; # fail on errors
 
 # git_is_git_repo <repo_path>
 function git_is_git_repo {
-    if [ -d ${1}/.git ] || (cd ${1} && git rev-parse --git-dir > /dev/null 2>&1); then
+    if [ -d "${1}/.git" ] || (cd "${1}" && git rev-parse --git-dir > /dev/null 2>&1); then
         return 0;   # it is git repository
     else
         return 1;   # It is not git repository
@@ -32,45 +32,50 @@ function git_is_git_repo {
 
 # git_get_abs_repo_path <path>
 function git_get_abs_repo_path {
-    echo "$(cd $1 && git rev-parse --show-toplevel)";
+    (cd "$1" && git rev-parse --show-toplevel);
 }
 
 # git_get_current_commit <path>
 function git_get_current_commit {
-    (cd $1 && git rev-parse --verify --short HEAD);
+    (cd "$1" && git rev-parse --verify --short HEAD);
 }
 
 # git_get_branch_name [repo_path]
 function git_get_branch_name {
-    local cdir=`pwd`;
-    if [ ! -z "$1" ]; then
-        cd $1;
+    local cdir;
+    cdir=$(pwd);
+    if [ -n "$1" ]; then
+        cd "$1";
     fi
 
-    local branch_name=$(git symbolic-ref -q HEAD);
+    local branch_name;
+    branch_name=$(git symbolic-ref -q HEAD);
     branch_name=${branch_name##refs/heads/};
     branch_name=${branch_name:-HEAD};
     
     echo "$branch_name"
 
-    if [ ! -z "$1" ]; then
-        cd $cdir;
+    if [ -n "$1" ]; then
+        cd "$cdir";
     fi
 }
 
 # git_get_remote_url [repo_path]
 function git_get_remote_url {
-    local cdir=`pwd`;
-    if [ ! -z "$1" ]; then
-        cd $1;
+    local cdir;
+    cdir=$(pwd);
+    if [ -n "$1" ]; then
+        cd "$1";
     fi
 
-    local current_branch=`git_get_branch_name`;
-    local git_remote=`git config --local --get branch.$current_branch.remote`;
-    echo "`git config --local --get remote.$git_remote.url`";
+    local git_remote;
+    local current_branch;
+    current_branch=$(git_get_branch_name "$1");
+    git_remote=$(git config --local --get "branch.$current_branch.remote");
+    git config --local --get "remote.$git_remote.url";
 
-    if [ ! -z "$1" ]; then
-        cd $cdir;
+    if [ -n "$1" ]; then
+        cd "$cdir";
     fi
 }
 
@@ -93,25 +98,26 @@ function git_get_remote_url {
 # git_parse_status <path to repo>
 function git_parse_status {
     local path_to_repo=$1;
-    local cdir=$(pwd);
+    local cdir;
 
-    # Go to repository directory
-    cd $path_to_repo
-
-    local gitstatus=$( LC_ALL=C git status --untracked-files=all --porcelain --branch )
-
-    # if the status is fatal, exit now
-    if [[ "$?" -ne 0 ]]; then
-        echo "Cannot get git status for $path_to_repo";
+    if ! git_is_git_repo "$path_to_repo"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot get git status for ${YELLOWC}${path_to_repo}${NC} - it is not git repository";
         return 1;
     fi
+    cdir=$(pwd);
+
+    # Go to repository directory
+    cd "$path_to_repo";
+
+    local gitstatus;
+    gitstatus=$( LC_ALL=C git status --untracked-files=all --porcelain --branch )
 
     local num_staged=0
     local num_changed=0
     local num_conflicts=0
     local num_untracked=0
-    while IFS='' read -r line; do
-      if [ -z $line ]; then
+    while IFS='' read -r line || [[ -n "$line" ]]; do
+      if [ -z "$line" ]; then
           continue;
       fi
 
@@ -136,11 +142,12 @@ function git_parse_status {
     done <<< "$gitstatus"
 
     local num_stashed=0
-    local stash_file="$( git rev-parse --git-dir )/logs/refs/stash"
+    local stash_file;
+    stash_file="$(git rev-parse --git-dir)/logs/refs/stash"
     if [[ -e "${stash_file}" ]]; then
         while IFS='' read -r wcline || [[ -n "$wcline" ]]; do
           ((num_stashed++));
-        done < ${stash_file}
+        done < "${stash_file}"
     fi
 
     local clean=0
@@ -149,26 +156,30 @@ function git_parse_status {
     fi
 
     # ---
+    local branch_fields;
     IFS="^" read -ra branch_fields <<< "${branch_line/\#\# }"
-    local branch="${branch_fields[0]}"
-    local remote=
-    local upstream=
+    local branch="${branch_fields[0]}";
+    local remote;
+    local upstream;
 
     if [[ "$branch" == *"Initial commit on"* ]]; then
+      local fields;
       IFS=" " read -ra fields <<< "$branch"
       branch="${fields[3]}"
       remote="_NO_REMOTE_TRACKING_"
     elif [[ "$branch" == *"no branch"* ]]; then
-      local tag=$( git describe --exact-match )
+      local tag;
+      tag=$(git describe --exact-match)
       if [[ -n "$tag" ]]; then
         branch="$tag"
       else
-        branch="_PREHASH_$( git rev-parse --short HEAD )"
+        branch="_PREHASH_$(git rev-parse --short HEAD)"
       fi
     else
       if [[ "${#branch_fields[@]}" -eq 1 ]]; then
         remote="_NO_REMOTE_TRACKING_"
       else
+        local remote_fields;
         IFS="[,]" read -ra remote_fields <<< "${branch_fields[1]}"
         upstream="${remote_fields[0]}"
         for remote_field in "${remote_fields[@]}"; do
@@ -203,7 +214,7 @@ function git_parse_status {
     echo -e "$branch\n$remote\n$upstream\n$clean\n$num_staged\n$num_changed\n$num_conflicts\n$num_untracked\n$num_stashed\n"
 
     # Go back to working dir
-    cd $cdir;
+    cd "$cdir";
 }
 
 
@@ -211,8 +222,8 @@ function git_parse_status {
 # Check if repository is clean (no uncommited changes)
 function git_is_clean {
     local git_status=;
-    IFS=$'\n' git_status=( $(git_parse_status $1 || echo '') );
-    if (( ${git_status[4]} == 0 && ${git_status[5]} == 0 && ${git_status[6]} == 0 && ${git_status[7]} == 0 )) ; then
+    mapfile -t git_status < <({ git_parse_status "$1" || echo ''; } | sed '/^$/d');
+    if (( git_status[4] == 0 && git_status[5] == 0 && git_status[6]== 0 && git_status[7] == 0 )) ; then
         return 0;  # repo is clean
     else
         return 1;  # repo is dirty
@@ -225,14 +236,15 @@ function git_is_clean {
 function git_get_commit_date {
     local repo_path="$1";
     local commit_ref="$2";
-    (cd $repo_path && git show -s  --date=short --format=%cd "$commit_ref");
+    (cd "$repo_path" && git show -s  --date=short --format=%cd "$commit_ref");
 }
 
 # git_get_current_commit_date <repo_path>
 # Show date of current commit in repo
 function git_get_current_commit_date {
     local repo_path="$1";
-    local commit_ref="$(git_get_current_commit $repo_path)";
+    local commit_ref;
+    commit_ref=$(git_get_current_commit "$repo_path");
     git_get_commit_date "$repo_path" "$commit_ref";
 }
 
@@ -280,10 +292,12 @@ function git_get_addons_changed {
         esac
     done
 
-    local repo_path=$(readlink -f "$1"); shift;
+    local repo_path;
+    repo_path=$(readlink -f "$1"); shift;
     local ref_start="$1"; shift;
     local ref_end="$1"; shift;
-    local cdir=$(pwd);
+    local cdir;
+    cdir=$(pwd);
 
     local ref_revision;
     if [ "$ref_end" == "-working-tree-" ]; then
@@ -294,18 +308,22 @@ function git_get_addons_changed {
 
     cd "$repo_path";
 
+    local changed_files;
     if [ -n "$exclude_translations" ]; then
-        local changed_files=( $(git diff --name-only  "${ref_revision}" -- ':(exclude)*.po' ':(exclude)*.pot') );
+        mapfile -t changed_files < <(git diff --name-only  "${ref_revision}" -- ':(exclude)*.po' ':(exclude)*.pot' | sed '/^$/d');
     else
-        local changed_files=( $(git diff --name-only  "${ref_revision}") );
+        mapfile -t changed_files < <(git diff --name-only  "${ref_revision}" | sed '/^$/d');
     fi
     for file_path in "${changed_files[@]}"; do
-        local manifest_path=$(search_file_up "$file_path" __manifest__.py);
+        local manifest_path;
+        manifest_path=$(search_file_up "$file_path" __manifest__.py);
         if [ -z "$manifest_path" ]; then
-            local manifest_path=$(search_file_up "$file_path" __openerp__.py);
+            manifest_path=$(search_file_up "$file_path" __openerp__.py);
         fi
-        if [ ! -z "$manifest_path" ]; then
-            local addon_path=$(dirname $(readlink -f "$manifest_path"));
+        if [ -n "$manifest_path" ]; then
+            local addon_path;
+            manifest_path=$(readlink -f "$manifest_path");
+            addon_path=$(dirname "$manifest_path");
             echo "$addon_path";
         fi
     done | sort -u;

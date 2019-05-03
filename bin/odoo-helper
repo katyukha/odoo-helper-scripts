@@ -83,13 +83,6 @@ function print_usage {
         git [--help]                        - git-related commands
         ci [--help]                         - commands usefule for Continious Integration
         install [--help]                    - install related stuff (sys-deps, ...)
-        generate-requirements [addons dir]  - parse addons dir, find all addons that are
-                                              git repositories and print odoo-requirements.txt content
-                                              file content suitable for *fetch* subcommand.
-                                              for example:
-                                                  $SCRIPT_NAME generate-requirements > odoo_requirements.txt
-                                              and you can use generated file for fetch subcommand:
-                                                  $SCRIPT_NAME fetch --requirements odoo_requirements.txt
         doc-utils [--help]                  - subcommand that contains doc utlities
         update-odoo                         - update odoo source code
         odoo-py [args]                      - run project-specific odoo.py script
@@ -390,6 +383,7 @@ function odoo_helper_main {
             ;;
             generate-requirements|generate_requirements)
                 shift;
+                echoe -e "${YELLOWC}WARNING${NC}: this command is deprecated. Use ${BLUEC}odoo-helper addons generate-requirements${NC} instead.";
                 config_load_project;
                 addons_generate_requirements "$@"
                 return;

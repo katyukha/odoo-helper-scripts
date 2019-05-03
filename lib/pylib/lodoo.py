@@ -64,6 +64,8 @@ class LocalModel(object):
 
     def __getattr__(self, name):
         def wrapper(*args, **kwargs):
+            """ Model method wrapper
+            """
             return self._client.call_method(self._name, name, *args, **kwargs)
         return wrapper
 
@@ -120,11 +122,18 @@ class LocalRegistry(object):
             ('module', 'in', addons),
             ('lang', '=', lang),
         ])
-        bad_translations = trans.filtered(
-            lambda r: not r.value or
-                      not r.value.strip() or
-                      r.src == r.value or
-                      r.source == r.value)
+
+        def filter_bad_translations(t):
+            """ Return True if translation is bad, otherwise return False
+            """
+            return (
+                not t.value or
+                not t.value.strip() or
+                t.src == t.value or
+                t.source == t.value
+            )
+
+        bad_translations = trans.filtered(filter_bad_translations)
 
         rate_by_addon = {}
         for addon in addons:
@@ -187,7 +196,7 @@ class LocalRegistry(object):
 
         # Print header
         print(header_format_str % (
-               'Addon', 'Total', 'Untranslated', 'Rate'))
+            'Addon', 'Total', 'Untranslated', 'Rate'))
         print(spacer_str)
 
         # Print translation rate by addon
@@ -196,11 +205,11 @@ class LocalRegistry(object):
 
         # Print total translation rate
         print(spacer_str)
-        print(row_format_str % (
-              'TOTAL', translation_rate['terms_total'],
-              translation_rate['terms_untranslated'],
-              translation_rate['total_rate'],
-        ))
+        print(
+            row_format_str % (
+                'TOTAL', translation_rate['terms_total'],
+                translation_rate['terms_untranslated'],
+                translation_rate['total_rate']))
 
     def assert_translation_rate(self, rate, min_total_rate=None,
                                 min_addon_rate=None):
@@ -208,13 +217,13 @@ class LocalRegistry(object):
             code
         """
         if min_total_rate is not None and rate['total_rate'] < min_total_rate:
-            return 1;
+            return 1
 
         if min_addon_rate is not None:
             for addon, rate_data in rate['by_addon'].items():
                 if rate_data['rate'] < min_addon_rate:
-                    return 2;
-        return 0;
+                    return 2
+        return 0
 
     def call_method(self, model, method, *args, **kwargs):
         """ Simple wrapper to call local model methods for database
@@ -285,7 +294,8 @@ class LOdoo(object):
             odoo.tools.config.parse_config(self._options)
 
             if not hasattr(odoo.api.Environment._local, 'environments'):
-                odoo.api.Environment._local.environments = odoo.api.Environments()
+                odoo.api.Environment._local.environments = (
+                    odoo.api.Environments())
 
             self._odoo = odoo
         return self._odoo

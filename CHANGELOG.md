@@ -1,5 +1,54 @@
 # Release Notes
 
+## Release 0.4.0 (2019-05-03)
+
+### Added
+
+- Added command *odoo-helper addons find-installed*.
+  Scan all databases for installed addons.
+- Added aliases (shortcuts):
+    - `odoo-helper-link`
+    - `odoo-helper-addons-update`
+- Experimental option `odoo-helper fetch --odoo-app <app_name>` that
+  will automatically download module from Odoo Market
+- Added option to `odoo-helper odoo recompute --db`
+    - same as `-d` and `--dbname`
+- Added command `odoo-helper db is-demo` to check if database contains demo-data
+
+### Fixed
+
+- Fixed bug with install/update addons via `odoo-helper addons install`
+  and `odoo-helper addons update` commands, when addons were always installed with demo-data.
+  This happened, because we have to explicitly tell Odoo that we do not need to install demo-data.
+
+### Changed
+
+- Changed `odoo-helper pull-updates` command
+    - Now it does not update addons list automatically
+    - Added `--ual` option to update addons list
+    - Added `--do-update` option to update addons just after pull
+    - Added `--help` options
+    - First positional argument not applicable for it.
+      Added option `--addons-dir` instead .
+- Refactored `odoo-helper lint pylint` command
+    - `consider-using-ternary` warning enabled by default
+    - `unused-import` warning enabled by default
+- Default timeouts for `wget` increased `2` -> `15` to be able to
+  download Odoo via low-speed networks
+- Changed bundled [virtualenv](https://virtualenv.pypa.io/en/latest/) version to `16.4.3`
+- Command `odoo-helper ci check-versions-git` will ignore addons that are not installable.
+
+### Removed
+
+- `odoo-helper test pylint` command removed. Use `odoo-helper lint pylint`
+- `odoo-helper test flake8` command removed. Use `odoo-helper lint flake8`
+
+### Deprecations
+
+- Command `odoo-helper generate-requirements` deprecated.
+  Use `odoo-helper addons generate-requirements`
+
+
 ## Release 0.3.0 (2019-02-04)
 
 ### Added

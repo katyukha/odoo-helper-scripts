@@ -124,6 +124,12 @@ odoo-helper fetch --oca project -m project_sla
 # create test database
 odoo-helper db create --demo odoo8-odoo-test
 
+# Check if db has demo-data
+odoo-helper db is-demo odoo8-odoo-test
+
+# Check if db has demo-data, but database does not exists
+odoo-helper db is-demo unexisting-database || true
+
 # and run tests for it
 odoo-helper test -m project_sla
 
@@ -131,10 +137,10 @@ odoo-helper test -m project_sla
 odoo-helper install py-tools
 
 # or run tests with test-coverage enabled
-(cd ./repositories/project; odoo-helper test --coverage-report -m project_sla || true);
+(cd ./repositories/project; odoo-helper test --recreate-db --coverage-report project_sla || true);
 
 # Also we may generate html coverage report too
-(cd ./repositories/project; odoo-helper test --coverage-html -m project_sla || true);
+(cd ./repositories/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project-sla || true);
 
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
@@ -169,6 +175,10 @@ odoo-helper server --stop-after-init;  # test that it runs
 # Create odoo 9 database
 odoo-helper db create test-9-db;
 
+# Ensure database does not have demo-data installed
+! odoo-helper db is-demo test-9-db;
+! odoo-helper db is-demo -q test-9-db;
+
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
 odoo-helper pip install Mercurial;
 odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
@@ -197,9 +207,6 @@ odoo-helper addons uninstall account;
 # uninstall all addons (error)
 odoo-helper addons uninstall all || true;
 
-# Update python dependencies of addons
-odoo-helper addons update-py-deps
-
 # List addon repositories
 odoo-helper addons list-repos;
 
@@ -212,8 +219,14 @@ odoo-helper addons generate-requirements;
 # Generate requirements (shortcut)
 odoo-helper generate-requirements;
 
+# Update odoo sources
+odoo-helper update-odoo
+
 # Reinstall odoo downloading archive
 odoo-helper install reinstall-odoo download;
+
+# Reinstall python dependencies for Odoo
+odoo-helper install py-deps
 
 # Drop created database
 odoo-helper db drop test-9-db;
@@ -224,8 +237,8 @@ odoo-helper status
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
 
-# Update odoo sources
-odoo-helper update-odoo
+# Install wkhtmltopdf (if it is not installed yet)
+odoo-helper install wkhtmltopdf
 
 
 echo -e "${YELLOWC}
@@ -344,11 +357,11 @@ odoo-helper status  --tools-versions --ci-tools-versions
 odoo-helper print-config
 
 # Pull odoo addons update
-(cd ./repositories/partner-contact && git checkout HEAD^^^1)
+(cd ./repositories/partner-contact && git reset --hard HEAD^^^1)
 odoo-helper addons pull-updates
 
 # Update odoo base addon
-odoo-helper addons update base
+odoo-helper-addons-update base
 
 # Fetch OCA account-financial-reporting, which seems to have
 # complicated enough dependencies for this test
@@ -376,6 +389,9 @@ odoo-helper start
 odoo-helper status
 odoo-helper server status
 odoo-helper stop
+
+# Update python dependencies of addons
+odoo-helper addons update-py-deps
 
 # Test doc-utils. List all addons available in *contract* addon
 odoo-helper doc-utils addons-list --sys-name -f name -f version -f summary -f application --git-repo ./repositories/contract
@@ -490,6 +506,7 @@ ${NC}"
 odoo-helper --help
 odoo-install --help
 odoo-helper-addons --help
+odoo-helper-link --help
 odoo-helper-db --help
 odoo-helper-fetch --help
 odoo-helper-server --help
@@ -578,11 +595,6 @@ odoo-helper stop;
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions;
 
-# Fetch oca/contract
-odoo-helper fetch --oca contract
-
-odoo-helper addons install --ual --dir ./repositories/contract;
-
 # Database management
 odoo-helper db create --demo --lang en_US odoo12-odoo-test;
 odoo-helper db create --recreate --demo --lang en_US odoo12-odoo-test;
@@ -590,6 +602,33 @@ odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
 odoo-helper db exists odoo12-odoo-test;
 odoo-helper db exists odoo12-odoo-tmp;
 odoo-helper db backup-all zip;
+
+# Fetch oca/contract
+odoo-helper fetch --oca contract
+
+# Install addons from OCA contract
+odoo-helper addons install --ual --dir ./repositories/contract;
+
+# Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+
+# Fetch helpdesk second time testing bechavior
+# when same addons already present in system
+odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+
+# Prepare to test pull updates with --do-update option
+odoo-helper fetch --oca partner-contact;
+(cd ./repositories/partner-contact && git reset --hard HEAD^^^1);
+odoo-helper addons install --dir ./repositories/partner-contact;
+
+# Test pull-updates with --do-update option
+odoo-helper addons pull-updates --do-update;
+
+# Print list of installed addons
+odoo-helper addons find-installed;
+
+# Drop created databases
 odoo-helper db drop odoo12-odoo-test;
 odoo-helper db drop -q odoo12-odoo-tmp;
 

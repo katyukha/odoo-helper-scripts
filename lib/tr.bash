@@ -1,5 +1,4 @@
 # Copyright © 2016-2018 Dmytro Katyukha <dmytro.katyukha@gmail.com>
-
 #######################################################################
 # This Source Code Form is subject to the terms of the Mozilla Public #
 # License, v. 2.0. If a copy of the MPL was not distributed with this #
@@ -9,14 +8,14 @@
 # Translation wrappers
 
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 ohelper_require "addons";
@@ -41,29 +40,38 @@ function tr_parse_db_name {
 
 # tr_parse_addons <db> <addon1> <addon2> <addon3> ...
 # tr_parse_addons <db> all
+# Prints comma-separated list of addons
 function tr_parse_addons {
     local db=$1; shift;
+    local todo_addons;
+    local installed_addons;
+    local installed_addons_cs;
+    local addons_list;
+
+    mapfile -t installed_addons < <(postgres_psql -d "$db" -tA -c "SELECT name FROM ir_module_module WHERE state = 'installed'");
+    installed_addons_cs=$(join_by , "${installed_addons[@]}");
     if [ "$1" == "all" ]; then
-        addons_get_installed_addons $db;
+        echo "$installed_addons_cs";
     else
-        local installed_addons="$(addons_get_installed_addons $db)"
-        local addons=;
+        declare -a addons;
         while [[ $# -gt 0 ]]; do  # while there at least one argumet left
             if [[ "$1" =~ ^--dir=(.*)$ ]]; then
-                addons="$addons $(join_by ' '  $(addons_list_in_directory --installable --by-name ${BASH_REMATCH[1]}))";
+                mapfile -t addons_list < <(addons_list_in_directory --installable --by-name "${BASH_REMATCH[1]}");
+                addons+=( "${addons_list[@]}" );
             elif [[ "$1" =~ ^--dir-r=(.*)$ ]]; then
-                addons="$addons $(join_by ' '  $(addons_list_in_directory --installable --recursive --by-name ${BASH_REMATCH[1]}))";
+                mapfile -t addons_list < <(addons_list_in_directory --installable --recursive --by-name "${BASH_REMATCH[1]}");
+                addons+=( "${addons_list[@]}" );
             else
                 if addons_is_odoo_addon "$1"; then
-                    addons="$addons $1";
+                    addons+=( "$1" );
                 else
                     echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${1}${NC} is not Odoo addon! Skipped...";
                 fi
             fi
             shift;
         done
-        local todo_addons="$(join_by , $addons)";
-        echo $(run_python_cmd "print(','.join(set('$todo_addons'.split(',')) & set('$installed_addons'.split(','))))");
+        todo_addons=$(join_by , "${addons[@]}");
+        run_python_cmd "print(','.join(set('$todo_addons'.split(',')) & set('$installed_addons_cs'.split(','))))";
     fi;
 }
 
@@ -81,34 +89,36 @@ function tr_import_export_internal {
     local file_name=$3;
     local extra_opt=$4;
     local cmd=$5;
+    local addon_path;
     shift; shift; shift; shift; shift;
 
-    if ! odoo_db_exists -q $db; then
+    if ! odoo_db_exists -q "$db"; then
         echoe -e "${REDC}ERROR:${NC} Database '$db' does not exists!";
         return 2;
     fi
 
-    local addons_data=$(tr_parse_addons $db $@)
-    local addons=;
+    local addons;
+    local addons_data;
+    addons_data=$(tr_parse_addons "$db" "$@")
     IFS=',' read -r -a addons <<< "$addons_data";
-    for addon in ${addons[@]}; do
+    for addon in "${addons[@]}"; do
         echoe -e "${BLUEC}Executing ${YELLOWC}$cmd${BLUEC} for (db=${YELLOWC}$db${BLUEC}, lang=${YELLOWC}$lang${BLUEC}).${NC} Processing addon: ${YELLOWC}$addon${NC};";
-        local addon_path=$(addons_get_addon_path "$addon");
+        addon_path=$(addons_get_addon_path "$addon");
         local i18n_dir="$addon_path/i18n";
         local i18n_file="$i18n_dir/$file_name.po";
 
         # if export and there is no i18n dir, create it
-        if [ "$cmd" == "export" ] && [ ! -d $i18n_dir ]; then
-            mkdir -p $i18n_dir;
+        if [ "$cmd" == "export" ] && [ ! -d "$i18n_dir" ]; then
+            mkdir -p "$i18n_dir";
         fi
 
         # if import and not translation file skip this addon
-        if [ "$cmd" == "import" ] && [ ! -f $i18n_file ]; then
+        if [ "$cmd" == "import" ] && [ ! -f "$i18n_file" ]; then
             continue
         fi
 
         # do the work
-        server_run -- -d $db -l $lang $extra_opt --i18n-$cmd=$i18n_file --modules=$addon --stop-after-init --pidfile=/dev/null;
+        server_run -- -d "$db" -l "$lang" "$extra_opt" "--i18n-$cmd=$i18n_file" "--modules=$addon" --stop-after-init --pidfile=/dev/null;
     done
 }
 
@@ -151,7 +161,7 @@ function tr_export {
     local file_name=$3;
     shift; shift; shift;
 
-    tr_import_export_internal $db $lang $file_name " " export "$@";
+    tr_import_export_internal "$db" "$lang" "$file_name" " " export "$@";
 }
 
 function tr_import {
@@ -215,8 +225,8 @@ function tr_import {
     local file_name=$3;
     shift; shift; shift;
 
-    for idb in $(tr_parse_db_name $db); do
-        tr_import_export_internal $idb $lang $file_name "$opt_overwrite" import "$@";
+    for idb in $(tr_parse_db_name "$db"); do
+        tr_import_export_internal "$idb" "$lang" "$file_name" "$opt_overwrite" import "$@";
     done
 }
 
@@ -264,22 +274,24 @@ function tr_load {
         shift
     done
 
-    if [ -z $db ] || [ -z $lang ]; then
+    if [ -z "$db" ] || [ -z "$lang" ]; then
         echo -e "${REDC}ERROR:${NC} No database or language specified!";
         return 1;
     fi
 
-    for idb in $(tr_parse_db_name $db); do
-        server_run -- -d $idb --load-language=$lang --stop-after-init --pidfile=/dev/null;
+    for idb in $(tr_parse_db_name "$db"); do
+        server_run -- -d "$idb" --load-language="$lang" --stop-after-init --pidfile=/dev/null;
     done
 }
 
 
 # Regenerate translations
 function tr_regenerate {
-    local lang=;
-    local file_name=;
-    local addons="";
+    local lang;
+    local file_name;
+    local tmp_db_name;
+    declare -a addons;
+    declare -a addons_list;
 
     local usage="
     Usage
@@ -320,15 +332,17 @@ function tr_regenerate {
                 shift;
             ;;
             --dir)
-                addons="$addons $(addons_list_in_directory --by-name --installable $2)";
+                mapfile -t addons_list < <(addons_list_in_directory --installable --by-name "$2");
+                addons+=( "${addons_list[@]}" );
                 shift;
             ;;
             --dir-r)
-                addons="$addons $(addons_list_in_directory --by-name --installable --recursive $2)";
+                mapfile -t addons_list < <(addons_list_in_directory --installable --by-name --recursive "$2");
+                addons+=( "${addons_list[@]}" );
                 shift;
             ;;
             *)
-                addons="$addons $key";
+                addons+=( "$key" );
             ;;
         esac
         shift
@@ -345,15 +359,15 @@ function tr_regenerate {
     fi
 
     # Create temporary database
-    local tmp_db_name="test-tr-$(random_string 24)";
-    odoo_db_create --lang $lang --demo $tmp_db_name;
+    tmp_db_name="test-tr-$(random_string 24)";
+    odoo_db_create --lang "$lang" --demo "$tmp_db_name";
     
     # install addons
-    if addons_install_update "install" --no-restart -d "$tmp_db_name" $addons; then
+    if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
         # export translations
-        tr_export "$tmp_db_name" "$lang" "$file_name" $addons;
+        tr_export "$tmp_db_name" "$lang" "$file_name" "${addons[@]}";
     else
-        echoe -e "${REDC}ERROR${NC}: Cannot install addons ${YELLOWC}${addons}${NC}!";
+        echoe -e "${REDC}ERROR${NC}: Cannot install addons ${YELLOWC}${addons[*]}${NC}!";
         return 3;
     fi
 
@@ -367,8 +381,11 @@ function tr_translation_rate {
     local lang=;
     local min_total_rate="None";
     local min_addon_rate="None";
-    local addons="";
+    local addons_cs;
+    local tmp_db_name;
     local res=0;
+    declare -a addons;
+    declare -a addons_list;
 
     local usage="
     Usage
@@ -380,8 +397,8 @@ function tr_translation_rate {
         --lang <lang code>       - language code to regenerate translations for
         --min-total-rate <rate>  - minimal translation rate to pass. (optional)
         --min-addon-rate <rate>  - minimal translation rate per addon. (optional)
-        --dir  <addons path>     - look for addons at specified directory
-        --dir-r <addons path> - look for addons at specified directory and its subdirectories
+        --dir <addons path>      - look for addons at specified directory
+        --dir-r <addons path>    - look for addons at specified directory and its subdirectories
 
     compute translation rate for specified langauage and addons
     ";
@@ -407,38 +424,40 @@ function tr_translation_rate {
                 shift;
             ;;
             --dir)
-                addons="$addons $(addons_list_in_directory --by-name --installable $2)";
+                mapfile -t addons_list < <(addons_list_in_directory --installable --by-name "$2");
+                addons+=( "${addons_list[@]}" );
                 shift;
             ;;
             --dir-r)
-                addons="$addons $(addons_list_in_directory --by-name --installable --recursive $2)";
+                mapfile -t addons_list < <(addons_list_in_directory --installable --by-name --recursive "$2");
+                addons+=( "${addons_list[@]}" );
                 shift;
             ;;
             *)
-                addons="$addons $key";
+                addons+=( "$key" );
             ;;
         esac
         shift
     done
 
     # Create temporary database
-    local tmp_db_name="test-tr-$(random_string 24)";
-    odoo_db_create --lang $lang --demo $tmp_db_name;
+    tmp_db_name="test-tr-$(random_string 24)";
+    odoo_db_create --lang "$lang" --demo "$tmp_db_name";
 
-    local addons_cs=$(join_by , $addons);  # coma-separated
+    addons_cs=$(join_by , "${addons[@]}");  # coma-separated
     # install addons
-    if addons_install_update "install" --no-restart -d $tmp_db_name $addons; then
+    if addons_install_update install --no-restart -d "$tmp_db_name" "${addons[@]}"; then
         # export translations to dev-null, to create records in 'ir.translation'
-        local trans_tmp_dir=$ODOO_PATH/addons/tmp;
-        mkdir -p $trans_tmp_dir;
-        local trans_file=$trans_tmp_dir/x-odoo-trans-${tmp_db_name}.po;
-        if server_run -- -d $tmp_db_name -l $lang --i18n-export=$trans_file --modules=$addons_cs --stop-after-init --pidfile=/dev/null; then
-            if ! server_run -- -d $tmp_db_name -l $lang --i18n-import=$trans_file --modules=$addons_cs --stop-after-init --pidfile=/dev/null; then
+        local trans_tmp_dir="$ODOO_PATH/addons/tmp";
+        mkdir -p "$trans_tmp_dir";
+        local trans_file="$trans_tmp_dir/x-odoo-trans-${tmp_db_name}.po";
+        if server_run -- -d "$tmp_db_name" -l "$lang" --i18n-export="$trans_file" --modules="$addons_cs" --stop-after-init --pidfile=/dev/null; then
+            if ! server_run -- -d "$tmp_db_name" -l "$lang" --i18n-import="$trans_file" --modules="$addons_cs" --stop-after-init --pidfile=/dev/null; then
                 echoe -e "${REDC}ERROR${NC}: cannot import generated translations";
-                rm $trans_file;
+                rm "$trans_file";
                 res=11;
             else
-                rm $trans_file;
+                rm "$trans_file";
 
                 # Compute translation rate and print it
                 local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
@@ -456,18 +475,20 @@ function tr_translation_rate {
             res=12;
         fi
     else
-        echoe -e "${REDC}ERROR${NC}: Cannot install addons: $addons";
+        echoe -e "${REDC}ERROR${NC}: Cannot install addons: ${addons[*]}";
         res=13;
     fi
 
     # Drop temporary database
-    odoo_db_drop $tmp_db_name;
+    odoo_db_drop "$tmp_db_name";
 
     return $res;
 }
 
 function tr_main {
     local usage="
+    Manage translations
+
     Usage
 
         $SCRIPT_NAME tr export <db> <lang> <file_name> <addon1> [addon2] [addon3]...
@@ -527,12 +548,12 @@ function tr_main {
             ;;
             regenerate)
                 shift;
-                tr_regenerate $@;
+                tr_regenerate "$@";
                 return;
             ;;
             rate)
                 shift;
-                tr_translation_rate $@;
+                tr_translation_rate "$@";
                 return $?;
             ;;
             *)

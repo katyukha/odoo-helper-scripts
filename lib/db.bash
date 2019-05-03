@@ -6,14 +6,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
 #######################################################################
 
-if [ -z $ODOO_HELPER_LIB ]; then
+if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
-if [ -z $ODOO_HELPER_COMMON_IMPORTED ]; then
-    source $ODOO_HELPER_LIB/common.bash;
+if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
+    source "$ODOO_HELPER_LIB/common.bash";
 fi
 
 # ----------------------------------------------------------------------------------------
@@ -27,19 +27,22 @@ set -e; # fail on errors
 # odoo_db_create [options] <name> [odoo_conf_file]
 function odoo_db_create {
     local usage="
+    Creates new database
+
     Usage:
 
         $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
 
-        Creates database named <name>
+    Arguments:
+       <name>         - name of new database
 
-        Options:
-           --demo         - load demo-data (default: no demo-data)
-           --lang <lang>  - specified language for this db.
-                            <lang> is language code like 'en_US'...
-           --recreate     - if database with such name exists,
-                            then drop it first
-           --help         - display this help message
+    Options:
+       --demo         - load demo-data (default: no demo-data)
+       --lang <lang>  - specified language for this db.
+                        <lang> is language code like 'en_US'...
+       --recreate     - if database with such name exists,
+                        then drop it first
+       --help         - display this help message
     ";
 
     # Parse options
@@ -147,8 +150,10 @@ function odoo_db_drop {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    if ! odoo_db_exists -q $db_name; then
-        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+    if ! odoo_db_exists -q "$db_name"; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+        fi
         return 1;
     fi
 
@@ -158,16 +163,44 @@ function odoo_db_drop {
     echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
     
     if ! run_python_cmd "$python_cmd"; then
-        [ -z $opt_quite ] && echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        fi
         return 1;
     else
-        [ -z $opt_quite ] && echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+        fi
         return 0;
     fi
 }
 
-# odoo_db_list [odoo_conf_file]
+# odoo_db_list [options] [odoo_conf_file]
 function odoo_db_list {
+    local usage="
+    List available database
+
+    Usage:
+
+        $SCRIPT_NAME db list [options] [conf file] - show list of databases
+        $SCRIPT_NAME db list --help                - show this help message
+    ";
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     local conf_file=${1:-$ODOO_CONF_FILE};
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file', '--logfile', '/dev/null']);";
@@ -226,19 +259,66 @@ function odoo_db_exists {
     python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
     
     if run_python_cmd "$python_cmd"; then
-        [ -z $opt_quite ] && echoe -e "Database named ${YELLOWC}$db_name${NC} exists!" || true;
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database named ${YELLOWC}$db_name${NC} exists!";
+        fi
         return 0;
     else
-        [ -z $opt_quite ] && echoe -e "Database ${YELLOWC}$db_name${NC} does not exists!" || true;
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database ${YELLOWC}$db_name${NC} does not exists!";
+        fi
         return 1;
     fi
 }
 
-# odoo_db_rename <old_name> <new_name> [odoo_conf_file]
+# odoo_db_rename [options] <old_name> <new_name> [odoo_conf_file]
 function odoo_db_rename {
+    local usage="
+    Rename database
+
+    Usage:
+
+        $SCRIPT_NAME db rename [options] <old_name> <new_name> [odoo_conf_file]
+
+    Arguments:
+        <old_name>    - name of existing database
+        <new_name>    - new name of database
+
+    Options:
+       --help         - display this help message
+    ";
+
+    # Parse options
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
     local old_db_name=$1;
     local new_db_name=$2;
     local conf_file=${3:-$ODOO_CONF_FILE};
+
+    if ! odoo_db_exists -q "$old_db_name"; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot rename database ${YELLOWC}${old_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${old_db_name}${NC} does not exists!";
+        fi
+        return 1;
+    fi
+    if odoo_db_exists -q "$new_db_name"; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot rename database ${YELLOWC}${old_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${new_db_name}${NC} already exists!";
+        fi
+        return 2;
+    fi
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.rename(cl.odoo.tools.config['admin_passwd'], '$old_db_name', '$new_db_name');"
@@ -255,9 +335,52 @@ function odoo_db_rename {
 
 # odoo_db_copy <src_name> <new_name> [odoo_conf_file]
 function odoo_db_copy {
+    local usage="
+    Copy database
+
+    Usage:
+
+        $SCRIPT_NAME db copy [options] <src_name> <new_name> [odoo_conf_file]
+
+    Arguments:
+        <src_name>    - name of existing database
+        <new_name>    - new name of database
+
+    Options:
+       --help         - display this help message
+    ";
+
+    # Parse options
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
     local src_db_name=$1;
     local new_db_name=$2;
     local conf_file=${3:-$ODOO_CONF_FILE};
+
+    if ! odoo_db_exists -q "$src_db_name"; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot copy database ${YELLOWC}${src_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${src_db_name}${NC} does not exists!";
+        fi
+        return 1;
+    fi
+    if odoo_db_exists -q "$new_db_name"; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "${REDC}ERROR${NC}: Cannot copy database ${YELLOWC}${src_db_name}${NC} -> ${YELLOWC}${new_db_name}${NC}! Database ${YELLOWC}${new_db_name}${NC} already exists!";
+        fi
+        return 2;
+    fi
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.duplicate_database(cl.odoo.tools.config['admin_passwd'], '$src_db_name', '$new_db_name');"
@@ -282,7 +405,7 @@ function odoo_db_dump {
     # determine 3-d and 4-th arguments (format and odoo_conf_file)
     if [ -f "$3" ]; then
         conf_file=$3;
-    elif [ ! -z $3 ]; then
+    elif [ -n "$3" ]; then
         local format=$3;
         local format_opt=", '$format'";
 
@@ -309,24 +432,24 @@ function odoo_db_dump {
 # if second argument is file and it exists, then it used as config filename
 # in other cases second argument is treated as format, and third (if passed) is treated as conf file
 function odoo_db_backup {
-    if [ -z $BACKUP_DIR ]; then
+    if [ -z "$BACKUP_DIR" ]; then
         echoe -e "${REDC}ERROR${NC}: Backup dir is not configured. Add ${BLUEC}BACKUP_DIR${NC} variable to your ${BLUEC}odoo-helper.conf${NC}!";
         return 1;
     fi
 
-    local FILE_SUFFIX=`date -I`.`random_string 4`;
     local db_name=$1;
-    local db_dump_file="$BACKUP_DIR/db-backup-$db_name-$FILE_SUFFIX";
+    local db_dump_file;
+    db_dump_file="$BACKUP_DIR/db-backup-$db_name-$(date -I).$(random_string 4)";
 
     # if format is passed and format is 'zip':
-    if [ ! -z $2 ] && [ "$2" == "zip" ]; then
+    if [ -n "$2" ] && [ "$2" == "zip" ]; then
         db_dump_file="$db_dump_file.zip";
     else
         db_dump_file="$db_dump_file.backup";
     fi
 
-    odoo_db_dump $db_name $db_dump_file $2 $3;
-    echo $db_dump_file
+    odoo_db_dump "$db_name" "$db_dump_file" "$2" "$3";
+    echo "$db_dump_file"
 }
 
 # odoo_db_backup_all [format [odoo_conf_file]]
@@ -337,7 +460,7 @@ function odoo_db_backup_all {
     # parse args
     if [ -f "$1" ]; then
         conf_file=$1;
-    elif [ ! -z $1 ]; then
+    elif [ -n "$1" ]; then
         local format=$1;
         local format_opt=", '$format'";
 
@@ -347,9 +470,11 @@ function odoo_db_backup_all {
     fi
 
     # dump databases
-    for dbname in $(odoo_db_list $conf_file); do
+    local dbnames;
+    mapfile -t dbnames < <(odoo_db_list "$conf_file");
+    for dbname in "${dbnames[@]}"; do
         echoe -e "${BLUEC}backing-up database: ${YELLOWC}$dbname${NC}";
-        odoo_db_backup $dbname $format $conf_file;
+        odoo_db_backup "$dbname" "$format" "$conf_file";
     done
 }
 
@@ -373,18 +498,82 @@ function odoo_db_restore {
     fi
 }
 
+
+function odoo_db_is_demo_enabled {
+    local usage="
+    Test if demo-data installed in database
+
+    Usage:
+
+        $SCRIPT_NAME db is-demo [options] <dbname> - test if dbname contains demo-data
+        $SCRIPT_NAME db is-demo --help             - show this help message
+
+    Options:
+
+        -q|--quite    do not show messages
+
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -q|--quite)
+                local opt_quite=1;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    local db_name=$1;
+    local conf_file=$ODOO_CONF_FILE;
+
+    if ! odoo_db_exists -q "$db_name"; then
+        echoe -e "${REDC}ERROR${NC}: Database ${YELLOWC}${db_name}${NC} does not exists!";
+        return 2;
+    fi
+
+    local demo_data_enabled;
+    demo_data_enabled=$(postgres_psql -d "$db_name" -tA -c "SELECT EXISTS (SELECT 1 FROM ir_module_module WHERE state = 'installed' AND name = 'base' AND demo = True);");
+    if [ "$demo_data_enabled" == "t" ]; then
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database named ${YELLOWC}$db_name${NC} contains demo data!";
+        fi
+        return 0;
+    else
+        if [ -z "$opt_quite" ]; then
+            echoe -e "Database named ${YELLOWC}$db_name${NC} does NOT contain demo data!";
+        fi
+        return 1;
+    fi
+}
+
 # Command line args processing
 function odoo_db_command {
     local usage="
+    Manage odoo databases
+
     Usage:
 
-        $SCRIPT_NAME db list [odoo_conf_file]
-        $SCRIPT_NAME db exists <name> [odoo_conf_file]
-        $SCRIPT_NAME db create <name> [odoo_conf_file]
+        $SCRIPT_NAME db list --help
+        $SCRIPT_NAME db exists --help
+        $SCRIPT_NAME db is-demo --help
         $SCRIPT_NAME db create --help
-        $SCRIPT_NAME db drop <name> [odoo_conf_file]
-        $SCRIPT_NAME db rename <old_name> <new_name> [odoo_conf_file]
-        $SCRIPT_NAME db copy <src_name> <new_name> [odoo_conf_file]
+        $SCRIPT_NAME db drop --help
+        $SCRIPT_NAME db rename --help
+        $SCRIPT_NAME db copy --help
         $SCRIPT_NAME db dump <name> <dump_file_path> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup <name> [format [odoo_conf_file]]
         $SCRIPT_NAME db backup-all [format [odoo_conf_file]]
@@ -439,6 +628,11 @@ function odoo_db_command {
             exists)
                 shift;
                 odoo_db_exists "$@";
+                return;
+            ;;
+            is-demo)
+                shift;
+                odoo_db_is_demo_enabled "$@";
                 return;
             ;;
             rename)

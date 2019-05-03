@@ -1,4 +1,6 @@
-# Copyright © 2017-2019 Dmytro Katyukha <dmytro.katyukha@gmail.com>
+#!/bin/bash
+
+# Copyright © 2019 Dmytro Katyukha <dmytro.katyukha@gmail.com>
 
 #######################################################################
 # This Source Code Form is subject to the terms of the Mozilla Public #
@@ -6,7 +8,26 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
 #######################################################################
 
-# Odoo Helper Scripts: Version
+
+# Use odoo-helper --help for a documentation
+
+SCRIPT=$0;
+SCRIPT_NAME=$(basename "$SCRIPT");
+F=$(readlink -f "$SCRIPT");  # full script path;
+WORKDIR=$(pwd);
+
+
+# load basic conf
+if [ -f "/etc/odoo-helper.conf" ]; then
+    source "/etc/odoo-helper.conf";
+fi
+if [ -f "$HOME/odoo-helper.conf" ]; then
+    source "$HOME/odoo-helper.conf";
+fi
+# -----------
+
+set -e;  # Fail on errors
+
 
 if [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
@@ -14,11 +35,4 @@ if [ -z "$ODOO_HELPER_LIB" ]; then
     exit 1;
 fi
 
-if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
-    source "$ODOO_HELPER_LIB/common.bash";
-fi
-
-
-# Define version number
-ODOO_HELPER_VERSION="0.4.0";
-ODOO_HELPER_CONFIG_VERSION="1";
+"$ODOO_HELPER_BIN/odoo-helper" addons update "$@";
