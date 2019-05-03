@@ -36,6 +36,7 @@
 - Default timeouts for `wget` increased `2` -> `15` to be able to
   download Odoo via low-speed networks
 - Changed bundled [virtualenv](https://virtualenv.pypa.io/en/latest/) version to `16.4.3`
+- Command `odoo-helper ci check-versions-git` will ignore addons that are not installable.
 
 ### Removed
 

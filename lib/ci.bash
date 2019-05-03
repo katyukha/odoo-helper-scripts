@@ -233,6 +233,9 @@ function ci_check_versions_git {
     mapfile -t changed_addons < <(git_get_addons_changed "${git_changed_extra_opts[@]}" "$repo_path" "$ref_start" "$ref_end" | sed '/^$/d')
     local addon_path;
     for addon_path in "${changed_addons[@]}"; do
+        if ! addons_is_installable "$addon_path"; then
+            continue;
+        fi
         cd "$addon_path";
         local addon_name;
         addon_name=$(basename "$addon_path");
