@@ -400,7 +400,7 @@ function test_module {
 
     local modules_to_test=( );
     for module in "${modules[@]}"; do
-        if [ -z "${skip_modules_map[$module]}" ]; then
+        if [ -n "$module" ] && [ -z "${skip_modules_map[$module]}" ]; then
             modules_to_test+=( "$module" );
         fi
     done
