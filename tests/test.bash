@@ -137,10 +137,10 @@ odoo-helper test -m project_sla
 odoo-helper install py-tools
 
 # or run tests with test-coverage enabled
-(cd ./repositories/project; odoo-helper test --recreate-db --coverage-report project_sla || true);
+(cd ./repositories/oca/project; odoo-helper test --recreate-db --coverage-report project_sla || true);
 
 # Also we may generate html coverage report too
-(cd ./repositories/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project-sla || true);
+(cd ./repositories/oca/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project-sla || true);
 
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
@@ -340,9 +340,9 @@ odoo-helper tr rate --lang uk_UA partner_firstname;
 
 # Check partner_first_name addon with pylint and flake8
 odoo-helper install py-tools
-odoo-helper pylint ./repositories/partner-contact/partner_firstname || true;
-odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
-odoo-helper addons list --filter "first" ./repositories/partner-contact
+odoo-helper pylint ./repositories/oca/partner-contact/partner_firstname || true;
+odoo-helper flake8 ./repositories/oca/partner-contact/partner_firstname || true;
+odoo-helper addons list --filter "first" ./repositories/oca/partner-contact
 
 # Show project status
 odoo-helper status
@@ -357,7 +357,7 @@ odoo-helper status  --tools-versions --ci-tools-versions
 odoo-helper print-config
 
 # Pull odoo addons update
-(cd ./repositories/partner-contact && git reset --hard HEAD^^^1)
+(cd ./repositories/oca/partner-contact && git reset --hard HEAD^^^1)
 odoo-helper addons pull-updates
 
 # Update odoo base addon
@@ -458,20 +458,20 @@ odoo-helper tr import test-11-db uk_UA uk-test web;
 odoo-helper fetch --oca partner-contact;
 
 # Check oca/partner-contact with ci commands
-odoo-helper ci ensure-icons repositories/partner-contact || true
-odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 HEAD || true
-odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 || true
-odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/partner-contact HEAD^^^1 || true
+odoo-helper ci ensure-icons repositories/oca/partner-contact || true
+odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contact HEAD^^^1 HEAD || true
+odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contact HEAD^^^1 || true
+odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/oca/partner-contact HEAD^^^1 || true
 
 # Show addons changed
-odoo-helper git changed-addons repositories/partner-contact HEAD^^^1 HEAD
+odoo-helper git changed-addons repositories/oca/partner-contact HEAD^^^1 HEAD
 
 # Fetch oca/web passing only repo url and branch to fetch command
 odoo-helper fetch https://github.com/oca/web --branch 11.0;
 
 # Regenerate Ukrainian translations for all addons in partner-contact
-odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
-odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
+odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/oca/partner-contact;
+odoo-helper tr rate --lang uk_UA --dir ./repositories/oca/partner-contact;
 
 # Update addons list on specific db
 odoo-helper addons update-list test-11-db
@@ -545,8 +545,8 @@ ${NC}"
 
 odoo-helper install js-tools
 odoo-helper fetch --oca web
-odoo-helper lint style ./repositories/web/web_widget_color || true
-odoo-helper lint style ./repositories/web/web_widget_datepicker_options || true
+odoo-helper lint style ./repositories/oca/web/web_widget_color || true
+odoo-helper lint style ./repositories/oca/web/web_widget_datepicker_options || true
 
 
 echo -e "${YELLOWC}
@@ -607,7 +607,7 @@ odoo-helper db backup-all zip;
 odoo-helper fetch --oca contract
 
 # Install addons from OCA contract
-odoo-helper addons install --ual --dir ./repositories/contract;
+odoo-helper addons install --ual --dir ./repositories/oca/contract;
 
 # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
 odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
@@ -619,8 +619,8 @@ odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
 
 # Prepare to test pull updates with --do-update option
 odoo-helper fetch --oca partner-contact;
-(cd ./repositories/partner-contact && git reset --hard HEAD^^^1);
-odoo-helper addons install --dir ./repositories/partner-contact;
+(cd ./repositories/oca/partner-contact && git reset --hard HEAD^^^1);
+odoo-helper addons install --dir ./repositories/oca/partner-contact;
 
 # Test pull-updates with --do-update option
 odoo-helper addons pull-updates --do-update;
