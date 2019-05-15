@@ -1,5 +1,23 @@
 # Release Notes
 
+## Unreleased
+
+### Changed
+
+- `odoo-helper fetch` refactored. Changed path repository is stored at.
+  Before this release, all fetched repositories were stored at `/reppositories/`
+  directory. After this release new fetched repositories will be stored on path
+  similar to their path on github. For example there is repository
+  `https://github.com/crnd-inc/crnd-web`. Before this release this repository
+  was saved at `/repositories/crnd-web` after this release,
+  repository will be stored at `/repositories/crnd-inc/crnd-web`.
+  This change have to be backward compatible, but be careful.
+
+### Fixed
+
+- bug when "odoo-helper test" does not receive --skip argument
+
+
 ## Release 0.4.0 (2019-05-03)
 
 ### Added

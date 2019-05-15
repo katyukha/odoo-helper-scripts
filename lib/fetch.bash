@@ -178,6 +178,48 @@ function get_repo_name {
     fi
 }
 
+# get_repo_full_name <repository>
+# print repository full name (except host)
+# converts for example https://github.com/katyukha/base_tags.git to
+# katyukha/base_tags
+function fetch_get_repo_full_name {
+    local url="$1";
+    local re_http="^(http|https|ssh|git)\:\/\/([^\/]+)/(.+)$";
+    local re_git="^git@([^\:]+)\:([0-9]+\:)?(.+)$";
+
+    if [[ "$url" =~ $re_http ]] && [ -n "${BASH_REMATCH[3]}" ]; then
+        echo "${BASH_REMATCH[3]%.git}" | tr '[:upper:]' '[:lower:]';
+    elif [[ "$url" =~ $re_git ]] && [ -n "${BASH_REMATCH[3]}" ]; then
+        echo "${BASH_REMATCH[3]%.git}" | tr '[:upper:]' '[:lower:]';
+    else
+        local repo_name=;
+        repo_name=$(get_repo_name "$url")
+        echo "${repo_name}" | tr '[:upper:]' '[:lower:]';
+    fi
+}
+
+# get_repo_path <repository> <repo-name>
+function fetch_get_repo_path {
+    local repo=$1;
+    local repo_name;
+    local repo_name_old;
+
+    repo_name_short=$(get_repo_name "$repo" "$2");
+
+    if [ -z "$2" ]; then
+        repo_name_full=$(fetch_get_repo_full_name "$1");
+    fi
+
+    # if there is repository already clonned in old way return path in old way, otherwise use new path
+    if [ -d "$REPOSITORIES_DIR/$repo_name_short" ] && git_is_git_repo "$REPOSITORIES_DIR/$repo_name_short"; then
+        echo "$REPOSITORIES_DIR/$repo_name_short";
+    else
+        echo "$REPOSITORIES_DIR/$repo_name_full";
+    fi
+}
+
+
+
 # Clone git repository.
 #
 # fetch_clone_repo <url> <dest> [branch]
@@ -399,6 +441,7 @@ function fetch_module {
     local REPOSITORY=;
     local MODULE=;
     local REPO_NAME=;
+    local REPO_PATH=;
     local REPO_BRANCH=;
     local REPO_BRANCH_OPT=;
     local REPO_TYPE=git;
@@ -493,8 +536,7 @@ function fetch_module {
         return 2;
     fi
 
-    REPO_NAME=${REPO_NAME:-$(get_repo_name "$REPOSITORY")};
-    local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
+    REPO_PATH=$(fetch_get_repo_path "$REPOSITORY" "$REPO_NAME");
 
     local recursion_key="fetch_module";
     if ! recursion_protection_easy_check "$recursion_key" "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then
