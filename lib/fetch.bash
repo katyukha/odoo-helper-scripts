@@ -201,9 +201,15 @@ function fetch_get_repo_full_name {
 # get_repo_path <repository> <repo-name>
 function fetch_get_repo_path {
     local repo=$1;
-    local repo_name;
-    local repo_name_old;
+    local repo_name=$2;
 
+    if [ -n "$repo_name" ]; then
+        # If repository name specified then name this repo as specified.
+        echo "$REPOSITORIES_DIR/$repo_name";
+        return;
+    fi
+
+    local repo_name_short;
     repo_name_short=$(get_repo_name "$repo" "$2");
 
     if [ -z "$2" ]; then
