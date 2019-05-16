@@ -74,9 +74,7 @@ function test_get_or_create_db {
 
     if [ "$create_test_db" -eq 1 ]; then
         test_db_name="test-$(< /dev/urandom tr -dc a-z0-9 | head -c24)";
-        if ! odoo_db_create --demo "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2; then
-            return 1;
-        fi
+        recreate_db=1;
     else
         test_db_name=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE");
         if [ -z "$test_db_name" ]; then
@@ -88,6 +86,9 @@ function test_get_or_create_db {
     if [ "$recreate_db" -eq 1 ] && odoo_db_exists -q "$test_db_name"; then
         if ! odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2; then
             return 2;
+        fi
+        if ! odoo_db_create --demo "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2; then
+            return 1;
         fi
     fi
     echo "$test_db_name";
