@@ -17,6 +17,29 @@
 
 - bug when "odoo-helper test" does not receive --skip argument
 
+### Migration notes
+
+#### New repository layout
+
+Migrating to new repository layout could be done by following alogorithm:
+
+```bash
+# change working directory to odoo-project rool and save all repositories in
+# requirements file
+
+odoo-helper addons generate-requirements > odoo-requirements-tmp.txt
+
+# Rename your current repository directory and create new empty 'repositories' dir
+# This is required to save your current repositories state in case of uncommited changes.
+mv repositories repositories-backup
+mkdir repositories
+
+# Fetch all your repositories with new layout enabled
+odoo-helper fetch --requirements odoo-requirements-tmp.txt
+
+# remove temporary requirements file
+```
+
 
 ## Release 0.4.0 (2019-05-03)
 
