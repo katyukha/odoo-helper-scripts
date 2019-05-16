@@ -604,10 +604,10 @@ odoo-helper db exists odoo12-odoo-tmp;
 odoo-helper db backup-all zip;
 
 # Fetch oca/contract
-odoo-helper fetch --oca contract
+odoo-helper fetch --github crnd-inc/generic-addons
 
 # Install addons from OCA contract
-odoo-helper addons install --ual --dir ./repositories/oca/contract;
+odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 
 # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
 odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
