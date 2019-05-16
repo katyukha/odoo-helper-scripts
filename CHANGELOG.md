@@ -38,6 +38,7 @@ mkdir repositories
 odoo-helper fetch --requirements odoo-requirements-tmp.txt
 
 # remove temporary requirements file
+rm odoo-requirements-tmp.txt
 ```
 
 
