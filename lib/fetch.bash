@@ -105,7 +105,11 @@ function fetch_pip_requirements {
     #
     local req_dir;
     req_dir=$(dirname "$pip_requirements");
-    (cd "$req_dir" && exec_pip -q install -r "$pip_requirements");
+    if [ -n "$VERBOSE" ]; then
+        (cd "$req_dir" && exec_pip install -r "$pip_requirements");
+    else
+        (cd "$req_dir" && exec_pip -q install -r "$pip_requirements");
+    fi
 }
 
 # fetch_oca_requirements <filepath>

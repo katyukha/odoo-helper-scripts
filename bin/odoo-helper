@@ -372,7 +372,7 @@ function odoo_helper_main {
             --no-colors)
                 deny_colors;
             ;;
-            --verbose|-vv)
+            --verbose|--vv|-vv)
                 VERBOSE=1;
             ;;
             fetch)
