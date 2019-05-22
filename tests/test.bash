@@ -237,6 +237,12 @@ odoo-helper status
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
 
+# Install dev tools
+odoo-helper install dev-tools
+
+# And show odoo-helper status after tools installed
+odoo-helper status  --tools-versions --ci-tools-versions
+
 # Install wkhtmltopdf (if it is not installed yet)
 odoo-helper install wkhtmltopdf
 

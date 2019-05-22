@@ -646,12 +646,19 @@ function install_bin_tools {
         esac
         shift
     done
-    local deps=( expect-dev tcl8.6 );
+    local deps=( );
     if ! check_command 'google-chrome' 'chromium' 'chromium-browser' > /dev/null; then
         echoe -e "${YELLOWC}Google Chrome${BLUEC} seems to be not installed. ${YELLOWC}chromium-browser${BLUEC} will be installed.${NC}";
         deps+=( chromium-browser );
     fi
-    install_sys_deps_internal "${deps[@]}";
+    if ! check_command 'unbuffer' > /dev/null; then
+        echoe -e "${YELLOWC}unbuffer${BLUEC} seems to be not installed. ${YELLOWC}expect-dev${BLUEC} and ${YELLOWC}tcl8.6${BLUEC} will be installed.${NC}";
+        deps+=( expect-dev tcl8.6 );
+    fi
+
+    if [ -n "${deps[*]}" ]; then
+        install_sys_deps_internal "${deps[@]}";
+    fi
 }
 
 # Install extra python tools
@@ -740,6 +747,40 @@ function install_js_tools {
         deps+=( phantomjs-prebuilt );
     fi
     exec_npm install -g "${deps[@]}";
+}
+
+function install_dev_tools {
+    local usage="
+    Install extra development tools. May require sudo.
+
+    This command is just an alias to run following commands with single call:
+        - $SCRIPT_NAME install bin-tools
+        - $SCRIPT_NAME install py-tools
+        - $SCRIPT_NAME install js-tools
+
+    Usage:
+
+        $SCRIPT_NAME install dev-tools        - install extra dev tools
+        $SCRIPT_NAME install dev-tools --help - show this help message
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    install_bin_tools;
+    install_python_tools;
+    install_js_tools;
 }
 
 # install_python_prerequirements
@@ -948,6 +989,7 @@ function install_entry_point {
         $SCRIPT_NAME install js-tools [--help]           - install javascript tools (jshint, phantomjs)
         $SCRIPT_NAME install bin-tools [--help]          - [sudo] install binary tools. at this moment it is *unbuffer*,
                                                            which is in *expect-dev* package
+        $SCRIPT_NAME install dev-tools [--help]          - [sudo] install dev tools.
         $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
                                                            and if user/password specified, create it
@@ -1001,6 +1043,12 @@ function install_entry_point {
             bin-tools)
                 shift;
                 install_bin_tools "$@";
+                return 0;
+            ;;
+            dev-tools)
+                shift;
+                config_load_project;
+                install_dev_tools "$@";
                 return 0;
             ;;
             wkhtmltopdf)

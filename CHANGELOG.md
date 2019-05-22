@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- Added command `odoo-helper install dev-tools` that is just an alias to install
+  *bin-tools*, *py-tools* and *js-tools* with single command.
+
 ### Changed
 
 - `odoo-helper fetch` refactored. Changed path repository is stored at.
