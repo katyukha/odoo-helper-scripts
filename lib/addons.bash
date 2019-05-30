@@ -997,7 +997,7 @@ function addons_find_installed {
     local usage="
     Usage
 
-        $SCRIPT_NAME addons find-installed
+        $SCRIPT_NAME addons find-installed [options]
 
     Description
 
@@ -1005,9 +1005,12 @@ function addons_find_installed {
 
     Options
 
-        -h|--help|help  - show this help message
+        --db|--database <name> - name of database to search addons in.
+                                 Could be specified multiple times.
+        -h|--help|help         - show this help message
 
     ";
+    local available_databases=( );
     while [[ $1 == -* ]]
     do
         local key="$1";
@@ -1015,6 +1018,10 @@ function addons_find_installed {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            --db|--database)
+                available_databases+=( "$2" );
+                shift;
             ;;
             *)
                 echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
@@ -1032,8 +1039,9 @@ function addons_find_installed {
     addons_list_pg_str="${addons_list_pg_str#, }";
 
     declare -A installed_addons_map;
-    local available_databases;
-    mapfile -t available_databases < <(odoo_db_list | sed '/^$/d');
+    if [ -z "${available_databases[*]}" ]; then
+        mapfile -t available_databases < <(odoo_db_list | sed '/^$/d');
+    fi
 
     local db;
     for db in "${available_databases[@]}"; do
