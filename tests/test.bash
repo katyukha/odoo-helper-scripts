@@ -139,6 +139,9 @@ odoo-helper install py-tools
 # or run tests with test-coverage enabled
 (cd ./repositories/oca/project; odoo-helper test --recreate-db --coverage-report project_sla || true);
 
+# Also it is possible to fail if test coverage less than specified value
+(cd ./repositories/oca/project; odoo-helper test --recreate-db --coverage-fail-under 50 project_sla || true);
+
 # Also we may generate html coverage report too
 (cd ./repositories/oca/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project-sla || true);
 

@@ -284,18 +284,19 @@ function test_module {
         $SCRIPT_NAME test pylint [--disable=E111,E222,...] <addon path> [addon path]
 
     Options:
-        --create-test-db         - Creates temporary database to run tests in
-        --recreate-db            - Recreate test database if it already exists
-        --fail-on-warn           - if this option passed, then tests will fail even on warnings
-        --coverage               - calculate code coverage (use python's *coverage* util)
-        --coverage-html          - automaticaly generate coverage html report
-        --coverage-report        - print coverage report
-        --coverage-skip-covered  - skip covered files in coverage report
-        -m|--module              - specify module to test
-        -d|--dir|--directory     - search for modules to test in specified directory
-        --dir-r|--directory-r    - recursively search for modules to test in specified directory
-        --skip <path or name>    - skip addons specified by path or name.
-                                   could be specified multiple times.
+        --create-test-db               - Creates temporary database to run tests in
+        --recreate-db                  - Recreate test database if it already exists
+        --fail-on-warn                 - if this option passed, then tests will fail even on warnings
+        --coverage                     - calculate code coverage (use python's *coverage* util)
+        --coverage-html                - automaticaly generate coverage html report
+        --coverage-report              - print coverage report
+        --coverage-skip-covered        - skip covered files in coverage report
+        --coverage-fail-under <value>  - fail if coverage is less then specified value
+        -m|--module <module>           - specify module to test
+        -d|--dir|--directory <dir>     - search for modules to test in specified directory
+        --dir-r|--directory-r <dir>    - recursively search for modules to test in specified directory
+        --skip <path or name>          - skip addons specified by path or name.
+                                         could be specified multiple times.
 
     Examples:
         $SCRIPT_NAME test -m my_cool_module        # test single addon
@@ -350,7 +351,15 @@ function test_module {
                 with_coverage_report=1;
             ;;
             --coverage-skip-covered)
+                with_coverage=1;
+                with_coverage_report=1;
                 with_coverage_skip_covered=1
+            ;;
+            --coverage-fail-under)
+                with_coverage=1;
+                with_coverage_report=1;
+                with_coverage_fail_under="$2";
+                shift;
             ;;
             -m|--module)
                 if ! addons_is_odoo_addon "$2"; then
@@ -432,11 +441,14 @@ function test_module {
     fi
 
     if [ -n "$with_coverage_report" ]; then
+        local coverage_report_opts=( );
         if [ -n "$with_coverage_skip_covered" ]; then
-            execv coverage report --skip-covered;
-        else
-            execv coverage report;
+            coverage_report_opts+=( --skip-covered );
         fi
+        if [ -n "$with_coverage_fail_under" ]; then
+            coverage_report_opts+=( "--fail-under=$with_coverage_fail_under" );
+        fi
+        execv coverage report "${coverage_report_opts[@]}";
     fi
     # ---------
 

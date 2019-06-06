@@ -8,6 +8,7 @@
   *bin-tools*, *py-tools* and *js-tools* with single command.
 - Param `--db` to `odoo-helper addons find-installed` to search for addons only
   in specified databases.
+- Option `--coverage-fail-under` to `odoo-helper test` command
 
 ### Changed
 
