@@ -717,11 +717,11 @@ function addons_install_update_internal {
         local addons_uninstalled;
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
         local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE', '--pidfile', '/dev/null', '--no-xmlrpc']);";
-        python_cmd="$python_cmd db=cl['$db']; db.require_v8_api();";
+        python_cmd="$python_cmd db=cl['$db'];";
         python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
         python_cmd="$python_cmd modules.button_immediate_uninstall();";
         python_cmd="$python_cmd print(', '.join(modules.mapped('name')));";
-        addons_uninstalled=$(run_python_cmd "$python_cmd");
+        addons_uninstalled=$(run_python_cmd_u "$python_cmd");
         if [ -z "$addons_uninstalled" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: Nothing to uninstall";
         else

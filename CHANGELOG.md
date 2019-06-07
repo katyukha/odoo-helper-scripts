@@ -24,6 +24,7 @@
 ### Fixed
 
 - bug when "odoo-helper test" does not receive --skip argument
+- regression of "odoo-helper addons uninstall" command.
 
 ### Migration notes
 
