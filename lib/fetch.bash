@@ -140,20 +140,29 @@ function fetch_oca_requirements {
            is_read_finished=1;
        fi
        if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
-           local opt=""; #"--name ${line[0]}";
+           local opt="";
            local opts=( );
 
+           local r_name;
+           local r_url;
+           local r_branch;
+
+           # Fix line endings
+           r_name=$(echo "${line[0]}" | sed $'s/\r//');
+           r_url=$(echo "${line[1]}" | sed $'s/\r//');
+           r_branch=$(echo "${line[2]}" | sed $'s/\r//');
+
            # if there are no url specified then use --oca shortcut
-           if [ -z "${line[1]}" ]; then
-               opts+=( "--oca" "${line[0]}" );
+           if [ -z "${r_url}" ]; then
+               opts+=( "--oca" "${r_name}" );
            else
                # else, specify url directly
-               opts+=( "--repo" "${line[1]}" );
+               opts+=( "--repo" "${r_url}" );
            fi
 
            # add branch if it spcified in file
-           if [ -n "${line[2]}" ]; then
-               opts+=( "--branch" "${line[2]}" );
+           if [ -n "${r_branch}" ]; then
+               opts+=( "--branch" "${r_branch}" );
            fi
            
            if fetch_module "${opts[@]}"; then
