@@ -133,13 +133,8 @@ function fetch_oca_requirements {
         return 0
     fi
 
-    local is_read_finished=0;
-    while true; do
-       # TODO: rwerite with while: IFS='' read -r line || [[ -n "$line" ]]; do
-       if ! read -ra line; then
-           is_read_finished=1;
-       fi
-       if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
+    while read -ra line || [[ -n "$line" ]]; do
+       if [[ ! "$line" == "#"* ]]; then
            local opt="";
            local opts=( );
 
@@ -170,9 +165,6 @@ function fetch_oca_requirements {
            else
                echo -e "Line ${GREENC}FAIL${NC}: ${opts[*]}";
            fi
-       fi
-       if [ "$is_read_finished" -ne 0 ]; then
-           break;
        fi
     done < "$oca_requirements";
 }
