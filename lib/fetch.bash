@@ -138,14 +138,10 @@ function fetch_oca_requirements {
            local opt="";
            local opts=( );
 
-           local r_name;
-           local r_url;
-           local r_branch;
-
            # Fix line endings
-           r_name=$(echo "${line[0]}" | sed $'s/\r//');
-           r_url=$(echo "${line[1]}" | sed $'s/\r//');
-           r_branch=$(echo "${line[2]}" | sed $'s/\r//');
+           local r_name=${line[0]//$'\r'/};
+           local r_url=${line[1]//$'\r'/};
+           local r_branch=${line[2]//$'\r'/};
 
            # if there are no url specified then use --oca shortcut
            if [ -z "${r_url}" ]; then
