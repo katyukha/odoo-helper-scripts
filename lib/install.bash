@@ -209,8 +209,8 @@ function install_wkhtmltopdf {
         fi
         echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
         local wkhtmltox_deps;
-        wkhtmltox_deps=$(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
-        if ! (install_sys_deps_internal "$wkhtmltox_deps" && with_sudo dpkg -i "$wkhtmltox_path"); then
+        read -ra wkhtmltox_deps < <(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
+        if ! (install_sys_deps_internal "${wkhtmltox_deps[@]}" && with_sudo dpkg -i "$wkhtmltox_path"); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
         fi
 

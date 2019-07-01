@@ -25,6 +25,7 @@
 
 - bug when "odoo-helper test" does not receive --skip argument
 - regression of "odoo-helper addons uninstall" command.
+- regression of "odoo-helper install wkhtmltopdf" command.
 
 ### Migration notes
 
