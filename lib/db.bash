@@ -401,19 +401,19 @@ function odoo_db_dump {
     local db_name=$1;
     local db_dump_file=$2;
     local conf_file=$ODOO_CONF_FILE;
+    local format="zip";
 
     # determine 3-d and 4-th arguments (format and odoo_conf_file)
     if [ -f "$3" ]; then
         conf_file=$3;
     elif [ -n "$3" ]; then
         local format=$3;
-        local format_opt=", '$format'";
-
         if [ -f "$4" ]; then
             conf_file=$4;
         fi
     fi
 
+    local format_opt=", '$format'";
     local python_cmd="import lodoo, base64; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd dump=base64.b64decode(cl.db.dump(cl.odoo.tools.config['admin_passwd'], '$db_name' $format_opt));";
     python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
@@ -440,15 +440,27 @@ function odoo_db_backup {
     local db_name=$1;
     local db_dump_file;
     db_dump_file="$BACKUP_DIR/db-backup-$db_name-$(date -I).$(random_string 4)";
+    local format="zip";
+
+    # parse args
+    if [ -f "$2" ]; then
+        conf_file=$2;
+    elif [ -n "$2" ]; then
+        format=$2;
+
+        if [ -f "$3" ]; then
+            conf_file=$3;
+        fi
+    fi
 
     # if format is passed and format is 'zip':
-    if [ -n "$2" ] && [ "$2" == "zip" ]; then
+    if [ "$format" == "zip" ]; then
         db_dump_file="$db_dump_file.zip";
     else
         db_dump_file="$db_dump_file.backup";
     fi
 
-    odoo_db_dump "$db_name" "$db_dump_file" "$2" "$3";
+    odoo_db_dump "$db_name" "$db_dump_file" "$format" "$conf_file";
     echo "$db_dump_file"
 }
 
@@ -456,13 +468,13 @@ function odoo_db_backup {
 # backup all databases available for this server
 function odoo_db_backup_all {
     local conf_file=$ODOO_CONF_FILE;
+    local format="zip";
 
     # parse args
     if [ -f "$1" ]; then
         conf_file=$1;
     elif [ -n "$1" ]; then
-        local format=$1;
-        local format_opt=", '$format'";
+        format=$1;
 
         if [ -f "$2" ]; then
             conf_file=$2;
