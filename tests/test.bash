@@ -352,6 +352,7 @@ odoo-helper install py-tools
 odoo-helper pylint ./repositories/oca/partner-contact/partner_firstname || true;
 odoo-helper flake8 ./repositories/oca/partner-contact/partner_firstname || true;
 odoo-helper addons list --filter "first" ./repositories/oca/partner-contact
+odoo-helper addons list --except-filter "first" ./repositories/oca/partner-contact
 
 # Show project status
 odoo-helper status
