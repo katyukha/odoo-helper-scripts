@@ -187,6 +187,9 @@ echo -e "~~~text\n$(odoo-helper ci --help)\n~~~\n\n" >> $PROJECT_DIR/docs/comman
 echo -e "#### odoo-helper ci ensure-icons\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper ci ensure-icons --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper ci ensure-changelog\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper ci ensure-changelog --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper ci check-versions-git\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper ci check-versions-git --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

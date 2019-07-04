@@ -1089,7 +1089,7 @@ function addons_command {
         $SCRIPT_NAME addons uninstall --help            - uninstall some addon[s]
         $SCRIPT_NAME addons update-list --help          - update list of addons
         $SCRIPT_NAME addons test-installed --help       - lists databases this addon is installed in
-        $SCRIPT_NAME addons find-installed              - print list of addons installed in at least one db
+        $SCRIPT_NAME addons find-installed --help       - print list of addons installed in at least one db
         $SCRIPT_NAME addons update-py-deps              - update python dependencies of addons
         $SCRIPT_NAME addons generate-requirements       - generate odoo_requirements.txt for this instance
         $SCRIPT_NAME addons --help                      - show this help message

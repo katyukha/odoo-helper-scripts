@@ -469,6 +469,8 @@ odoo-helper fetch --oca partner-contact;
 
 # Check oca/partner-contact with ci commands
 odoo-helper ci ensure-icons repositories/oca/partner-contact || true
+odoo-helper ci ensure-changelog repositories/oca/partner-contact HEAD^^^1 || true
+odoo-helper ci ensure-changelog --ignore-trans repositories/oca/partner-contact HEAD^^^1 || true
 odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contact HEAD^^^1 HEAD || true
 odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contact HEAD^^^1 || true
 odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/oca/partner-contact HEAD^^^1 || true
