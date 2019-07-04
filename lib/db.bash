@@ -487,8 +487,6 @@ function odoo_db_backup {
     local conf_file=$ODOO_CONF_FILE;
     local format="zip";
 
-    echo "X: $@";
-
     # Parse options
     while [[ $# -gt 0 ]]
     do
@@ -523,7 +521,6 @@ function odoo_db_backup {
         db_dump_file="$db_dump_file.backup";
     fi
 
-    echo "Z: --format '$format' --conf '$conf_file' '$db_name' '$db_dump_file'";
     odoo_db_dump --format "$format" --conf "$conf_file" "$db_name" "$db_dump_file";
     echo "$db_dump_file"
 }
