@@ -269,10 +269,10 @@ fi
 odoo-helper db list
 
 # backup database
-backup_file=$(odoo-helper db backup my-test-odoo-database zip);
+backup_file=$(odoo-helper db backup --format zip my-test-odoo-database);
 
 # Also it is possible to backup SQL only (without filesystem)
-backup_file_sql=$(odoo-helper db backup my-test-odoo-database sql);
+backup_file_sql=$(odoo-helper db backup --format sql my-test-odoo-database);
 
 # drop test database if it exists
 if odoo-helper db exists my-test-odoo-database; then
@@ -616,7 +616,7 @@ odoo-helper db create --recreate --demo --lang en_US odoo12-odoo-test;
 odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
 odoo-helper db exists odoo12-odoo-test;
 odoo-helper db exists odoo12-odoo-tmp;
-odoo-helper db backup-all zip;
+odoo-helper db backup-all;
 
 # Fetch oca/contract
 odoo-helper fetch --github crnd-inc/generic-addons

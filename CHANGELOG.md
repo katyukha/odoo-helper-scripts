@@ -27,6 +27,12 @@
 - Enabled following warings in defaut pylint config:
     - trailing-comma-tuple
     - deprecated-method
+- Following DB-related commands changed to have `--help` option.
+  This change is backward incompatible. Commands:
+    - `odoo-helper db dump --help`
+    - `odoo-helper db backup --help`
+    - `odoo-helper db backup-all --help`
+    - `odoo-helper db restore --help`
 
 ### Fixed
 
