@@ -24,6 +24,9 @@
   repository will be stored at `/repositories/crnd-inc/crnd-web`.
   This change have to be backward compatible, but be careful.
 - Use default database backup format: *zip*
+- Enabled following warings in defaut pylint config:
+    - trailing-comma-tuple
+    - deprecated-method
 
 ### Fixed
 
