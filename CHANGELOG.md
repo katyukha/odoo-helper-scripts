@@ -9,6 +9,7 @@
 - Param `--db` to `odoo-helper addons find-installed` to search for addons only
   in specified databases.
 - Option `--coverage-fail-under` to `odoo-helper test` command
+- Option `--skip-re` to `odoo-helper test` command
 - Option `--except-filter` to `odoo-helper addons list` command
 - Command `odoo-helper ci ensure-changelog` command
 

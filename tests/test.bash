@@ -143,7 +143,10 @@ odoo-helper install py-tools
 (cd ./repositories/oca/project; odoo-helper test --recreate-db --coverage-fail-under 50 project_sla || true);
 
 # Also we may generate html coverage report too
-(cd ./repositories/oca/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project-sla || true);
+(cd ./repositories/oca/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project_sla || true);
+
+# Skip all addons that starts with project
+(cd ./repositories/oca/project; odoo-helper test --create-test-db --coverage-html --dir . --skip-re "^project_" || true);
 
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status

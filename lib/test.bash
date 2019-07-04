@@ -266,6 +266,7 @@ function test_module {
     local module;
     local module_name;
     local skip_addon;
+    local skip_addon_re_list=( );
     local skip_addon_list;
     local res=;
 
@@ -296,6 +297,8 @@ function test_module {
         -d|--dir|--directory <dir>     - search for modules to test in specified directory
         --dir-r|--directory-r <dir>    - recursively search for modules to test in specified directory
         --skip <path or name>          - skip addons specified by path or name.
+                                         could be specified multiple times.
+        --skip-re <regex>              - skip addons that match specified regex.
                                          could be specified multiple times.
 
     Examples:
@@ -395,6 +398,10 @@ function test_module {
                 fi
                 shift;
             ;;
+            --skip-re)
+                skip_addon_re_list+=( "$2" );
+                shift;
+            ;;
             *)
                 if addons_is_odoo_addon "$key"; then
                     module_name=$(addons_get_addon_name "$key");
@@ -410,8 +417,18 @@ function test_module {
 
     local modules_to_test=( );
     for module in "${modules[@]}"; do
-        if [ -n "$module" ] && [ -z "${skip_modules_map[$module]}" ]; then
-            modules_to_test+=( "$module" );
+        if [ -n "$module" ]; then
+            local to_skip=0;
+            for skip_addon_re in "${skip_addon_re_list[@]}"; do
+                if [[ "$module" =~ $skip_addon_re ]]; then
+                    echoe -e "${BLUEC}Skipping addon ${YELLOWC}${module}${NC}";
+                    to_skip=1;
+                    break;
+                fi
+            done
+            if [ "$to_skip" -eq 0 ] && [ -z "${skip_modules_map[$module]}" ]; then
+                modules_to_test+=( "$module" );
+            fi
         fi
     done
 
