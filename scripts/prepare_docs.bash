@@ -46,6 +46,9 @@ echo -e "~~~text\n$(odoo-helper install bin-tools --help)\n~~~\n\n" >> $PROJECT_
 echo -e "#### odoo-helper install dev-tools\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install dev-tools --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper install unoconv\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install unoconv --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper install wkhtmltopdf\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install wkhtmltopdf --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

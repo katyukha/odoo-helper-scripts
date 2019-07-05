@@ -11,7 +11,8 @@
 - Option `--coverage-fail-under` to `odoo-helper test` command
 - Option `--skip-re` to `odoo-helper test` command
 - Option `--except-filter` to `odoo-helper addons list` command
-- Command `odoo-helper ci ensure-changelog` command
+- Command `odoo-helper ci ensure-changelog`
+- Command `odoo-helper install unoconv`
 
 ### Changed
 

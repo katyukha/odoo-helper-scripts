@@ -783,6 +783,45 @@ function install_dev_tools {
     install_js_tools;
 }
 
+function install_unoconv {
+    local usage="
+    Install unoconv;
+
+    sudo is required for this command.
+    Only available for odoo 11.0+
+    Have to be run on per-project basis.
+
+    Warning: this command is experimental.
+
+    Usage:
+
+        $SCRIPT_NAME install unoconv        - install unconv
+        $SCRIPT_NAME install unoconv --help - show this help message
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    ALWAYS_ANSWER_YES=1 install_sys_deps_internal unoconv;
+    local system_python;
+    system_python=$(command -v python3);
+    if [ -n "$VENV_DIR" ] && [ -n "$system_python" ]; then
+        exec_pip install unoconv;
+        sed -i "1s@.*@#!$system_python@" "$VENV_DIR/bin/unoconv";
+    fi;
+}
+
 # install_python_prerequirements
 function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
@@ -990,6 +1029,7 @@ function install_entry_point {
         $SCRIPT_NAME install bin-tools [--help]          - [sudo] install binary tools. at this moment it is *unbuffer*,
                                                            which is in *expect-dev* package
         $SCRIPT_NAME install dev-tools [--help]          - [sudo] install dev tools.
+        $SCRIPT_NAME install unoconv [--help]            - [sudo] install unoconv.
         $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
                                                            and if user/password specified, create it
@@ -1049,6 +1089,12 @@ function install_entry_point {
                 shift;
                 config_load_project;
                 install_dev_tools "$@";
+                return 0;
+            ;;
+            unoconv)
+                shift;
+                config_load_project;
+                install_unoconv "$@";
                 return 0;
             ;;
             wkhtmltopdf)
