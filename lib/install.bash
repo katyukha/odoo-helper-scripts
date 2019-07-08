@@ -822,6 +822,35 @@ function install_unoconv {
     fi;
 }
 
+function install_openupgradelib {
+    local usage="
+    Install latest openupgradelib;
+
+    Warning: this command is experimental.
+
+    Usage:
+
+        $SCRIPT_NAME install openupgradelib        - install openupgradelib
+        $SCRIPT_NAME install openupgradelib --help - show this help message
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    exec_pip install --upgrade "git+https://github.com/OCA/openupgradelib.git@master#egg=openupgradelib"
+}
+
 # install_python_prerequirements
 function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
@@ -1030,6 +1059,7 @@ function install_entry_point {
                                                            which is in *expect-dev* package
         $SCRIPT_NAME install dev-tools [--help]          - [sudo] install dev tools.
         $SCRIPT_NAME install unoconv [--help]            - [sudo] install unoconv.
+        $SCRIPT_NAME install openupgradelib [--help]     - install lates openupgradelib.
         $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
                                                            and if user/password specified, create it
@@ -1096,6 +1126,12 @@ function install_entry_point {
                 config_load_project;
                 install_unoconv "$@";
                 return 0;
+            ;;
+            openupgradelib)
+                shift;
+                config_load_project;
+                install_openupgradelib "$@";
+                return;
             ;;
             wkhtmltopdf)
                 shift;

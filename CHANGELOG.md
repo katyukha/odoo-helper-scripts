@@ -13,6 +13,7 @@
 - Option `--except-filter` to `odoo-helper addons list` command
 - Command `odoo-helper ci ensure-changelog`
 - Command `odoo-helper install unoconv`
+- Command `odoo-helper install openupgradelib`
 
 ### Changed
 

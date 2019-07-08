@@ -246,6 +246,12 @@ odoo-helper status  --tools-versions --ci-tools-versions
 # Install dev tools
 odoo-helper install dev-tools
 
+# Install unoconv
+odoo-helper install unoconv
+
+# Install openupgradelib
+odoo-helper install openupgradelib
+
 # And show odoo-helper status after tools installed
 odoo-helper status  --tools-versions --ci-tools-versions
 
