@@ -581,7 +581,7 @@ odoo-helper install sys-deps -y 12.0;
 odoo-helper postgres user-create odoo12 odoo;
 odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo12 --db-pass odoo
+    --db-user odoo12 --db-pass odoo --ocb
 
 cd odoo-12.0;
 

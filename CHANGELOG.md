@@ -14,6 +14,9 @@
 - Command `odoo-helper ci ensure-changelog`
 - Command `odoo-helper install unoconv`
 - Command `odoo-helper install openupgradelib`
+- Shortcuts of `odoo-install` command:
+    - `--ocb` - use [OCB (Odoo Community Backports)](https://github.com/OCA/OCB) repo.
+    - `--openupgrade` - use [Open Upgrade](https://github.com/OCA/OpenUpgrade) repo.
 
 ### Changed
 
