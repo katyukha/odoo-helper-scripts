@@ -391,9 +391,11 @@ function ci_ensure_addons_have_changelog {
 
     Options:
 
-        --ignore-trans  - ignore translations
-                          Note: this option may not work on old git versions
-        --help          - print this help message
+        --ignore-trans     - ignore translations
+                             Note: this option may not work on old git versions
+        --format <md|rst>  - changelog format: Markdown(md) or ReStructuredText (rst).
+                             default: md
+        --help             - print this help message
 
     Parametrs:
         <repo>    - path to git repository to search for changed addons in
@@ -405,6 +407,7 @@ function ci_ensure_addons_have_changelog {
     local ref_start;
     local ref_end;
     local git_changed_extra_opts=( );
+    local changelog_format="md";
 
     # Parse options
     if [[ $# -lt 1 ]]; then
@@ -417,6 +420,10 @@ function ci_ensure_addons_have_changelog {
         case $key in
             --ignore-trans)
                 git_changed_extra_opts+=( --ignore-trans );
+                shift;
+            ;;
+            --format)
+                changelog_format="$2";
                 shift;
             ;;
             -h|--help|help)
@@ -462,8 +469,8 @@ function ci_ensure_addons_have_changelog {
             continue;
         fi
         addon_version_short=${addon_version##$ODOO_VERSION.};
-        if [ ! -f "$addon/changelog/changelog.$addon_version_short.md" ]; then
-            echoe -e "${REDC}ERROR${NC}: addon ${YELLOWC}${addon_name}${NC} have no changelog entry!";
+        if [ ! -f "$addon/changelog/changelog.$addon_version_short.$changelog_format" ]; then
+            echoe -e "${REDC}ERROR${NC}: addon ${YELLOWC}${addon_name}${NC} have no changelog entry! (format: ${YELLOWC}${changelog_format}${NC})";
             res=1;
         fi
     done
