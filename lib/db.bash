@@ -34,20 +34,26 @@ function odoo_db_create {
         $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
 
     Arguments:
-       <name>         - name of new database
+       <name>              - name of new database
 
     Options:
-       --demo         - load demo-data (default: no demo-data)
-       --lang <lang>  - specified language for this db.
-                        <lang> is language code like 'en_US'...
-       --recreate     - if database with such name exists,
-                        then drop it first
-       --help         - display this help message
+       --demo              - load demo-data (default: no demo-data)
+       --lang <lang>       - specified language for this db.
+                             <lang> is language code like 'en_US'...
+       --password <pass>   - Password for admin user
+       --country <code>    - Country code to select country for this DB.
+                             Accountinug configuration will be detected
+                             automatically.
+                             Only supported on Odoo 9.0+
+       --recreate          - if database with such name exists,
+                             then drop it first
+       --help              - display this help message
     ";
 
     # Parse options
     local demo_data='False';
     local db_lang="en_US";
+    local db_country=;
     local db_recreate=;
     while [[ $# -gt 0 ]]
     do
@@ -58,6 +64,14 @@ function odoo_db_create {
             ;;
             --lang)
                 db_lang=$2;
+                shift;
+            ;;
+            --password)
+                db_user_password=$2;
+                shift;
+            ;;
+            --country)
+                db_country=$2;
                 shift;
             ;;
             --recreate)
@@ -95,9 +109,13 @@ function odoo_db_create {
     fi
 
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.create_database(cl.odoo.tools.config['admin_passwd'], '$db_name', $demo_data, '$db_lang');"
+    python_cmd="$python_cmd kwargs={'user_password': '$db_user_password'};"
+    if [ "$(odoo_get_major_version)" -gt 8 ] && [ -n "$db_country" ]; then
+        python_cmd="$python_cmd kwargs['country_code'] = '$db_country';";
+    fi
+    python_cmd="$python_cmd cl.db.create_database('$db_name', $demo_data, '$db_lang', **kwargs);"
 
-    # Filestore should be created by server user, so run resotore command as server user
+    # Filestore should be created by server user, so run this command as server user
     if ! run_python_cmd_u "$python_cmd"; then
         echoe -e "${REDC}ERROR${NC}: Cannot create database ${YELLOWC}$db_name${NC}!";
         return 1;

@@ -17,6 +17,9 @@
 - Shortcuts of `odoo-install` command:
     - `--ocb` - use [OCB (Odoo Community Backports)](https://github.com/OCA/OCB) repo.
     - `--openupgrade` - use [Open Upgrade](https://github.com/OCA/OpenUpgrade) repo.
+- Extra options to command `odoo-helper db create`:
+    - `--password` set password to database user
+    - `--country` country code to create db for
 
 ### Changed
 

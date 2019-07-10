@@ -252,6 +252,9 @@ class LocalDBService(object):
                 self.odoo.http.dispatch_rpc, 'db')
         return self._dispatch
 
+    def create_database(self, *args, **kwargs):
+        return self.odoo.service.db.exp_create_database(*args, **kwargs)
+
     def __getattr__(self, name):
         def db_service_method(*args):
             return self.dispatch(name, args)
