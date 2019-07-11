@@ -20,6 +20,8 @@
 - Extra options to command `odoo-helper db create`:
     - `--password` set password to database user
     - `--country` country code to create db for
+- Extra option to `odoo-install` command
+    - `--http-port` spcify port for this odoo instance
 
 ### Changed
 
