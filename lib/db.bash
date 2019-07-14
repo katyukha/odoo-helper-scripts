@@ -40,7 +40,7 @@ function odoo_db_create {
        --demo              - load demo-data (default: no demo-data)
        --lang <lang>       - specified language for this db.
                              <lang> is language code like 'en_US'...
-       --password <pass>   - Password for admin user
+       --password <pass>   - Password for admin user. default: admin
        --country <code>    - Country code to select country for this DB.
                              Accountinug configuration will be detected
                              automatically.
@@ -55,6 +55,7 @@ function odoo_db_create {
     local db_lang="en_US";
     local db_country=;
     local db_recreate=;
+    local db_user_password=admin
     while [[ $# -gt 0 ]]
     do
         local key="$1";
