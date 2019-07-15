@@ -1071,14 +1071,17 @@ function addons_find_installed {
         done
     done
 
+    local installed_addons_list=( );
+    mapfile -t installed_addons_list < <(printf '%s\n' "${!installed_addons_map[@]}" | sort);
+
     if [ -z "$packager_format" ]; then
-        for addon in "${!installed_addons_map[@]}"; do
+        for addon in "${installed_addons_list[@]}"; do
             echo "$addon";
-        done | sort;
+        done;
     else
         declare -A used_repositories;
         echo "addon-list:";
-        for addon in "${!installed_addons_map[@]}"; do
+        for addon in "${installed_addons_list[@]}"; do
             local addon_path="";
             local addon_repo="";
             addon_path=$(addons_get_addon_path "$addon");
@@ -1090,7 +1093,9 @@ function addons_find_installed {
         done
         echo "";
         echo "git-sources:";
-        for repo in "${!used_repositories[@]}"; do
+        local used_repositories_list=( );
+        mapfile -t used_repositories_list < <(printf '%s\n' "${!used_repositories[@]}" | sort);
+        for repo in "${used_repositories_list[@]}"; do
             echo "    - url: $repo";
             echo "      branch: ${used_repositories[$repo]}";
         done
