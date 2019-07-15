@@ -1080,7 +1080,7 @@ function addons_find_installed {
         done;
     else
         declare -A used_repositories;
-        echo "addon-list:";
+        echo "addons-list:";
         for addon in "${installed_addons_list[@]}"; do
             local addon_path="";
             local addon_repo="";
@@ -1097,7 +1097,7 @@ function addons_find_installed {
         mapfile -t used_repositories_list < <(printf '%s\n' "${!used_repositories[@]}" | sort);
         for repo in "${used_repositories_list[@]}"; do
             echo "    - url: $repo";
-            echo "      branch: ${used_repositories[$repo]}";
+            echo "      branch: \"${used_repositories[$repo]}\"";
         done
     fi
 }
