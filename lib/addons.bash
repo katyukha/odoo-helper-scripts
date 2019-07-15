@@ -1019,10 +1019,12 @@ function addons_find_installed {
 
         --db|--database <name> - name of database to search addons in.
                                  Could be specified multiple times.
+        --packager-format      - output in odoo-packager format
         -h|--help|help         - show this help message
 
     ";
     local available_databases=( );
+    local packager_format;
     while [[ $1 == -* ]]
     do
         local key="$1";
@@ -1034,6 +1036,9 @@ function addons_find_installed {
             --db|--database)
                 available_databases+=( "$2" );
                 shift;
+            ;;
+            --packager-format)
+                packager_format=1;
             ;;
             *)
                 echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
@@ -1066,9 +1071,30 @@ function addons_find_installed {
         done
     done
 
-    for addon in "${!installed_addons_map[@]}"; do
-        echo "$addon";
-    done | sort;
+    if [ -z "$packager_format" ]; then
+        for addon in "${!installed_addons_map[@]}"; do
+            echo "$addon";
+        done | sort;
+    else
+        declare -A used_repositories;
+        echo "addon-list:";
+        for addon in "${!installed_addons_map[@]}"; do
+            local addon_path="";
+            local addon_repo="";
+            addon_path=$(addons_get_addon_path "$addon");
+            if git_is_git_repo "$addon_path"; then
+                addon_repo=$(git_get_remote_url "$addon_path");
+                used_repositories[$addon_repo]=$(git_get_branch_name "$addon_path");
+            fi
+            echo "    - $addon";
+        done
+        echo "";
+        echo "git-sources:";
+        for repo in "${!used_repositories[@]}"; do
+            echo "    - url: $repo";
+            echo "      branch: ${used_repositories[$repo]}";
+        done
+    fi
 }
 
 
