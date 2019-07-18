@@ -22,6 +22,8 @@
     - `--country` country code to create db for
 - Extra option to `odoo-install` command
     - `--http-port` spcify port for this odoo instance
+- New option `--no-unbuffer` that is helpful to run `odoo shell` command
+  (odoo-helper server run --no-unbuffer -- shell -d my-database-name)
 
 ### Changed
 
@@ -49,6 +51,7 @@
 - bug when "odoo-helper test" does not receive --skip argument
 - regression of "odoo-helper addons uninstall" command.
 - regression of "odoo-helper install wkhtmltopdf" command.
+- bug in "odoo-helper odoo-py" command (related to usage of unbuffer)
 
 ### Migration notes
 
