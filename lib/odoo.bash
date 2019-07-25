@@ -275,15 +275,20 @@ function odoo_recompute_stored_fields {
     run_python_cmd "$python_cmd";
 }
 
+function odoo_shell {
+    server_run --no-unbuffer -- shell "$@";
+}
+
 function odoo_command {
     local usage="
     Helper functions for Odoo
 
     Usage:
 
-        $SCRIPT_NAME odoo recompute --help                - recompute stored fields for database
-        $SCRIPT_NAME odoo server-url                      - print URL to access this odoo instance
-        $SCRIPT_NAME odoo --help                          - show this help message
+        $SCRIPT_NAME odoo recompute --help  - recompute stored fields for database
+        $SCRIPT_NAME odoo server-url        - print URL to access this odoo instance
+        $SCRIPT_NAME odoo shell             - open odoo shell
+        $SCRIPT_NAME odoo --help            - show this help message
 
     ";
 
@@ -305,6 +310,10 @@ function odoo_command {
                 shift;
                 odoo_get_server_url;
                 return;
+            ;;
+            shell)
+                shift;
+                odoo_shell "$@";
             ;;
             -h|--help|help)
                 echo "$usage";

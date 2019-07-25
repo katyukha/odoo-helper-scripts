@@ -24,6 +24,7 @@
     - `--http-port` spcify port for this odoo instance
 - New option `--no-unbuffer` that is helpful to run `odoo shell` command
   (odoo-helper server run --no-unbuffer -- shell -d my-database-name)
+- New `odoo-helper odoo shell` command
 
 ### Changed
 

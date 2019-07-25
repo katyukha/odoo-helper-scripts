@@ -436,8 +436,5 @@ function server_command {
 # odoo_py <args>
 function odoo_py {
     echov -e "${LBLUEC}Running odoo.py with arguments${NC}: $*";
-    local cmd;
-    cmd=$(check_command odoo odoo-bin odoo.py);
-    exec_conf "$ODOO_CONF_FILE" execv "$cmd" "$@";
+    server_run --no-unbuffer -- "$@"
 }
-
