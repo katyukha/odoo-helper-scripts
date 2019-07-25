@@ -148,6 +148,7 @@ function addons_update_module_list_db {
         echoe -e "${GREENC}OK${NC}: Addons list successfully updated for ${YELLOWC}${db}${NC} database";
     else
         echoe -e "${REDC}ERROR${NC}: Cannot update module list for ${YELLOWC}${db}${NC} database";
+        return 1
     fi
 }
 
@@ -209,7 +210,9 @@ function addons_update_module_list {
     local db;
     for db in "${dbs[@]}"; do
         echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
-        addons_update_module_list_db "$db";
+        if ! addons_update_module_list_db "$db"; then
+            return 2;
+        fi
     done
 }
 
