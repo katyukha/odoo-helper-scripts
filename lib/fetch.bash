@@ -133,8 +133,9 @@ function fetch_oca_requirements {
         return 0
     fi
 
-    while read -ra line || [[ -n "$line" ]]; do
-       if [[ ! "$line" == "#"* ]]; then
+    local line=( );
+    while read -ra line || [[ -n "${line[*]}" ]]; do
+       if [[ ! "${line[0]}" == "#"* ]]; then
            local opt="";
            local opts=( );
 
