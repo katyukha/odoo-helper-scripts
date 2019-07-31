@@ -25,6 +25,8 @@
 - New option `--no-unbuffer` that is helpful to run `odoo shell` command
   (odoo-helper server run --no-unbuffer -- shell -d my-database-name)
 - New `odoo-helper odoo shell` command
+- New option `--install` or `-i` to `odoo-helper db create` command
+  designed to automatically install specified addons after db created.
 
 ### Changed
 

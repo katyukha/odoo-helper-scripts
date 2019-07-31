@@ -618,7 +618,7 @@ odoo-helper status  --tools-versions --ci-tools-versions;
 
 # Database management
 odoo-helper db create --demo --lang en_US odoo12-odoo-test;
-odoo-helper db create --recreate --demo --lang en_US odoo12-odoo-test;
+odoo-helper db create --recreate --demo --lang en_US --install contacts odoo12-odoo-test;
 odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
 odoo-helper db exists odoo12-odoo-test;
 odoo-helper db exists odoo12-odoo-tmp;

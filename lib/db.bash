@@ -34,20 +34,22 @@ function odoo_db_create {
         $SCRIPT_NAME db create [options]  <name> [odoo_conf_file]
 
     Arguments:
-       <name>              - name of new database
+       <name>                - name of new database
 
     Options:
-       --demo              - load demo-data (default: no demo-data)
-       --lang <lang>       - specified language for this db.
-                             <lang> is language code like 'en_US'...
-       --password <pass>   - Password for admin user. default: admin
-       --country <code>    - Country code to select country for this DB.
-                             Accountinug configuration will be detected
-                             automatically.
-                             Only supported on Odoo 9.0+
-       --recreate          - if database with such name exists,
-                             then drop it first
-       --help              - display this help message
+       --demo                - load demo-data (default: no demo-data)
+       --lang <lang>         - specified language for this db.
+                               <lang> is language code like 'en_US'...
+       --password <pass>     - Password for admin user. default: admin
+       --country <code>      - Country code to select country for this DB.
+                               Accountinug configuration will be detected
+                               automatically.
+                               Only supported on Odoo 9.0+
+       --recreate            - if database with such name exists,
+                               then drop it first
+       -i|--install <addon>  - Install specified addon to created db.
+                               Could be specified multiple times
+       --help                - display this help message
     ";
 
     # Parse options
@@ -56,6 +58,7 @@ function odoo_db_create {
     local db_country=;
     local db_recreate=;
     local db_user_password=admin
+    local db_install_addons=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -77,6 +80,15 @@ function odoo_db_create {
             ;;
             --recreate)
                 db_recreate=1;
+            ;;
+            -i|--install)
+                # To be consistent with *odoo-helper test* command
+                if ! addons_is_odoo_addon "$2"; then
+                    echoe -e "${REDC}ERROR${NC}: Cannot install ${YELLOWC}${2}${NC} - it is not Odoo addon!";
+                    return 1;
+                fi
+                db_install_addons+=( "$2" );
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -122,6 +134,11 @@ function odoo_db_create {
         return 1;
     else
         echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} created successfuly!";
+
+        if [ ${#db_install_addons[@]} -gt 0 ]; then
+            echoe -e "${BLUEC}Installing addons: ${YELLOWC}${db_install_addons[*]}${BLUEC}...${NC}";
+            addons_install_update 'install' --db "$db_name" --no-restart "${db_install_addons[@]}";
+        fi
         return 0;
     fi
 }
