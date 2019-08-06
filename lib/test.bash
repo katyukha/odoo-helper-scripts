@@ -300,6 +300,7 @@ function test_module {
                                          could be specified multiple times.
         --skip-re <regex>              - skip addons that match specified regex.
                                          could be specified multiple times.
+        --time                         - measure test execution time
 
     Examples:
         $SCRIPT_NAME test -m my_cool_module        # test single addon
@@ -402,6 +403,9 @@ function test_module {
                 skip_addon_re_list+=( "$2" );
                 shift;
             ;;
+            --time)
+                measure_test_time=1;
+            ;;
             *)
                 if addons_is_odoo_addon "$key"; then
                     module_name=$(addons_get_addon_name "$key");
@@ -441,12 +445,14 @@ function test_module {
     _test_check_conf_options;
 
     # Run tests
-    if test_run_tests "${recreate_db:-0}" "${create_test_db:-0}" \
-        "${fail_on_warn:-0}" "${with_coverage:-0}" "${modules_to_test[@]}";
-    then
+    if [ -n "$measure_test_time" ] && time test_run_tests "${recreate_db:-0}" "${create_test_db:-0}" \
+        "${fail_on_warn:-0}" "${with_coverage:-0}" "${modules_to_test[@]}"; then
+        res=0;
+    elif [ -z "$measure_test_time" ] && test_run_tests "${recreate_db:-0}" "${create_test_db:-0}" \
+        "${fail_on_warn:-0}" "${with_coverage:-0}" "${modules_to_test[@]}"; then
         res=0;
     else
-        res=1
+        res=1;
     fi
 
     if [ -n "$with_coverage_report_html" ]; then

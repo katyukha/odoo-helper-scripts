@@ -27,6 +27,7 @@
 - New `odoo-helper odoo shell` command
 - New option `--install` or `-i` to `odoo-helper db create` command
   designed to automatically install specified addons after db created.
+- New option `--time` for `odoo-helper test` command
 
 ### Changed
 
