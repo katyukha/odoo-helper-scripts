@@ -92,6 +92,7 @@ function print_usage {
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
+         --no-single-branch            - Set '--signle-branch' option to 'off'
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
@@ -159,6 +160,9 @@ function parse_options {
             --single-branch)
                 CLONE_SINGLE_BRANCH=$2;
                 shift;
+            ;;
+            --no-single-branch)
+                CLONE_SINGLE_BRANCH='off';
             ;;
             --db-host)
                 DB_HOST=$2;
