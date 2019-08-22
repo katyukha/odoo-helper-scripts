@@ -255,6 +255,11 @@ class LocalDBService(object):
     def create_database(self, *args, **kwargs):
         return self.odoo.service.db.exp_create_database(*args, **kwargs)
 
+    def list_databases(self):
+        if odoo.release.version_info < (9,):
+            return self.list()
+        return self.odoo.service.db.list_dbs(True)
+
     def __getattr__(self, name):
         def db_service_method(*args):
             return self.dispatch(name, args)

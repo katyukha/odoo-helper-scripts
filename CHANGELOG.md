@@ -50,6 +50,7 @@
     - `odoo-helper db backup --help`
     - `odoo-helper db backup-all --help`
     - `odoo-helper db restore --help`
+- Command 'odoo-helper db list' now ignores `list_db` setting
 
 ### Fixed
 
