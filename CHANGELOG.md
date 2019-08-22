@@ -57,6 +57,7 @@
 - regression of "odoo-helper addons uninstall" command.
 - regression of "odoo-helper install wkhtmltopdf" command.
 - bug in "odoo-helper odoo-py" command (related to usage of unbuffer)
+- install specific version of `lessc`: 3.9.0 (version 3.10.0 seems to be buggy)
 
 ### Migration notes
 

@@ -866,7 +866,7 @@ function install_python_prerequirements {
 # Now it is less compiler. install if it is not installed yet
 function install_js_prerequirements {
     if ! check_command lessc > /dev/null; then
-        execu npm install -g less;
+        execu npm install -g less@3.9.0;
     fi
 }
 
