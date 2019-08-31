@@ -366,15 +366,21 @@ function install_sys_deps_for_odoo_version {
 
     Options:
 
-        -y|--yes     - Always answer yes
+        -y|--yes              - Always answer yes
+        -b|--branch <branch>  - Odoo branch to fetch deps for
 
     ";
+    local odoo_branch;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -y|--yes)
                 ALWAYS_ANSWER_YES=1;
+            ;;
+            -b|--branch)
+                odoo_branch="$2";
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -393,7 +399,8 @@ function install_sys_deps_for_odoo_version {
         return 1;
     fi
 
-    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
+    odoo_branch=${odoo_branch:-$odoo_version};
+    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
     local tmp_control;
     tmp_control=$(mktemp);
     wget -q -T 15 "$control_url" -O "$tmp_control";
@@ -410,10 +417,14 @@ function install_odoo_py_requirements_for_version {
 
     Usage:
 
-        $SCRIPT_NAME install py-deps <odoo-version> - install python dependencies
+        $SCRIPT_NAME install py-deps [options] [odoo-version] - install python dependencies
         $SCRIPT_NAME install py-deps --help         - show this help message
 
+    Options:
+        -b|--branch <branch>   - Odoo branch to install deps for
+
     ";
+    local odoo_branch=${ODOO_BRANCH};
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -421,6 +432,10 @@ function install_odoo_py_requirements_for_version {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -b|--branch)
+                odoo_branch="$2";
+                shift;
             ;;
             *)
                 break;
@@ -431,7 +446,8 @@ function install_odoo_py_requirements_for_version {
 
     local odoo_version=${1:-$ODOO_VERSION};
     local odoo_major_version="${odoo_version%.*}";
-    local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
+    odoo_branch=${odoo_branch:-$odoo_version};
+    local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/requirements.txt";
     local tmp_requirements;
     local tmp_requirements_post;
     tmp_requirements=$(mktemp);
