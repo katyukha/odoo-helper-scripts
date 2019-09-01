@@ -43,6 +43,15 @@ echo -e "~~~text\n$(odoo-helper install js-tools --help)\n~~~\n\n" >> $PROJECT_D
 echo -e "#### odoo-helper install bin-tools\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install bin-tools --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper install dev-tools\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install dev-tools --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper install unoconv\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install unoconv --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper install openupgradelib\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper install openupgradelib --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper install wkhtmltopdf\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper install wkhtmltopdf --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
@@ -111,6 +120,18 @@ echo -e "~~~text\n$(odoo-helper db rename --help)\n~~~\n\n" >> $PROJECT_DIR/docs
 
 echo -e "#### odoo-helper db copy\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db copy --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db dump\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db dump --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db backup\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db backup --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db backup-all\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db backup-all --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper db restore\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db restore --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
 echo -e "### odoo-helper fetch\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper fetch --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
@@ -183,6 +204,9 @@ echo -e "~~~text\n$(odoo-helper ci --help)\n~~~\n\n" >> $PROJECT_DIR/docs/comman
 
 echo -e "#### odoo-helper ci ensure-icons\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper ci ensure-icons --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper ci ensure-changelog\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper ci ensure-changelog --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
 echo -e "#### odoo-helper ci check-versions-git\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper ci check-versions-git --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;

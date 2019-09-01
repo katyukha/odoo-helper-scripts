@@ -77,6 +77,8 @@ function print_usage {
          -i|--install-dir <dir>        - directory to install odoo in. default: $PROJECT_ROOT_DIR
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
+         --ocb                         - Use [OCB (Odoo Community Backports)](https://github.com/OCA/OCB) fork
+         --ou|--openupgrade            - Use [OpenUpgrade](https://github.com/OCA/OpenUpgrade) fork
          --odoo-version <odoo version> - odoo version to install. default: $ODOO_VERSION
          -b|--odoo-branch <branch>     - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
@@ -90,13 +92,16 @@ function print_usage {
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
+         --no-single-branch            - Set '--signle-branch' option to 'off'
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
 
+         --http-port <port>            - automatically set configuration for http port for this instance
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
          --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xmlrpc_port 9998'
          --verbose|--vv                - show extra output
+         --help|-h|help                - show this help message
 
     After instalation configs will be generated in 'conf' directory
     Also 'log' directory will contain Odoo logs
@@ -128,6 +133,12 @@ function parse_options {
                 ODOO_REPO=$2;
                 shift;
             ;;
+            --ocb)
+                ODOO_REPO="https://github.com/OCA/OCB";
+            ;;
+            --ou|--openupgrade)
+                ODOO_REPO="https://github.com/OCA/OpenUpgrade";
+            ;;
             --odoo-version)
                 ODOO_VERSION=$2;
                 shift;
@@ -150,6 +161,9 @@ function parse_options {
                 CLONE_SINGLE_BRANCH=$2;
                 shift;
             ;;
+            --no-single-branch)
+                CLONE_SINGLE_BRANCH='off';
+            ;;
             --db-host)
                 DB_HOST=$2;
                 shift;
@@ -162,8 +176,9 @@ function parse_options {
                 DB_PASSWORD=$2;
                 shift;
             ;;
-            --verbose|-vv)
-                VERBOSE=1;
+            --http-port)
+                ODOO_HTTP_PORT=$2;
+                shift;
             ;;
             --conf-opt-*)
                 local opt_name="${key#--conf-opt-}"
@@ -174,6 +189,9 @@ function parse_options {
                 local opt_name="${key#--test-conf-opt-}"
                 TEST_CONF_OPTIONS[$opt_name]=$2;
                 shift;
+            ;;
+            --verbose|-vv)
+                VERBOSE=1;
             ;;
             -h|--help|help)
                 # Check environment for config
@@ -227,6 +245,11 @@ function generate_conf {
     ODOO_CONF_OPTIONS[db_port]="${ODOO_CONF_OPTIONS['db_port']:-False}";
     ODOO_CONF_OPTIONS[db_user]="${ODOO_CONF_OPTIONS['db_user']:-$DB_USER}";
     ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-$DB_PASSWORD}";
+
+    if [ -n "$ODOO_HTTP_PORT" ]; then
+        ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-$ODOO_HTTP_PORT}";
+        ODOO_CONF_OPTIONS[http_port]="${ODOO_CONF_OPTIONS['http_port']:-$ODOO_HTTP_PORT}";
+    fi
 
     # Generate conf
     install_generate_odoo_conf "$ODOO_CONF_FILE";  # imported from 'install' module

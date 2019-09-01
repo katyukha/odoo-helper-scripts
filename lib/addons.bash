@@ -148,6 +148,7 @@ function addons_update_module_list_db {
         echoe -e "${GREENC}OK${NC}: Addons list successfully updated for ${YELLOWC}${db}${NC} database";
     else
         echoe -e "${REDC}ERROR${NC}: Cannot update module list for ${YELLOWC}${db}${NC} database";
+        return 1
     fi
 }
 
@@ -209,7 +210,9 @@ function addons_update_module_list {
     local db;
     for db in "${dbs[@]}"; do
         echo -e "${BLUEC}Updating module list for ${YELLOWC}$db${NC}";
-        addons_update_module_list_db "$db";
+        if ! addons_update_module_list_db "$db"; then
+            return 2;
+        fi
     done
 }
 
@@ -248,7 +251,7 @@ function _addons_list_in_directory_display {
     echo -e "$result";
 }
 
-# _addons_list_in_directory_filter <addon_path> <installable 1|0> <not-linked 1|0> <linked 1|0> <filter_expr>
+# _addons_list_in_directory_filter <addon_path> <installable 1|0> <not-linked 1|0> <linked 1|0> <filter_expr> <except_filter_expr>
 # filer_expr is string that contains regular expression to filter addons with
 function _addons_list_in_directory_filter {
     local addon_path=$1;
@@ -256,11 +259,16 @@ function _addons_list_in_directory_filter {
     local not_linked=$3;
     local linked=$4;
     local filter_expr=$5;
+    local except_filter_expr="$6";
 
     local addon_name;
     addon_name=$(addons_get_addon_name "$addon_path");
 
     if [ -n "$filter_expr" ] && ! [[ "$addon_name" =~ $filter_expr ]]; then
+        return 1;
+    fi
+
+    if [ -n "$except_filter_expr" ] && [[ "$addon_name" =~ $except_filter_expr ]]; then
         return 1;
     fi
 
@@ -292,17 +300,18 @@ function addons_list_in_directory {
 
     Options:
 
-        -r|--recursive    - look for addons recursively
-        --installable     - display only installable addons
-        --linked          - display only linked addons
-        --not-linked      - display addons that are not present in custom_addons dir
-        --by-name         - display only addon names
-        --by-path         - display addon path
-        --filter <expr>   - filter addons by expression.
-                            expression is a string that is bash regular expression
-                            (this option is experimental and its bechavior may be changed)
-        --color           - color result by link-status
-        -h|--help         - display this help message
+        -r|--recursive         - look for addons recursively
+        --installable          - display only installable addons
+        --linked               - display only linked addons
+        --not-linked           - display addons that are not present in custom_addons dir
+        --by-name              - display only addon names
+        --by-path              - display addon path
+        --filter <expr>        - filter addons by expression.
+                                 expression is a string that is bash regular expression
+                                 (this option is experimental and its bechavior may be changed)
+        --except-filter <expr> - skip addons that match filter
+        --color                - color result by link-status
+        -h|--help              - display this help message
 
     Note:
 
@@ -317,6 +326,7 @@ function addons_list_in_directory {
     local linked_only=0;
     local recursive_options=( );
     local filter_expr="";
+    local except_filter_expr="";
 
     while [[ $1 == -* ]]
     do
@@ -359,6 +369,11 @@ function addons_list_in_directory {
                 recursive_options+=( --filter "$2" );
                 shift;
             ;;
+            --except-filter)
+                except_filter_expr="$2";
+                recursive_options+=( --except-filter "$2" );
+                shift;
+            ;;
             *)
                 echo "Unknown option $key";
                 return 1;
@@ -376,14 +391,14 @@ function addons_list_in_directory {
         # Look for addons
         if [ -d "$addons_path" ]; then
             if is_odoo_module "$addons_path"; then
-                if _addons_list_in_directory_filter "$addons_path" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr"; then
+                if _addons_list_in_directory_filter "$addons_path" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr" "$except_filter_expr"; then
                     _addons_list_in_directory_display "$addons_path" "$name_mode" "$color_mode";
                 fi
             fi
 
             for addon in "$addons_path"/*; do
                 if is_odoo_module "$addon"; then
-                    if _addons_list_in_directory_filter "$addon" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr"; then
+                    if _addons_list_in_directory_filter "$addon" "$installable_only" "$not_linked_only" "$linked_only" "$filter_expr" "$except_filter_expr"; then
                         _addons_list_in_directory_display "$addon" "$name_mode" "$color_mode";
                     fi
                 elif [ -n "$recursive" ] && [ -d "$addon" ] && [ "$(basename "$addon")" != "setup" ]; then
@@ -702,7 +717,7 @@ function addons_install_update_internal {
     local todo_addons;
     todo_addons=$(join_by , "$@");
 
-    local odoo_options=( "-d" "$db"  "--stop-after-init" "--no-xmlrpc" "--pidfile=/dev/null" );
+    local odoo_options=( "-d" "$db"  "--max-cron-threads=0" "--stop-after-init" "--no-xmlrpc" "--pidfile=/dev/null" );
     if ! odoo_db_is_demo_enabled -q "$db"; then
         odoo_options+=( "--without-demo=all" );
     fi
@@ -716,12 +731,12 @@ function addons_install_update_internal {
     elif [ "$cmd" == "uninstall" ]; then
         local addons_uninstalled;
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
-        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE', '--pidfile', '/dev/null', '--no-xmlrpc']);";
-        python_cmd="$python_cmd db=cl['$db']; db.require_v8_api();";
+        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE', '--stop-after-init', '--max-cron-threads', '0', '--pidfile', '/dev/null', '--no-xmlrpc']);";
+        python_cmd="$python_cmd db=cl['$db'];";
         python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
         python_cmd="$python_cmd modules.button_immediate_uninstall();";
         python_cmd="$python_cmd print(', '.join(modules.mapped('name')));";
-        addons_uninstalled=$(run_python_cmd "$python_cmd");
+        addons_uninstalled=$(run_python_cmd_u "$python_cmd");
         if [ -z "$addons_uninstalled" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: Nothing to uninstall";
         else
@@ -997,7 +1012,7 @@ function addons_find_installed {
     local usage="
     Usage
 
-        $SCRIPT_NAME addons find-installed
+        $SCRIPT_NAME addons find-installed [options]
 
     Description
 
@@ -1005,9 +1020,14 @@ function addons_find_installed {
 
     Options
 
-        -h|--help|help  - show this help message
+        --db|--database <name> - name of database to search addons in.
+                                 Could be specified multiple times.
+        --packager-format      - output in odoo-packager format
+        -h|--help|help         - show this help message
 
     ";
+    local available_databases=( );
+    local packager_format;
     while [[ $1 == -* ]]
     do
         local key="$1";
@@ -1015,6 +1035,13 @@ function addons_find_installed {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            --db|--database)
+                available_databases+=( "$2" );
+                shift;
+            ;;
+            --packager-format)
+                packager_format=1;
             ;;
             *)
                 echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
@@ -1032,8 +1059,9 @@ function addons_find_installed {
     addons_list_pg_str="${addons_list_pg_str#, }";
 
     declare -A installed_addons_map;
-    local available_databases;
-    mapfile -t available_databases < <(odoo_db_list | sed '/^$/d');
+    if [ -z "${available_databases[*]}" ]; then
+        mapfile -t available_databases < <(odoo_db_list | sed '/^$/d');
+    fi
 
     local db;
     for db in "${available_databases[@]}"; do
@@ -1046,9 +1074,35 @@ function addons_find_installed {
         done
     done
 
-    for addon in "${!installed_addons_map[@]}"; do
-        echo "$addon";
-    done | sort;
+    local installed_addons_list=( );
+    mapfile -t installed_addons_list < <(printf '%s\n' "${!installed_addons_map[@]}" | sort);
+
+    if [ -z "$packager_format" ]; then
+        for addon in "${installed_addons_list[@]}"; do
+            echo "$addon";
+        done;
+    else
+        declare -A used_repositories;
+        echo "addons-list:";
+        for addon in "${installed_addons_list[@]}"; do
+            local addon_path="";
+            local addon_repo="";
+            addon_path=$(addons_get_addon_path "$addon");
+            if git_is_git_repo "$addon_path"; then
+                addon_repo=$(git_get_remote_url "$addon_path");
+                used_repositories[$addon_repo]=$(git_get_branch_name "$addon_path");
+            fi
+            echo "    - $addon";
+        done
+        echo "";
+        echo "git-sources:";
+        local used_repositories_list=( );
+        mapfile -t used_repositories_list < <(printf '%s\n' "${!used_repositories[@]}" | sort);
+        for repo in "${used_repositories_list[@]}"; do
+            echo "    - url: $repo";
+            echo "      branch: \"${used_repositories[$repo]}\"";
+        done
+    fi
 }
 
 
@@ -1069,7 +1123,7 @@ function addons_command {
         $SCRIPT_NAME addons uninstall --help            - uninstall some addon[s]
         $SCRIPT_NAME addons update-list --help          - update list of addons
         $SCRIPT_NAME addons test-installed --help       - lists databases this addon is installed in
-        $SCRIPT_NAME addons find-installed              - print list of addons installed in at least one db
+        $SCRIPT_NAME addons find-installed --help       - print list of addons installed in at least one db
         $SCRIPT_NAME addons update-py-deps              - update python dependencies of addons
         $SCRIPT_NAME addons generate-requirements       - generate odoo_requirements.txt for this instance
         $SCRIPT_NAME addons --help                      - show this help message

@@ -1,5 +1,90 @@
 # Release Notes
 
+## Release 0.5.0 (2019-09-01)
+
+### Added
+
+- Added command `odoo-helper install dev-tools` that is just an alias to install
+  *bin-tools*, *py-tools* and *js-tools* with single command.
+- Param `--db` to `odoo-helper addons find-installed` to search for addons only
+  in specified databases.
+- Option `--coverage-fail-under` to `odoo-helper test` command
+- Option `--skip-re` to `odoo-helper test` command
+- Option `--except-filter` to `odoo-helper addons list` command
+- Command `odoo-helper ci ensure-changelog`
+- Command `odoo-helper install unoconv`
+- Command `odoo-helper install openupgradelib`
+- Shortcuts of `odoo-install` command:
+    - `--ocb` - use [OCB (Odoo Community Backports)](https://github.com/OCA/OCB) repo.
+    - `--openupgrade` - use [Open Upgrade](https://github.com/OCA/OpenUpgrade) repo.
+- Extra options to command `odoo-helper db create`:
+    - `--password` set password to database user
+    - `--country` country code to create db for
+- Extra option to `odoo-install` command
+    - `--http-port` spcify port for this odoo instance
+- New option `--no-unbuffer` that is helpful to run `odoo shell` command
+  (odoo-helper server run --no-unbuffer -- shell -d my-database-name)
+- New `odoo-helper odoo shell` command
+- New option `--install` or `-i` to `odoo-helper db create` command
+  designed to automatically install specified addons after db created.
+- New option `--time` for `odoo-helper test` command
+- New option `--no-single-branch` to `odoo-install` command
+
+### Changed
+
+- `odoo-helper fetch` refactored. Changed path repository is stored at.
+  Before this release, all fetched repositories were stored at `/reppositories/`
+  directory. After this release new fetched repositories will be stored on path
+  similar to their path on github. For example there is repository
+  `https://github.com/crnd-inc/crnd-web`. Before this release this repository
+  was saved at `/repositories/crnd-web` after this release,
+  repository will be stored at `/repositories/crnd-inc/crnd-web`.
+  This change have to be backward compatible, but be careful.
+- Use default database backup format: *zip*
+- Enabled following warings in defaut pylint config:
+    - trailing-comma-tuple
+    - deprecated-method
+- Following DB-related commands changed to have `--help` option.
+  This change is backward incompatible. Commands:
+    - `odoo-helper db dump --help`
+    - `odoo-helper db backup --help`
+    - `odoo-helper db backup-all --help`
+    - `odoo-helper db restore --help`
+- Command 'odoo-helper db list' now ignores `list_db` setting
+
+### Fixed
+
+- bug when "odoo-helper test" does not receive --skip argument
+- regression of "odoo-helper addons uninstall" command.
+- regression of "odoo-helper install wkhtmltopdf" command.
+- bug in "odoo-helper odoo-py" command (related to usage of unbuffer)
+- install specific version of `lessc`: 3.9.0 (version 3.10.0 seems to be buggy)
+
+### Migration notes
+
+#### New repository layout
+
+Migrating to new repository layout could be done by following alogorithm:
+
+```bash
+# change working directory to odoo-project rool and save all repositories in
+# requirements file
+
+odoo-helper addons generate-requirements > odoo-requirements-tmp.txt
+
+# Rename your current repository directory and create new empty 'repositories' dir
+# This is required to save your current repositories state in case of uncommited changes.
+mv repositories repositories-backup
+mkdir repositories
+
+# Fetch all your repositories with new layout enabled
+odoo-helper fetch --requirements odoo-requirements-tmp.txt
+
+# remove temporary requirements file
+rm odoo-requirements-tmp.txt
+```
+
+
 ## Release 0.4.0 (2019-05-03)
 
 ### Added

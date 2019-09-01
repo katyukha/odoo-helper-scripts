@@ -373,15 +373,121 @@ function ci_ensure_addons_have_icons {
     return $res;
 }
 
+# Ensure that all changed addons in specified directory have changelog entries
+# ci_ensure_addons_have_changelog <addon path>
+function ci_ensure_addons_have_changelog {
+    local usage="
+    Ensure that all addons in specified directory have changelog entries.
+
+    Changelog entries have to be located in 'changelog' directory inside addon.
+    Each entry is file named in following format:
+        changelog.X.Y.Z.md
+    Where:
+        X.Y.Z is addon version without Odoo version
+
+    Usage:
+
+        $SCRIPT_NAME ci ensure-changelog [options] <path> <start> [end]
+
+    Options:
+
+        --ignore-trans     - ignore translations
+                             Note: this option may not work on old git versions
+        --format <md|rst>  - changelog format: Markdown(md) or ReStructuredText (rst).
+                             default: md
+        --help             - print this help message
+
+    Parametrs:
+        <repo>    - path to git repository to search for changed addons in
+        <start>   - git start revision
+        [end]     - [optional] git end revision.
+                    if not set then working tree used as end revision
+    ";
+
+    local ref_start;
+    local ref_end;
+    local git_changed_extra_opts=( );
+    local changelog_format="md";
+
+    # Parse options
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --ignore-trans)
+                git_changed_extra_opts+=( --ignore-trans );
+                shift;
+            ;;
+            --format)
+                changelog_format="$2";
+                shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    # Compute addons path
+    local addons_path="$1"; shift;
+    if [ ! -d "$addons_path" ]; then
+        echoe -e "${REDC}ERROR${NC}: ${YELLOWC}${addons_path}${NC} is not a directory!";
+        return 1;
+    fi
+
+    # Guess git revisions
+    ref_start="$1"; shift;
+    if [ -n "$1" ]; then
+        ref_end="$1"; shift;
+    else
+        ref_end="-working-tree-";
+    fi
+
+    # Find changed addons
+    local changed_addons;
+    mapfile -t changed_addons < <(git_get_addons_changed "${git_changed_extra_opts[@]}" "$addons_path" "$ref_start" "$ref_end" | sed '/^$/d')
+
+    local res=0;
+    local addon;
+    local addon_name;
+    local addon_version;
+    local addon_version_short;
+    for addon in "${changed_addons[@]}"; do
+        addon_name=$(addons_get_addon_name "$addon");
+        addon_version=$(ci_git_get_addon_version_by_ref -q "$addon" "$ref_end");
+        if [ -z "$addon_version" ]; then
+            echee -e "${REDC}WARNING${NC}: It seems that addon ${YELLOWC}${addon_name}${NC} removed. skipping...";
+            continue;
+        fi
+        addon_version_short=${addon_version##$ODOO_VERSION.};
+        if [ ! -f "$addon/changelog/changelog.$addon_version_short.$changelog_format" ]; then
+            echoe -e "${REDC}ERROR${NC}: addon ${YELLOWC}${addon_name}${NC} have no changelog entry! (format: ${YELLOWC}${changelog_format}${NC})";
+            res=1;
+        fi
+    done
+
+    return $res;
+}
+
 function ci_command {
     local usage="
-    This command provides subcommands useful in Continious Integration process
+    This command provides subcommands useful in CI (Continious Integration) process
 
     NOTE: This command is experimental and everything may be changed.
 
     Usage:
         $SCRIPT_NAME ci check-versions-git [--help]  - ensure versions of changed addons were updated
         $SCRIPT_NAME ci ensure-icons [--help]        - ensure all addons in specified directory have icons
+        $SCRIPT_NAME ci ensure-changelog [--help]    - ensure that changes described in changelog
         $SCRIPT_NAME ci -h|--help|help               - show this help message
     ";
 
@@ -402,6 +508,11 @@ function ci_command {
             ensure-icons)
                 shift;
                 ci_ensure_addons_have_icons "$@";
+                return;
+            ;;
+            ensure-changelog)
+                shift;
+                ci_ensure_addons_have_changelog "$@";
                 return;
             ;;
             -h|--help|help)

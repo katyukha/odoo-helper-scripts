@@ -137,10 +137,16 @@ odoo-helper test -m project_sla
 odoo-helper install py-tools
 
 # or run tests with test-coverage enabled
-(cd ./repositories/project; odoo-helper test --recreate-db --coverage-report project_sla || true);
+(cd ./repositories/oca/project; odoo-helper test --recreate-db --coverage-report project_sla || true);
+
+# Also it is possible to fail if test coverage less than specified value
+(cd ./repositories/oca/project; odoo-helper test --recreate-db --coverage-fail-under 50 project_sla || true);
 
 # Also we may generate html coverage report too
-(cd ./repositories/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project-sla || true);
+(cd ./repositories/oca/project; odoo-helper test --create-test-db --coverage-html --dir . --skip project_sla || true);
+
+# Skip all addons that starts with project
+(cd ./repositories/oca/project; odoo-helper test --create-test-db --coverage-html --dir . --skip-re "^project_" || true);
 
 # Show addons status for this project
 odoo-helper --use-unbuffer addons status
@@ -237,6 +243,18 @@ odoo-helper status
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
 
+# Install dev tools
+odoo-helper install dev-tools
+
+# Install unoconv
+odoo-helper install unoconv
+
+# Install openupgradelib
+odoo-helper install openupgradelib
+
+# And show odoo-helper status after tools installed
+odoo-helper status  --tools-versions --ci-tools-versions
+
 # Install wkhtmltopdf (if it is not installed yet)
 odoo-helper install wkhtmltopdf
 
@@ -257,10 +275,10 @@ fi
 odoo-helper db list
 
 # backup database
-backup_file=$(odoo-helper db backup my-test-odoo-database zip);
+backup_file=$(odoo-helper db backup --format zip my-test-odoo-database);
 
 # Also it is possible to backup SQL only (without filesystem)
-backup_file_sql=$(odoo-helper db backup my-test-odoo-database sql);
+backup_file_sql=$(odoo-helper db backup --format sql my-test-odoo-database);
 
 # drop test database if it exists
 if odoo-helper db exists my-test-odoo-database; then
@@ -340,9 +358,10 @@ odoo-helper tr rate --lang uk_UA partner_firstname;
 
 # Check partner_first_name addon with pylint and flake8
 odoo-helper install py-tools
-odoo-helper pylint ./repositories/partner-contact/partner_firstname || true;
-odoo-helper flake8 ./repositories/partner-contact/partner_firstname || true;
-odoo-helper addons list --filter "first" ./repositories/partner-contact
+odoo-helper pylint ./repositories/oca/partner-contact/partner_firstname || true;
+odoo-helper flake8 ./repositories/oca/partner-contact/partner_firstname || true;
+odoo-helper addons list --filter "first" ./repositories/oca/partner-contact
+odoo-helper addons list --except-filter "first" ./repositories/oca/partner-contact
 
 # Show project status
 odoo-helper status
@@ -357,7 +376,7 @@ odoo-helper status  --tools-versions --ci-tools-versions
 odoo-helper print-config
 
 # Pull odoo addons update
-(cd ./repositories/partner-contact && git reset --hard HEAD^^^1)
+(cd ./repositories/oca/partner-contact && git reset --hard HEAD^^^1)
 odoo-helper addons pull-updates
 
 # Update odoo base addon
@@ -458,20 +477,22 @@ odoo-helper tr import test-11-db uk_UA uk-test web;
 odoo-helper fetch --oca partner-contact;
 
 # Check oca/partner-contact with ci commands
-odoo-helper ci ensure-icons repositories/partner-contact || true
-odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 HEAD || true
-odoo-helper ci check-versions-git --repo-version repositories/partner-contact HEAD^^^1 || true
-odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/partner-contact HEAD^^^1 || true
+odoo-helper ci ensure-icons repositories/oca/partner-contact || true
+odoo-helper ci ensure-changelog repositories/oca/partner-contact HEAD^^^1 || true
+odoo-helper ci ensure-changelog --ignore-trans repositories/oca/partner-contact HEAD^^^1 || true
+odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contact HEAD^^^1 HEAD || true
+odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contact HEAD^^^1 || true
+odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/oca/partner-contact HEAD^^^1 || true
 
 # Show addons changed
-odoo-helper git changed-addons repositories/partner-contact HEAD^^^1 HEAD
+odoo-helper git changed-addons repositories/oca/partner-contact HEAD^^^1 HEAD
 
 # Fetch oca/web passing only repo url and branch to fetch command
 odoo-helper fetch https://github.com/oca/web --branch 11.0;
 
 # Regenerate Ukrainian translations for all addons in partner-contact
-odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/partner-contact;
-odoo-helper tr rate --lang uk_UA --dir ./repositories/partner-contact;
+odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/oca/partner-contact;
+odoo-helper tr rate --lang uk_UA --dir ./repositories/oca/partner-contact;
 
 # Update addons list on specific db
 odoo-helper addons update-list test-11-db
@@ -545,8 +566,8 @@ ${NC}"
 
 odoo-helper install js-tools
 odoo-helper fetch --oca web
-odoo-helper lint style ./repositories/web/web_widget_color || true
-odoo-helper lint style ./repositories/web/web_widget_datepicker_options || true
+odoo-helper lint style ./repositories/oca/web/web_widget_color || true
+odoo-helper lint style ./repositories/oca/web/web_widget_datepicker_options || true
 
 
 echo -e "${YELLOWC}
@@ -560,7 +581,7 @@ odoo-helper install sys-deps -y 12.0;
 odoo-helper postgres user-create odoo12 odoo;
 odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo12 --db-pass odoo
+    --db-user odoo12 --db-pass odoo --ocb
 
 cd odoo-12.0;
 
@@ -597,17 +618,17 @@ odoo-helper status  --tools-versions --ci-tools-versions;
 
 # Database management
 odoo-helper db create --demo --lang en_US odoo12-odoo-test;
-odoo-helper db create --recreate --demo --lang en_US odoo12-odoo-test;
+odoo-helper db create --recreate --demo --lang en_US --install contacts odoo12-odoo-test;
 odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
 odoo-helper db exists odoo12-odoo-test;
 odoo-helper db exists odoo12-odoo-tmp;
-odoo-helper db backup-all zip;
+odoo-helper db backup-all;
 
 # Fetch oca/contract
-odoo-helper fetch --oca contract
+odoo-helper fetch --github crnd-inc/generic-addons
 
 # Install addons from OCA contract
-odoo-helper addons install --ual --dir ./repositories/contract;
+odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 
 # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
 odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
@@ -619,8 +640,8 @@ odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
 
 # Prepare to test pull updates with --do-update option
 odoo-helper fetch --oca partner-contact;
-(cd ./repositories/partner-contact && git reset --hard HEAD^^^1);
-odoo-helper addons install --dir ./repositories/partner-contact;
+(cd ./repositories/oca/partner-contact && git reset --hard HEAD^^^1);
+odoo-helper addons install --dir ./repositories/oca/partner-contact;
 
 # Test pull-updates with --do-update option
 odoo-helper addons pull-updates --do-update;

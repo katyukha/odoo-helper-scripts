@@ -209,8 +209,8 @@ function install_wkhtmltopdf {
         fi
         echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
         local wkhtmltox_deps;
-        wkhtmltox_deps=$(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
-        if ! (install_sys_deps_internal "$wkhtmltox_deps" && with_sudo dpkg -i "$wkhtmltox_path"); then
+        read -ra wkhtmltox_deps < <(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
+        if ! (install_sys_deps_internal "${wkhtmltox_deps[@]}" && with_sudo dpkg -i "$wkhtmltox_path"); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
         fi
 
@@ -366,15 +366,21 @@ function install_sys_deps_for_odoo_version {
 
     Options:
 
-        -y|--yes     - Always answer yes
+        -y|--yes              - Always answer yes
+        -b|--branch <branch>  - Odoo branch to fetch deps for
 
     ";
+    local odoo_branch;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -y|--yes)
                 ALWAYS_ANSWER_YES=1;
+            ;;
+            -b|--branch)
+                odoo_branch="$2";
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -393,7 +399,8 @@ function install_sys_deps_for_odoo_version {
         return 1;
     fi
 
-    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/debian/control";
+    odoo_branch=${odoo_branch:-$odoo_version};
+    local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
     local tmp_control;
     tmp_control=$(mktemp);
     wget -q -T 15 "$control_url" -O "$tmp_control";
@@ -410,10 +417,14 @@ function install_odoo_py_requirements_for_version {
 
     Usage:
 
-        $SCRIPT_NAME install py-deps <odoo-version> - install python dependencies
+        $SCRIPT_NAME install py-deps [options] [odoo-version] - install python dependencies
         $SCRIPT_NAME install py-deps --help         - show this help message
 
+    Options:
+        -b|--branch <branch>   - Odoo branch to install deps for
+
     ";
+    local odoo_branch=${ODOO_BRANCH};
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -421,6 +432,10 @@ function install_odoo_py_requirements_for_version {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -b|--branch)
+                odoo_branch="$2";
+                shift;
             ;;
             *)
                 break;
@@ -431,7 +446,8 @@ function install_odoo_py_requirements_for_version {
 
     local odoo_version=${1:-$ODOO_VERSION};
     local odoo_major_version="${odoo_version%.*}";
-    local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_version/requirements.txt";
+    odoo_branch=${odoo_branch:-$odoo_version};
+    local requirements_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/requirements.txt";
     local tmp_requirements;
     local tmp_requirements_post;
     tmp_requirements=$(mktemp);
@@ -646,12 +662,19 @@ function install_bin_tools {
         esac
         shift
     done
-    local deps=( expect-dev tcl8.6 );
+    local deps=( );
     if ! check_command 'google-chrome' 'chromium' 'chromium-browser' > /dev/null; then
         echoe -e "${YELLOWC}Google Chrome${BLUEC} seems to be not installed. ${YELLOWC}chromium-browser${BLUEC} will be installed.${NC}";
         deps+=( chromium-browser );
     fi
-    install_sys_deps_internal "${deps[@]}";
+    if ! check_command 'unbuffer' > /dev/null; then
+        echoe -e "${YELLOWC}unbuffer${BLUEC} seems to be not installed. ${YELLOWC}expect-dev${BLUEC} and ${YELLOWC}tcl8.6${BLUEC} will be installed.${NC}";
+        deps+=( expect-dev tcl8.6 );
+    fi
+
+    if [ -n "${deps[*]}" ]; then
+        install_sys_deps_internal "${deps[@]}";
+    fi
 }
 
 # Install extra python tools
@@ -742,6 +765,108 @@ function install_js_tools {
     exec_npm install -g "${deps[@]}";
 }
 
+function install_dev_tools {
+    local usage="
+    Install extra development tools. May require sudo.
+
+    This command is just an alias to run following commands with single call:
+        - $SCRIPT_NAME install bin-tools
+        - $SCRIPT_NAME install py-tools
+        - $SCRIPT_NAME install js-tools
+
+    Usage:
+
+        $SCRIPT_NAME install dev-tools        - install extra dev tools
+        $SCRIPT_NAME install dev-tools --help - show this help message
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    install_bin_tools;
+    install_python_tools;
+    install_js_tools;
+}
+
+function install_unoconv {
+    local usage="
+    Install unoconv;
+
+    sudo is required for this command.
+    Only available for odoo 11.0+
+    Have to be run on per-project basis.
+
+    Warning: this command is experimental.
+
+    Usage:
+
+        $SCRIPT_NAME install unoconv        - install unconv
+        $SCRIPT_NAME install unoconv --help - show this help message
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    ALWAYS_ANSWER_YES=1 install_sys_deps_internal unoconv;
+    local system_python;
+    system_python=$(command -v python3);
+    if [ -n "$VENV_DIR" ] && [ -n "$system_python" ]; then
+        exec_pip install unoconv;
+        sed -i "1s@.*@#!$system_python@" "$VENV_DIR/bin/unoconv";
+    fi;
+}
+
+function install_openupgradelib {
+    local usage="
+    Install latest openupgradelib;
+
+    Warning: this command is experimental.
+
+    Usage:
+
+        $SCRIPT_NAME install openupgradelib        - install openupgradelib
+        $SCRIPT_NAME install openupgradelib --help - show this help message
+    ";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+    exec_pip install --upgrade "git+https://github.com/OCA/openupgradelib.git@master#egg=openupgradelib"
+}
+
 # install_python_prerequirements
 function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
@@ -757,7 +882,7 @@ function install_python_prerequirements {
 # Now it is less compiler. install if it is not installed yet
 function install_js_prerequirements {
     if ! check_command lessc > /dev/null; then
-        execu npm install -g less;
+        execu npm install -g less@3.9.0;
     fi
 }
 
@@ -948,6 +1073,9 @@ function install_entry_point {
         $SCRIPT_NAME install js-tools [--help]           - install javascript tools (jshint, phantomjs)
         $SCRIPT_NAME install bin-tools [--help]          - [sudo] install binary tools. at this moment it is *unbuffer*,
                                                            which is in *expect-dev* package
+        $SCRIPT_NAME install dev-tools [--help]          - [sudo] install dev tools.
+        $SCRIPT_NAME install unoconv [--help]            - [sudo] install unoconv.
+        $SCRIPT_NAME install openupgradelib [--help]     - install lates openupgradelib.
         $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
                                                            and if user/password specified, create it
@@ -1002,6 +1130,24 @@ function install_entry_point {
                 shift;
                 install_bin_tools "$@";
                 return 0;
+            ;;
+            dev-tools)
+                shift;
+                config_load_project;
+                install_dev_tools "$@";
+                return 0;
+            ;;
+            unoconv)
+                shift;
+                config_load_project;
+                install_unoconv "$@";
+                return 0;
+            ;;
+            openupgradelib)
+                shift;
+                config_load_project;
+                install_openupgradelib "$@";
+                return;
             ;;
             wkhtmltopdf)
                 shift;

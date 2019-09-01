@@ -105,7 +105,11 @@ function fetch_pip_requirements {
     #
     local req_dir;
     req_dir=$(dirname "$pip_requirements");
-    (cd "$req_dir" && exec_pip -q install -r "$pip_requirements");
+    if [ -n "$VERBOSE" ]; then
+        (cd "$req_dir" && exec_pip install -r "$pip_requirements");
+    else
+        (cd "$req_dir" && exec_pip -q install -r "$pip_requirements");
+    fi
 }
 
 # fetch_oca_requirements <filepath>
@@ -129,27 +133,28 @@ function fetch_oca_requirements {
         return 0
     fi
 
-    local is_read_finished=0;
-    while true; do
-       # TODO: rwerite with while: IFS='' read -r line || [[ -n "$line" ]]; do
-       if ! read -ra line; then
-           is_read_finished=1;
-       fi
-       if [ -n "$line" ] && [[ ! "$line" == "#"* ]]; then
-           local opt=""; #"--name ${line[0]}";
+    local line=( );
+    while read -ra line || [[ -n "${line[*]}" ]]; do
+       if [[ ! "${line[0]}" == "#"* ]]; then
+           local opt="";
            local opts=( );
 
+           # Fix line endings
+           local r_name=${line[0]//$'\r'/};
+           local r_url=${line[1]//$'\r'/};
+           local r_branch=${line[2]//$'\r'/};
+
            # if there are no url specified then use --oca shortcut
-           if [ -z "${line[1]}" ]; then
-               opts+=( "--oca" "${line[0]}" );
+           if [ -z "${r_url}" ]; then
+               opts+=( "--oca" "${r_name}" );
            else
                # else, specify url directly
-               opts+=( "--repo" "${line[1]}" );
+               opts+=( "--repo" "${r_url}" );
            fi
 
            # add branch if it spcified in file
-           if [ -n "${line[2]}" ]; then
-               opts+=( "--branch" "${line[2]}" );
+           if [ -n "${r_branch}" ]; then
+               opts+=( "--branch" "${r_branch}" );
            fi
            
            if fetch_module "${opts[@]}"; then
@@ -157,9 +162,6 @@ function fetch_oca_requirements {
            else
                echo -e "Line ${GREENC}FAIL${NC}: ${opts[*]}";
            fi
-       fi
-       if [ "$is_read_finished" -ne 0 ]; then
-           break;
        fi
     done < "$oca_requirements";
 }
@@ -177,6 +179,54 @@ function get_repo_name {
         echo "$2";
     fi
 }
+
+# get_repo_full_name <repository>
+# print repository full name (except host)
+# converts for example https://github.com/katyukha/base_tags.git to
+# katyukha/base_tags
+function fetch_get_repo_full_name {
+    local url="$1";
+    local re_http="^(http|https|ssh|git)\:\/\/([^\/]+)/(.+)$";
+    local re_git="^git@([^\:]+)\:([0-9]+\:)?(.+)$";
+
+    if [[ "$url" =~ $re_http ]] && [ -n "${BASH_REMATCH[3]}" ]; then
+        echo "${BASH_REMATCH[3]%.git}" | tr '[:upper:]' '[:lower:]';
+    elif [[ "$url" =~ $re_git ]] && [ -n "${BASH_REMATCH[3]}" ]; then
+        echo "${BASH_REMATCH[3]%.git}" | tr '[:upper:]' '[:lower:]';
+    else
+        local repo_name=;
+        repo_name=$(get_repo_name "$url")
+        echo "${repo_name}" | tr '[:upper:]' '[:lower:]';
+    fi
+}
+
+# get_repo_path <repository> <repo-name>
+function fetch_get_repo_path {
+    local repo=$1;
+    local repo_name=$2;
+
+    if [ -n "$repo_name" ]; then
+        # If repository name specified then name this repo as specified.
+        echo "$REPOSITORIES_DIR/$repo_name";
+        return;
+    fi
+
+    local repo_name_short;
+    repo_name_short=$(get_repo_name "$repo" "$2");
+
+    if [ -z "$2" ]; then
+        repo_name_full=$(fetch_get_repo_full_name "$1");
+    fi
+
+    # if there is repository already clonned in old way return path in old way, otherwise use new path
+    if [ -d "$REPOSITORIES_DIR/$repo_name_short" ] && git_is_git_repo "$REPOSITORIES_DIR/$repo_name_short"; then
+        echo "$REPOSITORIES_DIR/$repo_name_short";
+    else
+        echo "$REPOSITORIES_DIR/$repo_name_full";
+    fi
+}
+
+
 
 # Clone git repository.
 #
@@ -399,6 +449,7 @@ function fetch_module {
     local REPOSITORY=;
     local MODULE=;
     local REPO_NAME=;
+    local REPO_PATH=;
     local REPO_BRANCH=;
     local REPO_BRANCH_OPT=;
     local REPO_TYPE=git;
@@ -493,8 +544,7 @@ function fetch_module {
         return 2;
     fi
 
-    REPO_NAME=${REPO_NAME:-$(get_repo_name "$REPOSITORY")};
-    local REPO_PATH=$REPOSITORIES_DIR/$REPO_NAME;
+    REPO_PATH=$(fetch_get_repo_path "$REPOSITORY" "$REPO_NAME");
 
     local recursion_key="fetch_module";
     if ! recursion_protection_easy_check "$recursion_key" "${REPO_TYPE}__${REPO_PATH}__${MODULE:-all}"; then

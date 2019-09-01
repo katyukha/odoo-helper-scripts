@@ -89,6 +89,7 @@ function server_run {
     Options:
         --test-conf     - run odoo-server with test configuration file
         --coverage      - run odoo with coverage mode enabled
+        --no-unbuffer   - do not use unbuffer.
         -h|--help|help  - display this message
 
     Options after '--' will be passed directly to Odoo.
@@ -101,6 +102,7 @@ function server_run {
     ";
     local server_conf="$ODOO_CONF_FILE";
     local with_coverage=0;
+    local no_unbuffer;
     while [[ $1 == -* ]]
     do
         local key="$1";
@@ -111,6 +113,10 @@ function server_run {
             ;;
             --coverage)
                 with_coverage=1;
+                shift;
+            ;;
+            --no-unbuffer)
+                no_unbuffer=1;
                 shift;
             ;;
             --help|-h|help)
@@ -150,7 +156,11 @@ function server_run {
     fi
     server_cmd+=( "$server_script" );
     echo -e "${LBLUEC}Running server${NC}: ${server_cmd[*]} $*";
-    exec_conf "$server_conf" execu "${server_cmd[@]}" "$@";
+    if [ -n "$no_unbuffer" ]; then
+        exec_conf "$server_conf" execv "${server_cmd[@]}" "$@";
+    else
+        exec_conf "$server_conf" execu "${server_cmd[@]}" "$@";
+    fi
 }
 
 function server_start {
@@ -426,8 +436,5 @@ function server_command {
 # odoo_py <args>
 function odoo_py {
     echov -e "${LBLUEC}Running odoo.py with arguments${NC}: $*";
-    local cmd;
-    cmd=$(check_command odoo odoo-bin odoo.py);
-    exec_conf "$ODOO_CONF_FILE" execu "$cmd" "$@";
+    server_run --no-unbuffer -- "$@"
 }
-
