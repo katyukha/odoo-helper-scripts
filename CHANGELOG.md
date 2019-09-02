@@ -1,5 +1,14 @@
 # Release Notes
 
+## Unreleased
+
+### Changed
+
+- Enabled following warings in defaut pylint config:
+    - trailing-newlines
+    - wrong-import-order
+
+
 ## Release 0.5.0 (2019-09-01)
 
 ### Added
