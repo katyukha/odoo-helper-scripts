@@ -1076,7 +1076,7 @@ function install_entry_point {
         $SCRIPT_NAME install dev-tools [--help]          - [sudo] install dev tools.
         $SCRIPT_NAME install unoconv [--help]            - [sudo] install unoconv.
         $SCRIPT_NAME install openupgradelib [--help]     - install lates openupgradelib.
-        $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
+        $SCRIPT_NAME install wkhtmltopdf [--help]        - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
                                                            and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [--help]     - reinstall virtual environment
