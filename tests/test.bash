@@ -643,6 +643,9 @@ odoo-helper fetch --oca partner-contact;
 (cd ./repositories/oca/partner-contact && git reset --hard HEAD^^^1);
 odoo-helper addons install --dir ./repositories/oca/partner-contact;
 
+# Regenerate pot files for modules from partner-contact
+odoo-helper tr regenerate --pot --dir ./repositories/oca/partner-contact;
+
 # Test pull-updates with --do-update option
 odoo-helper addons pull-updates --do-update;
 

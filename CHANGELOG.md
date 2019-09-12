@@ -2,13 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+- `odoo-helper install py-tools` now also installs [jingtrang](https://pypi.org/project/jingtrang/).
+  This tools is used to show better warning on parsing xml views
+- Added option `--pot` for `odoo-helper tr regenerate` that allows to regenerate `.pot` files on modules
+
 ### Changed
 
 - Enabled following warings in defaut pylint config:
     - trailing-newlines
     - wrong-import-order
-- `odoo-helper install py-tools` now also installs [jingtrang](https://pypi.org/project/jingtrang/).
-  This tools is used to show better warning on parsing xml views
 
 
 ## Release 0.5.0 (2019-09-01)

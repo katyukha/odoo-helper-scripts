@@ -122,6 +122,42 @@ function tr_import_export_internal {
     done
 }
 
+
+# tr_generate_pot <db> <addon1> [addon2] [addonN]
+function tr_generate_pot {
+    if [[ $# -lt 2 ]]; then
+        echoe -e "${REDC}ERROR:${NC} No all arguments passed to generation of POT files";
+        return 1;
+    fi
+
+    local db=$1;
+    shift;
+
+    if ! odoo_db_exists -q "$db"; then
+        echoe -e "${REDC}ERROR:${NC} Database '$db' does not exists!";
+        return 2;
+    fi
+
+    local addons;
+    local addons_data;
+    addons_data=$(tr_parse_addons "$db" "$@")
+    IFS=',' read -r -a addons <<< "$addons_data";
+    for addon in "${addons[@]}"; do
+        echoe -e "${BLUEC}Executing ${YELLOWC}generate .pot file${BLUEC} for (db=${YELLOWC}$db${BLUEC}).${NC} Processing addon: ${YELLOWC}$addon${NC};";
+
+        local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE']);";
+        python_cmd="$python_cmd cl['$db'].generate_pot_file('$addon');"
+
+        # Filestore should be created by server user, so run this command as server user
+        if ! run_python_cmd_u "$python_cmd"; then
+            echoe -e "${REDC}ERROR${NC}: Cannot generate pot file!";
+            return 1;
+        else
+            echoe -e "${GREENC}OK${NC}: .pot file for module ${YELLOWC}${addon}${NC} generated!";
+        fi
+    done
+}
+
 function tr_export {
     local usage="
     Usage
@@ -289,6 +325,7 @@ function tr_load {
 function tr_regenerate {
     local lang;
     local file_name;
+    local gen_pot;
     local tmp_db_name;
     declare -a addons;
     declare -a addons_list;
@@ -301,7 +338,8 @@ function tr_regenerate {
     Options
 
         --lang <lang code>    - language code to regenerate translations for
-        --file <filename>     - name of po file in i18n dir of addons to generate
+        --file <filename>     - name of po file in i18n dir of addons to generate (without extension)
+        --pot                 - generate .pot file for translations
         --dir  <addons path>  - look for addons at specified directory
         --dir-r <addons path> - look for addons at specified directory and its subdirectories
 
@@ -327,6 +365,9 @@ function tr_regenerate {
                 lang=$2;
                 shift;
             ;;
+            --pot)
+                gen_pot=1;
+            ;;
             --file)
                 file_name=$2;
                 shift;
@@ -348,12 +389,12 @@ function tr_regenerate {
         shift
     done
 
-    if [ -z "$lang" ]; then
+    if [ -z "$gen_pot" ] && [ -z "$lang" ]; then
         echoe -e "${REDC}ERROR${NC}: argument 'lang' is required!";
         return 1;
     fi
 
-    if [ -z "$file_name" ]; then
+    if [ -z "$gen_pot" ] && [ -z "$file_name" ]; then
         echoe -e "${REDC}ERROR${NC}: argument 'file' is required!";
         return 2;
     fi
@@ -364,8 +405,12 @@ function tr_regenerate {
     
     # install addons
     if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
-        # export translations
-        tr_export "$tmp_db_name" "$lang" "$file_name" "${addons[@]}";
+        if [ -z "$gen_pot" ]; then
+            # export translations
+            tr_export "$tmp_db_name" "$lang" "$file_name" "${addons[@]}";
+        else
+            tr_generate_pot "$tmp_db_name" "${addons[@]}";
+        fi
     else
         echoe -e "${REDC}ERROR${NC}: Cannot install addons ${YELLOWC}${addons[*]}${NC}!";
         return 3;
