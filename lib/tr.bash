@@ -404,21 +404,29 @@ function tr_regenerate {
     odoo_db_create --lang "$lang" --demo "$tmp_db_name";
     
     # install addons
+    local res=0;
     if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
         if [ -z "$gen_pot" ]; then
             # export translations
-            tr_export "$tmp_db_name" "$lang" "$file_name" "${addons[@]}";
+            if ! tr_export "$tmp_db_name" "$lang" "$file_name" "${addons[@]}"; then
+                res=1;
+            fi
         else
-            tr_generate_pot "$tmp_db_name" "${addons[@]}";
+            if ! tr_generate_pot "$tmp_db_name" "${addons[@]}"; then
+                res=1;
+            fi
         fi
     else
         echoe -e "${REDC}ERROR${NC}: Cannot install addons ${YELLOWC}${addons[*]}${NC}!";
-        return 3;
+        res=1;
     fi
 
     # Drop temporary database
     odoo_db_drop "$tmp_db_name";
 
+    if [ ! "$res" -eq 0 ]; then
+        return 3;
+    fi
 }
 
 # Compute and print translation rate
