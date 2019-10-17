@@ -275,6 +275,7 @@ function ci_check_versions_git {
             if [ "$opt_fix_version" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
+                new_version=$(ci_fix_version_number "$new_version");
                 # shellcheck disable=SC2181
                 if [ "$?" -eq 0 ]; then
                     local addon_manifest_file;

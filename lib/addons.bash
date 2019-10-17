@@ -216,7 +216,7 @@ function addons_update_module_list {
     done
 }
 
-# _addons_list_in_directory_display <addon_path> <name_mode> <color model>
+# _addons_list_in_directory_display <addon_path> <name_mode> <color mode>
 function _addons_list_in_directory_display {
     local addon_path;
     addon_path=$(readlink -f "$1"); shift;

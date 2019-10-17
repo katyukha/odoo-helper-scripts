@@ -14,6 +14,12 @@
     - trailing-newlines
     - wrong-import-order
 
+### Fixed
+
+- Fixed `--fix-version` option of `odoo-helper ci check-versions-git` command.
+  Before this fix, only Odoo serie was updated.
+  After this fix, version number updated too.
+
 
 ## Release 0.5.0 (2019-09-01)
 
