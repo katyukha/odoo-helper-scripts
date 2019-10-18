@@ -7,6 +7,9 @@
 - `odoo-helper install py-tools` now also installs [jingtrang](https://pypi.org/project/jingtrang/).
   This tools is used to show better warning on parsing xml views
 - Added option `--pot` for `odoo-helper tr regenerate` that allows to regenerate `.pot` files on modules
+- Added option `--fix-version-fp` to `ci check-versions-git` command.
+  This command allows to fix version numbers during forwardport changes from older version of Odoo to newer
+
 
 ### Changed
 
