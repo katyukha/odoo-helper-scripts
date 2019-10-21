@@ -9,6 +9,7 @@
 - Added option `--pot` for `odoo-helper tr regenerate` that allows to regenerate `.pot` files on modules
 - Added option `--fix-version-fp` to `ci check-versions-git` command.
   This command allows to fix version numbers during forwardport changes from older version of Odoo to newer
+- Added option `--fix-serie` to `ci check-versions-git` command.
 
 
 ### Changed

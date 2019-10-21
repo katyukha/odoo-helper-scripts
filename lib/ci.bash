@@ -169,6 +169,7 @@ function ci_check_versions_git {
                             For example: 11.0.1.0.0
                             Version number have to be updated if at least one
                             addon changed
+        --fix-serie       - [experimental] Fix module serie only
         --fix-version     - [experimental] Attempt to fix versions
         --fix-version-fp  - [experimental] Fix version conflicts during
                             forwardport
@@ -190,6 +191,7 @@ function ci_check_versions_git {
     local ref_start;
     local ref_end;
     local check_repo_version=0;
+    local opt_fix_serie=0;
     local opt_fix_version=0;
     local opt_fix_version_fp=0;
     local cdir;
@@ -210,11 +212,17 @@ function ci_check_versions_git {
                 check_repo_version=1;
                 shift;
             ;;
+            --fix-serie)
+                opt_fix_serie=1;
+                shift;
+            ;;
             --fix-version)
+                opt_fix_serie=1;
                 opt_fix_version=1;
                 shift;
             ;;
             --fix-version-fp)
+                opt_fix_serie=1;
                 opt_fix_version=1;
                 opt_fix_version_fp=1;
                 shift;
@@ -262,7 +270,7 @@ function ci_check_versions_git {
         version_after=$(ci_git_get_addon_version_by_ref "$addon_path" "${ref_end}");
 
         if ! ci_validate_version "$version_after"; then
-            if [ "$opt_fix_version" -eq 1 ]; then
+            if [ "$opt_fix_serie" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
                 # shellcheck disable=SC2181
