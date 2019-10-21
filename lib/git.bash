@@ -48,7 +48,7 @@ function git_is_merging {
 # git_file_has_conflicts <rep-path> <path>
 # return 0 if specified path has conflicts
 function git_file_has_conflicts {
-    !(cd "$1" && git diff -q --check -- "$2" > /dev/null 2>&1);
+    ! (cd "$1" && git diff -q --check -- "$2" > /dev/null 2>&1);
 }
 
 # git_get_branch_name [repo_path]
