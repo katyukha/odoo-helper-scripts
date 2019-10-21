@@ -48,7 +48,6 @@ function git_is_merging {
 # git_file_has_conflicts <rep-path> <path>
 # return 0 if specified path has conflicts
 function git_file_has_conflicts {
-    git diff --name-only --diff-filter=U
     !(cd "$1" && git diff -q --check -- "$2" > /dev/null 2>&1);
 }
 
