@@ -24,6 +24,7 @@
   Before this fix, only Odoo serie was updated.
   After this fix, version number updated too.
 - Compatability fix for `odoo-helper tr rate` command with Odoo 13.0
+- Load server-wide modules when interacting via lodoo (local odoo)
 
 
 ## Release 0.5.0 (2019-09-01)

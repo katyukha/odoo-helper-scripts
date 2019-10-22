@@ -335,6 +335,9 @@ class LOdoo(object):
                 odoo.api.Environment._local.environments = (
                     odoo.api.Environments())
 
+            # Load server-wide modules
+            odoo.service.server.load_server_wide_modules()
+
             self._odoo = odoo
         return self._odoo
 
