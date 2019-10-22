@@ -23,6 +23,7 @@
 - Fixed `--fix-version` option of `odoo-helper ci check-versions-git` command.
   Before this fix, only Odoo serie was updated.
   After this fix, version number updated too.
+- Compatability fix for `odoo-helper tr rate` command with Odoo 13.0
 
 
 ## Release 0.5.0 (2019-09-01)

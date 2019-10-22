@@ -132,7 +132,7 @@ class LocalRegistry(object):
                 not t.value or
                 not t.value.strip() or
                 t.src == t.value or
-                t.source == t.value
+                (getattr(t, 'source', None) and t.source == t.value)
             )
 
         bad_translations = trans.filtered(filter_bad_translations)
@@ -226,6 +226,17 @@ class LocalRegistry(object):
                 if rate_data['rate'] < min_addon_rate:
                     return 2
         return 0
+
+    def check_translation_rate(self, lang, addons, min_total_rate=None,
+                               min_addon_rate=None, colored=False):
+        """ Check translation rate
+        """
+        trans_rate = self.compute_translation_rate(lang, addons)
+        self.print_translation_rate(trans_rate, colored=colored)
+        return self.assert_translation_rate(
+            trans_rate,
+            min_total_rate=min_total_rate,
+            min_addon_rate=min_addon_rate)
 
     def generate_pot_file(self, module_name):
         """ Generate .pot file for a module
