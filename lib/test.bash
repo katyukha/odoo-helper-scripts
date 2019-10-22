@@ -84,7 +84,7 @@ function test_get_or_create_db {
     fi
 
     if [ "$recreate_db" -eq 1 ] && odoo_db_exists -q "$test_db_name"; then
-        if ! odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2; then
+        if ! odoo_db_drop --conf "$ODOO_TEST_CONF_FILE" "$test_db_name" 1>&2; then
             return 2;
         fi
         if ! odoo_db_create --demo "$test_db_name" "$ODOO_TEST_CONF_FILE" 1>&2; then
@@ -169,7 +169,7 @@ function test_run_tests_handle_sigint {
     local test_db_name=$2
 
     if [ "$create_test_db" -eq 1 ] && odoo_db_exists "$test_db_name"; then
-        odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE";
+        odoo_db_drop --conf "$ODOO_TEST_CONF_FILE" "$test_db_name";
     fi
 
     exit 1;  # TODO: Use return here?
@@ -222,7 +222,7 @@ function test_run_tests {
     # Drop created test db
     if [ "$create_test_db" -eq 1 ]; then
         echo  -e "${BLUEC}Droping test database: ${YELLOWC}${test_db_name}${NC}";
-        odoo_db_drop "$test_db_name" "$ODOO_TEST_CONF_FILE"
+        odoo_db_drop --conf "$ODOO_TEST_CONF_FILE" "$test_db_name";
     fi
 
     if [ "$res" -eq 2 ]; then

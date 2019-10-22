@@ -103,7 +103,7 @@ function odoo_db_create {
 
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
-    
+
     if [ -z "$db_name" ]; then
         echoe -e "${REDC}ERROR${NC}: dbname not specified!!!";
         return 1;
@@ -114,7 +114,7 @@ function odoo_db_create {
     if odoo_db_exists -q "$db_name" "$conf_file"; then
         if [ -n "$db_recreate" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: dropting existing database ${YELLOWC}${db_name}${NC}";
-            odoo_db_drop "$db_name" "$conf_file";
+            odoo_db_drop --conf "$conf_file" "$db_name";
         else
             echoe -e "${REDC}ERROR${NC}: database ${YELLOWC}${db_name}${NC} already exists!";
             return 2;
@@ -143,7 +143,7 @@ function odoo_db_create {
     fi
 }
 
-# odoo_db_drop [options] <name> [odoo_conf_file]
+# odoo_db_drop [options] <name> [name2]..[nameN]
 function odoo_db_drop {
     local usage="
     Drop database
@@ -155,7 +155,9 @@ function odoo_db_drop {
 
     Options:
 
-        -q|--quite    do not show messages
+        -q|--quite        - do not show messages
+        -c|--conf <path>  - path to config file to use. Default: $ODOO_CONF_FILE
+        -h|--help         - show this help message.
 
     ";
 
@@ -164,12 +166,17 @@ function odoo_db_drop {
         return 0;
     fi
 
+    local conf_file=$ODOO_CONF_FILE;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -q|--quite)
                 local opt_quite=1;
+            ;;
+            -c|--conf)
+                conf_file=$2;
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -182,32 +189,30 @@ function odoo_db_drop {
         shift;
     done
 
-    local db_name=$1;
-    local conf_file=${2:-$ODOO_CONF_FILE};
+    for db_name in "$@"; do
+        if ! odoo_db_exists -q "$db_name"; then
+            if [ -z "$opt_quite" ]; then
+                echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
+            fi
+            return 1;
+        fi
 
-    if ! odoo_db_exists -q "$db_name"; then
-        if [ -z "$opt_quite" ]; then
-            echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}${db_name}${NC}! Database does not exists!";
-        fi
-        return 1;
-    fi
+        echov -e "${LBLUEC}Dropping database ${YELLOWC}${dbname}${LBLUEC} using conf file ${YELLOWC}${conf_file}${NC}";
+        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+        python_cmd="$python_cmd exit(int(not(cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name'))));";
+        echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
 
-    echov -e "${LBLUEC}Dropping database ${YELLOWC}${dbname}${LBLUEC} using conf file ${YELLOWC}${conf_file}${NC}";
-    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd exit(int(not(cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name'))));";
-    echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
-    
-    if ! run_python_cmd "$python_cmd"; then
-        if [ -z "$opt_quite" ]; then
-            echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+        if ! run_python_cmd "$python_cmd"; then
+            if [ -z "$opt_quite" ]; then
+                echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
+            fi
+            return 1;
+        else
+            if [ -z "$opt_quite" ]; then
+                echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
+            fi
         fi
-        return 1;
-    else
-        if [ -z "$opt_quite" ]; then
-            echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$db_name${NC} dropt successfuly!";
-        fi
-        return 0;
-    fi
+    done
 }
 
 # odoo_db_list [options] [odoo_conf_file]

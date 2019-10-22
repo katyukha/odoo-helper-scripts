@@ -17,6 +17,9 @@
 - Enabled following warings in defaut pylint config:
     - trailing-newlines
     - wrong-import-order
+- Command `odoo-helper db drop` changed:
+    - config file now is option (befor it was positional argument)
+    - added ability to drop multiple databases at single call
 
 ### Fixed
 
