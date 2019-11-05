@@ -966,6 +966,7 @@ function install_reinstall_venv {
 
         -p|--python <python ver>  - python version to recreate virtualenv with.
                                     Same as --python option of virtualenv
+        --no-backup               - do not backup virtualenv
     ";
     while [[ $# -gt 0 ]]
     do
@@ -974,6 +975,9 @@ function install_reinstall_venv {
             -p|--python)
                 VIRTUALENV_PYTHON="$2";
                 shift;
+            ;;
+            --no-backup)
+                local do_not_backup_virtualenv=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -993,7 +997,7 @@ function install_reinstall_venv {
     fi
 
     # Backup old venv
-    if [ -d "$VENV_DIR" ]; then
+    if [ -d "$VENV_DIR" ] && [ -z "$do_not_backup_virtualenv" ]; then
         local venv_backup_path;
         venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
         mv "$VENV_DIR" "$venv_backup_path";
