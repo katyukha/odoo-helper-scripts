@@ -10,6 +10,8 @@
 - Added option `--fix-version-fp` to `ci check-versions-git` command.
   This command allows to fix version numbers during forwardport changes from older version of Odoo to newer
 - Added option `--fix-serie` to `ci check-versions-git` command.
+- Added command `odoo-helper odoo recompute-menu`
+- Added command `odoo-helper odoo clean-compiled-assets`
 
 
 ### Changed

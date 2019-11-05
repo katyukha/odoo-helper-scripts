@@ -275,8 +275,109 @@ function odoo_recompute_stored_fields {
     run_python_cmd "$python_cmd";
 }
 
+function odoo_recompute_menu {
+    local usage="
+    Recompute menu hierarchy.
+    Useful to recompute menu hierarchy when it is broken.
+    this is usualy caused by errors during update.
+
+    Usage:
+
+        $SCRIPT_NAME odoo recompute-menu <options>  - recompute menu for specified db
+        $SCRIPT_NAME odoo recompute-menu --help     - show this help message
+
+    Options:
+
+        -d|--db|--dbname <dbname>  - name of database to recompute menu for
+    ";
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    local dbname=;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -d|--db|--dbname)
+                dbname=$2;
+                shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z "$dbname" ]; then
+        echoe -e "${REDC}ERROR${NC}: database not specified!";
+        return 1;
+    fi
+
+    odoo_recompute_stored_fields --db "$dbname" --model 'ir.ui.menu' --parent-store;
+}
+
 function odoo_shell {
     server_run --no-unbuffer -- shell "$@";
+}
+
+function odoo_clean_compiled_assets {
+    local usage="
+    Remove compiled assets (css, js, etc) to enforce Odoo
+    to regenerate compiled assets.
+    This is required some times, when compiled assets are broken,
+    and Odoo do not want to regenerate them in usual way.
+
+    Usage:
+
+        $SCRIPT_NAME odoo clean-compiled-assets <options>  - clean-up assets
+        $SCRIPT_NAME odoo recompute-menu --help            - show this help
+
+    Options:
+
+        -d|--db|--dbname <dbname>  - name of database to clean-up assets for
+    ";
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    local dbname=;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -d|--db|--dbname)
+                dbname=$2;
+                shift;
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echo "Unknown option / command $key";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z "$dbname" ]; then
+        echoe -e "${REDC}ERROR${NC}: database not specified!";
+        return 1;
+    fi
+    # TODO select id,name,store_fname from ir_attachment where name ilike '%/web/content/%-%/%';
+PGAPPNAME="odoo-helper-clean-compiled-assets" postgres_psql -d "$dbname" << EOF
+    DELETE FROM ir_attachment where name ilike '%/web/content/%/web.assets%';
+EOF
 }
 
 function odoo_command {
@@ -285,10 +386,12 @@ function odoo_command {
 
     Usage:
 
-        $SCRIPT_NAME odoo recompute --help  - recompute stored fields for database
-        $SCRIPT_NAME odoo server-url        - print URL to access this odoo instance
-        $SCRIPT_NAME odoo shell             - open odoo shell
-        $SCRIPT_NAME odoo --help            - show this help message
+        $SCRIPT_NAME odoo recompute --help       - recompute stored fields for database
+        $SCRIPT_NAME odoo recompute-menu --help  - recompute menus for db
+        $SCRIPT_NAME odoo server-url             - print URL to access this odoo instance
+        $SCRIPT_NAME odoo shell                  - open odoo shell
+        $SCRIPT_NAME odoo clean-compiled-assets  - Remove compilled versions of assets
+        $SCRIPT_NAME odoo --help                 - show this help message
 
     ";
 
@@ -306,6 +409,11 @@ function odoo_command {
                 odoo_recompute_stored_fields "$@";
                 return 0;
             ;;
+            recompute-menu)
+                shift;
+                odoo_recompute_menu "$@";
+                return 0;
+            ;;
             server-url)
                 shift;
                 odoo_get_server_url;
@@ -314,6 +422,12 @@ function odoo_command {
             shell)
                 shift;
                 odoo_shell "$@";
+                return;
+            ;;
+            clean-compiled-assets)
+                shift;
+                odoo_clean_compiled_assets "$@";
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";
