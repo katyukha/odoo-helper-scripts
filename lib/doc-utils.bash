@@ -51,6 +51,8 @@ function doc_utils_addons_list_addon_info_header {
                 t_name="Git URL";
             elif [ "$field_type" == "system" ] && [ "$field_name" == "dependencies" ]; then
                 t_name="Dependencies";
+            elif [ "$filed_type" == "custom" ]; then
+                t_name="";
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
                 continue
@@ -59,7 +61,7 @@ function doc_utils_addons_list_addon_info_header {
             if [ "$format" == "md" ]; then
                 result="${result} ${t_name} |";
             elif [ "$format" == "csv" ]; then
-                result="${result}\"${t_name}\";";
+                result="${result}\"${t_name}\",";
             fi
 
         fi
@@ -110,7 +112,8 @@ function doc_utils_addons_list_addon_info {
             local field_name=${BASH_REMATCH[2]};
 
             if [ "$field_type" == "manifest" ]; then
-                t_res=$(addons_get_manifest_key "$addon" "$field_name" | tr '\n' ' ');
+                t_res=$(addons_get_manifest_key "$addon" "$field_name" "''" | tr '\n' ' ');
+                t_res=$(trim "$t_res");
             elif [ "$field_type" == "system" ] && [ "$field_name" == "name" ]; then
                 t_res=$(basename "$addon");
             elif [ "$field_type" == "system" ] && [ "$field_name" == "git_repo" ]; then
@@ -121,13 +124,15 @@ function doc_utils_addons_list_addon_info {
                 fi
             elif [ "$field_type" == "system" ] && [ "$field_name" == "dependencies" ]; then
                 t_res=$(addons_get_addon_dependencies "$addon");
+            elif [ "$field_type" == "custom" ]; then
+                t_res="$field_name";
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
             fi
             if [ "$format" == "md" ]; then
                 result="${result} ${t_res} |";
             elif [ "$format" == "csv" ]; then
-                result="${result}\"${t_res}\";";
+                result="${result}\"${t_res}\",";
             fi
         fi
     done
@@ -150,6 +155,7 @@ function doc_utils_addons_list {
         --no-header                - do not display header
         --dependencies             - display dependencies list separated by coma
         --format <md|csv>          - output format. default: md
+        --custom-val <val>         - custom value
 
     Description
         Prints list of addons in specified dierectory in markdown format.
@@ -193,6 +199,10 @@ function doc_utils_addons_list {
             ;;
             --dependencies)
                 field_names+=( system-dependencies );
+            ;;
+            --custom-val)
+                field_names+=( "custom-$2" );
+                shift;
             ;;
             --no-header)
                 local no_header=1;

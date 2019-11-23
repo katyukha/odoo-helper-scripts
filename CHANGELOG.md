@@ -12,7 +12,8 @@
 - Added option `--fix-serie` to `ci check-versions-git` command.
 - Added command `odoo-helper odoo recompute-menu`
 - Added command `odoo-helper odoo clean-compiled-assets`
-- Added `--no-backup` option to `odoo-helper install reinstall-venv`
+- Added `--no-backup` option to `odoo-helper install reinstall-venv` command
+- Added `--custom-val` option to `odoo-helper doc-utils addons-list` command
 
 
 ### Changed

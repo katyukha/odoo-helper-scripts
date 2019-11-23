@@ -41,14 +41,15 @@ function addons_get_manifest_file {
 
 # Get value of specified key from manifest
 #
-# addons_get_manifest_key <addon> <key>
+# addons_get_manifest_key <addon> <key> [default]
 function addons_get_manifest_key {
     local addon_path=$1;
     local key=$2;
+    local default_val=${3:-'None'};
 
     local manifest_file;
     manifest_file=$(addons_get_manifest_file "$addon_path");
-    run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', None))"
+    run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', $default_val))"
 }
 
 # Echo path to addon specified by name
