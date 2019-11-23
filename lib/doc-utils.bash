@@ -51,7 +51,7 @@ function doc_utils_addons_list_addon_info_header {
                 t_name="Git URL";
             elif [ "$field_type" == "system" ] && [ "$field_name" == "dependencies" ]; then
                 t_name="Dependencies";
-            elif [ "$filed_type" == "custom" ]; then
+            elif [ "$field_type" == "custom" ]; then
                 t_name="";
             else
                 echoe -e "${REDC}ERROR${NC}: cannot parse field '${YELLOWC}${field}${NC}'! Skipping...";
