@@ -325,7 +325,13 @@ function odoo_recompute_menu {
 }
 
 function odoo_shell {
-    server_run --no-unbuffer -- shell "$@";
+    local odoo_shell_opts=( );
+    if [ "$(odoo_get_major_version)" -gt 10 ]; then
+        odoo_shell_opts+=( "--no-http" );
+    else
+        odoo_shell_opts+=( "--no-xmlrpc" );
+    fi
+    server_run --no-unbuffer -- shell "${odoo_shell_opts[@]}" "$@";
 }
 
 function odoo_clean_compiled_assets {
