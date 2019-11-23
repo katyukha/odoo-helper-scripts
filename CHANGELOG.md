@@ -14,6 +14,7 @@
 - Added command `odoo-helper odoo clean-compiled-assets`
 - Added `--no-backup` option to `odoo-helper install reinstall-venv` command
 - Added `--custom-val` option to `odoo-helper doc-utils addons-list` command
+- Added `odoo-helper python` command
 
 
 ### Changed
