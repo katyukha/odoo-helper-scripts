@@ -75,6 +75,7 @@ function odoo_helper_print_usage {
                                               will be used to install OCA addons.
         npm <npm arguments>                 - Run npm installed in current project's environment
         python [args]                       - Run python for this instance
+        ipython [args]                      - Run ipython shell
         browse                              - Open running odoo instance in browser
         help | --help | -h                  - display this help message
         --version|version                   - display odoo-helper version and exit
@@ -318,6 +319,14 @@ function odoo_helper_browse {
     fi
 }
 
+function odoo_helper_ipython {
+    if [ ! -e "$VENV_DIR/bin/ipython" ]; then
+        exec_pip install ipython;
+    fi
+
+    execv ipython "$@";
+}
+
 # function that parses commandline arguments and executes commands
 function odoo_helper_main {
     # Parse command line options and run commands
@@ -522,6 +531,11 @@ function odoo_helper_main {
                 config_load_project;
                 exec_py "$@";
                 return 0;
+            ;;
+            ipython)
+                shift;
+                config_load_project;
+                odoo_helper_ipython "$@";
             ;;
             browse)
                 shift;

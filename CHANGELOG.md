@@ -15,6 +15,7 @@
 - Added `--no-backup` option to `odoo-helper install reinstall-venv` command
 - Added `--custom-val` option to `odoo-helper doc-utils addons-list` command
 - Added `odoo-helper python` command
+- Added `odoo-helper ipython` command - just a fast way to install and run ipython
 
 
 ### Changed
