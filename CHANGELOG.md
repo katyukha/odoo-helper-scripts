@@ -22,6 +22,30 @@
 - Enabled following warings in defaut pylint config:
     - trailing-newlines
     - wrong-import-order
+    - no-else-raise
+    - consider-using-in
+    - relative-beyond-top-level
+    - useless-object-inheritance
+    - duplicate-except
+    - trailing-whitespace
+    - self-cls-assignment
+    - consider-using-get
+    - consider-using-set-comprehension
+    - consider-using-dict-comprehension
+    - unnecessary-semicolon
+    - singleton-comparison
+    - unneeded-not
+    - too-many-nested-blocks
+    - logging-too-many-args
+    - redundant-unittest-assert
+    - implicit-str-concat-in-sequence
+    - simplifiable-if-expression
+    - lost-exception
+    - useless-return
+    - global-statement
+    - too-many-boolean-expressions
+    - empty-docstring
+    - try-except-raise
 - Command `odoo-helper db drop` changed:
     - config file now is option (befor it was positional argument)
     - added ability to drop multiple databases at single call
