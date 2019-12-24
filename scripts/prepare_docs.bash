@@ -193,6 +193,9 @@ echo -e "~~~text\n$(odoo-helper tr rate --help)\n~~~\n\n" >> $PROJECT_DIR/docs/c
 echo -e "### odoo-helper postgres\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper postgres --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "### odoo-helper postgres locks-info\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper postgres locks-info --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper postgres user-create\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper postgres user-create --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

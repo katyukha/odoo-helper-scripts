@@ -16,6 +16,7 @@
 - Added `--custom-val` option to `odoo-helper doc-utils addons-list` command
 - Added `odoo-helper python` command
 - Added `odoo-helper ipython` command - just a fast way to install and run ipython
+- Added `odoo-helper postgres locks-info` command
 
 
 ### Changed
