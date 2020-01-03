@@ -60,6 +60,7 @@
   After this fix, version number updated too.
 - Compatability fix for `odoo-helper tr rate` command with Odoo 13.0
 - Load server-wide modules when interacting via lodoo (local odoo)
+- Improve the way to run odoo with server users, to avoid loosing environment variables.
 
 
 ## Release 0.5.0 (2019-09-01)
