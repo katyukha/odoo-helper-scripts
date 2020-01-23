@@ -246,7 +246,7 @@ function odoo_db_list {
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd print('\n'.join(['%s'%d for d in cl.db.list_databases()]));";
     
-    if ! run_python_cmd "$python_cmd"; then
+    if ! run_python_cmd_u "$python_cmd"; then
         echoe -e "${REDC}ERROR${NC}: Cannot get list of databases!";
         return 1;
     fi
