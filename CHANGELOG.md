@@ -17,6 +17,7 @@
 - Added `odoo-helper python` command
 - Added `odoo-helper ipython` command - just a fast way to install and run ipython
 - Added `odoo-helper postgres locks-info` command
+- Added `--http-host` option for `odoo-install` command
 
 
 ### Changed
@@ -84,7 +85,7 @@
     - `--password` set password to database user
     - `--country` country code to create db for
 - Extra option to `odoo-install` command
-    - `--http-port` spcify port for this odoo instance
+    - `--http-port` specify port for this odoo instance
 - New option `--no-unbuffer` that is helpful to run `odoo shell` command
   (odoo-helper server run --no-unbuffer -- shell -d my-database-name)
 - New `odoo-helper odoo shell` command
