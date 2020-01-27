@@ -56,6 +56,7 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - *10.0*
     - *11.0*
     - *12.0*
+    - *13.0*
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
@@ -79,8 +80,9 @@ So use ``--help`` option, which is available for most of commands.
 This script collection is designed to simplify life of addons developer.
 This project ***is not*** designed, to install and configure production ready Odoo instances!
 
-For production-ready installations contact [yodoo.systems](https://yodoo.systems) (Odoo SaaS, IaaS, PaaS)
-or read [Odoo official installation doc](https://www.odoo.com/documentation/12.0/setup/install.html) first.
+For production-ready installations look at [crnd-deploy](http://github.com/crnd-inc/crnd-deploy) project.
+
+Also take a look at [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit) project.
 
 
 ## Installation
