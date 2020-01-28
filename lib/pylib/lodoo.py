@@ -11,6 +11,7 @@
 """
 import os
 import atexit
+import logging
 import functools
 import pkg_resources
 
@@ -39,6 +40,8 @@ except (ImportError, KeyError):
 if odoo.release.version_info < (8,):
     raise ImportError(
         "Odoo version %s is not supported!" % odoo.release.version_info)
+
+_logger = logging.getLogger(__name__)
 
 # Color constants
 NC = '\x1b[0m'
@@ -76,12 +79,11 @@ class LocalRegistry(object):
     def __init__(self, client, dbname):
         self._client = client
         self._dbname = dbname
-        self._env = None
 
-        # For odoo 8, 9, 10, 11, +(?) there is special
-        # function `odoo.registry` to get registry instance for db
         self.registry = self.odoo.registry(self._dbname)
         self.cursor = self.registry.cursor()
+        self._env = self.odoo.api.Environment(
+            self.cursor, self.odoo.SUPERUSER_ID, {})
 
     @property
     def odoo(self):
@@ -89,11 +91,11 @@ class LocalRegistry(object):
 
     @property
     def env(self):
-        if self._env is None:
-            self._env = self.odoo.api.Environment(
-                self.cursor, self.odoo.SUPERUSER_ID, {})
-
         return self._env
+
+    @property
+    def cr(self):
+        return self.env.cr
 
     def recompute_fields(self, model, fields):
         """ Recompute specifed model fields
@@ -130,7 +132,7 @@ class LocalRegistry(object):
                 not t.value or
                 not t.value.strip() or
                 t.src == t.value or
-                t.source == t.value
+                (getattr(t, 'source', None) and t.source == t.value)
             )
 
         bad_translations = trans.filtered(filter_bad_translations)
@@ -225,6 +227,34 @@ class LocalRegistry(object):
                     return 2
         return 0
 
+    def check_translation_rate(self, lang, addons, min_total_rate=None,
+                               min_addon_rate=None, colored=False):
+        """ Check translation rate
+        """
+        trans_rate = self.compute_translation_rate(lang, addons)
+        self.print_translation_rate(trans_rate, colored=colored)
+        return self.assert_translation_rate(
+            trans_rate,
+            min_total_rate=min_total_rate,
+            min_addon_rate=min_addon_rate)
+
+    def generate_pot_file(self, module_name):
+        """ Generate .pot file for a module
+        """
+        try:
+            module_path = self.odoo.modules.module.get_module_path(module_name)
+            i18n_dir = os.path.join(
+                module_path, 'i18n')
+            if not os.path.exists(i18n_dir):
+                os.mkdir(i18n_dir)
+            pot_file = os.path.join(i18n_dir, '%s.pot' % module_name)
+            with open(pot_file, 'wb') as buf:
+                self.odoo.tools.trans_export(
+                    None, [module_name], buf, 'po', self.cr)
+        except Exception:
+            _logger.error("Error", exc_info=True)
+            raise
+
     def call_method(self, model, method, *args, **kwargs):
         """ Simple wrapper to call local model methods for database
         """
@@ -304,6 +334,9 @@ class LOdoo(object):
             if not hasattr(odoo.api.Environment._local, 'environments'):
                 odoo.api.Environment._local.environments = (
                     odoo.api.Environments())
+
+            # Load server-wide modules
+            odoo.service.server.load_server_wide_modules()
 
             self._odoo = odoo
         return self._odoo

@@ -646,6 +646,9 @@ odoo-helper addons install --dir ./repositories/oca/partner-contact;
 # Test pull-updates with --do-update option
 odoo-helper addons pull-updates --do-update;
 
+# Regenerate pot files for modules from partner-contact
+odoo-helper tr regenerate --pot --dir ./repositories/oca/partner-contact;
+
 # Print list of installed addons
 odoo-helper addons find-installed;
 
@@ -653,6 +656,60 @@ odoo-helper addons find-installed;
 odoo-helper db drop odoo12-odoo-test;
 odoo-helper db drop -q odoo12-odoo-tmp;
 
+if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then 
+    # Odoo 13 runs only with python 3.6+
+    echo -e "${YELLOWC}
+    =================================
+    Install and check Odoo 13.0 (Py3)
+    =================================
+    ${NC}"
+
+    cd ../;
+    odoo-helper install sys-deps -y 13.0;
+    odoo-helper postgres user-create odoo13 odoo;
+    odoo-install --install-dir odoo-13.0 --odoo-version 13.0 \
+        --http-port 8469 --http-host local-odoo-13 \
+        --db-user odoo13 --db-pass odoo
+
+    cd odoo-13.0;
+
+    # Install py-tools and js-tools
+    odoo-helper install py-tools;
+    odoo-helper install js-tools;
+
+    odoo-helper server run --stop-after-init;  # test that it runs
+
+    # Show project status
+    odoo-helper status;
+    odoo-helper server status;
+    odoo-helper start;
+    odoo-helper ps;
+    odoo-helper status;
+    odoo-helper server status;
+    odoo-helper stop;
+
+    # Show complete odoo-helper status
+    odoo-helper status  --tools-versions --ci-tools-versions;
+
+    # Database management
+    odoo-helper db create --demo --lang en_US odoo13-odoo-test;
+
+    # Fetch oca/contract
+    odoo-helper fetch --github crnd-inc/generic-addons
+
+    # Install addons from OCA contract
+    odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
+
+    # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
+    odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+    odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+
+    # Print list of installed addons
+    odoo-helper addons find-installed;
+
+    # Drop created databases
+    odoo-helper db drop odoo13-odoo-test;
+fi
 
 echo -e "${GREENC}
 ==========================================

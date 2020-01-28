@@ -341,7 +341,7 @@ function install_parse_debian_control_file {
             python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
                 continue
             ;;
-            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass)
+            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass|python3-polib|python3-qrcode|python3-xlrd)
                 continue
             ;;
             python-libxslt1|python-simplejson|python-unittest2)
@@ -691,6 +691,7 @@ function install_python_tools {
         - flake8
         - flake8-colors
         - websocket-client  (required for tests in Odoo 12.0)
+        - jingtrang
 
     Usage:
 
@@ -722,7 +723,7 @@ function install_python_tools {
         shift
     done
     exec_pip "${pip_options[@]}" install setproctitle watchdog pylint-odoo coverage \
-        flake8 flake8-colors websocket-client;
+        flake8 flake8-colors websocket-client jingtrang;
 }
 
 # Install extra javascript tools
@@ -965,6 +966,7 @@ function install_reinstall_venv {
 
         -p|--python <python ver>  - python version to recreate virtualenv with.
                                     Same as --python option of virtualenv
+        --no-backup               - do not backup virtualenv
     ";
     while [[ $# -gt 0 ]]
     do
@@ -973,6 +975,9 @@ function install_reinstall_venv {
             -p|--python)
                 VIRTUALENV_PYTHON="$2";
                 shift;
+            ;;
+            --no-backup)
+                local do_not_backup_virtualenv=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -992,7 +997,7 @@ function install_reinstall_venv {
     fi
 
     # Backup old venv
-    if [ -d "$VENV_DIR" ]; then
+    if [ -d "$VENV_DIR" ] && [ -z "$do_not_backup_virtualenv" ]; then
         local venv_backup_path;
         venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
         mv "$VENV_DIR" "$venv_backup_path";
@@ -1076,7 +1081,7 @@ function install_entry_point {
         $SCRIPT_NAME install dev-tools [--help]          - [sudo] install dev tools.
         $SCRIPT_NAME install unoconv [--help]            - [sudo] install unoconv.
         $SCRIPT_NAME install openupgradelib [--help]     - install lates openupgradelib.
-        $SCRIPT_NAME install wkhtmltopdf                 - [sudo] install wkhtmtopdf
+        $SCRIPT_NAME install wkhtmltopdf [--help]        - [sudo] install wkhtmtopdf
         $SCRIPT_NAME install postgres [user] [password]  - [sudo] install postgres.
                                                            and if user/password specified, create it
         $SCRIPT_NAME install reinstall-venv [--help]     - reinstall virtual environment

@@ -159,18 +159,21 @@ function ci_check_versions_git {
         $SCRIPT_NAME ci check-versions-git [options] <repo> <start> [end]
 
     Options:
-        --ignore-trans  - ignore translations
-                          Note: this option may not work on old git versions
-        --repo-version  - ensure repository version updated.
-                          Repository version have to be specified in
-                          file named VERSION placed in repository root.
-                          Version have to be string of
-                          5 numbers separated by dots.
-                          For example: 11.0.1.0.0
-                          Version number have to be updated if at least one
-                          addon changed
-        --fix-version   - [experimental] Attempt to fix versions
-        -h|--help|help  - print this help message end exit
+        --ignore-trans    - ignore translations
+                            Note: this option may not work on old git versions
+        --repo-version    - ensure repository version updated.
+                            Repository version have to be specified in
+                            file named VERSION placed in repository root.
+                            Version have to be string of
+                            5 numbers separated by dots.
+                            For example: 11.0.1.0.0
+                            Version number have to be updated if at least one
+                            addon changed
+        --fix-serie       - [experimental] Fix module serie only
+        --fix-version     - [experimental] Attempt to fix versions
+        --fix-version-fp  - [experimental] Fix version conflicts during
+                            forwardport
+        -h|--help|help    - print this help message end exit
 
     Parametrs:
         <repo>    - path to git repository to search for changed addons in
@@ -188,7 +191,9 @@ function ci_check_versions_git {
     local ref_start;
     local ref_end;
     local check_repo_version=0;
+    local opt_fix_serie=0;
     local opt_fix_version=0;
+    local opt_fix_version_fp=0;
     local cdir;
     while [[ $# -gt 0 ]]
     do
@@ -207,8 +212,19 @@ function ci_check_versions_git {
                 check_repo_version=1;
                 shift;
             ;;
+            --fix-serie)
+                opt_fix_serie=1;
+                shift;
+            ;;
             --fix-version)
+                opt_fix_serie=1;
                 opt_fix_version=1;
+                shift;
+            ;;
+            --fix-version-fp)
+                opt_fix_serie=1;
+                opt_fix_version=1;
+                opt_fix_version_fp=1;
                 shift;
             ;;
             *)
@@ -233,13 +249,20 @@ function ci_check_versions_git {
     mapfile -t changed_addons < <(git_get_addons_changed "${git_changed_extra_opts[@]}" "$repo_path" "$ref_start" "$ref_end" | sed '/^$/d')
     local addon_path;
     for addon_path in "${changed_addons[@]}"; do
+        if [ "$opt_fix_version_fp" -eq 1 ] && git_is_merging "$addon_path"; then
+            local manifest_path;
+            manifest_path=$(addons_get_manifest_file "$addon_path")
+            if git_file_has_conflicts "$addon_path" "$manifest_path"; then
+                exec_py "$ODOO_HELPER_LIB/pylib/ci_fix_version.py" "$manifest_path";
+            fi
+        fi
         if ! addons_is_installable "$addon_path"; then
             continue;
         fi
         cd "$addon_path";
         local addon_name;
         addon_name=$(basename "$addon_path");
-
+ 
         echoe -e "${BLUEC}Checking version of ${YELLOWC}${addon_name}${BLUEC} addon ...${NC}";
         local version_after;
         local version_before;
@@ -247,7 +270,7 @@ function ci_check_versions_git {
         version_after=$(ci_git_get_addon_version_by_ref "$addon_path" "${ref_end}");
 
         if ! ci_validate_version "$version_after"; then
-            if [ "$opt_fix_version" -eq 1 ]; then
+            if [ "$opt_fix_serie" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
                 # shellcheck disable=SC2181
@@ -275,6 +298,7 @@ function ci_check_versions_git {
             if [ "$opt_fix_version" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
+                new_version=$(ci_fix_version_number "$new_version");
                 # shellcheck disable=SC2181
                 if [ "$?" -eq 0 ]; then
                     local addon_manifest_file;

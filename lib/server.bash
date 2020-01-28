@@ -100,6 +100,15 @@ function server_run {
     For --coverage option files in current working directory will be covered
     To add customa paths use environement variable COVERAGE_INCLUDE
     ";
+    local current_user;
+    current_user="$(whoami)";
+    if [ -n "$SERVER_RUN_USER" ] && [ "$SERVER_RUN_USER" != "$current_user" ]; then
+        # We have to run this command recursively with server user.
+        # because when we try to run odoo-directly, all environment variables
+        # could be lost in some cases
+        sudo -u "$SERVER_RUN_USER" -H -E -- odoo-helper server run "$@";
+        return;
+    fi
     local server_conf="$ODOO_CONF_FILE";
     local with_coverage=0;
     local no_unbuffer;
@@ -135,9 +144,6 @@ function server_run {
     local server_script;
     local server_cmd=( );
     server_script=$(get_server_script);
-    if [ -n "$SERVER_RUN_USER" ]; then
-        server_cmd+=( sudo -u "$SERVER_RUN_USER" -H -E -- )
-    fi
 
     if [ "$with_coverage" -eq 1 ]; then
         local coverage_include;

@@ -98,6 +98,7 @@ function print_usage {
          --db-pass <password>          - database password to be used in settings. default: odoo
 
          --http-port <port>            - automatically set configuration for http port for this instance
+         --http-host <host>            - automatically set configuration for http host for this instance
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
          --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xmlrpc_port 9998'
          --verbose|--vv                - show extra output
@@ -180,6 +181,10 @@ function parse_options {
                 ODOO_HTTP_PORT=$2;
                 shift;
             ;;
+            --http-host)
+                ODOO_HTTP_HOST=$2;
+                shift;
+            ;;
             --conf-opt-*)
                 local opt_name="${key#--conf-opt-}"
                 CONF_OPTIONS[$opt_name]=$2;
@@ -247,8 +252,13 @@ function generate_conf {
     ODOO_CONF_OPTIONS[db_password]="${ODOO_CONF_OPTIONS['db_password']:-$DB_PASSWORD}";
 
     if [ -n "$ODOO_HTTP_PORT" ]; then
-        ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-$ODOO_HTTP_PORT}";
         ODOO_CONF_OPTIONS[http_port]="${ODOO_CONF_OPTIONS['http_port']:-$ODOO_HTTP_PORT}";
+        ODOO_CONF_OPTIONS[xmlrpc_port]="${ODOO_CONF_OPTIONS['xmlrpc_port']:-$ODOO_HTTP_PORT}";
+    fi
+
+    if [ -n "$ODOO_HTTP_HOST" ]; then
+        ODOO_CONF_OPTIONS[http_interface]="${ODOO_CONF_OPTIONS['http_host']:-$ODOO_HTTP_HOST}";
+        ODOO_CONF_OPTIONS[xmlrpc_interface]="${ODOO_CONF_OPTIONS['xmlrpc_host']:-$ODOO_HTTP_HOST}";
     fi
 
     # Generate conf

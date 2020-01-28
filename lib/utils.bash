@@ -216,6 +216,17 @@ function join_by {
     echo "$*";
 }
 
+# Trim leading and trailing whitespaces
+# https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable#answer-3352015
+function trim {
+    local var="$*"
+    # remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"
+    echo -n "$var"
+}
+
 # Exec python
 #
 function exec_py {

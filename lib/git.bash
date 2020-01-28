@@ -40,6 +40,17 @@ function git_get_current_commit {
     (cd "$1" && git rev-parse --verify --short HEAD);
 }
 
+# git_is_merging <path>
+function git_is_merging {
+    (cd "$1" && git rev-parse -q --verify MERGE_HEAD > /dev/null 2>&1);
+}
+
+# git_file_has_conflicts <rep-path> <path>
+# return 0 if specified path has conflicts
+function git_file_has_conflicts {
+    ! (cd "$1" && git diff -q --check -- "$2" > /dev/null 2>&1);
+}
+
 # git_get_branch_name [repo_path]
 function git_get_branch_name {
     local cdir;

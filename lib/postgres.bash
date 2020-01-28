@@ -189,6 +189,45 @@ PGAPPNAME="odoo-helper-pgstat" postgres_psql << EOF
 EOF
 }
 
+function postgres_psql_locks_info {
+    local usage="
+    Fetch info about postgres locks on database
+
+    Usage:
+
+        $SCRIPT_NAME postgres locks-info <dbname>
+        $SCRIPT_NAME postgres locks-info --help
+    ";
+    local extra_opts=( );
+    case $1 in
+        -h|--help|help)
+            echo "$usage";
+            return 0;
+        ;;
+        *)
+            extra_opts+=( "-d" "$1" );
+        ;;
+    esac
+
+    PGNAME="odoo-helper-pgstat" postgres_psql "${extra_opts[@]}" << EOF
+SELECT
+    pg_stat_activity.datname,
+    pg_locks.relation::regclass,
+    pg_locks.transactionid,
+    pg_locks.mode,
+    pg_locks.GRANTED,
+    pg_stat_activity.usename,
+    pg_stat_activity.query,
+    pg_stat_activity.query_start,
+    age(now(), pg_stat_activity.query_start) AS "age",
+    pg_stat_activity.pid
+FROM pg_stat_activity
+JOIN pg_locks ON pg_locks.pid = pg_stat_activity.pid
+WHERE pg_locks.mode = 'ExclusiveLock'
+ORDER BY pg_stat_activity.query_start;
+EOF
+}
+
 # Configure local postgresql instance to be faster but less safe
 #
 # postgres_config_local_speed_unsafe
@@ -240,6 +279,7 @@ function postgres_command {
                                                                      print data from pg_stat_activity table.
         $SCRIPT_NAME postgres stat-connections                     - show statistics about postgres connections:
                                                                      used, reserved, free connections
+        $SCRIPT_NAME postgres locks-info                           - Display info about locks
         $SCRIPT_NAME postgres speedify                             - [local][sudo] Modify local postgres config
                                                                      to make it faster. But also makes postgres unsafe.
                                                                      Usualy this is normal for dev machines,
@@ -283,6 +323,12 @@ function postgres_command {
                 shift;
                 config_load_project;
                 postgres_psql_connection_info "$@";
+                return;
+            ;;
+            locks-info)
+                shift;
+                config_load_project;
+                postgres_psql_locks_info "$@";
                 return;
             ;;
             -h|--help|help)

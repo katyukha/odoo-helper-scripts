@@ -1,5 +1,69 @@
 # Release Notes
 
+## Release 0.6.0 (2020-01-28)
+
+### Added
+
+- `odoo-helper install py-tools` now also installs [jingtrang](https://pypi.org/project/jingtrang/).
+  This tools is used to show better warning on parsing xml views
+- Added option `--pot` for `odoo-helper tr regenerate` that allows to regenerate `.pot` files on modules
+- Added option `--fix-version-fp` to `ci check-versions-git` command.
+  This command allows to fix version numbers during forwardport changes from older version of Odoo to newer
+- Added option `--fix-serie` to `ci check-versions-git` command.
+- Added command `odoo-helper odoo recompute-menu`
+- Added command `odoo-helper odoo clean-compiled-assets`
+- Added `--no-backup` option to `odoo-helper install reinstall-venv` command
+- Added `--custom-val` option to `odoo-helper doc-utils addons-list` command
+- Added `odoo-helper python` command
+- Added `odoo-helper ipython` command - just a fast way to install and run ipython
+- Added `odoo-helper postgres locks-info` command
+- Added `--http-host` option for `odoo-install` command
+
+
+### Changed
+
+- Enabled following warings in defaut pylint config:
+    - trailing-newlines
+    - wrong-import-order
+    - no-else-raise
+    - consider-using-in
+    - relative-beyond-top-level
+    - useless-object-inheritance
+    - duplicate-except
+    - trailing-whitespace
+    - self-cls-assignment
+    - consider-using-get
+    - consider-using-set-comprehension
+    - consider-using-dict-comprehension
+    - unnecessary-semicolon
+    - singleton-comparison
+    - unneeded-not
+    - too-many-nested-blocks
+    - logging-too-many-args
+    - redundant-unittest-assert
+    - implicit-str-concat-in-sequence
+    - simplifiable-if-expression
+    - lost-exception
+    - useless-return
+    - global-statement
+    - too-many-boolean-expressions
+    - empty-docstring
+    - try-except-raise
+- Command `odoo-helper db drop` changed:
+    - config file now is option (befor it was positional argument)
+    - added ability to drop multiple databases at single call
+- Run `odoo-helper odoo shell` with implicit `--no-http` option, to avoid conflicts with running odoo
+
+### Fixed
+
+- Fixed `--fix-version` option of `odoo-helper ci check-versions-git` command.
+  Before this fix, only Odoo serie was updated.
+  After this fix, version number updated too.
+- Compatability fix for `odoo-helper tr rate` command with Odoo 13.0
+- Load server-wide modules when interacting via lodoo (local odoo)
+- Improve the way to run odoo with server users, to avoid loosing environment variables.
+
+
 ## Release 0.5.0 (2019-09-01)
 
 ### Added
@@ -21,7 +85,7 @@
     - `--password` set password to database user
     - `--country` country code to create db for
 - Extra option to `odoo-install` command
-    - `--http-port` spcify port for this odoo instance
+    - `--http-port` specify port for this odoo instance
 - New option `--no-unbuffer` that is helpful to run `odoo shell` command
   (odoo-helper server run --no-unbuffer -- shell -d my-database-name)
 - New `odoo-helper odoo shell` command
