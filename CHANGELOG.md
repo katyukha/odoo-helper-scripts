@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased changes
+
+### Added
+
+- Added `--recursive` option to `odoo-helper doc-utils addons-list` command
+
+
 ## Release 0.6.0 (2020-01-28)
 
 ### Added

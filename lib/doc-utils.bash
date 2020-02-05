@@ -156,6 +156,7 @@ function doc_utils_addons_list {
         --dependencies             - display dependencies list separated by coma
         --format <md|csv>          - output format. default: md
         --custom-val <val>         - custom value
+        --recursive                - search for addons recusively
 
     Description
         Prints list of addons in specified dierectory in markdown format.
@@ -182,6 +183,8 @@ function doc_utils_addons_list {
 
     local addons_path=;
     local format="md";
+
+    local addons_list_opts=( );
 
     while [[ $# -gt 0 ]]
     do
@@ -211,6 +214,9 @@ function doc_utils_addons_list {
                 local format=$2;
                 shift;
             ;;
+            --recursive)
+                addons_list_opts+=( --recursive );
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -236,7 +242,7 @@ function doc_utils_addons_list {
     fi
 
     local addons_list;
-    mapfile -t addons_list < <(addons_list_in_directory "$addons_path");
+    mapfile -t addons_list < <(addons_list_in_directory "${addons_list_opts[@]}" "$addons_path");
     for addon in "${addons_list[@]}"; do
         local addon_info;
         addon_info=$(doc_utils_addons_list_addon_info "$format" "$addon" "${field_names[@]}");
