@@ -341,6 +341,8 @@ function odoo_clean_compiled_assets {
     This is required some times, when compiled assets are broken,
     and Odoo do not want to regenerate them in usual way.
 
+    WARNING: This is experimental feature;
+
     Usage:
 
         $SCRIPT_NAME odoo clean-compiled-assets <options>  - clean-up assets

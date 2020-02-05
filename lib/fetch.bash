@@ -205,6 +205,11 @@ function fetch_get_repo_path {
     local repo=$1;
     local repo_name=$2;
 
+    if [ -z "$REPOSITORIES_DIR" ]; then
+        echoe -e "${REDC}ERROR${NC}: no repositories dir specified! Are you running this command in right workdir?";
+        return 1
+    fi
+
     if [ -n "$repo_name" ]; then
         # If repository name specified then name this repo as specified.
         echo "$REPOSITORIES_DIR/$repo_name";
