@@ -1002,6 +1002,11 @@ function install_reinstall_venv {
         venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
         mv "$VENV_DIR" "$venv_backup_path";
         echoe -e "${BLUEC}Old ${YELLOWC}virtualenv${BLUEC} backed up at ${YELLOWC}${venv_backup_path}${NC}";
+    elif [ -d "$VENV_DIR" ]; then
+        # If we do not need to backup virtualenv, then we have to removed it before installing;
+        echoe -e "${YELLOWC}Removing virualenv...${NC}";
+        rm -r "$VENV_DIR";
+        echoe -e "${YELLOWC}Virtualenv removed!${NC}";
     fi
 
     # Install odoo
