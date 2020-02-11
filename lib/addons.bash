@@ -1091,7 +1091,7 @@ function addons_find_installed {
             addon_path=$(addons_get_addon_path "$addon");
             if git_is_git_repo "$addon_path"; then
                 addon_repo=$(git_get_remote_url "$addon_path");
-                used_repositories[$addon_repo]=$(git_get_branch_name "$addon_path");
+                used_repositories["$addon_repo"]=$(git_get_branch_name "$addon_path");
             fi
             echo "    - $addon";
         done
