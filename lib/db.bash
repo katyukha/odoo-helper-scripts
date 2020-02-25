@@ -90,6 +90,10 @@ function odoo_db_create {
                 db_install_addons+=( "$2" );
                 shift;
             ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -182,6 +186,10 @@ function odoo_db_drop {
                 echo "$usage";
                 return 0;
             ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
+            ;;
             *)
                 break;
             ;;
@@ -234,6 +242,10 @@ function odoo_db_list {
                 echo "$usage";
                 return 0;
             ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
+            ;;
             *)
                 break;
             ;;
@@ -284,6 +296,10 @@ function odoo_db_exists {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;
@@ -336,6 +352,10 @@ function odoo_db_rename {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;
@@ -400,6 +420,10 @@ function odoo_db_copy {
                 echo "$usage";
                 return 0;
             ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
+            ;;
             *)
                 break;
             ;;
@@ -448,18 +472,20 @@ function odoo_db_dump {
         $SCRIPT_NAME db dump [options] <dbname> <file-path>
 
     Arguments:
-        <dbname>       - name of database to dump
-        <file-path>    - path to save dump in
+        <dbname>         - name of database to dump
+        <file-path>      - path to save dump in
 
     Options:
-       --format <fmt>  - format of dump: zip or sql. Default: zip
-       --conf <path>   - path to configuration file
-       --help          - display this help message
+       --format <fmt>    - format of dump: zip or sql. Default: zip
+       --conf <path>     - path to configuration file
+       --tmp-dir <path>  - use different temp dir
+       --help            - display this help message
     ";
 
     # Default options
     local conf_file=$ODOO_CONF_FILE;
     local format="zip";
+    local custom_temp_dir;
 
     # Parse options
     while [[ $# -gt 0 ]]
@@ -474,9 +500,22 @@ function odoo_db_dump {
                 conf_file="$2";
                 shift;
             ;;
+            --tmp-dir)
+                if [ -d "$2" ]; then
+                    custom_temp_dir=$2;
+                else
+                    echoe -e "${REDC}ERROR${NC}: temp dir '$2' does not exists!";
+                    return 1;
+                fi
+                shift;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;
@@ -489,13 +528,23 @@ function odoo_db_dump {
     local python_cmd="import lodoo, base64; cl=lodoo.LocalClient(['-c', '$conf_file']);";
     python_cmd="$python_cmd dump=base64.b64decode(cl.db.dump(cl.odoo.tools.config['admin_passwd'], '$db_name', '$format'));";
     python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
-    
-    if run_python_cmd "$python_cmd"; then
-        echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
-        return 0;
+   
+    if [ -n "$custom_temp_dir" ] && [ -d "$custom_temp_dir" ]; then 
+        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd "$python_cmd"; then
+            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
+            return 0;
+        else
+            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
+            return 1;
+        fi
     else
-        echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
-        return 1;
+        if run_python_cmd "$python_cmd"; then
+            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
+            return 0;
+        else
+            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
+            return 1;
+        fi
     fi
 }
 
@@ -516,17 +565,19 @@ function odoo_db_backup {
         $SCRIPT_NAME db backup [options] <dbname>
 
     Arguments:
-        <dbname>       - name of database to backup
+        <dbname>         - name of database to backup
 
     Options:
-       --format <fmt>  - format of backup: zip or sql. Default: zip
-       --conf <path>   - path to configuration file
-       --help          - display this help message
+       --format <fmt>    - format of backup: zip or sql. Default: zip
+       --conf <path>     - path to configuration file
+       --tmp-dir <path>  - use different temp dir
+       --help            - display this help message
     ";
 
     # Default options
     local conf_file=$ODOO_CONF_FILE;
     local format="zip";
+    local custom_temp_dir;
 
     # Parse options
     while [[ $# -gt 0 ]]
@@ -541,9 +592,22 @@ function odoo_db_backup {
                 conf_file="$2";
                 shift;
             ;;
+            --tmp-dir)
+                if [ -d "$2" ]; then
+                    custom_temp_dir=$2;
+                else
+                    echoe -e "${REDC}ERROR${NC}: temp dir '$2' does not exists!";
+                    return 1;
+                fi
+                shift;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;
@@ -562,7 +626,11 @@ function odoo_db_backup {
         db_dump_file="$db_dump_file.backup";
     fi
 
-    odoo_db_dump --format "$format" --conf "$conf_file" "$db_name" "$db_dump_file";
+    if [ -n "$custom_temp_dir" ]; then
+        odoo_db_dump --tmp-dir "$custom_temp_dir" --format "$format" --conf "$conf_file" "$db_name" "$db_dump_file";
+    else
+        odoo_db_dump --format "$format" --conf "$conf_file" "$db_name" "$db_dump_file";
+    fi
     echo "$db_dump_file"
 }
 
@@ -578,14 +646,16 @@ function odoo_db_backup_all {
         $SCRIPT_NAME db backup-all [options]
 
     Options:
-       --format <fmt>  - format of backup: zip or sql. Default: zip
-       --conf <path>   - path to configuration file
-       --help          - display this help message
+       --format <fmt>    - format of backup: zip or sql. Default: zip
+       --conf <path>     - path to configuration file
+       --tmp-dir <path>  - use different temp dir
+       --help            - display this help message
     ";
 
     # Default options
     local conf_file=$ODOO_CONF_FILE;
     local format="zip";
+    local custom_temp_dir;
 
     # Parse options
     while [[ $# -gt 0 ]]
@@ -600,9 +670,22 @@ function odoo_db_backup_all {
                 conf_file="$2";
                 shift;
             ;;
+            --tmp-dir)
+                if [ -d "$2" ]; then
+                    custom_temp_dir=$2;
+                else
+                    echoe -e "${REDC}ERROR${NC}: temp dir '$2' does not exists!";
+                    return 1;
+                fi
+                shift;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;
@@ -616,7 +699,11 @@ function odoo_db_backup_all {
     mapfile -t dbnames < <(odoo_db_list "$conf_file");
     for dbname in "${dbnames[@]}"; do
         echoe -e "${BLUEC}Backing-up database: ${YELLOWC}$dbname${NC}";
-        odoo_db_backup --format "$format" --conf "$conf_file" "$dbname";
+        if [ -n "$custom_temp_dir" ]; then
+            odoo_db_backup --tmp-dir "$custom_temp_dir" --format "$format" --conf "$conf_file" "$dbname";
+        else
+            odoo_db_backup --format "$format" --conf "$conf_file" "$dbname";
+        fi
     done
 }
 
@@ -630,16 +717,18 @@ function odoo_db_restore {
         $SCRIPT_NAME db restore [options] <dbname> <dump_file>
 
     Arguments:
-        <dbname>       - name of database to restore
-        <dump_file>    - path to database backup
+        <dbname>         - name of database to restore
+        <dump_file>      - path to database backup
 
     Options:
-       --conf <path>   - path to configuration file
-       --help          - display this help message
+       --conf <path>     - path to configuration file
+       --tmp-dir <path>  - use different temp dir
+       --help            - display this help message
     ";
 
     # Default options
     local conf_file=$ODOO_CONF_FILE;
+    local custom_temp_dir;
 
     # Parse options
     while [[ $# -gt 0 ]]
@@ -650,9 +739,22 @@ function odoo_db_restore {
                 conf_file="$2";
                 shift;
             ;;
+            --tmp-dir)
+                if [ -d "$2" ]; then
+                    custom_temp_dir=$2;
+                else
+                    echoe -e "${REDC}ERROR${NC}: temp dir '$2' does not exists!";
+                    return 1;
+                fi
+                shift;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;
@@ -663,17 +765,27 @@ function odoo_db_restore {
     local db_name=$1;
     local db_dump_file=$2;
 
-    local python_cmd="import lodoo, base64; cl=lodoo.LocalClient(['-c', '$conf_file']);";
-    python_cmd="$python_cmd res=cl.db.restore(cl.odoo.tools.config['admin_passwd'], '$db_name', base64.b64encode(open('$db_dump_file', 'rb').read()));";
+    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    python_cmd="$python_cmd res=cl.db.restore_database('$db_name', '$db_dump_file');";
     python_cmd="$python_cmd exit(0 if res else 1);";
 
     # Filestore should be created by server user, so run resotore command as server user
-    if run_python_cmd_u "$python_cmd"; then
-        echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} restored from ${BLUEC}$db_dump_file${NC}!";
-        return 0;
+    if [ -n "$custom_temp_dir" ]; then
+        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd_u "$python_cmd"; then
+            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} restored from ${BLUEC}$db_dump_file${NC}!";
+            return 0;
+        else
+            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on restore from ${BLUEC}$db_dump_file${NC}!";
+            return 1;
+        fi
     else
-        echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on restore from ${BLUEC}$db_dump_file${NC}!";
-        return 1;
+        if run_python_cmd_u "$python_cmd"; then
+            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} restored from ${BLUEC}$db_dump_file${NC}!";
+            return 0;
+        else
+            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on restore from ${BLUEC}$db_dump_file${NC}!";
+            return 1;
+        fi
     fi
 }
 
@@ -708,6 +820,10 @@ function odoo_db_is_demo_enabled {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;

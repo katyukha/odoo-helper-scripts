@@ -290,6 +290,10 @@ class LocalDBService(object):
             return self.list()
         return self.odoo.service.db.list_dbs(True)
 
+    def restore_database(self, db_name, dump_file):
+        self.odoo.service.db.restore_db(db_name, dump_file)
+        return True
+
     def __getattr__(self, name):
         def db_service_method(*args):
             return self.dispatch(name, args)
