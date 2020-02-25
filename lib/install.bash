@@ -617,7 +617,14 @@ function install_virtual_env {
             VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$venv_script" "$VENV_DIR";
         fi
         exec_pip -q install nodeenv;
-        execv nodeenv --python-virtualenv;  # Install node environment
+
+        local nodeenv_opts;
+        nodeenv_opts=( "--python-virtualenv" );
+        if [ -n "$ODOO_INSTALL_NODE_VERSION" ]; then
+            nodeenv_opts+=( "--node" "$ODOO_INSTALL_NODE_VERSION" );
+        fi
+
+        execv nodeenv "${nodeenv_opts[@]}";  # Install node environment
 
         exec_npm set user 0;
         exec_npm set unsafe-perm true;
@@ -966,6 +973,8 @@ function install_reinstall_venv {
 
         -p|--python <python ver>  - python version to recreate virtualenv with.
                                     Same as --python option of virtualenv
+        --node-version <version>  - version of node.js to be installed.
+                                    Default: latest
         --no-backup               - do not backup virtualenv
     ";
     while [[ $# -gt 0 ]]
@@ -978,6 +987,10 @@ function install_reinstall_venv {
             ;;
             --no-backup)
                 local do_not_backup_virtualenv=1;
+            ;;
+            --node-version)
+                ODOO_INSTALL_NODE_VERSION=$2;
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";

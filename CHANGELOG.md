@@ -5,7 +5,9 @@
 ### Added
 
 - Added `--recursive` option to `odoo-helper doc-utils addons-list` command
-- Added `--tmp-dir` optin to odoo-helper's database backup/restore commands
+- Added `--tmp-dir` option to odoo-helper's database backup/restore commands
+- Added `--node-version` option to `odoo-install` and
+  to `odoo-helper install reinstall-venv` commands
 
 
 ## Release 0.6.0 (2020-01-28)
