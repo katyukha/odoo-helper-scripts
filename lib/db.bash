@@ -90,13 +90,13 @@ function odoo_db_create {
                 db_install_addons+=( "$2" );
                 shift;
             ;;
-            -*)
-                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
-                return 1;
-            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
             ;;
             *)
                 break;
