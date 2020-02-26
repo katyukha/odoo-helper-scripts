@@ -210,7 +210,7 @@ function odoo_db_drop {
         python_cmd="$python_cmd exit(int(not(cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name'))));";
         echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
 
-        if ! run_python_cmd "$python_cmd"; then
+        if ! run_python_cmd_u "$python_cmd"; then
             if [ -z "$opt_quite" ]; then
                 echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
             fi
@@ -314,7 +314,7 @@ function odoo_db_exists {
     local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file', '--logfile', '/dev/null']);";
     python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
     
-    if run_python_cmd "$python_cmd"; then
+    if run_python_cmd_u "$python_cmd"; then
         if [ -z "$opt_quite" ]; then
             echoe -e "Database named ${YELLOWC}$db_name${NC} exists!";
         fi
@@ -530,7 +530,7 @@ function odoo_db_dump {
     python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
    
     if [ -n "$custom_temp_dir" ] && [ -d "$custom_temp_dir" ]; then 
-        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd "$python_cmd"; then
+        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd_u "$python_cmd"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
             return 0;
         else
@@ -538,7 +538,7 @@ function odoo_db_dump {
             return 1;
         fi
     else
-        if run_python_cmd "$python_cmd"; then
+        if run_python_cmd_u "$python_cmd"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
             return 0;
         else

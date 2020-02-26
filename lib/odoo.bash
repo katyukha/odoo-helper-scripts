@@ -272,7 +272,7 @@ function odoo_recompute_stored_fields {
         python_cmd="$python_cmd db.recompute_parent_store('$model');"
     fi
 
-    run_python_cmd "$python_cmd";
+    run_python_cmd_u "$python_cmd";
 }
 
 function odoo_recompute_menu {

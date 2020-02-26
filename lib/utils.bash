@@ -238,8 +238,10 @@ function exec_py {
 # Exec python with server user (if provided)
 function exec_py_u {
     local python_exec;
+    local current_user;
     python_exec=$(odoo_get_python_interpreter);
-    if [ -n "$SERVER_RUN_USER" ]; then
+    current_user=$(whoami);
+    if [ -n "$SERVER_RUN_USER" ] && [ "$SERVER_RUN_USER" != "$current_user" ]; then
         execu sudo -u "$SERVER_RUN_USER" -H -E "$python_exec" "$@";
     else
         execu "$python_exec" "$@";
@@ -259,6 +261,8 @@ try:
 except SystemExit:
     raise
 except Exception:
+    import traceback
+    traceback.print_exc(file=sys.stderr)
     sys.exit(1)
 ";
     echo "$cmd";
