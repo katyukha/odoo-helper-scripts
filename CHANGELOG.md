@@ -9,6 +9,13 @@
 - Added `--node-version` option to `odoo-install` and
   to `odoo-helper install reinstall-venv` commands
 
+### Fixes & Improvements
+
+- Refactored `odoo-helper update-sources` command:
+   - add help message
+   - if `ODOO_REPO` specified, try to download archive from this repo
+   - if `ODOO_DOWNLOAD_SOURCE_LINK` specified, then use it to download Odoo archive
+
 
 ## Release 0.6.0 (2020-01-28)
 

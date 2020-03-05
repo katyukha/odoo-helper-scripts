@@ -101,8 +101,17 @@ function odoo_update_sources_archive {
     local wget_opt;
     local backup_path;
     local odoo_archive;
+    local odoo_archive_link;
 
     file_suffix="$(date -I).$(random_string 4)";
+
+    if [ -n "$ODOO_DOWNLOAD_SOURCE_LINK" ]; then
+        odoo_archive_link="$ODOO_DOWNLOAD_SOURCE_LINK";
+    elif [ -n "$ODOO_REPO" ] && [[ "$ODOO_REPO" == "https://github.com"* ]]; then
+        odoo_archive_link="${ODOO_REPO%.git}/archive/$ODOO_BRANCH.tar.gz"
+    else
+        odoo_archive_link="https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+    fi
 
     if [ -d "$ODOO_PATH" ]; then    
         # Backup only if odoo sources directory exists
@@ -112,23 +121,58 @@ function odoo_update_sources_archive {
         echoe -e "${LBLUEC}Odoo sources backup saved at:${NC} $backup_path";
     fi
 
-    echoe -e "${LBLUEC}Downloading new sources archive...${NC}"
+    echoe -e "${LBLUEC}Downloading new sources archive from ${YELLOWC}${odoo_archive_link}${LBLUEC}...${NC}"
     odoo_archive=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$file_suffix.tar.gz
-    # TODO: use odoo-repo variable here
+
+    local wget_options=( "-T" "15" "-O" "$odoo_archive" );
     if [ -z "$VERBOSE" ]; then
-        wget -T 15 -q -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
-    else
-        wget -T 15 -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+        wget_options+=( "-q" );
     fi
+
+    if ! wget "${wget_options[@]}" "$odoo_archive_link"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot download Odoo. Retry this operation with --verbose option.";
+        return 1
+    fi
+ 
+    echoe -e "${LBLUEC}Removing old odoo sources...${NC}";
     rm -r "$ODOO_PATH";
+
     echoe -e "${LBLUEC}Unpacking new source archive ...${NC}";
     (cd "$DOWNLOADS_DIR" && \
         tar -zxf "$odoo_archive" && \
         mv "odoo-$ODOO_BRANCH" "$ODOO_PATH");
-
+    echoe -e "${GREENC}OK${NC}: ${LBLUEC}Odoo sources unpacked.${NC}";
 }
 
 function odoo_update_sources {
+    local usage="
+    Update odoo sources
+
+    Usage:
+
+        $SCRIPT_NAME update-odoo          - update odoo sourcess
+        $SCRIPT_NAME update-odoo --help   - show this help message
+    ";
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
+            ;;
+            *)
+                break;
+            ;;
+        esac;
+        shift;
+    done
+
     if git_is_git_repo "$ODOO_PATH"; then
         echoe -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
         odoo_update_sources_git;
@@ -144,7 +188,7 @@ function odoo_update_sources {
     odoo_run_setup_py;  # imported from 'install' module
 
     echoe -e "${GREENC}Odoo sources update finished!${NC}";
-
+    echoe -e "${LBLUEC}It is recommended to update module ${YELLOC}base${NC} on all databases on this server!${NC}";
 }
 
 

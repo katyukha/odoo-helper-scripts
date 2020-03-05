@@ -63,7 +63,7 @@ function odoo_helper_print_usage {
         ci [--help]                         - commands usefule for Continious Integration
         install [--help]                    - install related stuff (sys-deps, ...)
         doc-utils [--help]                  - subcommand that contains doc utlities
-        update-odoo                         - update odoo source code
+        update-odoo [--help]                - update odoo source code
         odoo-py [args]                      - run project-specific odoo.py script
         scaffold [--help]                   - Scaffold repo, addon, model, etc
         print-config                        - print current configuration

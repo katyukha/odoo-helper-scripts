@@ -228,3 +228,6 @@ echo -e "~~~text\n$(odoo-helper doc-utils addons-list --help)\n~~~\n\n" >> $PROJ
 
 echo -e "### odoo-helper system\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper system --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "### odoo-helper update-sources\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper update-sources --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
