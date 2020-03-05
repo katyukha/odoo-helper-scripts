@@ -8,6 +8,7 @@
 - Added `--tmp-dir` option to odoo-helper's database backup/restore commands
 - Added `--node-version` option to `odoo-install` and
   to `odoo-helper install reinstall-venv` commands
+- Added `--coverage-ignore-errors` option to `odoo-helper test` command
 
 ### Fixes & Improvements
 

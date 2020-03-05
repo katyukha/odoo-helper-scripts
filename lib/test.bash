@@ -261,6 +261,7 @@ function test_module {
     local with_coverage_report_html=;
     local with_coverage_report=;
     local with_coverage_skip_covered=;
+    local with_coverage_ignore_errors=;
     local modules_list;
     local modules=( );
     local module;
@@ -293,6 +294,7 @@ function test_module {
         --coverage-report              - print coverage report
         --coverage-skip-covered        - skip covered files in coverage report
         --coverage-fail-under <value>  - fail if coverage is less then specified value
+        --coverage-ignore-errors       - Ignore errors for coverage report
         -m|--module <module>           - specify module to test
         -d|--dir|--directory <dir>     - search for modules to test in specified directory
         --dir-r|--directory-r <dir>    - recursively search for modules to test in specified directory
@@ -364,6 +366,9 @@ function test_module {
                 with_coverage_report=1;
                 with_coverage_fail_under="$2";
                 shift;
+            ;;
+            --coverage-ignore-errors)
+                with_coverage_ignore_errors=1;
             ;;
             -m|--module)
                 if ! addons_is_odoo_addon "$2"; then
@@ -470,6 +475,9 @@ function test_module {
         fi
         if [ -n "$with_coverage_fail_under" ]; then
             coverage_report_opts+=( "--fail-under=$with_coverage_fail_under" );
+        fi
+        if [ -n "$with_coverage_ignore_errors" ]; then
+            coverage_report_opts+=( "--ignore-errors" );
         fi
         execv coverage report "${coverage_report_opts[@]}";
     fi
