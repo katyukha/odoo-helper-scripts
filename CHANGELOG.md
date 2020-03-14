@@ -11,12 +11,13 @@
 - Added `--coverage-ignore-errors` option to `odoo-helper test` command
 - Added ability to install addons via `odoo-helper install` command
 
-### Fixes & Improvements
+### Changed
 
 - Refactored `odoo-helper update-sources` command:
    - add help message
    - if `ODOO_REPO` specified, try to download archive from this repo
    - if `ODOO_DOWNLOAD_SOURCE_LINK` specified, then use it to download Odoo archive
+- `odoo-helper browse` now will start server automatically if it is not started yet
 
 
 ## Release 0.6.0 (2020-01-28)

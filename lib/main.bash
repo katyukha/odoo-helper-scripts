@@ -297,26 +297,28 @@ function odoo_helper_print_version {
 function odoo_helper_browse {
     # Open odoo on browser
     local server_url;
-    if [ "$(server_get_pid)" -gt 0 ]; then
-        if [ -z "$INIT_SCRIPT" ]; then
-            server_url=$(odoo_get_server_url);
-        else
-            echoe -e "${YELLOWC}WARNING${NC}: cannot open in browser when odoo controlled via init script";
-            return 1;
-        fi
-    else
-        echoe -e "${REDC}ERROR${NC}: cannot open in browser: odoo not started";
-        return 2;
+    if [ -n "$INIT_SCRIPT" ]; then
+        echoe -e "${REDC}ERROR${NC}: cannot open in browser when odoo controlled via init script";
+        return 1;
     fi
     if ! check_command xdg-open >/dev/null 2>&1; then
         echoe -e "${REDC}ERROR${NC}: ${YELLOWC}xdg-open${NC} not installed.";
         return 3;
-    elif [ -z "$server_url" ]; then
+    fi
+    server_url=$(odoo_get_server_url);
+    if [ -z "$server_url" ]; then
         echoe -e "${REDC}ERROR${NC}: Cannot determine server url of odoo instance";
         return 4;
-    else
-        xdg-open "$server_url";
     fi
+    if ! server_is_running; then
+        echoe -e "${YELLOWC}WARNING${NC}: Odoo not started. Starting...";
+        server_start;
+        if ! server_is_running; then
+            echoe -e "${REDC}ERROR${NC}: cannot open in browser: odoo not started";
+            return 2;
+        fi
+    fi
+    xdg-open "$server_url";
 }
 
 function odoo_helper_ipython {
