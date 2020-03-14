@@ -20,6 +20,7 @@ fi
 ohelper_require "config";
 ohelper_require "postgres";
 ohelper_require "odoo";
+ohelper_require "addons";
 
 
 set -e; # fail on errors
@@ -1108,6 +1109,9 @@ function install_entry_point {
                                                            Options are:
                                                               - clone odoo as git repository
                                                               - download odoo archieve and unpack source
+
+        $SCRIPT_NAME install <addon1> [addon2]...        - [experimental] install addons on all databases.
+                                                           this is alternative for: $SCRIPT_NAME addons install
         $SCRIPT_NAME install --help                      - show this help message
 
     ";
@@ -1199,8 +1203,15 @@ function install_entry_point {
                 return 0;
             ;;
             *)
-                echo "Unknown option / command $key";
-                return 1;
+                config_load_project;
+                if addons_is_odoo_addon "$1"; then
+                    echoe -e "${BLUEC}It seems that instalation of addons requeested.\nTrying to install addons...${NC}";
+                    addons_install_update install "$@";
+                    return;
+                else
+                    echo "Unknown option / command '$key'";
+                    return 1;
+                fi
             ;;
         esac
         shift

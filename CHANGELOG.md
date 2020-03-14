@@ -9,6 +9,7 @@
 - Added `--node-version` option to `odoo-install` and
   to `odoo-helper install reinstall-venv` commands
 - Added `--coverage-ignore-errors` option to `odoo-helper test` command
+- Added ability to install addons via `odoo-helper install` command
 
 ### Fixes & Improvements
 
