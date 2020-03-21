@@ -10,6 +10,8 @@
   to `odoo-helper install reinstall-venv` commands
 - Added `--coverage-ignore-errors` option to `odoo-helper test` command
 - Added ability to install addons via `odoo-helper install` command
+- Added option `--all` to `odoo-helper odoo clean-compiled-assets`,
+  that could be used to clean assets for all databases
 
 ### Changed
 

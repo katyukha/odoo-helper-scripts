@@ -395,20 +395,24 @@ function odoo_clean_compiled_assets {
     Options:
 
         -d|--db|--dbname <dbname>  - name of database to clean-up assets for
+        --all                      - apply to all databases
     ";
     if [[ $# -lt 1 ]]; then
         echo "$usage";
         return 0;
     fi
 
-    local dbname=;
+    local dbnames=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -d|--db|--dbname)
-                dbname=$2;
+                dbnames+=( "$2" );
                 shift;
+            ;;
+            --all)
+                mapfile -t dbnames < <(odoo_db_list | sed '/^$/d');
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -422,14 +426,16 @@ function odoo_clean_compiled_assets {
         shift
     done
 
-    if [ -z "$dbname" ]; then
-        echoe -e "${REDC}ERROR${NC}: database not specified!";
+    if [ ${#dbnames[@]} -eq 0 ]; then
+        echoe -e "${REDC}ERROR${NC}: at lease one database must be specified!";
         return 1;
     fi
-    # TODO select id,name,store_fname from ir_attachment where name ilike '%/web/content/%-%/%';
-PGAPPNAME="odoo-helper-clean-compiled-assets" postgres_psql -d "$dbname" << EOF
-    DELETE FROM ir_attachment where name ilike '%/web/content/%/web.assets%';
+    for dbname in "${dbnames}"; do
+# TODO select id,name,store_fname from ir_attachment where name ilike '%/web/content/%-%/%';
+PGAPPNAME="odoo-helper" postgres_psql -d "$dbname" << EOF
+            DELETE FROM ir_attachment WHERE name ILIKE '%/web/content/%/web.assets%';
 EOF
+    done
 }
 
 function odoo_command {
