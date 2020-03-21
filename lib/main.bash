@@ -91,7 +91,8 @@ function odoo_helper_print_usage {
         flake8                              - shortcut for 'lint flake8' command
         style                               - shortcut for 'lint style' command
         pg                                  - shortcut for 'postgres' command
-
+        lsa                                 - shortcut for 'addons list' command
+        lsd                                 - shortcut for 'db list' command
     
     Global options:
         --use-copy                          - if set, then downloaded modules, repositories will
@@ -504,6 +505,18 @@ function odoo_helper_main {
             pylint|flake8|style)
                 config_load_project;
                 lint_command "$@";
+                return;
+            ;;
+            lsa)
+                shift;
+                config_load_project;
+                addons_list_in_directory --by-name "$@";
+                return;
+            ;;
+            lsd)
+                shift;
+                config_load_project;
+                odoo_db_list "$@";
                 return;
             ;;
             exec)

@@ -15,13 +15,16 @@
 - Added `--install-dir` option to `odoo-helper db create` command.
   This option allows to automatically install all addons from specified
   directory after creation of database.
+- Added new shortcuts:
+    - `odoo-helper lsa` -> `odoo-helper addons list`
+    - `odoo-helper lsd` -> `odoo-helper db list`
 
 ### Changed
 
 - Refactored `odoo-helper update-sources` command:
-   - add help message
-   - if `ODOO_REPO` specified, try to download archive from this repo
-   - if `ODOO_DOWNLOAD_SOURCE_LINK` specified, then use it to download Odoo archive
+    - add help message
+    - if `ODOO_REPO` specified, try to download archive from this repo
+    - if `ODOO_DOWNLOAD_SOURCE_LINK` specified, then use it to download Odoo archive
 - `odoo-helper browse` now will start server automatically if it is not started yet
 
 

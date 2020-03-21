@@ -309,7 +309,7 @@ function odoo_recompute_stored_fields {
         return 4;
     fi
 
-    local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$conf_file'])['$dbname'];";
+    local python_cmd="import lodoo; db=lodoo.LOdoo(['-c', '$conf_file'])['$dbname'];";
     if [ -z "$parent_store" ]; then
         python_cmd="$python_cmd db.recompute_fields('$model', [$fields]);"
     else
@@ -430,7 +430,7 @@ function odoo_clean_compiled_assets {
         echoe -e "${REDC}ERROR${NC}: at lease one database must be specified!";
         return 1;
     fi
-    for dbname in "${dbnames}"; do
+    for dbname in "${dbnames[@]}"; do
 # TODO select id,name,store_fname from ir_attachment where name ilike '%/web/content/%-%/%';
 PGAPPNAME="odoo-helper" postgres_psql -d "$dbname" << EOF
             DELETE FROM ir_attachment WHERE name ILIKE '%/web/content/%/web.assets%';

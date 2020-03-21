@@ -243,8 +243,7 @@ class LocalRegistry(object):
         """
         try:
             module_path = self.odoo.modules.module.get_module_path(module_name)
-            i18n_dir = os.path.join(
-                module_path, 'i18n')
+            i18n_dir = os.path.join(module_path, 'i18n')
             if not os.path.exists(i18n_dir):
                 os.mkdir(i18n_dir)
             pot_file = os.path.join(i18n_dir, '%s.pot' % module_name)

@@ -140,7 +140,7 @@ function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
     python_cmd="$python_cmd res=cl['$db']['ir.module.module'].update_list();";
     python_cmd="$python_cmd cl['$db'].cursor.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
@@ -732,7 +732,7 @@ function addons_install_update_internal {
     elif [ "$cmd" == "uninstall" ]; then
         local addons_uninstalled;
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
-        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE', '--stop-after-init', '--max-cron-threads', '0', '--pidfile', '/dev/null', '--no-xmlrpc']);";
+        local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE', '--stop-after-init', '--max-cron-threads', '0', '--pidfile', '/dev/null', '--no-xmlrpc']);";
         python_cmd="$python_cmd db=cl['$db'];";
         python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
         python_cmd="$python_cmd modules.button_immediate_uninstall();";

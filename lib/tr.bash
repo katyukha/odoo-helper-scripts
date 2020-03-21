@@ -513,7 +513,7 @@ function tr_translation_rate {
                 rm "$trans_file";
 
                 # Compute translation rate and print it
-                local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
+                local python_cmd="import lodoo; db=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
                 python_cmd="$python_cmd exit(db.check_translation_rate('$lang', '$addons_cs'.split(','),min_total_rate=$min_total_rate, min_addon_rate=$min_addon_rate, colored=bool(${OH_COLORS_ENABLED:-0})));";
                 if ! run_python_cmd "$python_cmd"; then
                     res=1;
