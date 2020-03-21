@@ -12,6 +12,9 @@
 - Added ability to install addons via `odoo-helper install` command
 - Added option `--all` to `odoo-helper odoo clean-compiled-assets`,
   that could be used to clean assets for all databases
+- Added `--install-dir` option to `odoo-helper db create` command.
+  This option allows to automatically install all addons from specified
+  directory after creation of database.
 
 ### Changed
 

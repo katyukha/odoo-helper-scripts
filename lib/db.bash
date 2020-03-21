@@ -49,6 +49,7 @@ function odoo_db_create {
                                then drop it first
        -i|--install <addon>  - Install specified addon to created db.
                                Could be specified multiple times
+       --install-dir <dir>   - Install all addons in spcified directory.
        --help                - display this help message
     ";
 
@@ -88,6 +89,12 @@ function odoo_db_create {
                     return 1;
                 fi
                 db_install_addons+=( "$2" );
+                shift;
+            ;;
+            --install-dir)
+                local addons_list;
+                mapfile -t addons_list < <(addons_list_in_directory --recursive --installable --by-name "$2" | sed '/^$/d');
+                db_install_addons+=( "${addons_list[@]}" );
                 shift;
             ;;
             -h|--help|help)
