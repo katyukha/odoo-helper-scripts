@@ -104,7 +104,7 @@ function postgres_user_create {
     done
 
     local user_name="$1";
-    local user_password="$2";
+    local user_password="${2:-odoo}";
 
     if ! postgres_test_connection; then
         return 1;
