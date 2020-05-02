@@ -27,6 +27,7 @@
     - if `ODOO_DOWNLOAD_SOURCE_LINK` specified, then use it to download Odoo archive
 - `odoo-helper browse` now will start server automatically if it is not started yet
 - `odoo-helper postgres user-create` if password not privided, then use `odoo` as password.
+- Fail `odoo-helepr test` if there is attempt to write/create with unknown fields
 
 
 ## Release 0.6.0 (2020-01-28)
