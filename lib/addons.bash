@@ -977,13 +977,41 @@ function addons_test_installed {
 }
 
 
-# This functions walk through addons found in custom_addons dir, and searches
-# for requirements.txt file there. if such file is present,
-# install depenencies listed there
-# Also it checks for repository-level requirements.txt
-#
-# just call as: addons_update_py_deps
 function addons_update_py_deps {
+    local usage="
+    Usage
+
+        $SCRIPT_NAME addons update-py-deps
+
+    Description
+
+        Update python dependencies of custom addons.
+        This command iterates over all custom addons and install
+        dependencies mentioned in 'requirements.txt' file.
+        Additionally it check if there is repository-level
+        'requirements.txt' file and install dependencies from there.
+
+    Options
+
+        -h|--help|help  - show this help message
+
+    ";
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
     local repositories_list;
     mapfile < <(addons_list_repositories | sed '/^$/d');
     for repo in "${repositories_list[@]}"; do
@@ -1208,7 +1236,7 @@ function addons_command {
             ;;
             update-py-deps)
                 shift;
-                addons_update_py_deps;
+                addons_update_py_deps "$@";
                 return;
             ;;
             generate-requirements)

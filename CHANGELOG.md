@@ -18,6 +18,7 @@
 - Added new shortcuts:
     - `odoo-helper lsa` -> `odoo-helper addons list`
     - `odoo-helper lsd` -> `odoo-helper db list`
+- Added help message for `odoo-helper addons update-py-deps` command.
 
 ### Changed
 

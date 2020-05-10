@@ -82,6 +82,9 @@ echo -e "~~~text\n$(odoo-helper addons uninstall --help)\n~~~\n\n" >> $PROJECT_D
 echo -e "#### odoo-helper addons update-list\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper addons update-list --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper addons update-py-deps\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper addons update-py-deps --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper addons status\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper addons status --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
