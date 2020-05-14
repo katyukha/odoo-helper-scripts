@@ -10,6 +10,7 @@
 """ Local odoo connection lib
 """
 import os
+import json
 import atexit
 import logging
 import functools
@@ -297,6 +298,33 @@ class LocalDBService(object):
         with open(file_path, 'wb') as f:
             self.odoo.service.db.dump_db(db_name, f, backup_format)
         return True
+
+    def dump_db_manifest(self, dbname):
+        """ Generate db manifest for backup
+
+            :return str: JSON representation of manifest
+        """
+        registry = self.odoo.registry(dbname)
+        with registry.cursor() as cr:
+            # Just copy-paste from original Odoo code
+            pg_version = "%d.%d" % divmod(
+                cr._obj.connection.server_version / 100, 100)
+            cr.execute("""
+                SELECT name, latest_version
+                FROM ir_module_module
+                WHERE state = 'installed'
+            """)
+            modules = dict(cr.fetchall())
+            manifest = {
+                'odoo_dump': '1',
+                'db_name': cr.dbname,
+                'version': self.odoo.release.version,
+                'version_info': self.odoo.release.version_info,
+                'major_version': self.odoo.release.major_version,
+                'pg_version': pg_version,
+                'modules': modules,
+            }
+        return json.dumps(manifest, indent=4)
 
     def __getattr__(self, name):
         def db_service_method(*args):

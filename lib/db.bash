@@ -881,6 +881,57 @@ function odoo_db_is_demo_enabled {
     fi
 }
 
+function odoo_db_dump_manifest {
+    local usage="
+    Print dump-manifest for specified database
+
+    Usage:
+
+        $SCRIPT_NAME db dump-manifest <dbname> - print manifest for dbname
+        $SCRIPT_NAME db dump-manifest --help   - show this help message
+    ";
+
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    local db_name=$1;
+    local conf_file=$ODOO_CONF_FILE;
+
+    if ! odoo_db_exists -q "$db_name"; then
+        echoe -e "${REDC}ERROR${NC}: Database ${YELLOWC}${db_name}${NC} does not exists!";
+        return 2;
+    fi
+
+    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
+    python_cmd="$python_cmd print(cl.db.dump_db_manifest('$db_name'));";
+    if ! run_python_cmd_u "$python_cmd"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot generate manifest for database: ${YELLOWC}$db_name${NC}!";
+        return 1;
+    fi
+}
+
+
 # Command line args processing
 function odoo_db_command {
     local usage="
@@ -898,6 +949,7 @@ function odoo_db_command {
         $SCRIPT_NAME db dump --help  [deprecated]
         $SCRIPT_NAME db backup --help
         $SCRIPT_NAME db backup-all --help
+        $SCRIPT_NAME db dump-manifest --help
         $SCRIPT_NAME db restore --help
 
     ";
@@ -929,6 +981,11 @@ function odoo_db_command {
             dump)
                 shift;
                 odoo_db_dump "$@";
+                return;
+            ;;
+            dump-manifest)
+                shift;
+                odoo_db_dump_manifest "$@";
                 return;
             ;;
             backup)

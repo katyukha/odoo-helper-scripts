@@ -124,8 +124,8 @@ echo -e "~~~text\n$(odoo-helper db rename --help)\n~~~\n\n" >> $PROJECT_DIR/docs
 echo -e "#### odoo-helper db copy\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db copy --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
-echo -e "#### odoo-helper db dump\n\n" >> $PROJECT_DIR/docs/command-reference.md;
-echo -e "~~~text\n$(odoo-helper db dump --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "#### odoo-helper db dump-manifest\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db dump-manifest --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
 echo -e "#### odoo-helper db backup\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db backup --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;

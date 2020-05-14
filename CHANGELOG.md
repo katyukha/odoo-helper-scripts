@@ -19,6 +19,9 @@
     - `odoo-helper lsa` -> `odoo-helper addons list`
     - `odoo-helper lsd` -> `odoo-helper db list`
 - Added help message for `odoo-helper addons update-py-deps` command.
+- Added command `odoo-helper db dump-manifest <dbname>` that allows
+  to generate manifest for database backups.
+  Could be used with external backup tools.
 
 ### Changed
 
