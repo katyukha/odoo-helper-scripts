@@ -29,6 +29,13 @@
 - `odoo-helper browse` now will start server automatically if it is not started yet
 - `odoo-helper postgres user-create` if password not privided, then use `odoo` as password.
 - Fail `odoo-helepr test` if there is attempt to write/create with unknown fields
+- `odoo-helper db backup` refactored to avoid `base64` encoding / decoding.
+  Additionally now it uses streams to dump file, so it have to be more
+  memory friendly.
+
+### Deprecated
+
+- `odoo-helper db dump` now deprecated.
 
 
 ## Release 0.6.0 (2020-01-28)

@@ -474,6 +474,8 @@ function odoo_db_dump {
     local usage="
     Dump database
 
+    WARNING: This command is deprecated and will be removed in next release
+
     Usage:
 
         $SCRIPT_NAME db dump [options] <dbname> <file-path>
@@ -493,6 +495,8 @@ function odoo_db_dump {
     local conf_file=$ODOO_CONF_FILE;
     local format="zip";
     local custom_temp_dir;
+
+    echoe -e "${YELLOWC}WARNING${NC}: command ${YELLOWC}odoo-helper db dump${NC} is deprecated and will be removed in next release!";
 
     # Parse options
     while [[ $# -gt 0 ]]
@@ -633,10 +637,25 @@ function odoo_db_backup {
         db_dump_file="$db_dump_file.backup";
     fi
 
-    if [ -n "$custom_temp_dir" ]; then
-        odoo_db_dump --tmp-dir "$custom_temp_dir" --format "$format" --conf "$conf_file" "$db_name" "$db_dump_file";
+    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
+    python_cmd="$python_cmd cl.db.backup_database('$db_name', '$format', '$db_dump_file');";
+   
+    if [ -n "$custom_temp_dir" ] && [ -d "$custom_temp_dir" ]; then 
+        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd_u "$python_cmd"; then
+            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} backed up to ${BLUEC}$db_dump_file${NC}!";
+            return 0;
+        else
+            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
+            return 1;
+        fi
     else
-        odoo_db_dump --format "$format" --conf "$conf_file" "$db_name" "$db_dump_file";
+        if run_python_cmd_u "$python_cmd"; then
+            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} backed up to ${BLUEC}$db_dump_file${NC}!";
+            return 0;
+        else
+            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
+            return 1;
+        fi
     fi
     echo "$db_dump_file"
 }
@@ -876,7 +895,7 @@ function odoo_db_command {
         $SCRIPT_NAME db drop --help
         $SCRIPT_NAME db rename --help
         $SCRIPT_NAME db copy --help
-        $SCRIPT_NAME db dump --help
+        $SCRIPT_NAME db dump --help  [deprecated]
         $SCRIPT_NAME db backup --help
         $SCRIPT_NAME db backup-all --help
         $SCRIPT_NAME db restore --help
