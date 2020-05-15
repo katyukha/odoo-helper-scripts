@@ -22,6 +22,7 @@
 - Added command `odoo-helper db dump-manifest <dbname>` that allows
   to generate manifest for database backups.
   Could be used with external backup tools.
+- Added command `odoo-helper postgres pg_dump`
 
 ### Changed
 

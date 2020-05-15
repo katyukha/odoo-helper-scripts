@@ -146,7 +146,7 @@ function postgres_psql {
 # Run pg_dump
 # Automaticaly pass connection parametrs
 #
-# postgres_psql ....
+# postgres_pg_dump ....
 function postgres_pg_dump {
     local pghost;
     local pgport;
@@ -297,6 +297,7 @@ function postgres_command {
     Usage:
         $SCRIPT_NAME postgres psql [psql options]                     - Run psql with odoo connection params
         $SCRIPT_NAME postgres psql -d <database> [psql options]       - Run psql connected to specified database
+        $SCRIPT_NAME postgres pg_dump [pg_dump options]               - Run pg_dump with params of this odoo instance
         $SCRIPT_NAME postgres pg_dump -d <database> [pg_dump options] - Run pg_dump for specified database
         $SCRIPT_NAME postgres user-create <user name> <password>      - [local][sudo] Create postgres user for odoo
                                                                         It automaticaly uses credentials used by odoo
