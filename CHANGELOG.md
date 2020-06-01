@@ -36,6 +36,8 @@
 - `odoo-helper db backup` refactored to avoid `base64` encoding / decoding.
   Additionally now it uses streams to dump file, so it have to be more
   memory friendly.
+- `odoo-helper tr regenerate` command can now regenerate translations for
+  multiple languages via single run.
 
 ### Deprecated
 

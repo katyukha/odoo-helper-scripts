@@ -337,21 +337,25 @@ function tr_regenerate {
 
     Options
 
-        --lang <lang code>    - language code to regenerate translations for
-        --file <filename>     - name of po file in i18n dir of addons to generate (without extension)
-        --pot                 - generate .pot file for translations
-        --dir  <addons path>  - look for addons at specified directory
-        --dir-r <addons path> - look for addons at specified directory and its subdirectories
+        --lang <lang code>               - language code to regenerate translations for
+        --file <filename>                - name of po file in i18n dir of addons to generate (without extension)
+        --lang-file <lang_code:filename> - lang code and lang file. could be specified multiple times
+        --pot                            - generate .pot file for translations
+        --dir  <addons path>             - look for addons at specified directory
+        --dir-r <addons path>            - look for addons at specified directory and its subdirectories
 
     Examples
 
         $SCRIPT_NAME tr regenerate --lang uk_UA --file uk project product
         $SCRIPT_NAME tr regenerate --lang ru_RU --file ru project product
+        $SCRIPT_NAME tr regenerate --lang-file uk_UA:uk --lang-file ru_RU:ru project product
 
     this command automaticaly creates new temporary database with specified lang
     and demo_data, installs there specified list of addons
     end exports translations for specified addons
     ";
+
+    local langs_arr=();
 
     while [[ $# -gt 0 ]]
     do
@@ -362,6 +366,10 @@ function tr_regenerate {
                 return 0;
             ;;
             --lang)
+                if [ -n "$lang" ]; then
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}--lang${NC} specified multiple times.";
+                    return 4;
+                fi
                 lang=$2;
                 shift;
             ;;
@@ -369,7 +377,15 @@ function tr_regenerate {
                 gen_pot=1;
             ;;
             --file)
+                if [ -n "$file_name" ]; then
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}--file${NC} specified multiple times.";
+                    return 3;
+                fi
                 file_name=$2;
+                shift;
+            ;;
+            --lang-file)
+                langs_arr+=( "$2" )
                 shift;
             ;;
             --dir)
@@ -389,14 +405,18 @@ function tr_regenerate {
         shift
     done
 
-    if [ -z "$gen_pot" ] && [ -z "$lang" ]; then
-        echoe -e "${REDC}ERROR${NC}: argument 'lang' is required!";
+    if [ -z "$gen_pot" ] && [ -z "$lang" ] && [ -z "${langs_arr[*]}" ]; then
+        echoe -e "${REDC}ERROR${NC}: argument '--lang' or '--lang-file' is required!";
         return 1;
     fi
 
-    if [ -z "$gen_pot" ] && [ -z "$file_name" ]; then
-        echoe -e "${REDC}ERROR${NC}: argument 'file' is required!";
+    if [ -z "$gen_pot" ] && [ -z "$file_name" ] && [ -z "${langs_arr[*]}" ]; then
+        echoe -e "${REDC}ERROR${NC}: argument '--file' or '--lang-file' is required!";
         return 2;
+    fi
+
+    if [ -n "$lang" ] && [ -n "$file_name" ] && [ -z "${langs_arr[*]}" ]; then
+        langs_arr+=( "$lang:$file_name" );
     fi
 
     # Create temporary database
@@ -407,10 +427,21 @@ function tr_regenerate {
     local res=0;
     if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
         if [ -z "$gen_pot" ]; then
-            # export translations
-            if ! tr_export "$tmp_db_name" "$lang" "$file_name" "${addons[@]}"; then
-                res=1;
-            fi
+            for langf in "${langs_arr[@]}"; do
+                local tmp_parsed=(${langf//:/ });
+                if ! [ ${#tmp_parsed[@]} -eq 2 ]; then
+                    echoe -e "${REDC}ERROR${NC}: Cannot parse ${YELLOWC}${langf}${NC}!";
+                    res=1;
+                    break;
+                fi
+
+                # export translations
+                if ! tr_export "$tmp_db_name" "${tmp_parsed[0]}" "${tmp_parsed[1]}" "${addons[@]}"; then
+                    res=1;
+                    break
+                fi
+            done
+
         else
             if ! tr_generate_pot "$tmp_db_name" "${addons[@]}"; then
                 res=1;
