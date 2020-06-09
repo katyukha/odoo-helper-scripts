@@ -38,6 +38,7 @@
   memory friendly.
 - `odoo-helper tr regenerate` command can now regenerate translations for
   multiple languages via single run.
+- Disable sentry on database operations.
 
 ### Deprecated
 
