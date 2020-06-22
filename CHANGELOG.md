@@ -23,6 +23,10 @@
   to generate manifest for database backups.
   Could be used with external backup tools.
 - Added command `odoo-helper postgres pg_dump`
+- Added option `odoo-helper addons update --skip-errors` that allows to
+  continue update event if there was error caught on update of single db,
+  thus now it is possible to update all databases and show list of databases,
+  that produced error in the end of operation
 
 ### Changed
 

@@ -791,11 +791,13 @@ function addons_install_update {
                                  This is usualy required on install of addon
                                  that was just fetched from repository,
                                  and is not yet present in Odoo database
+        --skip-errors          - Do not fail on single DB. Useful in case of update of multiple databases.
     ";
     local need_start;
     local update_addons_list=0;
     local dbs=( );
     local todo_addons=( );
+    local errored_dbs=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -853,6 +855,9 @@ function addons_install_update {
             --ual)
                 local update_addons_list=1;
             ;;
+            --skip-errors)
+                local skip_errors=1;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -906,17 +911,35 @@ function addons_install_update {
     fi
 
     local db;
+    local res=0;
     for db in "${dbs[@]}"; do
         if addons_install_update_internal "$cmd" "$db" "${todo_addons[@]}"; then
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${GREENC}OK${NC}";
+        elif [ -n "$skip_errors" ]; then
+            errored_dbs+=( "$db" );
+            res=1;
         else
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
             if [ -n "$open_logs" ]; then
                 server_log;
             fi
-            return 1;
+            res=1;
+            break
         fi
     done
+
+    if [ -n "${errored_dbs[*]}" ]; then
+        # Print list of databases that produced error on update
+        echoe -e "${REDC}ERROR${NC}: Errors where caught when updating following databases:";
+        for db in "${errored_dbs[@]}"; do
+            echoe -e "    - ${YELLOWC}${db}${NC}";
+        done
+    fi
+
+    if ! [ "$res" -eq 0 ]; then
+        # Exit if there was any errors;
+        return 1;
+    fi
 
     # Start server again if it was stopped
     if [ -n "$need_start" ] && ! server_is_running; then
