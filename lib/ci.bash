@@ -456,14 +456,14 @@ function ci_push_changes {
         return 4;
     fi
 
-    git -c "user.name='${GITLAB_USER_NAME}'" -c "user.email='${GITLAB_USER_EMAIL}'" commit -m "${commit_name}"
-    echo "$CI_SSH_PRIVATE_KEY" > /tmp/push_key
-    echo "$CI_SSH_PUBLIC_KEY" > /tmp/push_key.pub
-    chmod 600 /tmp/push_key
-    chmod 600 /tmp/push_key.pub
-    git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git"
+    git -c "user.name='${GITLAB_USER_NAME}'" -c "user.email='${GITLAB_USER_EMAIL}'" commit -m "${commit_name}";
+    echo "$CI_SSH_PRIVATE_KEY" > /tmp/push_key;
+    echo "$CI_SSH_PUBLIC_KEY" > /tmp/push_key.pub;
+    chmod 600 /tmp/push_key;
+    chmod 600 /tmp/push_key.pub;
+    git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
     git -c "core.sshCommand=ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /dev/null -i /tmp/push_key" \
-        push origin HEAD:${CI_COMMIT_BRANCH}
+        push origin "HEAD:${CI_COMMIT_BRANCH}";
 }
 
 # Ensure that all changed addons in specified directory have changelog entries

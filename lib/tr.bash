@@ -430,8 +430,8 @@ function tr_regenerate {
             for langf in "${langs_arr[@]}"; do
                 local lang_code;
                 local lang_file;
-                IFS=':' read lang_code lang_file <<< "$lang_f"
-                if [ -z ${lang_code} ] || [ -z "$lang_file" ]; then
+                IFS=':' read -r lang_code lang_file <<< "$langf"
+                if [ -z "${lang_code}" ] || [ -z "$lang_file" ]; then
                     echoe -e "${REDC}ERROR${NC}: Cannot parse ${YELLOWC}${langf}${NC}!";
                     res=1;
                     break;
