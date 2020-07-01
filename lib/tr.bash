@@ -428,15 +428,17 @@ function tr_regenerate {
     if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
         if [ -z "$gen_pot" ]; then
             for langf in "${langs_arr[@]}"; do
-                local tmp_parsed=(${langf//:/ });
-                if ! [ ${#tmp_parsed[@]} -eq 2 ]; then
+                local lang_code;
+                local lang_file;
+                IFS=':' read lang_code lang_file <<< "$lang_f"
+                if [ -z ${lang_code} ] || [ -z "$lang_file" ]; then
                     echoe -e "${REDC}ERROR${NC}: Cannot parse ${YELLOWC}${langf}${NC}!";
                     res=1;
                     break;
                 fi
 
                 # export translations
-                if ! tr_export "$tmp_db_name" "${tmp_parsed[0]}" "${tmp_parsed[1]}" "${addons[@]}"; then
+                if ! tr_export "$tmp_db_name" "${lang_code}" "${lang_file}" "${addons[@]}"; then
                     res=1;
                     break
                 fi

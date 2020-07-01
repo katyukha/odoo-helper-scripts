@@ -648,6 +648,7 @@ odoo-helper addons pull-updates --do-update;
 
 # Regenerate pot files for modules from partner-contact
 odoo-helper tr regenerate --pot --dir ./repositories/oca/partner-contact;
+odoo-helper tr regenerate --lang-file "uk_UA:uk" --lang-file "ru_RU:ru" --dir ./repositories/oca/partner-contact;
 
 # Print list of installed addons
 odoo-helper addons find-installed;
