@@ -486,6 +486,8 @@ function install_odoo_py_requirements_for_version {
                 echo "greenlet==0.4.9";
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.7.3.1";
+            elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
+                echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
                 echo "lxml==3.7.1";
             else

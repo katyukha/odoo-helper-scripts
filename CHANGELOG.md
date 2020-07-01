@@ -44,6 +44,7 @@
 - `odoo-helper tr regenerate` command can now regenerate translations for
   multiple languages via single run.
 - Disable sentry on database operations.
+- Automatically replace `psycopg2` requirement with `psycopg2-binary`.
 
 ### Deprecated
 
