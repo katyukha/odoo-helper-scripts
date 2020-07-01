@@ -397,6 +397,75 @@ function ci_ensure_addons_have_icons {
     return $res;
 }
 
+# Commit and push changes added to index.
+# NOTE: it is required to call 'git add' before this command
+#
+# ci_push_changes <commit_name>
+function ci_push_changes {
+    local usage="
+    Push changes (added to git index) to this repo to same branch.
+    Have to be used in Continious Integration pipelines.
+    Have to be ran only in Gitlab
+
+    This command could be used in automated flows that midifies repository code
+
+    WARNING: this command is experimental, and have to be used carefully
+
+    Usage:
+
+        $SCRIPT_NAME ci push-changes <commit msg>  - push changes 
+        $SCRIPT_NAME ci push-changes --help        - print this help message
+    ";
+
+    # Parse options
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    if [ -z "$CI_JOB_TOKEN_GIT_HOST" ] || [ -z "$GITLAB_CI" ]; then
+        echoe -e "${REDC}ERROR${NC}: this command available only on gitlab. And it is required to define 'CI_JOB_TOKEN_GIT_HOST' variable with gitlab repository hostname."
+        return 1;
+    fi
+    if [ -z "$CI_SSH_PRIVATE_KEY" ] || [ -z "$CI_SSH_PUBLIC_KEY" ]; then
+        echoe -e "${REDC}ERROR${NC}: It is required to define private and public ssh keys with write access in variables 'CI_SSH_PRIVATE_KEY'and 'CI_SSH_PUBLIC_KEY'!";
+        return 2;
+    fi
+    if [ -z "${CI_COMMIT_BRANCH}" ]; then
+        echoe -e "${REDC}ERROR${NC}: There is no 'CI_COMMIT_BRANCH' variable defined!";
+        return 3;
+    fi
+
+    local commit_name=${1};
+    if [ -z "$commit_name" ]; then
+        echoe -e "${REDC}ERROR${NC}: Please, specify commit name to push changes!";
+        return 4;
+    fi
+
+    git -c "user.name='${GITLAB_USER_NAME}'" -c "user.email='${GITLAB_USER_EMAIL}'" commit -m "${commit_name}"
+    echo "$CI_SSH_PRIVATE_KEY" > /tmp/push_key
+    echo "$CI_SSH_PUBLIC_KEY" > /tmp/push_key.pub
+    chmod 600 /tmp/push_key
+    chmod 600 /tmp/push_key.pub
+    git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git"
+    git -c "core.sshCommand=ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /dev/null -i /tmp/push_key" \
+        push origin HEAD:${CI_COMMIT_BRANCH}
+}
+
 # Ensure that all changed addons in specified directory have changelog entries
 # ci_ensure_addons_have_changelog <addon path>
 function ci_ensure_addons_have_changelog {
@@ -512,6 +581,7 @@ function ci_command {
         $SCRIPT_NAME ci check-versions-git [--help]  - ensure versions of changed addons were updated
         $SCRIPT_NAME ci ensure-icons [--help]        - ensure all addons in specified directory have icons
         $SCRIPT_NAME ci ensure-changelog [--help]    - ensure that changes described in changelog
+        $SCRIPT_NAME ci push-changes [--help]        - push changes to same branch
         $SCRIPT_NAME ci -h|--help|help               - show this help message
     ";
 
@@ -537,6 +607,11 @@ function ci_command {
             ensure-changelog)
                 shift;
                 ci_ensure_addons_have_changelog "$@";
+                return;
+            ;;
+            push-changes)
+                shift;
+                ci_push_changes "$@";
                 return;
             ;;
             -h|--help|help)

@@ -27,6 +27,7 @@
   continue update event if there was error caught on update of single db,
   thus now it is possible to update all databases and show list of databases,
   that produced error in the end of operation
+- Added command `odoo-helper ci push-changes` (experimental stage)
 
 ### Changed
 
