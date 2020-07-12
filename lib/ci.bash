@@ -343,7 +343,6 @@ function ci_check_versions_git {
     return $result;
 }
 
-
 # Ensure that all addons in specified directory have icons
 # ci_ensure_addons_have_icons <addon path>
 function ci_ensure_addons_have_icons {
@@ -466,6 +465,102 @@ function ci_push_changes {
         push origin "HEAD:${CI_COMMIT_BRANCH}";
 }
 
+function ci_do_forwardport {
+    local git_path;
+    local current_dir;
+    git_path="$(pwd)";
+    current_dir="$(pwd)";
+    local git_remote_name="origin";
+    local usage="
+
+    Initiate forwardport of changes from one stable branch to another.
+    This command will create new git branch based on destination branch,
+    then it will apply missing changes from source branch.
+    Also, it will automatically try to fix versions.
+    After all automated actions completed, it will stop, for human review.
+
+    This command must be executed in destination odoo version.
+    For example, if we plan to forwardport changes from 11.0 to 12.0,
+    then we have to call this command on 12.0 branch
+
+    ${YELLOWC}WARNING${NC}: this command is experimental, and have to be used carefully
+
+    Usage:
+
+        $SCRIPT_NAME ci do-forward-port [options]  - do forwardport
+        $SCRIPT_NAME ci do-forward-port --help     - print this help message
+
+    Options:
+        -s|--src-branch <branch>   - [required] source branch to take changes from
+        --path <path>              - path to git repository. default current ($git_path)
+        --remote <name>            - name of git remote. Default: $git_remote_name
+
+        --help                     - show this help message
+    ";
+
+    # Parse options
+    if [[ $# -lt 1 ]]; then
+        echo -e "$usage";
+        return 0;
+    fi
+
+    local tmp_branch;
+    local src_branch;
+    local dst_branch="$ODOO_VERSION";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -s|--src-branch)
+                src_branch=$2;
+                shift;
+            ;;
+            --path)
+                git_path=$2
+                shift;
+            ;;
+            -h|--help|help)
+                echo -e "$usage";
+                return 0;
+            ;;
+            *)
+                echoe -e "${REDC}ERROR${NC}: Unknown option - '$key'";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
+    if ! git_is_git_repo "$git_path"; then
+        echoe -e "${REDC}ERROR${NC}: '$git_path' is not git repository!";
+        return 2;
+    fi
+    if [ -z "$src_branch" ]; then
+        echoe -e "${REDC}ERROR${NC}: src-branch option is required!";
+        return 3;
+    fi
+    if ! git_is_clean "$git_path"; then
+        echoe -e "${REDC}ERROR${NC}: This operation could be applied only on clean repo!";
+        return 3;
+    fi
+
+    tmp_branch="$dst_branch-oh-forward-port-from-$src_branch-x-$(random_string 4)";
+    git --git-dir "$git_path/.git" fetch --all;
+    git --git-dir "$git_path/.git" checkout -b "$tmp_branch" "$git_remote_name/$dst_branch";
+    git --git-dir "$git_path/.git" merge --no-ff --no-commit --edit "$git_remote_name/$src_branch";
+    ci_check_versions_git --fix-version-fp "$git_path" "$git_remote_name/$dst_branch";
+    if git_is_clean "$git_path"; then
+        echoe -e "${YELLOWC}WARNING${NC}: It seems that there is no changes to forwardport!";
+    else
+        echoe -e "${GREENC}DONE${NC}: forwardport seems to be completed.";
+        echoe -e "${YELLOWC}TODO${NC}: Review changes via command: ${BLUEC}git diff${NC}";
+        echoe -e "${LBLUEC}HINT${NC}: Use following commands to push changes after review:\n" \
+                 "    - ${BLUEC}git add -u${NC}\n" \
+                 "    - ${BLUEC}git commit${NC}\n" \
+                 "    - ${BLUEC}git push \"$git_remote_name\" \"$tmp_branch\"${NC}";
+    fi
+}
+
 # Ensure that all changed addons in specified directory have changelog entries
 # ci_ensure_addons_have_changelog <addon path>
 function ci_ensure_addons_have_changelog {
@@ -582,6 +677,8 @@ function ci_command {
         $SCRIPT_NAME ci ensure-icons [--help]        - ensure all addons in specified directory have icons
         $SCRIPT_NAME ci ensure-changelog [--help]    - ensure that changes described in changelog
         $SCRIPT_NAME ci push-changes [--help]        - push changes to same branch
+        $SCRIPT_NAME ci do-forward-port [--help]     - do forwardport
+        $SCRIPT_NAME ci do-fwp [--help]              - alias to 'do-forward-port'
         $SCRIPT_NAME ci -h|--help|help               - show this help message
     ";
 
@@ -612,6 +709,11 @@ function ci_command {
             push-changes)
                 shift;
                 ci_push_changes "$@";
+                return;
+            ;;
+            do-forward-port|do-fwp)
+                shift;
+                ci_do_forwardport "$@";
                 return;
             ;;
             -h|--help|help)

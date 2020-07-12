@@ -361,7 +361,7 @@ function odoo_helper_main {
             --use-unbuffer)
                 USE_UNBUFFER=1;
             ;;
-            --no-colors)
+            --no-colors|--no-color)
                 deny_colors;
             ;;
             --verbose|--vv|-vv)

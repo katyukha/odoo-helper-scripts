@@ -226,6 +226,9 @@ echo -e "~~~text\n$(odoo-helper ci check-versions-git --help)\n~~~\n\n" >> $PROJ
 echo -e "#### odoo-helper ci push-changes\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper ci push-changes --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper ci do-forward-port\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper --no-color ci do-forward-port --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "### odoo-helper doc-utils\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper doc-utils --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

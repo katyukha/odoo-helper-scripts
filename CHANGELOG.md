@@ -28,6 +28,7 @@
   thus now it is possible to update all databases and show list of databases,
   that produced error in the end of operation
 - Added command `odoo-helper ci push-changes` (experimental stage)
+- Added command `odoo-helper ci do-forward-port` (experimental stage)
 
 ### Changed
 
