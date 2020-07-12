@@ -286,7 +286,7 @@ if odoo-helper db exists my-test-odoo-database; then
 fi
 
 # restore dropped database
-odoo-helper db restore my-test-odoo-database $backup_file;
+odoo-helper db restore my-test-odoo-database "$backup_file";
 
 # ensure that database exists
 odoo-helper db exists my-test-odoo-database

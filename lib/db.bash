@@ -639,25 +639,25 @@ function odoo_db_backup {
 
     local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
     python_cmd="$python_cmd cl.db.backup_database('$db_name', '$format', '$db_dump_file');";
-   
+
+    local res=0
     if [ -n "$custom_temp_dir" ] && [ -d "$custom_temp_dir" ]; then 
         if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd_u "$python_cmd"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} backed up to ${BLUEC}$db_dump_file${NC}!";
-            return 0;
         else
             echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
-            return 1;
+            res=1;
         fi
     else
         if run_python_cmd_u "$python_cmd"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} backed up to ${BLUEC}$db_dump_file${NC}!";
-            return 0;
         else
             echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
-            return 1;
+            res=1
         fi
     fi
-    echo "$db_dump_file"
+    echo "$db_dump_file";
+    return $res;
 }
 
 # odoo_db_backup_all [format [odoo_conf_file]]
