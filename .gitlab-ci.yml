@@ -74,6 +74,10 @@ tests:ubuntu:18.04:
     image: ubuntu:18.04
     <<: *tests-definition
 
+tests:ubuntu:20.04:
+    image: ubuntu:20.04
+    <<: *tests-definition
+
 
 build_packages:
     image: ubuntu:18.04
