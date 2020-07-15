@@ -266,6 +266,7 @@ function test_module {
     local with_coverage_report=;
     local with_coverage_skip_covered=;
     local with_coverage_ignore_errors=;
+    local with_coverage_report_html_dir=;
     local modules_list;
     local modules=( );
     local module;
@@ -277,6 +278,8 @@ function test_module {
 
     # Modules map if there is module in this map, than it have to be skipped
     declare -A skip_modules_map;
+
+    with_coverage_report_html_dir="$(pwd)/htmlcov";
 
     local usage="
     Run tests for addons
@@ -295,6 +298,7 @@ function test_module {
         --fail-on-warn                 - if this option passed, then tests will fail even on warnings
         --coverage                     - calculate code coverage (use python's *coverage* util)
         --coverage-html                - automaticaly generate coverage html report
+        --coverage-html-dir <dir>      - Directory to save coverage report to. Default: ./htmlcov
         --coverage-report              - print coverage report
         --coverage-skip-covered        - skip covered files in coverage report
         --coverage-fail-under <value>  - fail if coverage is less then specified value
@@ -355,6 +359,12 @@ function test_module {
             --coverage-html)
                 with_coverage=1;
                 with_coverage_report_html=1;
+            ;;
+            --coverage-html-dir)
+                with_coverage=1;
+                with_coverage_report_html=1;
+                with_coverage_report_html_dir=$(readlink -f "$2");
+                shift;
             ;;
             --coverage-report)
                 with_coverage=1;
@@ -466,10 +476,12 @@ function test_module {
 
     if [ -n "$with_coverage_report_html" ]; then
         if [ -n "$with_coverage_skip_covered" ]; then
-            execv coverage html --skip-covered;
+            execv coverage html --directory "$with_coverage_report_html_dir" --skip-covered;
         else
-            execv coverage html;
+            execv coverage html --directory "$with_coverage_report_html_dir";
         fi
+        echoe -e "${LBLUEC}HINT${NC}: Coverage report saved at ${YELLOWC}${with_coverage_report_html_dir}${NC}";
+        echoe -e "${LBLUEC}HINT${NC}: Just open url (${YELLOWC}file://${with_coverage_report_html_dir}/index.html${NC}) in browser to view coverage report.";
     fi
 
     if [ -n "$with_coverage_report" ]; then

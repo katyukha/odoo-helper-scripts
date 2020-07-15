@@ -29,6 +29,8 @@
   that produced error in the end of operation
 - Added command `odoo-helper ci push-changes` (experimental stage)
 - Added command `odoo-helper ci do-forward-port` (experimental stage)
+- Added option `--coverage-html-dir` to `odoo-helper test` command.
+- Added hints where to view html coverage report after tests
 
 ### Changed
 
