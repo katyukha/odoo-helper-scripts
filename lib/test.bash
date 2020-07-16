@@ -237,7 +237,7 @@ function test_run_tests {
         echo -e "TEST RESULT: ${GREENC}OK${NC}";
         res=0;
     fi
-    echo -e "${BLUEC}HINT${NC}: Use following command to see log file: ${YELLOWC}less +G '$test_log_file'${NC}.";
+    echo -e "${LBLUEC}HINT${NC}: Use following command to see log file: ${YELLOWC}less +G '$test_log_file'${NC}.";
     return $res
 }
 
