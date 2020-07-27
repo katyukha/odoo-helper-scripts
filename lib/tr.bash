@@ -76,9 +76,24 @@ function tr_parse_addons {
 }
 
 
-# tr_import_export_internal <db> <lang> <filename> <extra_options> <export|import> <addons>
+# tr_import_export_internal [options] <db> <lang> <filename> <extra_options> <export|import> <addons>
 # note, <extra_options> may be string with one space (empty)
 function tr_import_export_internal {
+    local missing_only;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --missing-only)
+                local missing_only=1;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     if [[ $# -lt 6 ]]; then
         echoe -e "${REDC}ERROR:${NC} No all arguments passed to translations export/import";
         return 1;
@@ -114,7 +129,14 @@ function tr_import_export_internal {
 
         # if import and not translation file skip this addon
         if [ "$cmd" == "import" ] && [ ! -f "$i18n_file" ]; then
-            continue
+            echoe -e "${YELLOWC}WARNING${NC}: translation file ${BLUEC}${i18n_file}${NC} does not exists. Skipping translation ${BLUEC}${lang}${NC} import for module ${BLUEC}${addon}${NC}";
+            continue;
+        fi
+
+        # do not export overwrite translations if export and missing_only and file already exists
+        if [ "$cmd" == "export" ] && [ -n "$missing_only" ] && [ -f "$i18n_file" ]; then
+            echoe -e "${YELLOWC}WARNING${NC}: translation file ${BLUEC}${i18n_file}${NC} already exists and ${BLUEC}--missing-only${NC} option enabled. Skipping translation ${BLUEC}${lang}${NC} export for module ${BLUEC}${addon}${NC}";
+            continue;
         fi
 
         # do the work
@@ -162,8 +184,8 @@ function tr_export {
     local usage="
     Usage
 
-        $SCRIPT_NAME tr export <db> <lang> <file_name> <addon1> [addon2] [addon3]...
-        $SCRIPT_NAME tr export <db> <lang> <file_name> all
+        $SCRIPT_NAME tr export [options] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
+        $SCRIPT_NAME tr export [options] <db> <lang> <file_name> all
 
     Export translations to specified files for specified lang from specified db
     This script exports trnaslations for addons and usualy used to update *.po files
@@ -171,7 +193,9 @@ function tr_export {
 
     Options:
 
-        --help         - show this help message
+        --missing-only  - export only missing translations
+                          (do not overwrite files)
+        --help          - show this help message
 
     Arguments:
 
@@ -187,17 +211,31 @@ function tr_export {
                     it is possible to specify 'all' name of addon, in this case
                     translations will be updated for all installed addons.
     ";
-    if [[ "$1" =~ -h|--help|help ]]; then
-        echo "$usage";
-        return 0;
-    fi
+    local extra_opts=();
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --missing-only)
+                extra_opts+=( "--missing-only" );
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
 
     local db=$1;
     local lang=$2;
     local file_name=$3;
     shift; shift; shift;
 
-    tr_import_export_internal "$db" "$lang" "$file_name" " " export "$@";
+    tr_import_export_internal "${extra_opts[@]}" "$db" "$lang" "$file_name" " " export "$@";
 }
 
 function tr_import {
@@ -343,6 +381,8 @@ function tr_regenerate {
         --pot                            - generate .pot file for translations
         --dir  <addons path>             - look for addons at specified directory
         --dir-r <addons path>            - look for addons at specified directory and its subdirectories
+        --missing-only                   - regenerate only missing translation files.
+                                           Do not overwrite existing translations.
 
     Examples
 
@@ -356,6 +396,7 @@ function tr_regenerate {
     ";
 
     local langs_arr=();
+    local export_extra_opts=();
 
     while [[ $# -gt 0 ]]
     do
@@ -398,6 +439,9 @@ function tr_regenerate {
                 addons+=( "${addons_list[@]}" );
                 shift;
             ;;
+            --missing-only)
+                export_extra_opts+=( "--missing-only" );
+            ;;
             *)
                 addons+=( "$key" );
             ;;
@@ -426,7 +470,7 @@ function tr_regenerate {
     # install addons
     local res=0;
     if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
-        if [ -z "$gen_pot" ]; then
+        if [ -n "${langs_arr[*]}" ]; then
             for langf in "${langs_arr[@]}"; do
                 local lang_code;
                 local lang_file;
@@ -438,13 +482,13 @@ function tr_regenerate {
                 fi
 
                 # export translations
-                if ! tr_export "$tmp_db_name" "${lang_code}" "${lang_file}" "${addons[@]}"; then
+                if ! tr_export "${export_extra_opts[@]}" "$tmp_db_name" "${lang_code}" "${lang_file}" "${addons[@]}"; then
                     res=1;
                     break
                 fi
             done
-
-        else
+        fi
+        if [ -n "$gen_pot" ]; then
             if ! tr_generate_pot "$tmp_db_name" "${addons[@]}"; then
                 res=1;
             fi

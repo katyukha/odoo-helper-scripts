@@ -31,6 +31,8 @@
 - Added command `odoo-helper ci do-forward-port` (experimental stage)
 - Added option `--coverage-html-dir` to `odoo-helper test` command.
 - Added hints where to view html coverage report after tests
+- Added option `--missing-only` to command `tr regenerate` and `tr export`.
+  So now it is possible to generate/regenerate only missing translations for addons.
 
 ### Changed
 
@@ -46,7 +48,7 @@
   Additionally now it uses streams to dump file, so it have to be more
   memory friendly.
 - `odoo-helper tr regenerate` command can now regenerate translations for
-  multiple languages via single run.
+  multiple languages via single run. Also, it is possible to regenerate `.pot` files in same run.
 - Disable sentry on database operations.
 - Automatically replace `psycopg2` requirement with `psycopg2-binary`.
 
