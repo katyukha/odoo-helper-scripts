@@ -475,10 +475,11 @@ function install_odoo_py_requirements_for_version {
                 # Starting from Odoo 11 python 3 is used. choose correct gevent  version
                 # for python installed in system
                 if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
-                    # Gevent have no builds for python3.6+
                     echo "gevent==1.1.2";
                 elif exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
                     echo "gevent==1.3.4";
+                elif exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                    echo "gevent==1.5.0";
                 else
                     echo "$dependency";
                 fi
