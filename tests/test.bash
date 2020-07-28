@@ -301,6 +301,15 @@ odoo-helper postgres psql -c "\l"
 # Run psql and list all databases visible for odoo user (shortcut)
 odoo-helper psql -c "\l"
 
+# Show running queries
+odoo-helper pg stat-activity
+
+# Show active locks
+odoo-helper pg locks-info
+
+# Show connections info
+odoo-helper pg stat-connections
+
 # recompute parent-store for ir.ui.menu
 odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu --parent-store
 
@@ -606,7 +615,7 @@ odoo-helper server run --stop-after-init;  # test that it runs
 
 # Show project status
 odoo-helper status;
-odoo-helper server status;
+odoo-helper-server status;
 odoo-helper start;
 odoo-helper ps;
 odoo-helper status;
@@ -636,7 +645,7 @@ odoo-helper addons install --ual bureaucrat_helpdesk_lite;
 
 # Fetch helpdesk second time testing bechavior
 # when same addons already present in system
-odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+odoo-helper-fetch --odoo-app bureaucrat_helpdesk_lite;
 
 # Prepare to test pull updates with --do-update option
 odoo-helper fetch --oca partner-contact;
@@ -644,7 +653,7 @@ odoo-helper fetch --oca partner-contact;
 odoo-helper addons install --dir ./repositories/oca/partner-contact;
 
 # Test pull-updates with --do-update option
-odoo-helper addons pull-updates --do-update;
+odoo-helper-addons pull-updates --do-update;
 
 # Regenerate pot files for modules from partner-contact
 odoo-helper tr regenerate --pot --dir ./repositories/oca/partner-contact;
@@ -654,7 +663,7 @@ odoo-helper tr regenerate --lang-file "uk_UA:uk" --lang-file "ru_RU:ru" --dir ./
 odoo-helper addons find-installed;
 
 # Drop created databases
-odoo-helper db drop odoo12-odoo-test;
+odoo-helper-db drop odoo12-odoo-test;
 odoo-helper db drop -q odoo12-odoo-tmp;
 
 if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then 
