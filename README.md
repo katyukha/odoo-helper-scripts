@@ -75,7 +75,7 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - *12.0*
     - *13.0* (requires ubuntu 18.04+ or other linux distribution with python 3.6+)
 - OS support:
-    - On *Ubuntu* should work nice
+    - On *Ubuntu* should work nice (auto tested on *Ubuntu 16.04, 18.04, 20.04*)
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
 - Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
@@ -97,9 +97,9 @@ So use ``--help`` option, which is available for most of commands.
 This script collection is designed to simplify life of addons developer.
 This project ***is not*** designed, to install and configure production ready Odoo instances, unless you know what you do!
 
-For production-ready installations take a look at [crnd-deploy](http://github.com/crnd-inc/crnd-deploy) project - just a single command allows you to get production-ready odoo instance with configured [PostgreSQL](https://www.postgresql.org/) and [Nginx](https://nginx.org/).
+For **production-ready** installations take a look at [crnd-deploy](http://github.com/crnd-inc/crnd-deploy) project - just a single command allows you to get production-ready odoo instance with configured [PostgreSQL](https://www.postgresql.org/) and [Nginx](https://nginx.org/).
 
-Also take a look at [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit) project, and discover the easiest way to manage your production Odoo installations.
+Also take a look at [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit) project, and discover the easiest way to manage your production Odoo installations with automated billing and support of custom addons.
 
 [![Yodoo Cockpit](https://crnd.pro/web/image/18846/banner_2_4_gif_animation_cut.gif)](https://crnd.pro/yodoo-cockpit)
 
@@ -112,7 +112,7 @@ Just short notes about [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit):
 
 ## Level up your service quality
 
-Level up your service with our [Helpdesk](https://crnd.pro/solutions/helpdesk) / [Service Desk](https://crnd.pro/solutions/service-desk) / [ITSM](https://crnd.pro/itsm) solution.
+Level up your service quality with [Helpdesk](https://crnd.pro/solutions/helpdesk) / [Service Desk](https://crnd.pro/solutions/service-desk) / [ITSM](https://crnd.pro/itsm) solution by [CR&D](https://crnd.pro/).
 
 Just test it at [yodoo.systems](https://yodoo.systems/saas/templates): choose template you like, and start working.
 
@@ -126,7 +126,7 @@ For full list of installation options look at [installation documentation](https
 *Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
 but this feature is still experimental. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/tags) *page.*
 
-To install *odoo-helper-scripts* system-wide do folowing:
+To install *odoo-helper-scripts* system-wide (the recommended way) do folowing:
 
 ```bash
 # Install odoo-helper-scripts
@@ -163,6 +163,8 @@ For example to test, how odoo-helper-scripts will work on debian:stretch, do fol
 cd $ODOO_HELPER_ROOT
 bash scripts/run_docker_test.bash --docker-ti --docker-image debian:stretch
 ```
+
+Note, running tests may take more then 1:30 hours.
 
 
 ## Usage

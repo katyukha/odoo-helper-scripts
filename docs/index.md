@@ -102,7 +102,7 @@ Just short notes about [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit):
 
 ## Level up your service quality
 
-Level up your service with our [Helpdesk](https://crnd.pro/solutions/helpdesk) / [Service Desk](https://crnd.pro/solutions/service-desk) / [ITSM](https://crnd.pro/itsm) solution.
+Level up your service with [Helpdesk](https://crnd.pro/solutions/helpdesk) / [Service Desk](https://crnd.pro/solutions/service-desk) / [ITSM](https://crnd.pro/itsm) solution by [CR&D](https://crnd.pro/).
 
 Just test it at [yodoo.systems](https://yodoo.systems/saas/templates): choose template you like, and start working.
 
