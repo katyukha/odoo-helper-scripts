@@ -485,6 +485,13 @@ function install_odoo_py_requirements_for_version {
                 fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 echo "greenlet==0.4.9";
+            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+                # Set correct version of greenlet for gevent 1.5.0
+                if exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                    echo "greenlet==0.4.14";
+                else
+                    echo "$dependency";
+                fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.7.3.1";
             elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
