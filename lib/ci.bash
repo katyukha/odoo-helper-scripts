@@ -552,6 +552,7 @@ function ci_do_forwardport {
     if ! git --git-dir "$git_path/.git" merge --no-ff --no-commit --edit "$git_remote_name/$src_branch"; then
         echoe -e "${YELLOWC}WARNING${NC}: Merge command was not successfull, it seems that there was conflicts during merge. Please, resolve them manually";
     fi
+    # TODO: Do not change translations.
     ci_check_versions_git --fix-version-fp "$git_path" "$git_remote_name/$dst_branch";
     if git_is_clean "$git_path"; then
         echoe -e "${YELLOWC}WARNING${NC}: It seems that there is no changes to forwardport!";
@@ -683,6 +684,7 @@ function ci_command {
         $SCRIPT_NAME ci push-changes [--help]        - push changes to same branch
         $SCRIPT_NAME ci do-forward-port [--help]     - do forwardport
         $SCRIPT_NAME ci do-fwp [--help]              - alias to 'do-forward-port'
+        $SCRIPT_NAME ci do-fp [--help]              - alias to 'do-forward-port'
         $SCRIPT_NAME ci -h|--help|help               - show this help message
     ";
 
@@ -715,7 +717,7 @@ function ci_command {
                 ci_push_changes "$@";
                 return;
             ;;
-            do-forward-port|do-fwp)
+            do-forward-port|do-fwp|do-fp)
                 shift;
                 ci_do_forwardport "$@";
                 return;
