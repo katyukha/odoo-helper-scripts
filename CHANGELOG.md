@@ -51,6 +51,7 @@
   multiple languages via single run. Also, it is possible to regenerate `.pot` files in same run.
 - Disable sentry on database operations.
 - Automatically replace `psycopg2` requirement with `psycopg2-binary`.
+- Updated version of bundled virtualenv to *16.7.9*
 
 ### Deprecated
 
