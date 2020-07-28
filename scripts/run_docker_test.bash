@@ -121,5 +121,7 @@ fi
 
 exec docker run --rm $EXTRA_DOCKER_RUN_OPT \
     -v $PROJECT_DIR:/opt/odoo-helper-scripts:rw \
-    -e "CI_RUN=1" -e "TEST_TMP_DIR=$E_TEST_TMP_DIR" $IMAGE \
+    -e "DEBIAN_FRONTEND='noninteractive'" \
+    -e "CI_RUN=1" -e "TEST_TMP_DIR=$E_TEST_TMP_DIR" \
+    "$IMAGE" \
     bash -c "$CMD_INSTALL && $D_CMD_TEST && $CMD_CLEANUP";
