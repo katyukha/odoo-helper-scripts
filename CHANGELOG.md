@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased changes
+## Release 0.7.0 (2020-07-)
 
 ### Added
 
