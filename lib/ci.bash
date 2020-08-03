@@ -552,7 +552,12 @@ function ci_do_forwardport {
     if ! git --git-dir "$git_path/.git" merge --no-ff --no-commit --edit "$git_remote_name/$src_branch"; then
         echoe -e "${YELLOWC}WARNING${NC}: Merge command was not successfull, it seems that there was conflicts during merge. Please, resolve them manually";
     fi
-    # TODO: Do not change translations.
+    
+    # Do not forwardport translations
+    git --git-dir "$git_path/.git" checkout --ours -- *.po *.pot
+    git --git-dir "$git_path/.git" add *.po *.pot
+
+    # Attempt tot fix versions of modules
     ci_check_versions_git --fix-version-fp "$git_path" "$git_remote_name/$dst_branch";
     if git_is_clean "$git_path"; then
         echoe -e "${YELLOWC}WARNING${NC}: It seems that there is no changes to forwardport!";
