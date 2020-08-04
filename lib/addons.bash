@@ -1232,7 +1232,7 @@ function addons_command {
                 addons_install_update "update" "$@";
                 return 0;
             ;;
-            install)
+            install|isntall)
                 shift;
                 addons_install_update "install" "$@";
                 return 0;

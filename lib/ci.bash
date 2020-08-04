@@ -689,7 +689,8 @@ function ci_command {
         $SCRIPT_NAME ci push-changes [--help]        - push changes to same branch
         $SCRIPT_NAME ci do-forward-port [--help]     - do forwardport
         $SCRIPT_NAME ci do-fwp [--help]              - alias to 'do-forward-port'
-        $SCRIPT_NAME ci do-fp [--help]              - alias to 'do-forward-port'
+        $SCRIPT_NAME ci do-fp [--help]               - alias to 'do-forward-port'
+        $SCRIPT_NAME ci do-fw [--help]               - alias to 'do-forward-port'
         $SCRIPT_NAME ci -h|--help|help               - show this help message
     ";
 
@@ -722,7 +723,7 @@ function ci_command {
                 ci_push_changes "$@";
                 return;
             ;;
-            do-forward-port|do-fwp|do-fp)
+            do-forward-port|do-fp|do-fw|do-fwp)
                 shift;
                 ci_do_forwardport "$@";
                 return;
