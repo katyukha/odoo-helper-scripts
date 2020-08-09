@@ -383,6 +383,8 @@ function tr_regenerate {
         --dir-r <addons path>            - look for addons at specified directory and its subdirectories
         --missing-only                   - regenerate only missing translation files.
                                            Do not overwrite existing translations.
+                                           But does not affect the generation of .pot files
+                                           (.pot file will be overwritten still)
 
     Examples
 
