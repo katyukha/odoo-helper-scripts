@@ -554,7 +554,9 @@ function ci_do_forwardport {
     fi
     
     # Do not forwardport translations
-    git --git-dir "$git_path/.git" checkout --ours -- "*.po" "*.pot"
+    git --git-dir "$git_path/.git" reset -- "*.po" "*.pot"
+    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot"
+    git --git-dir "$git_path/.git" clean -fdx -- "*.po" "*.pot"
     git --git-dir "$git_path/.git" add "*.po" "*.pot"
 
     # Attempt tot fix versions of modules
