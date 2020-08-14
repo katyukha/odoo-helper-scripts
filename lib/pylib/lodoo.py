@@ -9,11 +9,14 @@
 
 """ Local odoo connection lib
 """
+import io
 import os
+import re
 import json
 import atexit
 import logging
 import functools
+import contextlib
 import pkg_resources
 
 # Odoo package import and start services logic are based on code:
@@ -239,7 +242,7 @@ class LocalRegistry(object):
             min_total_rate=min_total_rate,
             min_addon_rate=min_addon_rate)
 
-    def generate_pot_file(self, module_name):
+    def generate_pot_file(self, module_name, remove_dates):
         """ Generate .pot file for a module
         """
         try:
@@ -248,9 +251,19 @@ class LocalRegistry(object):
             if not os.path.exists(i18n_dir):
                 os.mkdir(i18n_dir)
             pot_file = os.path.join(i18n_dir, '%s.pot' % module_name)
-            with open(pot_file, 'wb') as buf:
+
+            with contextlib.closing(io.BytesIO()) as buf:
                 self.odoo.tools.trans_export(
                     None, [module_name], buf, 'po', self.cr)
+                data = buf.getvalue().decode('utf-8')
+
+            if remove_dates:
+                data = re.sub(
+                    r'"POT?-(Creation|Revision)-Date:.*?"[\n\r]',
+                    '', data, flags=re.MULTILINE)
+
+            with open(pot_file, 'wb') as pot_f:
+                pot_f.write(data.encode('utf-8'))
         except Exception:
             _logger.error("Error", exc_info=True)
             raise
@@ -410,3 +423,6 @@ def cleanup():
 
     for db in Registry.registries.keys():
         odoo.sql_db.close_db(db)
+
+
+# TODO Use 'click' to provide commandline interface?

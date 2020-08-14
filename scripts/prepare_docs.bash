@@ -184,6 +184,9 @@ echo -e "~~~text\n$(odoo-helper tr export --help)\n~~~\n\n" >> $PROJECT_DIR/docs
 echo -e "#### odoo-helper tr import\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper tr import --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper tr generate-pot\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper tr generate-pot --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper tr load\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper tr load --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 

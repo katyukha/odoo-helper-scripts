@@ -33,6 +33,8 @@
 - Added hints where to view html coverage report after tests
 - Added option `--missing-only` to command `tr regenerate` and `tr export`.
   So now it is possible to generate/regenerate only missing translations for addons.
+- Added command `tr generate-pot` to generate .pot files
+- Added option `tr regenerate --pot-remove-dates` to remove dates from generated pot files.
 
 ### Changed
 

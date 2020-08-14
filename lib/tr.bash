@@ -147,6 +147,42 @@ function tr_import_export_internal {
 
 # tr_generate_pot <db> <addon1> [addon2] [addonN]
 function tr_generate_pot {
+    local usage="
+        Usage
+
+            $SCRIPT_NAME tr generate-pot [options] <db> <addon1> [addon2] [addon3]...
+            $SCRIPT_NAME tr generate-pot [options] <db>
+
+        Regenerate .pot files for specified modules
+
+        Options:
+            --remove-dates  - remove dates from .pot files
+            --help          - show this help message
+
+        Arguments:
+
+            db        - name of database to regenerate translations.
+            addonN    - name of addon to regenerate transaltions for.
+    ";
+    local opt_remove_dates="False";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --remove-dates)
+                opt_remove_dates="True";
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     if [[ $# -lt 2 ]]; then
         echoe -e "${REDC}ERROR:${NC} No all arguments passed to generation of POT files";
         return 1;
@@ -168,7 +204,7 @@ function tr_generate_pot {
         echoe -e "${BLUEC}Executing ${YELLOWC}generate .pot file${BLUEC} for (db=${YELLOWC}$db${BLUEC}).${NC} Processing addon: ${YELLOWC}$addon${NC};";
 
         local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE']);";
-        python_cmd="$python_cmd cl['$db'].generate_pot_file('$addon');"
+        python_cmd="$python_cmd cl['$db'].generate_pot_file('$addon', $opt_remove_dates);"
 
         # Filestore should be created by server user, so run this command as server user
         if ! run_python_cmd_u "$python_cmd"; then
@@ -379,6 +415,7 @@ function tr_regenerate {
         --file <filename>                - name of po file in i18n dir of addons to generate (without extension)
         --lang-file <lang_code:filename> - lang code and lang file. could be specified multiple times
         --pot                            - generate .pot file for translations
+        --pot-remove-dates               - remove dates from generated .pot
         --dir  <addons path>             - look for addons at specified directory
         --dir-r <addons path>            - look for addons at specified directory and its subdirectories
         --missing-only                   - regenerate only missing translation files.
@@ -399,6 +436,7 @@ function tr_regenerate {
 
     local langs_arr=();
     local export_extra_opts=();
+    local pot_extra_opts=();
 
     while [[ $# -gt 0 ]]
     do
@@ -418,6 +456,9 @@ function tr_regenerate {
             ;;
             --pot)
                 gen_pot=1;
+            ;;
+            --pot-remove-dates)
+                pot_extra_opts+=( "--remove-dates" );
             ;;
             --file)
                 if [ -n "$file_name" ]; then
@@ -491,7 +532,7 @@ function tr_regenerate {
             done
         fi
         if [ -n "$gen_pot" ]; then
-            if ! tr_generate_pot "$tmp_db_name" "${addons[@]}"; then
+            if ! tr_generate_pot "${pot_extra_opts[@]}" "$tmp_db_name" "${addons[@]}"; then
                 res=1;
             fi
         fi
@@ -624,6 +665,7 @@ function tr_main {
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> all
         $SCRIPT_NAME tr load --help
+        $SCRIPT_NAME tr generate-pot --help
         $SCRIPT_NAME tr regenerate --help
         $SCRIPT_NAME tr rate --help
 
@@ -677,6 +719,11 @@ function tr_main {
             regenerate)
                 shift;
                 tr_regenerate "$@";
+                return;
+            ;;
+            generate-pot)
+                shift;
+                tr_generate_pot "$@";
                 return;
             ;;
             rate)
