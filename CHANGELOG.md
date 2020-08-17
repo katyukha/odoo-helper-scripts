@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+### Removed
+- Removed command `odoo-helper db dump`
+
 ## Release 0.7.0 (2020-08-17)
 
 ### Added
