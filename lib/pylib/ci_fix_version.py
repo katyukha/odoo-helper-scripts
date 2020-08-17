@@ -6,7 +6,7 @@ RE_GIT_VERSION_CONFLICT = re.compile(
     r"(\s+[\"']version[\"']:\s[\"'][\d\.]+[\"'],\n)"
     r"=======\n"
     r"(\s+[\"']version[\"']:\s[\"'][\d\.]+[\"'],\n)"
-    r">>>>>>> .*\n$", flags=re.MULTILINE)
+    r">>>>>>> .*\n", flags=re.MULTILINE)
 
 if __name__ == "__main__":
     file_path = sys.argv[1]

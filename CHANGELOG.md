@@ -1,5 +1,65 @@
 # Release Notes
 
+## Release 0.7.0 (2020-08-17)
+
+### Added
+
+- Added `--recursive` option to `odoo-helper doc-utils addons-list` command
+- Added `--tmp-dir` option to odoo-helper's database backup/restore commands
+- Added `--node-version` option to `odoo-install` and
+  to `odoo-helper install reinstall-venv` commands
+- Added `--coverage-ignore-errors` option to `odoo-helper test` command
+- Added ability to install addons via `odoo-helper install` command
+- Added option `--all` to `odoo-helper odoo clean-compiled-assets`,
+  that could be used to clean assets for all databases
+- Added `--install-dir` option to `odoo-helper db create` command.
+  This option allows to automatically install all addons from specified
+  directory after creation of database.
+- Added new shortcuts:
+    - `odoo-helper lsa` -> `odoo-helper addons list`
+    - `odoo-helper lsd` -> `odoo-helper db list`
+- Added help message for `odoo-helper addons update-py-deps` command.
+- Added command `odoo-helper db dump-manifest <dbname>` that allows
+  to generate manifest for database backups.
+  Could be used with external backup tools.
+- Added command `odoo-helper postgres pg_dump`
+- Added option `odoo-helper addons update --skip-errors` that allows to
+  continue update event if there was error caught on update of single db,
+  thus now it is possible to update all databases and show list of databases,
+  that produced error in the end of operation
+- Added command `odoo-helper ci push-changes` (experimental stage)
+- Added command `odoo-helper ci do-forward-port` (experimental stage)
+- Added option `--coverage-html-dir` to `odoo-helper test` command.
+- Added hints where to view html coverage report after tests
+- Added option `--missing-only` to command `tr regenerate` and `tr export`.
+  So now it is possible to generate/regenerate only missing translations for addons.
+- Added command `tr generate-pot` to generate .pot files
+- Added option `tr regenerate --pot-remove-dates` to remove dates from generated pot files.
+
+### Changed
+
+- Refactored `odoo-helper update-sources` command:
+    - add help message
+    - if `ODOO_REPO` specified, try to download archive from this repo
+    - if `ODOO_DOWNLOAD_SOURCE_LINK` specified, then use it to download Odoo archive
+- `odoo-helper browse` now will start server automatically if it is not started yet
+- `odoo-helper postgres user-create` if password not privided, then use `odoo` as password.
+- Fail `odoo-helepr test` if there is attempt to write/create with unknown fields
+- Fail `odoo-helper test` if there was error/warning while loading demo data
+- `odoo-helper db backup` refactored to avoid `base64` encoding / decoding.
+  Additionally now it uses streams to dump file, so it have to be more
+  memory friendly.
+- `odoo-helper tr regenerate` command can now regenerate translations for
+  multiple languages via single run. Also, it is possible to regenerate `.pot` files in same run.
+- Disable sentry on database operations.
+- Automatically replace `psycopg2` requirement with `psycopg2-binary`.
+- Updated version of bundled virtualenv to *16.7.9*
+
+### Deprecated
+
+- `odoo-helper db dump` now deprecated.
+
+
 ## Release 0.6.0 (2020-01-28)
 
 ### Added

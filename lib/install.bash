@@ -20,6 +20,7 @@ fi
 ohelper_require "config";
 ohelper_require "postgres";
 ohelper_require "odoo";
+ohelper_require "addons";
 
 
 set -e; # fail on errors
@@ -474,17 +475,27 @@ function install_odoo_py_requirements_for_version {
                 # Starting from Odoo 11 python 3 is used. choose correct gevent  version
                 # for python installed in system
                 if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
-                    # Gevent have no builds for python3.6+
                     echo "gevent==1.1.2";
                 elif exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
                     echo "gevent==1.3.4";
+                elif exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                    echo "gevent==1.5.0";
                 else
                     echo "$dependency";
                 fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 echo "greenlet==0.4.9";
+            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+                # Set correct version of greenlet for gevent 1.5.0
+                if exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                    echo "greenlet==0.4.14";
+                else
+                    echo "$dependency";
+                fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.7.3.1";
+            elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
+                echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
                 echo "lxml==3.7.1";
             else
@@ -617,7 +628,14 @@ function install_virtual_env {
             VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$venv_script" "$VENV_DIR";
         fi
         exec_pip -q install nodeenv;
-        execv nodeenv --python-virtualenv;  # Install node environment
+
+        local nodeenv_opts;
+        nodeenv_opts=( "--python-virtualenv" );
+        if [ -n "$ODOO_INSTALL_NODE_VERSION" ]; then
+            nodeenv_opts+=( "--node" "$ODOO_INSTALL_NODE_VERSION" );
+        fi
+
+        execv nodeenv "${nodeenv_opts[@]}";  # Install node environment
 
         exec_npm set user 0;
         exec_npm set unsafe-perm true;
@@ -966,6 +984,8 @@ function install_reinstall_venv {
 
         -p|--python <python ver>  - python version to recreate virtualenv with.
                                     Same as --python option of virtualenv
+        --node-version <version>  - version of node.js to be installed.
+                                    Default: latest
         --no-backup               - do not backup virtualenv
     ";
     while [[ $# -gt 0 ]]
@@ -978,6 +998,10 @@ function install_reinstall_venv {
             ;;
             --no-backup)
                 local do_not_backup_virtualenv=1;
+            ;;
+            --node-version)
+                ODOO_INSTALL_NODE_VERSION=$2;
+                shift;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -1002,6 +1026,11 @@ function install_reinstall_venv {
         venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
         mv "$VENV_DIR" "$venv_backup_path";
         echoe -e "${BLUEC}Old ${YELLOWC}virtualenv${BLUEC} backed up at ${YELLOWC}${venv_backup_path}${NC}";
+    elif [ -d "$VENV_DIR" ]; then
+        # If we do not need to backup virtualenv, then we have to removed it before installing;
+        echoe -e "${YELLOWC}Removing virualenv...${NC}";
+        rm -r "$VENV_DIR";
+        echoe -e "${YELLOWC}Virtualenv removed!${NC}";
     fi
 
     # Install odoo
@@ -1090,6 +1119,9 @@ function install_entry_point {
                                                            Options are:
                                                               - clone odoo as git repository
                                                               - download odoo archieve and unpack source
+
+        $SCRIPT_NAME install <addon1> [addon2]...        - [experimental] install addons on all databases.
+                                                           this is alternative for: $SCRIPT_NAME addons install
         $SCRIPT_NAME install --help                      - show this help message
 
     ";
@@ -1181,8 +1213,15 @@ function install_entry_point {
                 return 0;
             ;;
             *)
-                echo "Unknown option / command $key";
-                return 1;
+                config_load_project;
+                if addons_is_odoo_addon "$1"; then
+                    echoe -e "${BLUEC}It seems that instalation of addons requeested.\nTrying to install addons...${NC}";
+                    addons_install_update install "$@";
+                    return;
+                else
+                    echo "Unknown option / command '$key'";
+                    return 1;
+                fi
             ;;
         esac
         shift

@@ -82,6 +82,9 @@ echo -e "~~~text\n$(odoo-helper addons uninstall --help)\n~~~\n\n" >> $PROJECT_D
 echo -e "#### odoo-helper addons update-list\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper addons update-list --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper addons update-py-deps\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper addons update-py-deps --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper addons status\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper addons status --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
@@ -121,8 +124,8 @@ echo -e "~~~text\n$(odoo-helper db rename --help)\n~~~\n\n" >> $PROJECT_DIR/docs
 echo -e "#### odoo-helper db copy\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db copy --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
-echo -e "#### odoo-helper db dump\n\n" >> $PROJECT_DIR/docs/command-reference.md;
-echo -e "~~~text\n$(odoo-helper db dump --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "#### odoo-helper db dump-manifest\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper db dump-manifest --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
 echo -e "#### odoo-helper db backup\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper db backup --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
@@ -181,6 +184,9 @@ echo -e "~~~text\n$(odoo-helper tr export --help)\n~~~\n\n" >> $PROJECT_DIR/docs
 echo -e "#### odoo-helper tr import\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper tr import --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper tr generate-pot\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper tr generate-pot --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "#### odoo-helper tr load\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper tr load --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
@@ -220,6 +226,12 @@ echo -e "~~~text\n$(odoo-helper ci ensure-changelog --help)\n~~~\n\n" >> $PROJEC
 echo -e "#### odoo-helper ci check-versions-git\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper ci check-versions-git --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
+echo -e "#### odoo-helper ci push-changes\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper ci push-changes --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "#### odoo-helper ci do-forward-port\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper --no-color ci do-forward-port --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
 echo -e "### odoo-helper doc-utils\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper doc-utils --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 
@@ -228,3 +240,6 @@ echo -e "~~~text\n$(odoo-helper doc-utils addons-list --help)\n~~~\n\n" >> $PROJ
 
 echo -e "### odoo-helper system\n\n" >> $PROJECT_DIR/docs/command-reference.md;
 echo -e "~~~text\n$(odoo-helper system --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+
+echo -e "### odoo-helper update-sources\n\n" >> $PROJECT_DIR/docs/command-reference.md;
+echo -e "~~~text\n$(odoo-helper update-sources --help)\n~~~\n\n" >> $PROJECT_DIR/docs/command-reference.md;

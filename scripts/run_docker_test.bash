@@ -46,9 +46,9 @@ CMD_CLEANUP="sudo rm -rf rm -rf $E_TEST_TMP_DIR";
 # Set up default values
 #------------------------------------------------------
 TEST_FILE=/opt/odoo-helper-scripts/tests/test.bash;
-#DOCKER_FILE=$PROJECT_DIR/tests/docker/;
+DOCKER_FILE=$PROJECT_DIR/tests/docker/;
 DOCKER_TEST_IMAGE=odoo-helper-test
-DOCKER_IMAGE="ubuntu:16.04"
+DOCKER_IMAGE="ubuntu:18.04"
 
 #------------------------------------------------------
 # Parse commandline arguments
@@ -121,5 +121,7 @@ fi
 
 exec docker run --rm $EXTRA_DOCKER_RUN_OPT \
     -v $PROJECT_DIR:/opt/odoo-helper-scripts:rw \
-    -e "CI_RUN=1" -e "TEST_TMP_DIR=$E_TEST_TMP_DIR" $IMAGE \
+    -e "DEBIAN_FRONTEND='noninteractive'" \
+    -e "CI_RUN=1" -e "TEST_TMP_DIR=$E_TEST_TMP_DIR" \
+    "$IMAGE" \
     bash -c "$CMD_INSTALL && $D_CMD_TEST && $CMD_CLEANUP";

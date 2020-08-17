@@ -76,9 +76,24 @@ function tr_parse_addons {
 }
 
 
-# tr_import_export_internal <db> <lang> <filename> <extra_options> <export|import> <addons>
+# tr_import_export_internal [options] <db> <lang> <filename> <extra_options> <export|import> <addons>
 # note, <extra_options> may be string with one space (empty)
 function tr_import_export_internal {
+    local missing_only;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --missing-only)
+                local missing_only=1;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     if [[ $# -lt 6 ]]; then
         echoe -e "${REDC}ERROR:${NC} No all arguments passed to translations export/import";
         return 1;
@@ -114,7 +129,14 @@ function tr_import_export_internal {
 
         # if import and not translation file skip this addon
         if [ "$cmd" == "import" ] && [ ! -f "$i18n_file" ]; then
-            continue
+            echoe -e "${YELLOWC}WARNING${NC}: translation file ${BLUEC}${i18n_file}${NC} does not exists. Skipping translation ${BLUEC}${lang}${NC} import for module ${BLUEC}${addon}${NC}";
+            continue;
+        fi
+
+        # do not export overwrite translations if export and missing_only and file already exists
+        if [ "$cmd" == "export" ] && [ -n "$missing_only" ] && [ -f "$i18n_file" ]; then
+            echoe -e "${YELLOWC}WARNING${NC}: translation file ${BLUEC}${i18n_file}${NC} already exists and ${BLUEC}--missing-only${NC} option enabled. Skipping translation ${BLUEC}${lang}${NC} export for module ${BLUEC}${addon}${NC}";
+            continue;
         fi
 
         # do the work
@@ -125,6 +147,42 @@ function tr_import_export_internal {
 
 # tr_generate_pot <db> <addon1> [addon2] [addonN]
 function tr_generate_pot {
+    local usage="
+        Usage
+
+            $SCRIPT_NAME tr generate-pot [options] <db> <addon1> [addon2] [addon3]...
+            $SCRIPT_NAME tr generate-pot [options] <db>
+
+        Regenerate .pot files for specified modules
+
+        Options:
+            --remove-dates  - remove dates from .pot files
+            --help          - show this help message
+
+        Arguments:
+
+            db        - name of database to regenerate translations.
+            addonN    - name of addon to regenerate transaltions for.
+    ";
+    local opt_remove_dates="False";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --remove-dates)
+                opt_remove_dates="True";
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
     if [[ $# -lt 2 ]]; then
         echoe -e "${REDC}ERROR:${NC} No all arguments passed to generation of POT files";
         return 1;
@@ -146,7 +204,7 @@ function tr_generate_pot {
         echoe -e "${BLUEC}Executing ${YELLOWC}generate .pot file${BLUEC} for (db=${YELLOWC}$db${BLUEC}).${NC} Processing addon: ${YELLOWC}$addon${NC};";
 
         local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE']);";
-        python_cmd="$python_cmd cl['$db'].generate_pot_file('$addon');"
+        python_cmd="$python_cmd cl['$db'].generate_pot_file('$addon', $opt_remove_dates);"
 
         # Filestore should be created by server user, so run this command as server user
         if ! run_python_cmd_u "$python_cmd"; then
@@ -162,8 +220,8 @@ function tr_export {
     local usage="
     Usage
 
-        $SCRIPT_NAME tr export <db> <lang> <file_name> <addon1> [addon2] [addon3]...
-        $SCRIPT_NAME tr export <db> <lang> <file_name> all
+        $SCRIPT_NAME tr export [options] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
+        $SCRIPT_NAME tr export [options] <db> <lang> <file_name> all
 
     Export translations to specified files for specified lang from specified db
     This script exports trnaslations for addons and usualy used to update *.po files
@@ -171,7 +229,9 @@ function tr_export {
 
     Options:
 
-        --help         - show this help message
+        --missing-only  - export only missing translations
+                          (do not overwrite files)
+        --help          - show this help message
 
     Arguments:
 
@@ -187,17 +247,31 @@ function tr_export {
                     it is possible to specify 'all' name of addon, in this case
                     translations will be updated for all installed addons.
     ";
-    if [[ "$1" =~ -h|--help|help ]]; then
-        echo "$usage";
-        return 0;
-    fi
+    local extra_opts=();
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --missing-only)
+                extra_opts+=( "--missing-only" );
+            ;;
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
 
     local db=$1;
     local lang=$2;
     local file_name=$3;
     shift; shift; shift;
 
-    tr_import_export_internal "$db" "$lang" "$file_name" " " export "$@";
+    tr_import_export_internal "${extra_opts[@]}" "$db" "$lang" "$file_name" " " export "$@";
 }
 
 function tr_import {
@@ -337,21 +411,32 @@ function tr_regenerate {
 
     Options
 
-        --lang <lang code>    - language code to regenerate translations for
-        --file <filename>     - name of po file in i18n dir of addons to generate (without extension)
-        --pot                 - generate .pot file for translations
-        --dir  <addons path>  - look for addons at specified directory
-        --dir-r <addons path> - look for addons at specified directory and its subdirectories
+        --lang <lang code>               - language code to regenerate translations for
+        --file <filename>                - name of po file in i18n dir of addons to generate (without extension)
+        --lang-file <lang_code:filename> - lang code and lang file. could be specified multiple times
+        --pot                            - generate .pot file for translations
+        --pot-remove-dates               - remove dates from generated .pot
+        --dir  <addons path>             - look for addons at specified directory
+        --dir-r <addons path>            - look for addons at specified directory and its subdirectories
+        --missing-only                   - regenerate only missing translation files.
+                                           Do not overwrite existing translations.
+                                           But does not affect the generation of .pot files
+                                           (.pot file will be overwritten still)
 
     Examples
 
         $SCRIPT_NAME tr regenerate --lang uk_UA --file uk project product
         $SCRIPT_NAME tr regenerate --lang ru_RU --file ru project product
+        $SCRIPT_NAME tr regenerate --lang-file uk_UA:uk --lang-file ru_RU:ru project product
 
     this command automaticaly creates new temporary database with specified lang
     and demo_data, installs there specified list of addons
     end exports translations for specified addons
     ";
+
+    local langs_arr=();
+    local export_extra_opts=();
+    local pot_extra_opts=();
 
     while [[ $# -gt 0 ]]
     do
@@ -362,14 +447,29 @@ function tr_regenerate {
                 return 0;
             ;;
             --lang)
+                if [ -n "$lang" ]; then
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}--lang${NC} specified multiple times.";
+                    return 4;
+                fi
                 lang=$2;
                 shift;
             ;;
             --pot)
                 gen_pot=1;
             ;;
+            --pot-remove-dates)
+                pot_extra_opts+=( "--remove-dates" );
+            ;;
             --file)
+                if [ -n "$file_name" ]; then
+                    echoe -e "${REDC}ERROR${NC}: ${YELLOWC}--file${NC} specified multiple times.";
+                    return 3;
+                fi
                 file_name=$2;
+                shift;
+            ;;
+            --lang-file)
+                langs_arr+=( "$2" )
                 shift;
             ;;
             --dir)
@@ -382,6 +482,9 @@ function tr_regenerate {
                 addons+=( "${addons_list[@]}" );
                 shift;
             ;;
+            --missing-only)
+                export_extra_opts+=( "--missing-only" );
+            ;;
             *)
                 addons+=( "$key" );
             ;;
@@ -389,14 +492,18 @@ function tr_regenerate {
         shift
     done
 
-    if [ -z "$gen_pot" ] && [ -z "$lang" ]; then
-        echoe -e "${REDC}ERROR${NC}: argument 'lang' is required!";
+    if [ -z "$gen_pot" ] && [ -z "$lang" ] && [ -z "${langs_arr[*]}" ]; then
+        echoe -e "${REDC}ERROR${NC}: argument '--lang' or '--lang-file' is required!";
         return 1;
     fi
 
-    if [ -z "$gen_pot" ] && [ -z "$file_name" ]; then
-        echoe -e "${REDC}ERROR${NC}: argument 'file' is required!";
+    if [ -z "$gen_pot" ] && [ -z "$file_name" ] && [ -z "${langs_arr[*]}" ]; then
+        echoe -e "${REDC}ERROR${NC}: argument '--file' or '--lang-file' is required!";
         return 2;
+    fi
+
+    if [ -n "$lang" ] && [ -n "$file_name" ] && [ -z "${langs_arr[*]}" ]; then
+        langs_arr+=( "$lang:$file_name" );
     fi
 
     # Create temporary database
@@ -406,13 +513,26 @@ function tr_regenerate {
     # install addons
     local res=0;
     if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
-        if [ -z "$gen_pot" ]; then
-            # export translations
-            if ! tr_export "$tmp_db_name" "$lang" "$file_name" "${addons[@]}"; then
-                res=1;
-            fi
-        else
-            if ! tr_generate_pot "$tmp_db_name" "${addons[@]}"; then
+        if [ -n "${langs_arr[*]}" ]; then
+            for langf in "${langs_arr[@]}"; do
+                local lang_code;
+                local lang_file;
+                IFS=':' read -r lang_code lang_file <<< "$langf"
+                if [ -z "${lang_code}" ] || [ -z "$lang_file" ]; then
+                    echoe -e "${REDC}ERROR${NC}: Cannot parse ${YELLOWC}${langf}${NC}!";
+                    res=1;
+                    break;
+                fi
+
+                # export translations
+                if ! tr_export "${export_extra_opts[@]}" "$tmp_db_name" "${lang_code}" "${lang_file}" "${addons[@]}"; then
+                    res=1;
+                    break
+                fi
+            done
+        fi
+        if [ -n "$gen_pot" ]; then
+            if ! tr_generate_pot "${pot_extra_opts[@]}" "$tmp_db_name" "${addons[@]}"; then
                 res=1;
             fi
         fi
@@ -513,7 +633,7 @@ function tr_translation_rate {
                 rm "$trans_file";
 
                 # Compute translation rate and print it
-                local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
+                local python_cmd="import lodoo; db=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
                 python_cmd="$python_cmd exit(db.check_translation_rate('$lang', '$addons_cs'.split(','),min_total_rate=$min_total_rate, min_addon_rate=$min_addon_rate, colored=bool(${OH_COLORS_ENABLED:-0})));";
                 if ! run_python_cmd "$python_cmd"; then
                     res=1;
@@ -545,6 +665,7 @@ function tr_main {
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> <addon1> [addon2] [addon3]...
         $SCRIPT_NAME tr import [--overwrite] <db> <lang> <file_name> all
         $SCRIPT_NAME tr load --help
+        $SCRIPT_NAME tr generate-pot --help
         $SCRIPT_NAME tr regenerate --help
         $SCRIPT_NAME tr rate --help
 
@@ -598,6 +719,11 @@ function tr_main {
             regenerate)
                 shift;
                 tr_regenerate "$@";
+                return;
+            ;;
+            generate-pot)
+                shift;
+                tr_generate_pot "$@";
                 return;
             ;;
             rate)

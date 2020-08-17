@@ -286,7 +286,7 @@ if odoo-helper db exists my-test-odoo-database; then
 fi
 
 # restore dropped database
-odoo-helper db restore my-test-odoo-database $backup_file;
+odoo-helper db restore my-test-odoo-database "$backup_file";
 
 # ensure that database exists
 odoo-helper db exists my-test-odoo-database
@@ -301,8 +301,20 @@ odoo-helper postgres psql -c "\l"
 # Run psql and list all databases visible for odoo user (shortcut)
 odoo-helper psql -c "\l"
 
+# Show running queries
+odoo-helper pg stat-activity
+
+# Show active locks
+odoo-helper pg locks-info
+
+# Show connections info
+odoo-helper pg stat-connections
+
 # recompute parent-store for ir.ui.menu
 odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu --parent-store
+
+# recompute menus (parent-store values)
+odoo-helper odoo recompute-menu --dbname my-test-db-renamed
 
 # recompute 'web_icon_data' field on ir.ui.menu
 odoo-helper odoo recompute --dbname my-test-db-renamed -m ir.ui.menu -f web_icon_data
@@ -606,7 +618,7 @@ odoo-helper server run --stop-after-init;  # test that it runs
 
 # Show project status
 odoo-helper status;
-odoo-helper server status;
+odoo-helper-server status;
 odoo-helper start;
 odoo-helper ps;
 odoo-helper status;
@@ -623,6 +635,8 @@ odoo-helper db copy odoo12-odoo-test odoo12-odoo-tmp;
 odoo-helper db exists odoo12-odoo-test;
 odoo-helper db exists odoo12-odoo-tmp;
 odoo-helper db backup-all;
+odoo-helper db dump-manifest odoo12-odoo-test;
+odoo-helper lsd;  # list databases
 
 # Fetch oca/contract
 odoo-helper fetch --github crnd-inc/generic-addons
@@ -630,13 +644,16 @@ odoo-helper fetch --github crnd-inc/generic-addons
 # Install addons from OCA contract
 odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 
+# List addons in generic_addons
+odoo-helper lsa ./repositories/crnd-inc/generic-addons;
+
 # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
 odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
 odoo-helper addons install --ual bureaucrat_helpdesk_lite;
 
 # Fetch helpdesk second time testing bechavior
 # when same addons already present in system
-odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+odoo-helper-fetch --odoo-app bureaucrat_helpdesk_lite;
 
 # Prepare to test pull updates with --do-update option
 odoo-helper fetch --oca partner-contact;
@@ -644,16 +661,17 @@ odoo-helper fetch --oca partner-contact;
 odoo-helper addons install --dir ./repositories/oca/partner-contact;
 
 # Test pull-updates with --do-update option
-odoo-helper addons pull-updates --do-update;
+odoo-helper-addons pull-updates --do-update;
 
 # Regenerate pot files for modules from partner-contact
 odoo-helper tr regenerate --pot --dir ./repositories/oca/partner-contact;
+odoo-helper tr regenerate --lang-file "uk_UA:uk" --lang-file "ru_RU:ru" --dir ./repositories/oca/partner-contact;
 
 # Print list of installed addons
 odoo-helper addons find-installed;
 
 # Drop created databases
-odoo-helper db drop odoo12-odoo-test;
+odoo-helper-db drop odoo12-odoo-test;
 odoo-helper db drop -q odoo12-odoo-tmp;
 
 if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then 
@@ -710,6 +728,14 @@ if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then
     # Drop created databases
     odoo-helper db drop odoo13-odoo-test;
 fi
+
+echo -e "${YELLOWC}
+=============================================================
+Run 'prepare-docs' script to test generation of help messages
+=============================================================
+${NC}"
+
+bash "$PROJECT_DIR/scripts/prepare_docs.bash";
 
 echo -e "${GREENC}
 ==========================================

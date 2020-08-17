@@ -149,6 +149,9 @@ function test_parse_log_file {
                -e "invalid module names, ignored" \
                -e "no access rules, consider adding one" \
                -e "OperationalError: FATAL" \
+               -e "WARNING $test_db_name odoo.modules.loading: Module [a-zA-Z0-9_]\+ demo data failed to install, installed without demo data" \
+               -e "WARNING $test_db_name odoo.models: [a-zA-Z0-9\\._]\+.create() includes unknown fields" \
+               -e "WARNING $test_db_name odoo.models: [a-zA-Z0-9\\._]\+.write() includes unknown fields" \
                "$test_log_file"; then
         res=1;
     fi
@@ -234,6 +237,7 @@ function test_run_tests {
         echo -e "TEST RESULT: ${GREENC}OK${NC}";
         res=0;
     fi
+    echo -e "${LBLUEC}HINT${NC}: Use following command to see log file: ${YELLOWC}less +G '$test_log_file'${NC}.";
     return $res
 }
 
@@ -261,6 +265,8 @@ function test_module {
     local with_coverage_report_html=;
     local with_coverage_report=;
     local with_coverage_skip_covered=;
+    local with_coverage_ignore_errors=;
+    local with_coverage_report_html_dir=;
     local modules_list;
     local modules=( );
     local module;
@@ -272,6 +278,8 @@ function test_module {
 
     # Modules map if there is module in this map, than it have to be skipped
     declare -A skip_modules_map;
+
+    with_coverage_report_html_dir="$(pwd)/htmlcov";
 
     local usage="
     Run tests for addons
@@ -290,9 +298,11 @@ function test_module {
         --fail-on-warn                 - if this option passed, then tests will fail even on warnings
         --coverage                     - calculate code coverage (use python's *coverage* util)
         --coverage-html                - automaticaly generate coverage html report
+        --coverage-html-dir <dir>      - Directory to save coverage report to. Default: ./htmlcov
         --coverage-report              - print coverage report
         --coverage-skip-covered        - skip covered files in coverage report
         --coverage-fail-under <value>  - fail if coverage is less then specified value
+        --coverage-ignore-errors       - Ignore errors for coverage report
         -m|--module <module>           - specify module to test
         -d|--dir|--directory <dir>     - search for modules to test in specified directory
         --dir-r|--directory-r <dir>    - recursively search for modules to test in specified directory
@@ -350,6 +360,12 @@ function test_module {
                 with_coverage=1;
                 with_coverage_report_html=1;
             ;;
+            --coverage-html-dir)
+                with_coverage=1;
+                with_coverage_report_html=1;
+                with_coverage_report_html_dir=$(readlink -f "$2");
+                shift;
+            ;;
             --coverage-report)
                 with_coverage=1;
                 with_coverage_report=1;
@@ -364,6 +380,9 @@ function test_module {
                 with_coverage_report=1;
                 with_coverage_fail_under="$2";
                 shift;
+            ;;
+            --coverage-ignore-errors)
+                with_coverage_ignore_errors=1;
             ;;
             -m|--module)
                 if ! addons_is_odoo_addon "$2"; then
@@ -457,10 +476,12 @@ function test_module {
 
     if [ -n "$with_coverage_report_html" ]; then
         if [ -n "$with_coverage_skip_covered" ]; then
-            execv coverage html --skip-covered;
+            execv coverage html --directory "$with_coverage_report_html_dir" --skip-covered;
         else
-            execv coverage html;
+            execv coverage html --directory "$with_coverage_report_html_dir";
         fi
+        echoe -e "${LBLUEC}HINT${NC}: Coverage report saved at ${YELLOWC}${with_coverage_report_html_dir}${NC}";
+        echoe -e "${LBLUEC}HINT${NC}: Just open url (${YELLOWC}file://${with_coverage_report_html_dir}/index.html${NC}) in browser to view coverage report.";
     fi
 
     if [ -n "$with_coverage_report" ]; then
@@ -470,6 +491,9 @@ function test_module {
         fi
         if [ -n "$with_coverage_fail_under" ]; then
             coverage_report_opts+=( "--fail-under=$with_coverage_fail_under" );
+        fi
+        if [ -n "$with_coverage_ignore_errors" ]; then
+            coverage_report_opts+=( "--ignore-errors" );
         fi
         execv coverage report "${coverage_report_opts[@]}";
     fi

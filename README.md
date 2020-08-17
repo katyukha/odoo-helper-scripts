@@ -8,15 +8,27 @@
 
 This project aims to simplify development process of Odoo addons as much as possible.
 
+odoo-helper-scripts will do all routine operations for you:
+- install odoo with ALL dependencies (even those not mentioned in odoo's requirements.txt like [python-slugify](https://pypi.org/project/python-slugify/))
+- manage local development databases
+- install custom addons
+- check if versions of modules are updated before pushing changes.
+- generate / regenerate translations
+- run tests
+- and a lot more
+
+If you have any routine operation that you would like to automate with odoo-helper-scripts, just fill an issue or do pull request, and may be that feature will be available in one of next releases.
+
 ## Canonical source
 
 The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).
 
 ## Features
 
-- Easily manage few instances of odoo that ran on same machine
+- Easily manage multiple instances of odoo that ran on same machine
 - High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install [node.js](https://nodejs.org/en/), [phantom.js](http://phantomjs.org/), etc in isolated [virtualenv](https://virtualenv.pypa.io/en/stable/)
+- The easiest way to install Odoo for development purposes
 - Powerful testing capabilities, including support for:
     - *python* and *js* code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
     - *python* code check via [flake8](https://pypi.python.org/pypi/flake8)
@@ -41,14 +53,19 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
       One of the reasons for this script collection development was,
       ability to automaticaly install more that 50 addons,
       that depend on each other, and where each addon have it's own git repo.
+- Easy database management
+    - easily create / drop / backup / rename / copy databases
 - Continious Integration related features
     - ensure addon version changed
     - ensure repository version changed
     - ensure each addon have icon
+    - ensure all changed addon has correct versions
+    - simplify forward-port process (move changes from older serie to newer (for example from 11.0 to 12.0))
 - Translation management from command line
     - import / export translations by command from shell
     - test translation rate for specified language
     - regenerate translations for specified language
+    - generate *.pot* files for modules
     - load language (for one db or for old databases)
 - Supported odoo versions:
     - *8.0*
@@ -58,7 +75,7 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - *12.0*
     - *13.0* (requires ubuntu 18.04+ or other linux distribution with python 3.6+)
 - OS support:
-    - On *Ubuntu* should work nice
+    - On *Ubuntu* should work nice (auto tested on *Ubuntu 16.04, 18.04, 20.04*)
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
 - Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
@@ -78,11 +95,28 @@ So use ``--help`` option, which is available for most of commands.
 ## Usage note
 
 This script collection is designed to simplify life of addons developer.
-This project ***is not*** designed, to install and configure production ready Odoo instances!
+This project ***is not*** designed, to install and configure production ready Odoo instances, unless you know what you do!
 
-For production-ready installations look at [crnd-deploy](http://github.com/crnd-inc/crnd-deploy) project.
+For **production-ready** installations take a look at [crnd-deploy](http://github.com/crnd-inc/crnd-deploy) project - just a single command allows you to get production-ready odoo instance with configured [PostgreSQL](https://www.postgresql.org/) and [Nginx](https://nginx.org/).
 
-Also take a look at [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit) project.
+Also take a look at [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit) project, and discover the easiest way to manage your production Odoo installations with automated billing and support of custom addons.
+
+[![Yodoo Cockpit](https://crnd.pro/web/image/18846/banner_2_4_gif_animation_cut.gif)](https://crnd.pro/yodoo-cockpit)
+
+Just short notes about [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit):
+- start new production-ready odoo instance in 1-2 minutes.
+- add custom addons to your odoo instances in 5-10 minutes.
+- out-of-the-box email configuration: just press button and add some records to your DNS, and get a working email
+- make your odoo instance available to external world (internet) in 30 seconds (just add single record in your DNS)
+
+
+## Level up your service quality
+
+Level up your service quality with [Helpdesk](https://crnd.pro/solutions/helpdesk) / [Service Desk](https://crnd.pro/solutions/service-desk) / [ITSM](https://crnd.pro/itsm) solution by [CR&D](https://crnd.pro/).
+
+Just test it at [yodoo.systems](https://yodoo.systems/saas/templates): choose template you like, and start working.
+
+Test all available features of [Bureaucrat ITSM](https://crnd.pro/itsm) with [this template](https://yodoo.systems/saas/template/bureaucrat-itsm-demo-data-95).
 
 
 ## Installation
@@ -92,7 +126,7 @@ For full list of installation options look at [installation documentation](https
 *Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
 but this feature is still experimental. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/tags) *page.*
 
-To install *odoo-helper-scripts* system-wide do folowing:
+To install *odoo-helper-scripts* system-wide (the recommended way) do folowing:
 
 ```bash
 # Install odoo-helper-scripts
@@ -129,6 +163,8 @@ For example to test, how odoo-helper-scripts will work on debian:stretch, do fol
 cd $ODOO_HELPER_ROOT
 bash scripts/run_docker_test.bash --docker-ti --docker-image debian:stretch
 ```
+
+Note, running tests may take more then 1:30 hours.
 
 
 ## Usage

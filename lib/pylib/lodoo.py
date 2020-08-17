@@ -9,10 +9,14 @@
 
 """ Local odoo connection lib
 """
+import io
 import os
+import re
+import json
 import atexit
 import logging
 import functools
+import contextlib
 import pkg_resources
 
 # Odoo package import and start services logic are based on code:
@@ -238,19 +242,28 @@ class LocalRegistry(object):
             min_total_rate=min_total_rate,
             min_addon_rate=min_addon_rate)
 
-    def generate_pot_file(self, module_name):
+    def generate_pot_file(self, module_name, remove_dates):
         """ Generate .pot file for a module
         """
         try:
             module_path = self.odoo.modules.module.get_module_path(module_name)
-            i18n_dir = os.path.join(
-                module_path, 'i18n')
+            i18n_dir = os.path.join(module_path, 'i18n')
             if not os.path.exists(i18n_dir):
                 os.mkdir(i18n_dir)
             pot_file = os.path.join(i18n_dir, '%s.pot' % module_name)
-            with open(pot_file, 'wb') as buf:
+
+            with contextlib.closing(io.BytesIO()) as buf:
                 self.odoo.tools.trans_export(
                     None, [module_name], buf, 'po', self.cr)
+                data = buf.getvalue().decode('utf-8')
+
+            if remove_dates:
+                data = re.sub(
+                    r'"POT?-(Creation|Revision)-Date:.*?"[\n\r]',
+                    '', data, flags=re.MULTILINE)
+
+            with open(pot_file, 'wb') as pot_f:
+                pot_f.write(data.encode('utf-8'))
         except Exception:
             _logger.error("Error", exc_info=True)
             raise
@@ -289,6 +302,42 @@ class LocalDBService(object):
         if odoo.release.version_info < (9,):
             return self.list()
         return self.odoo.service.db.list_dbs(True)
+
+    def restore_database(self, db_name, dump_file):
+        self.odoo.service.db.restore_db(db_name, dump_file)
+        return True
+
+    def backup_database(self, db_name, backup_format, file_path):
+        with open(file_path, 'wb') as f:
+            self.odoo.service.db.dump_db(db_name, f, backup_format)
+        return True
+
+    def dump_db_manifest(self, dbname):
+        """ Generate db manifest for backup
+
+            :return str: JSON representation of manifest
+        """
+        registry = self.odoo.registry(dbname)
+        with registry.cursor() as cr:
+            # Just copy-paste from original Odoo code
+            pg_version = "%d.%d" % divmod(
+                cr._obj.connection.server_version / 100, 100)
+            cr.execute("""
+                SELECT name, latest_version
+                FROM ir_module_module
+                WHERE state = 'installed'
+            """)
+            modules = dict(cr.fetchall())
+            manifest = {
+                'odoo_dump': '1',
+                'db_name': cr.dbname,
+                'version': self.odoo.release.version,
+                'version_info': self.odoo.release.version_info,
+                'major_version': self.odoo.release.major_version,
+                'pg_version': pg_version,
+                'modules': modules,
+            }
+        return json.dumps(manifest, indent=4)
 
     def __getattr__(self, name):
         def db_service_method(*args):
@@ -330,6 +379,8 @@ class LOdoo(object):
         """
         if self._odoo is None:
             odoo.tools.config.parse_config(self._options)
+            if odoo.tools.config.get('sentry_enable', False):
+                odoo.tools.config['sentry_enable'] = False
 
             if not hasattr(odoo.api.Environment._local, 'environments'):
                 odoo.api.Environment._local.environments = (
@@ -372,3 +423,6 @@ def cleanup():
 
     for db in Registry.registries.keys():
         odoo.sql_db.close_db(db)
+
+
+# TODO Use 'click' to provide commandline interface?

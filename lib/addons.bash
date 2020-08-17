@@ -140,12 +140,12 @@ function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$conf_file']);";
+    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
     python_cmd="$python_cmd res=cl['$db']['ir.module.module'].update_list();";
     python_cmd="$python_cmd cl['$db'].cursor.commit();";
     python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
 
-    if run_python_cmd "$python_cmd"; then
+    if run_python_cmd_u "$python_cmd"; then
         echoe -e "${GREENC}OK${NC}: Addons list successfully updated for ${YELLOWC}${db}${NC} database";
     else
         echoe -e "${REDC}ERROR${NC}: Cannot update module list for ${YELLOWC}${db}${NC} database";
@@ -732,7 +732,7 @@ function addons_install_update_internal {
     elif [ "$cmd" == "uninstall" ]; then
         local addons_uninstalled;
         local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
-        local python_cmd="import lodoo; cl=lodoo.LocalClient(['-c', '$ODOO_CONF_FILE', '--stop-after-init', '--max-cron-threads', '0', '--pidfile', '/dev/null', '--no-xmlrpc']);";
+        local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE', '--stop-after-init', '--max-cron-threads', '0', '--pidfile', '/dev/null', '--no-xmlrpc']);";
         python_cmd="$python_cmd db=cl['$db'];";
         python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
         python_cmd="$python_cmd modules.button_immediate_uninstall();";
@@ -791,11 +791,13 @@ function addons_install_update {
                                  This is usualy required on install of addon
                                  that was just fetched from repository,
                                  and is not yet present in Odoo database
+        --skip-errors          - Do not fail on single DB. Useful in case of update of multiple databases.
     ";
     local need_start;
     local update_addons_list=0;
     local dbs=( );
     local todo_addons=( );
+    local errored_dbs=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -853,6 +855,9 @@ function addons_install_update {
             --ual)
                 local update_addons_list=1;
             ;;
+            --skip-errors)
+                local skip_errors=1;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -906,17 +911,35 @@ function addons_install_update {
     fi
 
     local db;
+    local res=0;
     for db in "${dbs[@]}"; do
         if addons_install_update_internal "$cmd" "$db" "${todo_addons[@]}"; then
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${GREENC}OK${NC}";
+        elif [ -n "$skip_errors" ]; then
+            errored_dbs+=( "$db" );
+            res=1;
         else
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
             if [ -n "$open_logs" ]; then
                 server_log;
             fi
-            return 1;
+            res=1;
+            break
         fi
     done
+
+    if [ -n "${errored_dbs[*]}" ]; then
+        # Print list of databases that produced error on update
+        echoe -e "${REDC}ERROR${NC}: Errors where caught when updating following databases:";
+        for db in "${errored_dbs[@]}"; do
+            echoe -e "    - ${YELLOWC}${db}${NC}";
+        done
+    fi
+
+    if ! [ "$res" -eq 0 ]; then
+        # Exit if there was any errors;
+        return 1;
+    fi
 
     # Start server again if it was stopped
     if [ -n "$need_start" ] && ! server_is_running; then
@@ -977,13 +1000,41 @@ function addons_test_installed {
 }
 
 
-# This functions walk through addons found in custom_addons dir, and searches
-# for requirements.txt file there. if such file is present,
-# install depenencies listed there
-# Also it checks for repository-level requirements.txt
-#
-# just call as: addons_update_py_deps
 function addons_update_py_deps {
+    local usage="
+    Usage
+
+        $SCRIPT_NAME addons update-py-deps
+
+    Description
+
+        Update python dependencies of custom addons.
+        This command iterates over all custom addons and install
+        dependencies mentioned in 'requirements.txt' file.
+        Additionally it check if there is repository-level
+        'requirements.txt' file and install dependencies from there.
+
+    Options
+
+        -h|--help|help  - show this help message
+
+    ";
+    while [[ $1 == -* ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                echoe -e "${REDC}ERROR${NC}: Unknown option ${YELLOWC}${key}${NC}";
+                return 1;
+            ;;
+        esac
+        shift
+    done
+
     local repositories_list;
     mapfile < <(addons_list_repositories | sed '/^$/d');
     for repo in "${repositories_list[@]}"; do
@@ -1091,7 +1142,7 @@ function addons_find_installed {
             addon_path=$(addons_get_addon_path "$addon");
             if git_is_git_repo "$addon_path"; then
                 addon_repo=$(git_get_remote_url "$addon_path");
-                used_repositories[$addon_repo]=$(git_get_branch_name "$addon_path");
+                used_repositories["$addon_repo"]=$(git_get_branch_name "$addon_path");
             fi
             echo "    - $addon";
         done
@@ -1181,7 +1232,7 @@ function addons_command {
                 addons_install_update "update" "$@";
                 return 0;
             ;;
-            install)
+            install|isntall)
                 shift;
                 addons_install_update "install" "$@";
                 return 0;
@@ -1208,7 +1259,7 @@ function addons_command {
             ;;
             update-py-deps)
                 shift;
-                addons_update_py_deps;
+                addons_update_py_deps "$@";
                 return;
             ;;
             generate-requirements)

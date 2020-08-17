@@ -63,7 +63,7 @@ function odoo_helper_print_usage {
         ci [--help]                         - commands usefule for Continious Integration
         install [--help]                    - install related stuff (sys-deps, ...)
         doc-utils [--help]                  - subcommand that contains doc utlities
-        update-odoo                         - update odoo source code
+        update-odoo [--help]                - update odoo source code
         odoo-py [args]                      - run project-specific odoo.py script
         scaffold [--help]                   - Scaffold repo, addon, model, etc
         print-config                        - print current configuration
@@ -91,7 +91,8 @@ function odoo_helper_print_usage {
         flake8                              - shortcut for 'lint flake8' command
         style                               - shortcut for 'lint style' command
         pg                                  - shortcut for 'postgres' command
-
+        lsa                                 - shortcut for 'addons list' command
+        lsd                                 - shortcut for 'db list' command
     
     Global options:
         --use-copy                          - if set, then downloaded modules, repositories will
@@ -297,26 +298,28 @@ function odoo_helper_print_version {
 function odoo_helper_browse {
     # Open odoo on browser
     local server_url;
-    if [ "$(server_get_pid)" -gt 0 ]; then
-        if [ -z "$INIT_SCRIPT" ]; then
-            server_url=$(odoo_get_server_url);
-        else
-            echoe -e "${YELLOWC}WARNING${NC}: cannot open in browser when odoo controlled via init script";
-            return 1;
-        fi
-    else
-        echoe -e "${REDC}ERROR${NC}: cannot open in browser: odoo not started";
-        return 2;
+    if [ -n "$INIT_SCRIPT" ]; then
+        echoe -e "${REDC}ERROR${NC}: cannot open in browser when odoo controlled via init script";
+        return 1;
     fi
     if ! check_command xdg-open >/dev/null 2>&1; then
         echoe -e "${REDC}ERROR${NC}: ${YELLOWC}xdg-open${NC} not installed.";
         return 3;
-    elif [ -z "$server_url" ]; then
+    fi
+    server_url=$(odoo_get_server_url);
+    if [ -z "$server_url" ]; then
         echoe -e "${REDC}ERROR${NC}: Cannot determine server url of odoo instance";
         return 4;
-    else
-        xdg-open "$server_url";
     fi
+    if ! server_is_running; then
+        echoe -e "${YELLOWC}WARNING${NC}: Odoo not started. Starting...";
+        server_start;
+        if ! server_is_running; then
+            echoe -e "${REDC}ERROR${NC}: cannot open in browser: odoo not started";
+            return 2;
+        fi
+    fi
+    xdg-open "$server_url";
 }
 
 function odoo_helper_ipython {
@@ -358,7 +361,7 @@ function odoo_helper_main {
             --use-unbuffer)
                 USE_UNBUFFER=1;
             ;;
-            --no-colors)
+            --no-colors|--no-color)
                 deny_colors;
             ;;
             --verbose|--vv|-vv)
@@ -502,6 +505,18 @@ function odoo_helper_main {
             pylint|flake8|style)
                 config_load_project;
                 lint_command "$@";
+                return;
+            ;;
+            lsa)
+                shift;
+                config_load_project;
+                addons_list_in_directory --by-name "$@";
+                return;
+            ;;
+            lsd)
+                shift;
+                config_load_project;
+                odoo_db_list "$@";
                 return;
             ;;
             exec)

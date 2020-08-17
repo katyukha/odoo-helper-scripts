@@ -104,7 +104,7 @@ function postgres_user_create {
     done
 
     local user_name="$1";
-    local user_password="$2";
+    local user_password="${2:-odoo}";
 
     if ! postgres_test_connection; then
         return 1;
@@ -143,6 +143,30 @@ function postgres_psql {
         PGPORT=$pgport PGUSER=$pguser psql "$@";
 }
 
+# Run pg_dump
+# Automaticaly pass connection parametrs
+#
+# postgres_pg_dump ....
+function postgres_pg_dump {
+    local pghost;
+    local pgport;
+    local pguser;
+    local pgpass;
+    local default_db;
+
+    pghost=$(odoo_get_conf_val db_host);
+    pgport=$(odoo_get_conf_val db_port);
+    pguser=$(odoo_get_conf_val db_user);
+    pgpass=$(odoo_get_conf_val db_password);
+    default_db=$(odoo_get_conf_val_default db_name postgres);
+
+    if [ -z "$pgport" ] || [ "$pgport" == 'False' ]; then
+        pgport=;
+    fi
+
+    PGPASSWORD=$pgpass PGDATABASE=$default_db PGHOST=$pghost \
+        PGPORT=$pgport PGUSER=$pguser pg_dump --no-owner --no-privileges "$@";
+}
 # Show active postgres transactions
 #
 function postgres_psql_stat_activity {
@@ -271,20 +295,22 @@ function postgres_command {
         NOTE: most of commands require sudo
 
     Usage:
-        $SCRIPT_NAME postgres psql [psql options]                  - Run psql with odoo connection params
-        $SCRIPT_NAME postgres psql -d <database> [psql options]    - Run psql connected to specified database
-        $SCRIPT_NAME postgres user-create <user name> <password>   - [local][sudo] Create postgres user for odoo
-                                                                     It automaticaly uses credentials used by odoo
-        $SCRIPT_NAME postgres stat-activity                        - list running postgres queries in database
-                                                                     print data from pg_stat_activity table.
-        $SCRIPT_NAME postgres stat-connections                     - show statistics about postgres connections:
-                                                                     used, reserved, free connections
-        $SCRIPT_NAME postgres locks-info                           - Display info about locks
-        $SCRIPT_NAME postgres speedify                             - [local][sudo] Modify local postgres config
-                                                                     to make it faster. But also makes postgres unsafe.
-                                                                     Usualy this is normal for dev machines,
-                                                                     but not for production
-        $SCRIPT_NAME postgres --help                               - show this help message
+        $SCRIPT_NAME postgres psql [psql options]                     - Run psql with odoo connection params
+        $SCRIPT_NAME postgres psql -d <database> [psql options]       - Run psql connected to specified database
+        $SCRIPT_NAME postgres pg_dump [pg_dump options]               - Run pg_dump with params of this odoo instance
+        $SCRIPT_NAME postgres pg_dump -d <database> [pg_dump options] - Run pg_dump for specified database
+        $SCRIPT_NAME postgres user-create <user name> <password>      - [local][sudo] Create postgres user for odoo
+                                                                        It automaticaly uses credentials used by odoo
+        $SCRIPT_NAME postgres stat-activity                           - list running postgres queries in database
+                                                                        print data from pg_stat_activity table.
+        $SCRIPT_NAME postgres stat-connections                        - show statistics about postgres connections:
+                                                                        used, reserved, free connections
+        $SCRIPT_NAME postgres locks-info                              - Display info about locks
+        $SCRIPT_NAME postgres speedify                                - [local][sudo] Modify local postgres config
+                                                                        to make it faster. But also makes postgres unsafe.
+                                                                        Usualy this is normal for dev machines,
+                                                                        but not for production
+        $SCRIPT_NAME postgres --help                                  - show this help message
 
     ";
 
@@ -311,6 +337,12 @@ function postgres_command {
                 shift;
                 config_load_project;
                 postgres_psql "$@";
+                return;
+            ;;
+            pg_dump)
+                shift;
+                config_load_project;
+                postgres_pg_dump "$@";
                 return;
             ;;
             stat-activity)

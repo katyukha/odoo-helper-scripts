@@ -101,8 +101,17 @@ function odoo_update_sources_archive {
     local wget_opt;
     local backup_path;
     local odoo_archive;
+    local odoo_archive_link;
 
     file_suffix="$(date -I).$(random_string 4)";
+
+    if [ -n "$ODOO_DOWNLOAD_SOURCE_LINK" ]; then
+        odoo_archive_link="$ODOO_DOWNLOAD_SOURCE_LINK";
+    elif [ -n "$ODOO_REPO" ] && [[ "$ODOO_REPO" == "https://github.com"* ]]; then
+        odoo_archive_link="${ODOO_REPO%.git}/archive/$ODOO_BRANCH.tar.gz"
+    else
+        odoo_archive_link="https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+    fi
 
     if [ -d "$ODOO_PATH" ]; then    
         # Backup only if odoo sources directory exists
@@ -112,23 +121,58 @@ function odoo_update_sources_archive {
         echoe -e "${LBLUEC}Odoo sources backup saved at:${NC} $backup_path";
     fi
 
-    echoe -e "${LBLUEC}Downloading new sources archive...${NC}"
+    echoe -e "${LBLUEC}Downloading new sources archive from ${YELLOWC}${odoo_archive_link}${LBLUEC}...${NC}"
     odoo_archive=$DOWNLOADS_DIR/odoo.$ODOO_BRANCH.$file_suffix.tar.gz
-    # TODO: use odoo-repo variable here
+
+    local wget_options=( "-T" "15" "-O" "$odoo_archive" );
     if [ -z "$VERBOSE" ]; then
-        wget -T 15 -q -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
-    else
-        wget -T 15 -O "$odoo_archive" "https://github.com/odoo/odoo/archive/$ODOO_BRANCH.tar.gz";
+        wget_options+=( "-q" );
     fi
+
+    if ! wget "${wget_options[@]}" "$odoo_archive_link"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot download Odoo. Retry this operation with --verbose option.";
+        return 1
+    fi
+ 
+    echoe -e "${LBLUEC}Removing old odoo sources...${NC}";
     rm -r "$ODOO_PATH";
+
     echoe -e "${LBLUEC}Unpacking new source archive ...${NC}";
     (cd "$DOWNLOADS_DIR" && \
         tar -zxf "$odoo_archive" && \
         mv "odoo-$ODOO_BRANCH" "$ODOO_PATH");
-
+    echoe -e "${GREENC}OK${NC}: ${LBLUEC}Odoo sources unpacked.${NC}";
 }
 
 function odoo_update_sources {
+    local usage="
+    Update odoo sources
+
+    Usage:
+
+        $SCRIPT_NAME update-odoo          - update odoo sourcess
+        $SCRIPT_NAME update-odoo --help   - show this help message
+    ";
+
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            -*)
+                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
+                return 1;
+            ;;
+            *)
+                break;
+            ;;
+        esac;
+        shift;
+    done
+
     if git_is_git_repo "$ODOO_PATH"; then
         echoe -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
         odoo_update_sources_git;
@@ -144,7 +188,7 @@ function odoo_update_sources {
     odoo_run_setup_py;  # imported from 'install' module
 
     echoe -e "${GREENC}Odoo sources update finished!${NC}";
-
+    echoe -e "${LBLUEC}It is recommended to update module ${YELLOC}base${NC} on all databases on this server!${NC}";
 }
 
 
@@ -265,14 +309,14 @@ function odoo_recompute_stored_fields {
         return 4;
     fi
 
-    local python_cmd="import lodoo; db=lodoo.LocalClient(['-c', '$conf_file'])['$dbname'];";
+    local python_cmd="import lodoo; db=lodoo.LOdoo(['-c', '$conf_file'])['$dbname'];";
     if [ -z "$parent_store" ]; then
         python_cmd="$python_cmd db.recompute_fields('$model', [$fields]);"
     else
         python_cmd="$python_cmd db.recompute_parent_store('$model');"
     fi
 
-    run_python_cmd "$python_cmd";
+    run_python_cmd_u "$python_cmd";
 }
 
 function odoo_recompute_menu {
@@ -341,6 +385,8 @@ function odoo_clean_compiled_assets {
     This is required some times, when compiled assets are broken,
     and Odoo do not want to regenerate them in usual way.
 
+    WARNING: This is experimental feature;
+
     Usage:
 
         $SCRIPT_NAME odoo clean-compiled-assets <options>  - clean-up assets
@@ -349,20 +395,24 @@ function odoo_clean_compiled_assets {
     Options:
 
         -d|--db|--dbname <dbname>  - name of database to clean-up assets for
+        --all                      - apply to all databases
     ";
     if [[ $# -lt 1 ]]; then
         echo "$usage";
         return 0;
     fi
 
-    local dbname=;
+    local dbnames=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -d|--db|--dbname)
-                dbname=$2;
+                dbnames+=( "$2" );
                 shift;
+            ;;
+            --all)
+                mapfile -t dbnames < <(odoo_db_list | sed '/^$/d');
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -376,14 +426,16 @@ function odoo_clean_compiled_assets {
         shift
     done
 
-    if [ -z "$dbname" ]; then
-        echoe -e "${REDC}ERROR${NC}: database not specified!";
+    if [ ${#dbnames[@]} -eq 0 ]; then
+        echoe -e "${REDC}ERROR${NC}: at lease one database must be specified!";
         return 1;
     fi
-    # TODO select id,name,store_fname from ir_attachment where name ilike '%/web/content/%-%/%';
-PGAPPNAME="odoo-helper-clean-compiled-assets" postgres_psql -d "$dbname" << EOF
-    DELETE FROM ir_attachment where name ilike '%/web/content/%/web.assets%';
+    for dbname in "${dbnames[@]}"; do
+# TODO select id,name,store_fname from ir_attachment where name ilike '%/web/content/%-%/%';
+PGAPPNAME="odoo-helper" postgres_psql -d "$dbname" << EOF
+            DELETE FROM ir_attachment WHERE name ILIKE '%/web/content/%/web.assets%';
 EOF
+    done
 }
 
 function odoo_command {
