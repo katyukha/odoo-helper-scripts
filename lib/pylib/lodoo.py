@@ -379,8 +379,8 @@ class LOdoo(object):
         """
         if self._odoo is None:
             odoo.tools.config.parse_config(self._options)
-            if odoo.tools.config.get('sentry_enable', False):
-                odoo.tools.config['sentry_enable'] = False
+            if odoo.tools.config.get('sentry_enabled', False):
+                odoo.tools.config['sentry_enabled'] = False
 
             if not hasattr(odoo.api.Environment._local, 'environments'):
                 odoo.api.Environment._local.environments = (
