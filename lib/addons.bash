@@ -22,6 +22,7 @@ ohelper_require 'server';
 ohelper_require 'odoo';
 ohelper_require 'fetch';
 ohelper_require 'utils';
+ohelper_require 'link';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -1184,6 +1185,10 @@ function addons_command {
 
         $SCRIPT_NAME addons ls  -> $SCRIPT_NAME addons list
 
+    Aliases:
+
+        $SCRIPT_NAME addons link -> $SCRIPT_NAME link
+
     ";
 
     if [[ $# -lt 1 ]]; then
@@ -1266,6 +1271,11 @@ function addons_command {
                 shift;
                 addons_generate_requirements "$@";
                 return 0;
+            ;;
+            link)
+                shift;
+                link_command "$@";
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";

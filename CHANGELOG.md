@@ -3,9 +3,11 @@
 ## Unreleased
 
 ### Added
+- Aliase `odoo-helper addons link` that is same as `odoo-helper link`
 
 ### Removed
 - Removed command `odoo-helper db dump`
+
 
 ## Release 0.7.0 (2020-08-17)
 
