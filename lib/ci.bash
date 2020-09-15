@@ -493,7 +493,7 @@ function ci_do_forwardport {
     Options:
         -s|--src-branch <branch>   - [required] source branch to take changes from
         --path <path>              - path to git repository. default current ($git_path)
-        --remote <name>            - name of git remote. Default: $git_remote_name
+        -r|--remote <name>         - name of git remote. Default: $git_remote_name
 
         --help                     - show this help message
     ";
@@ -513,6 +513,10 @@ function ci_do_forwardport {
         case $key in
             -s|--src-branch)
                 src_branch=$2;
+                shift;
+            ;;
+            -r|--remote)
+                git_remote_name="$2";
                 shift;
             ;;
             --path)
