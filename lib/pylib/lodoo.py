@@ -417,11 +417,13 @@ LocalClient = LOdoo
 @atexit.register
 def cleanup():
     if odoo.release.version_info < (10,):
-        Registry = odoo.modules.registry.RegistryManager
+        dbnames = odoo.modules.registry.RegistryManager.registries.keys()
+    elif odoo.release.version_info < (13,):
+        dbnames = odoo.modules.registry.Registry.registries.keys()
     else:
-        Registry = odoo.modules.registry.Registry
+        dbnames = odoo.modules.registry.Registry.registries.d.keys()
 
-    for db in Registry.registries.keys():
+    for db in dbnames:
         odoo.sql_db.close_db(db)
 
 

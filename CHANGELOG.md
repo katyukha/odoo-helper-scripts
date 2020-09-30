@@ -4,6 +4,7 @@
 
 ### Added
 - Aliase `odoo-helper addons link` that is same as `odoo-helper link`
+- Added support for Odoo 14.0
 
 ### Removed
 - Removed command `odoo-helper db dump`
