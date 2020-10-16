@@ -5,6 +5,8 @@
 ### Added
 - Aliase `odoo-helper addons link` that is same as `odoo-helper link`
 - Added support for Odoo 14.0
+- Added option `--pot-update` to `odoo-helper tr regenerate` command,
+  that will automatically update translations according to .pot files
 
 ### Removed
 - Removed command `odoo-helper db dump`
