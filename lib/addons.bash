@@ -937,11 +937,6 @@ function addons_install_update {
         done
     fi
 
-    if ! [ "$res" -eq 0 ]; then
-        # Exit if there was any errors;
-        return 1;
-    fi
-
     # Start server again if it was stopped
     if [ -n "$need_start" ] && ! server_is_running; then
         server_start;
@@ -949,6 +944,12 @@ function addons_install_update {
     if [ -n "$open_logs" ]; then
         server_log;
     fi
+
+    if ! [ "$res" -eq 0 ]; then
+        # Exit if there was any errors;
+        return 1;
+    fi
+
 }
 
 
