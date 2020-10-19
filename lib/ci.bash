@@ -455,13 +455,18 @@ function ci_push_changes {
         return 4;
     fi
 
+    echoe "${LBLUEC}INFO${NC}: committing as user (name=${GITLAB_USER_NAME}, email=${GITLAB_USER_EMAIL})";
     git -c "user.name='${GITLAB_USER_NAME}'" -c "user.email='${GITLAB_USER_EMAIL}'" commit -m "${commit_name}";
     echo "$CI_SSH_PRIVATE_KEY" > /tmp/push_key;
     echo "$CI_SSH_PUBLIC_KEY" > /tmp/push_key.pub;
+    echo "" > /tmp/pushsshconfig;
     chmod 600 /tmp/push_key;
     chmod 600 /tmp/push_key.pub;
+    chmod 600 /tmp/pushsshconfig;
+    echoe "${LBLUEC}INFO${NC}: setting remote url to git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
     git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
-    git -c core.sshCommand='ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /dev/null -i /tmp/push_key' \
+    echoe "${LBLUEC}INFO${NC}: pushing changes to ${CI_COMMIT_BRANCH}";
+    git -c core.sshCommand='ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /tmp/pushsshconfig -i /tmp/push_key' \
         push origin "HEAD:${CI_COMMIT_BRANCH}";
 }
 

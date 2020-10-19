@@ -689,6 +689,9 @@ function install_bin_tools {
         echoe -e "${YELLOWC}unbuffer${BLUEC} seems to be not installed. ${YELLOWC}expect-dev${BLUEC} and ${YELLOWC}tcl8.6${BLUEC} will be installed.${NC}";
         deps+=( expect-dev tcl8.6 );
     fi
+    if ! check_command 'msgmerge' > /dev/null; then
+        echoe -e "${YELLOWC}msgmerge${BLUEC} seems to be not installed. ${YELLOWC}gettext${BLUEC} package will be installed.${NC}";
+    fi
 
     if [ -n "${deps[*]}" ]; then
         install_sys_deps_internal "${deps[@]}";
