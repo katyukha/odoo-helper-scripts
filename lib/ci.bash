@@ -461,7 +461,7 @@ function ci_push_changes {
     chmod 600 /tmp/push_key;
     chmod 600 /tmp/push_key.pub;
     git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
-    git -c "core.sshCommand=ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /dev/null -i /tmp/push_key" \
+    git -c core.sshCommand='ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /dev/null -i /tmp/push_key' \
         push origin "HEAD:${CI_COMMIT_BRANCH}";
 }
 
