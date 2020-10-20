@@ -140,7 +140,7 @@ function tr_import_export_internal {
         # do not export overwrite translations if export and missing_only and file already exists
         if [ "$cmd" == "export" ] && [ -n "$missing_only" ] && [ -f "$i18n_file" ] && [ -n "$pot_update" ] && [ -f "$i18n_pot_file" ]; then
             echoe -e "${BLUEC}INFO${NC}: translation file ${BLUEC}${i18n_file}${NC} already exists. Updating translations based on .pot file.";
-            execv msgmerge --quiet -U "$i18n_file" "$i18n_pot_file";
+            execv msgmerge --quiet -N -U "$i18n_file" "$i18n_pot_file";
             continue;
         elif [ "$cmd" == "export" ] && [ -n "$missing_only" ] && [ -f "$i18n_file" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: translation file ${BLUEC}${i18n_file}${NC} already exists and ${BLUEC}--missing-only${NC} option enabled. Skipping translation ${BLUEC}${lang}${NC} export for module ${BLUEC}${addon}${NC}";
