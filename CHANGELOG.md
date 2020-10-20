@@ -7,6 +7,7 @@
 - Added support for Odoo 14.0
 - Added option `--pot-update` to `odoo-helper tr regenerate` command,
   that will automatically update translations according to .pot files
+- Added option `--installable` to `doc-utils addons-list` command
 
 ### Removed
 - Removed command `odoo-helper db dump`

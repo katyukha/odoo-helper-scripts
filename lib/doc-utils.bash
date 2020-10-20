@@ -157,6 +157,7 @@ function doc_utils_addons_list {
         --format <md|csv>          - output format. default: md
         --custom-val <val>         - custom value
         --recursive                - search for addons recusively
+        --installable              - installable only
 
     Description
         Prints list of addons in specified dierectory in markdown format.
@@ -216,6 +217,9 @@ function doc_utils_addons_list {
             ;;
             --recursive)
                 addons_list_opts+=( --recursive );
+            ;;
+            --installable)
+                addons_list_opts+=( --installable );
             ;;
             -h|--help|help)
                 echo "$usage";
