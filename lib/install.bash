@@ -691,6 +691,7 @@ function install_bin_tools {
     fi
     if ! check_command 'msgmerge' > /dev/null; then
         echoe -e "${YELLOWC}msgmerge${BLUEC} seems to be not installed. ${YELLOWC}gettext${BLUEC} package will be installed.${NC}";
+        deps+=( gettext );
     fi
 
     if [ -n "${deps[*]}" ]; then
