@@ -561,11 +561,28 @@ function ci_do_forwardport {
     if ! git --git-dir "$git_path/.git" merge --no-ff --no-commit --edit "$git_remote_name/$src_branch"; then
         echoe -e "${YELLOWC}WARNING${NC}: Merge command was not successfull, it seems that there was conflicts during merge. Please, resolve them manually";
     fi
+
+    git status;
+    # Do not forwardport changes in ADDONS.md
+    if [ -f "$git_path/ADDONS.md" ]; then
+        git --git-dir "$git_path/.git" reset -q -- "$git_path/ADDONS.md";
+        git --git-dir "$git_path/.git" clean -fdx -- "$git_path/ADDONS.md";
+        [ -f "$git_path/ADDONS.md" ] && git --git-dir "$git_path/.git" checkout --ours "$git_path/ADDONS.md";
+        [ -f "$git_path/ADDONS.md" ] && git --git-dir "$git_path/.git" add "$git_path/ADDONS.md";
+    fi
     
+    # Do not forwardport changes in ADDONS.csv
+    if [ -f "$git_path/ADDONS.csv" ]; then
+        git --git-dir "$git_path/.git" reset -q -- "$git_path/ADDONS.csv";
+        git --git-dir "$git_path/.git" clean -fdx -- "$git_path/ADDONS.csv";
+        [ -f "$git_path/ADDONS.csv" ] && git --git-dir "$git_path/.git" checkout --ours "$git_path/ADDONS.csv";
+        [ -f "$git_path/ADDONS.csv" ] && git --git-dir "$git_path/.git" add "$git_path/ADDONS.csv";
+    fi
+
     # Do not forwardport translations
-    git --git-dir "$git_path/.git" reset -- "*.po" "*.pot"
-    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot"
+    git --git-dir "$git_path/.git" reset -q -- "*.po" "*.pot"
     git --git-dir "$git_path/.git" clean -fdx -- "*.po" "*.pot"
+    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot"
     git --git-dir "$git_path/.git" add "*.po" "*.pot"
 
     # Attempt tot fix versions of modules
