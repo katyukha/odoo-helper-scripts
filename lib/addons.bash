@@ -23,6 +23,7 @@ ohelper_require 'odoo';
 ohelper_require 'fetch';
 ohelper_require 'utils';
 ohelper_require 'link';
+ohelper_require 'test';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -1189,6 +1190,7 @@ function addons_command {
     Aliases:
 
         $SCRIPT_NAME addons link -> $SCRIPT_NAME link
+        $SCRIPT_NAME addons test -> $SCRIPT_NAME test
 
     ";
 
@@ -1276,6 +1278,11 @@ function addons_command {
             link)
                 shift;
                 link_command "$@";
+                return;
+            ;;
+            test)
+                shift;
+                test_module "$@";
                 return;
             ;;
             -h|--help|help)
