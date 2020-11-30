@@ -9,6 +9,8 @@
 - Added option `--pot-update` to `odoo-helper tr regenerate` command,
   that will automatically update translations according to .pot files
 - Added option `--installable` to `doc-utils addons-list` command
+- Added command `odoo-helper doc-utils addons-graph` that could be used to
+  build dependency graph for all addons in specified directory.
 
 ### Removed
 - Removed command `odoo-helper db dump`

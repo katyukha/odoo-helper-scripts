@@ -260,12 +260,80 @@ function doc_utils_addons_list {
     echo -e "$result";
 }
 
+function doc_utils_module_graph {
+    local usage="
+    ${YELLOWC}Warning${NC}:
+        This command is experimental and may be changed in future
+
+    Usage:
+
+        $SCRIPT_NAME doc-utils addons-graph [options] <path>   - build depedency graph for addons in directory
+        $SCRIPT_NAME doc-utils addons-graph --help             - show this help message
+
+    Options
+        --out <path>   - output path (default ./graph.svg)
+
+    ";
+
+
+    local out_path;
+    out_path="$(pwd)/graph.svg";
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            --out)
+                out_path="$2";
+                shift;
+            ;;
+            -h|--help|help)
+                echo -e "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift;
+    done
+    local addons_path="$1";
+
+    local tmp_graph_file;
+    tmp_graph_file="/tmp/oh-module-graph-$(date -I)-$(random_string 4).gv";
+    echo "digraph G {" > "$tmp_graph_file";
+    echo "    graph [concentrate=true];" >> "$tmp_graph_file";
+    echo "    graph [K=1.0];" >> "$tmp_graph_file";
+    echo "    graph [minlen=3];" >> "$tmp_graph_file";
+    echo "    graph [nodesep=1.0];" >> "$tmp_graph_file";
+    echo "    graph [ranksep=2.0];" >> "$tmp_graph_file";
+
+    addons_path=${addons_path:-$ADDONS_DIR};
+    local addons_list;
+    #mapfile -t addons_list < <(addons_list_in_directory "${addons_list_opts[@]}" "$addons_path");
+    mapfile -t addons_list < <(addons_list_in_directory "$addons_path");
+    for addon_path in "${addons_list[@]}"; do
+        local addon_name;
+        addon_name=$(addons_get_addon_name "$addon_path");
+        local deps_str;
+        deps_str=$(addons_get_addon_dependencies "$addon_path");
+        local deps;
+        IFS=" " read -a deps <<< "$deps_str";
+        for dep in "${deps[@]}"; do
+            echo "    $addon_name -> $dep;" >> "$tmp_graph_file";
+        done
+    done;
+    echo "}" >> "$tmp_graph_file";
+    dot -Tsvg -o "$out_path" "$tmp_graph_file";
+    rm "$tmp_graph_file";
+}
+
 
 function doc_utils_command {
     local usage="
     Usage:
 
-        $SCRIPT_NAME doc-utils addons-list --help             - list addons in specified directory
+        $SCRIPT_NAME doc-utils addons-list --help            - list addons in specified directory
+        $SCRIPT_NAME doc-utils addons-graph --help           - generate graph with addons dependencies
         $SCRIPT_NAME doc-utils --help                        - show this help message
 
     ";
@@ -282,6 +350,11 @@ function doc_utils_command {
             addons-list)
                 shift;
                 doc_utils_addons_list "$@";
+                return;
+            ;;
+            addons-graph)
+                shift;
+                doc_utils_module_graph "$@";
                 return;
             ;;
             -h|--help|help)
