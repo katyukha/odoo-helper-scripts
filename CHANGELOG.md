@@ -12,6 +12,9 @@
 - Added command `odoo-helper doc-utils addons-graph` that could be used to
   build dependency graph for all addons in specified directory.
 
+### Changed
+- Fail tests on `Comparing apples and oranges` warning
+
 ### Removed
 - Removed command `odoo-helper db dump`
 
