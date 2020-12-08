@@ -260,6 +260,7 @@ function doc_utils_addons_list {
     echo -e "$result";
 }
 
+# shellcheck disable=SC2129
 function doc_utils_module_graph {
     local usage="
     ${YELLOWC}Warning${NC}:
@@ -309,7 +310,6 @@ function doc_utils_module_graph {
 
     addons_path=${addons_path:-$ADDONS_DIR};
     local addons_list;
-    #mapfile -t addons_list < <(addons_list_in_directory "${addons_list_opts[@]}" "$addons_path");
     mapfile -t addons_list < <(addons_list_in_directory "$addons_path");
     for addon_path in "${addons_list[@]}"; do
         local addon_name;
@@ -317,7 +317,7 @@ function doc_utils_module_graph {
         local deps_str;
         deps_str=$(addons_get_addon_dependencies "$addon_path");
         local deps;
-        IFS=" " read -a deps <<< "$deps_str";
+        IFS=" " read -ra deps <<< "$deps_str";
         for dep in "${deps[@]}"; do
             echo "    $addon_name -> $dep;" >> "$tmp_graph_file";
         done
