@@ -47,7 +47,6 @@ Brief list of frequently used odoo-helper commands
 - `odoo-helper fetch --oca web` - fetch all addons from [OCA](https://odoo-community.org/) repository [web](https://github.com/OCA/web)
 - `odoo-helper fetch --github <username/repository>` - fetch all addons from spcified [github](https://github.com) repository
 - `odoo-helper fetch --repo <repository url> --branch 11.0` - fetch all addons from specified *git* repository
-- `odoo-helper fetch --hg <repository url> --branch 11.0` - fetch all addons from specified *hg* repository
 
 ### Database management
 - `odoo-helper db list` - list all databases available for current odoo instance

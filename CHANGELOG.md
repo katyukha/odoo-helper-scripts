@@ -17,6 +17,7 @@
 
 ### Removed
 - Removed command `odoo-helper db dump`
+- Removed support for clonning Hg repositories
 
 
 ## Release 0.7.0 (2020-08-17)

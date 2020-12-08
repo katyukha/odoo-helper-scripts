@@ -75,6 +75,7 @@ If you have any routine operation that you would like to automate with odoo-help
     - *11.0*
     - *12.0*
     - *13.0* (requires ubuntu 18.04+ or other linux distribution with python 3.6+)
+    - *14.0* (experimental support)
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.

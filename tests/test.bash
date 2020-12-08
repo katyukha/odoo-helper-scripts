@@ -187,7 +187,6 @@ odoo-helper db create test-9-db;
 
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
 odoo-helper pip install Mercurial;
-odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
@@ -201,11 +200,7 @@ odoo-helper addons list --by-path ./repositories;
 odoo-helper addons update-list --help;
 odoo-helper addons update-list;
 odoo-helper start;
-odoo-helper addons install bus_enhanced;
 odoo-helper stop;
-odoo-helper addons test-installed bus_enhanced;  # find databases where this addons is installed
-odoo-helper addons update -m bus_enhanced;
-odoo-helper addons uninstall bus_enhanced;
 
 # uninstall addon that is not installed
 odoo-helper addons uninstall account;

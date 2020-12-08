@@ -273,39 +273,10 @@ function fetch_clone_repo_git {
     fi
 }
 
-# Clone hg repository.
-#
-# fetch_clone_repo <url> <dest> [branch]
-function fetch_clone_repo_hg {
-    local repo_url=$1; shift;
-    local repo_dest=$1; shift;
-
-    # optional branch arg
-    if [ -n "$1" ]; then
-        local repo_branch_opt="-r $1"; shift;
-    fi
-
-    if ! check_command hg; then
-        echoe -e "${REDC}ERROR${NC}: Mercurial is not installed. Install it via ${BLUEC}odoo-helper pip install Mercurial${NC}."
-    elif ! execv hg clone "$repo_branch_opt" "$repo_url" "$repo_dest"; then
-        echoe -e "${REDC}ERROR${NC}: Cannot clone [hg] ${BLUEC}$repo_url${NC} to ${BLUEC}$repo_dest${NC}!${NC}";
-    elif [ -z "$repo_branch_opt" ]; then
-        # IF repo clonned successfuly, and not branch specified then
-        # try to checkout to ODOO_VERSION branch if it exists.
-        (
-            cd "$repo_dest";
-            if [ "$(HGPLAIN=1 hg branch)" != "${ODOO_VERSION:-$ODOO_BRANCH}" ] && HGPLAIN=1 execv hg branches | grep "^${ODOO_VERSION:-$ODOO_BRANCH}\s" > /dev/null; then
-                execv hg update "${ODOO_VERSION:-$ODOO_BRANCH}";
-            fi;
-        )
-    fi
-}
-
-# Clone repository. Supported types: git, hg
+# Clone repository. Supported types: git
 #
 # fetch_clone_repo <type> <url> <dest> [branch]
 # fetch_clone_repo git <url> <dest> [branch]
-# fetch_clone_repo hg <url> <dest> [branch]
 function fetch_clone_repo {
     local repo_type=$1; shift;
     local repo_url=$1; shift;
@@ -319,8 +290,6 @@ function fetch_clone_repo {
     echoe -e "${BLUEC}Clonning [${YELLOWC}$repo_type${BLUEC}]:${NC} ${YELLOWC}$repo_url${BLUEC} to ${YELLOWC}$repo_dest${BLUEC} (branch ${YELLOWC}$repo_branch${BLUEC})${NC}";
     if [ "$repo_type" == "git" ]; then
         fetch_clone_repo_git "$repo_url" "$repo_dest" "$repo_branch";
-    elif [ "$repo_type" == "hg" ]; then
-        fetch_clone_repo_hg "$repo_url" "$repo_dest" "$repo_branch";
     else
         echoe -e "${REDC}ERROR${NC}:Unknown repo type: ${YELLOWC}$repo_type${NC}";
     fi
@@ -400,7 +369,6 @@ function fetch_download_odoo_app {
 }
 
 # fetch_module -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
-# fetch_module --hg <hg repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
 # fetch_module --requirements <requirements file>
 function fetch_module {
     # TODO: simplify this function. remove unneccessary options
@@ -418,7 +386,6 @@ function fetch_module {
         -r|--repo <repo>       - git repository to get module from
         --github <user/repo>   - allows to specify repository located on github in short format
         --oca <repo name>      - allows to specify Odoo Comunity Association module in simpler format
-        --hg <repo>            - mercurial repository to get addon from.
         --odoo-app <app_name>  - [experimental] fetch module from Odoo Apps Market.
                                  Works only for free modules.
         -m|--module <module>   - module name to be fetched from repository
@@ -429,7 +396,7 @@ function fetch_module {
                                  NOTE: requirements file must end with newline.
 
     Note that in one call only one option of
-    (--repo, --github, --oca, --hg, --odoo-app)
+    (--repo, --github, --oca, --odoo-app)
     have to be present in one line.
 
     Examples:
@@ -475,15 +442,6 @@ function fetch_module {
                     return 1;
                 fi
                 REPOSITORY="$2";
-                shift;
-            ;;
-            --hg)
-                if [ -n "$REPOSITORY" ]; then
-                    echoe -e "${REDC}ERROR${NC}: Attempt to specify multiple repos on one call...";
-                    return 2;
-                fi
-                REPOSITORY="$2";
-                REPO_TYPE=hg;
                 shift;
             ;;
             --github)
