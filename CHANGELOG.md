@@ -14,6 +14,8 @@
 
 ### Changed
 - Fail tests on `Comparing apples and oranges` warning
+- Command `odoo-helper ci check-versions-git` now simplified and coulde be
+  called with only single argument - path to repository
 
 ### Removed
 - Removed command `odoo-helper db dump`

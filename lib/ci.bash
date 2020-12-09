@@ -150,13 +150,13 @@ function ci_git_get_addon_version_by_ref {
     cd "$cdir";
 }
 
-# ci_check_versions_git <repo> <ref start> <ref end>
+# ci_check_versions_git <repo> [ref start] [ref end]
 function ci_check_versions_git {
     local usage="
     Check that versions of changed addons have been updated
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [options] <repo> <start> [end]
+        $SCRIPT_NAME ci check-versions-git [options] <repo> [start] [end]
 
     Options:
         --ignore-trans    - ignore translations
@@ -234,7 +234,15 @@ function ci_check_versions_git {
     done
 
     repo_path=$(readlink -f "$1"); shift;
-    ref_start="$1"; shift;
+    if ! git_is_git_repo "$repo_path"; then
+        echoe -e "${RED}ERROR${NC}: ${YELLOWC}${repo_path}${NC} is not git repository!";
+        return 3;
+    fi
+    if [ -n "$1" ]; then
+        ref_start="$1"; shift;
+    else
+        ref_start="origin/$ODOO_VERSION"
+    fi
 
     if [ -n "$1" ]; then
         ref_end="$1"; shift;
