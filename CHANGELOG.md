@@ -21,6 +21,7 @@
 ### Removed
 - Removed command `odoo-helper db dump`
 - Removed support for clonning Hg repositories
+- Drop support for Ubuntu 16.04: odoo-helper have to be working there still, but without warranty.
 
 
 ## Release 0.7.0 (2020-08-17)
