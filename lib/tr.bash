@@ -530,7 +530,7 @@ function tr_regenerate {
     
     # install addons
     local res=0;
-    if addons_install_update "install" --show-log-on-error --no-restart -d "$tmp_db_name" "${addons[@]}"; then
+    if addons_install_update "install" --show-log-on-error=1000 --no-restart -d "$tmp_db_name" "${addons[@]}"; then
         if [ -n "$gen_pot" ]; then
             if ! tr_generate_pot "${pot_extra_opts[@]}" "$tmp_db_name" "${addons[@]}"; then
                 res=1;
