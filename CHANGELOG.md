@@ -11,6 +11,7 @@
 - Added option `--installable` to `doc-utils addons-list` command
 - Added command `odoo-helper doc-utils addons-graph` that could be used to
   build dependency graph for all addons in specified directory.
+- Added option `--show-log-on-error` for `odoo-helper addons install|update` commands.
 
 ### Changed
 - Fail tests on `Comparing apples and oranges` warning
