@@ -531,8 +531,8 @@ Regenerate UA translations for partner-contact and compute translation rate
 ===========================================================================
 ${NC}"
 # Regenerate Ukrainian translations for all addons in partner-contact
-odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/oca/partner-contact;
-odoo-helper tr rate --lang uk_UA --dir ./repositories/oca/partner-contact;
+odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/oca/web;
+odoo-helper tr rate --lang uk_UA --dir ./repositories/oca/web;
 
 
 echo -e "${YELLOWC}
