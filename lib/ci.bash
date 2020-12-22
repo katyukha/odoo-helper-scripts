@@ -150,13 +150,13 @@ function ci_git_get_addon_version_by_ref {
     cd "$cdir";
 }
 
-# ci_check_versions_git <repo> <ref start> <ref end>
+# ci_check_versions_git <repo> [ref start] [ref end]
 function ci_check_versions_git {
     local usage="
     Check that versions of changed addons have been updated
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [options] <repo> <start> [end]
+        $SCRIPT_NAME ci check-versions-git [options] <repo> [start] [end]
 
     Options:
         --ignore-trans    - ignore translations
@@ -234,7 +234,15 @@ function ci_check_versions_git {
     done
 
     repo_path=$(readlink -f "$1"); shift;
-    ref_start="$1"; shift;
+    if ! git_is_git_repo "$repo_path"; then
+        echoe -e "${RED}ERROR${NC}: ${YELLOWC}${repo_path}${NC} is not git repository!";
+        return 3;
+    fi
+    if [ -n "$1" ]; then
+        ref_start="$1"; shift;
+    else
+        ref_start="origin/$ODOO_VERSION"
+    fi
 
     if [ -n "$1" ]; then
         ref_end="$1"; shift;
@@ -455,13 +463,18 @@ function ci_push_changes {
         return 4;
     fi
 
+    echoe -e "${LBLUEC}INFO${NC}: committing as user (name=${GITLAB_USER_NAME}, email=${GITLAB_USER_EMAIL})";
     git -c "user.name='${GITLAB_USER_NAME}'" -c "user.email='${GITLAB_USER_EMAIL}'" commit -m "${commit_name}";
     echo "$CI_SSH_PRIVATE_KEY" > /tmp/push_key;
     echo "$CI_SSH_PUBLIC_KEY" > /tmp/push_key.pub;
+    echo "" > /tmp/pushsshconfig;
     chmod 600 /tmp/push_key;
     chmod 600 /tmp/push_key.pub;
+    chmod 600 /tmp/pushsshconfig;
+    echoe -e "${LBLUEC}INFO${NC}: setting remote url to git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
     git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
-    git -c "core.sshCommand=ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /dev/null -i /tmp/push_key" \
+    echoe -e "${LBLUEC}INFO${NC}: pushing changes to ${CI_COMMIT_BRANCH}";
+    git -c core.sshCommand='ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /tmp/pushsshconfig -i /tmp/push_key' \
         push origin "HEAD:${CI_COMMIT_BRANCH}";
 }
 
@@ -493,7 +506,7 @@ function ci_do_forwardport {
     Options:
         -s|--src-branch <branch>   - [required] source branch to take changes from
         --path <path>              - path to git repository. default current ($git_path)
-        --remote <name>            - name of git remote. Default: $git_remote_name
+        -r|--remote <name>         - name of git remote. Default: $git_remote_name
 
         --help                     - show this help message
     ";
@@ -513,6 +526,10 @@ function ci_do_forwardport {
         case $key in
             -s|--src-branch)
                 src_branch=$2;
+                shift;
+            ;;
+            -r|--remote)
+                git_remote_name="$2";
                 shift;
             ;;
             --path)
@@ -552,11 +569,28 @@ function ci_do_forwardport {
     if ! git --git-dir "$git_path/.git" merge --no-ff --no-commit --edit "$git_remote_name/$src_branch"; then
         echoe -e "${YELLOWC}WARNING${NC}: Merge command was not successfull, it seems that there was conflicts during merge. Please, resolve them manually";
     fi
+
+    git status;
+    # Do not forwardport changes in ADDONS.md
+    if [ -f "$git_path/ADDONS.md" ]; then
+        git --git-dir "$git_path/.git" reset -q -- "$git_path/ADDONS.md";
+        git --git-dir "$git_path/.git" clean -fdx -- "$git_path/ADDONS.md";
+        [ -f "$git_path/ADDONS.md" ] && git --git-dir "$git_path/.git" checkout --ours "$git_path/ADDONS.md";
+        [ -f "$git_path/ADDONS.md" ] && git --git-dir "$git_path/.git" add "$git_path/ADDONS.md";
+    fi
     
+    # Do not forwardport changes in ADDONS.csv
+    if [ -f "$git_path/ADDONS.csv" ]; then
+        git --git-dir "$git_path/.git" reset -q -- "$git_path/ADDONS.csv";
+        git --git-dir "$git_path/.git" clean -fdx -- "$git_path/ADDONS.csv";
+        [ -f "$git_path/ADDONS.csv" ] && git --git-dir "$git_path/.git" checkout --ours "$git_path/ADDONS.csv";
+        [ -f "$git_path/ADDONS.csv" ] && git --git-dir "$git_path/.git" add "$git_path/ADDONS.csv";
+    fi
+
     # Do not forwardport translations
-    git --git-dir "$git_path/.git" reset -- "*.po" "*.pot"
-    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot"
+    git --git-dir "$git_path/.git" reset -q -- "*.po" "*.pot"
     git --git-dir "$git_path/.git" clean -fdx -- "*.po" "*.pot"
+    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot"
     git --git-dir "$git_path/.git" add "*.po" "*.pot"
 
     # Attempt tot fix versions of modules

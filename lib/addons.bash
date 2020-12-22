@@ -22,6 +22,8 @@ ohelper_require 'server';
 ohelper_require 'odoo';
 ohelper_require 'fetch';
 ohelper_require 'utils';
+ohelper_require 'link';
+ohelper_require 'test';
 # ----------------------------------------------------------------------------------------
 
 set -e; # fail on errors
@@ -792,6 +794,8 @@ function addons_install_update {
                                  that was just fetched from repository,
                                  and is not yet present in Odoo database
         --skip-errors          - Do not fail on single DB. Useful in case of update of multiple databases.
+        --show-log-on-error    - Show last 100 lines of log on error.
+        --show-log-on-error=42 - Show last 42 lines of log on error.
     ";
     local need_start;
     local update_addons_list=0;
@@ -858,6 +862,12 @@ function addons_install_update {
             --skip-errors)
                 local skip_errors=1;
             ;;
+            --show-log-on-error)
+                local show_log_on_error=100;
+            ;;
+            --show-log-on-error=*)
+                local show_log_on_error=${key#*=};
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -915,16 +925,23 @@ function addons_install_update {
     for db in "${dbs[@]}"; do
         if addons_install_update_internal "$cmd" "$db" "${todo_addons[@]}"; then
             echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${GREENC}OK${NC}";
-        elif [ -n "$skip_errors" ]; then
-            errored_dbs+=( "$db" );
-            res=1;
         else
-            echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
-            if [ -n "$open_logs" ]; then
-                server_log;
+            if [ -n "$show_log_on_error" ]; then
+                echoe -e "${REDC}ERROR${NC}: update of database ${YELLOWC}${db}${NC} got error. See last lines in log below:";
+                >&2 tail --lines="$show_log_on_error" "$LOG_FILE";
             fi
-            res=1;
-            break
+
+            if [ -n "$skip_errors" ]; then
+                errored_dbs+=( "$db" );
+                res=1;
+            else
+                echoe -e "${LBLUEC}${cmd} for ${YELLOWC}$db${LBLUEC}:${NC} ${REDC}FAIL${NC}";
+                if [ -n "$open_logs" ]; then
+                    server_log;
+                fi
+                res=1;
+                break
+            fi
         fi
     done
 
@@ -936,11 +953,6 @@ function addons_install_update {
         done
     fi
 
-    if ! [ "$res" -eq 0 ]; then
-        # Exit if there was any errors;
-        return 1;
-    fi
-
     # Start server again if it was stopped
     if [ -n "$need_start" ] && ! server_is_running; then
         server_start;
@@ -948,6 +960,12 @@ function addons_install_update {
     if [ -n "$open_logs" ]; then
         server_log;
     fi
+
+    if ! [ "$res" -eq 0 ]; then
+        # Exit if there was any errors;
+        return 1;
+    fi
+
 }
 
 
@@ -1184,6 +1202,11 @@ function addons_command {
 
         $SCRIPT_NAME addons ls  -> $SCRIPT_NAME addons list
 
+    Aliases:
+
+        $SCRIPT_NAME addons link -> $SCRIPT_NAME link
+        $SCRIPT_NAME addons test -> $SCRIPT_NAME test
+
     ";
 
     if [[ $# -lt 1 ]]; then
@@ -1266,6 +1289,16 @@ function addons_command {
                 shift;
                 addons_generate_requirements "$@";
                 return 0;
+            ;;
+            link)
+                shift;
+                link_command "$@";
+                return;
+            ;;
+            test)
+                shift;
+                test_module "$@";
+                return;
             ;;
             -h|--help|help)
                 echo "$usage";

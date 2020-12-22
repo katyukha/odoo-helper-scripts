@@ -476,7 +476,7 @@ function install_odoo_py_requirements_for_version {
                 # for python installed in system
                 if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
                     echo "gevent==1.1.2";
-                elif exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
+                elif exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
                     echo "gevent==1.3.4";
                 elif exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
@@ -487,7 +487,9 @@ function install_odoo_py_requirements_for_version {
                 echo "greenlet==0.4.9";
             elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 # Set correct version of greenlet for gevent 1.5.0
-                if exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                if exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
+                    echo "greenlet==0.4.14";
+                elif exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
                 else
                     echo "$dependency";
@@ -688,6 +690,10 @@ function install_bin_tools {
     if ! check_command 'unbuffer' > /dev/null; then
         echoe -e "${YELLOWC}unbuffer${BLUEC} seems to be not installed. ${YELLOWC}expect-dev${BLUEC} and ${YELLOWC}tcl8.6${BLUEC} will be installed.${NC}";
         deps+=( expect-dev tcl8.6 );
+    fi
+    if ! check_command 'msgmerge' > /dev/null; then
+        echoe -e "${YELLOWC}msgmerge${BLUEC} seems to be not installed. ${YELLOWC}gettext${BLUEC} package will be installed.${NC}";
+        deps+=( gettext );
     fi
 
     if [ -n "${deps[*]}" ]; then

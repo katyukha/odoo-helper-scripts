@@ -87,6 +87,9 @@ function tr_import_export_internal {
             --missing-only)
                 local missing_only=1;
             ;;
+            --pot-update)
+                local pot_update=1;
+            ;;
             *)
                 break;
             ;;
@@ -121,6 +124,7 @@ function tr_import_export_internal {
         addon_path=$(addons_get_addon_path "$addon");
         local i18n_dir="$addon_path/i18n";
         local i18n_file="$i18n_dir/$file_name.po";
+        local i18n_pot_file="$i18n_dir/$addon.pot";
 
         # if export and there is no i18n dir, create it
         if [ "$cmd" == "export" ] && [ ! -d "$i18n_dir" ]; then
@@ -134,7 +138,11 @@ function tr_import_export_internal {
         fi
 
         # do not export overwrite translations if export and missing_only and file already exists
-        if [ "$cmd" == "export" ] && [ -n "$missing_only" ] && [ -f "$i18n_file" ]; then
+        if [ "$cmd" == "export" ] && [ -n "$missing_only" ] && [ -f "$i18n_file" ] && [ -n "$pot_update" ] && [ -f "$i18n_pot_file" ]; then
+            echoe -e "${BLUEC}INFO${NC}: translation file ${BLUEC}${i18n_file}${NC} already exists. Updating translations based on .pot file.";
+            execv msgmerge --quiet -N -U "$i18n_file" "$i18n_pot_file";
+            continue;
+        elif [ "$cmd" == "export" ] && [ -n "$missing_only" ] && [ -f "$i18n_file" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: translation file ${BLUEC}${i18n_file}${NC} already exists and ${BLUEC}--missing-only${NC} option enabled. Skipping translation ${BLUEC}${lang}${NC} export for module ${BLUEC}${addon}${NC}";
             continue;
         fi
@@ -231,6 +239,9 @@ function tr_export {
 
         --missing-only  - export only missing translations
                           (do not overwrite files)
+        --pot-update    - if translation already exists and --missing-only enabled
+                          then instead of regenerating translation only update
+                          translations of based on .pot file.
         --help          - show this help message
 
     Arguments:
@@ -254,6 +265,9 @@ function tr_export {
         case $key in
             --missing-only)
                 extra_opts+=( "--missing-only" );
+            ;;
+            --pot-update)
+                extra_opts+=( "--pot-update" );
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -416,6 +430,7 @@ function tr_regenerate {
         --lang-file <lang_code:filename> - lang code and lang file. could be specified multiple times
         --pot                            - generate .pot file for translations
         --pot-remove-dates               - remove dates from generated .pot
+        --pot-update                     - update translations based on regenerated .pot file
         --dir  <addons path>             - look for addons at specified directory
         --dir-r <addons path>            - look for addons at specified directory and its subdirectories
         --missing-only                   - regenerate only missing translation files.
@@ -485,6 +500,9 @@ function tr_regenerate {
             --missing-only)
                 export_extra_opts+=( "--missing-only" );
             ;;
+            --pot-update)
+                export_extra_opts+=( "--pot-update" );
+            ;;
             *)
                 addons+=( "$key" );
             ;;
@@ -512,7 +530,12 @@ function tr_regenerate {
     
     # install addons
     local res=0;
-    if addons_install_update "install" --no-restart -d "$tmp_db_name" "${addons[@]}"; then
+    if addons_install_update "install" --show-log-on-error --no-restart -d "$tmp_db_name" "${addons[@]}"; then
+        if [ -n "$gen_pot" ]; then
+            if ! tr_generate_pot "${pot_extra_opts[@]}" "$tmp_db_name" "${addons[@]}"; then
+                res=1;
+            fi
+        fi
         if [ -n "${langs_arr[*]}" ]; then
             for langf in "${langs_arr[@]}"; do
                 local lang_code;
@@ -530,11 +553,6 @@ function tr_regenerate {
                     break
                 fi
             done
-        fi
-        if [ -n "$gen_pot" ]; then
-            if ! tr_generate_pot "${pot_extra_opts[@]}" "$tmp_db_name" "${addons[@]}"; then
-                res=1;
-            fi
         fi
     else
         echoe -e "${REDC}ERROR${NC}: Cannot install addons ${YELLOWC}${addons[*]}${NC}!";

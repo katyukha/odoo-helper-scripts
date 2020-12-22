@@ -468,97 +468,6 @@ function odoo_db_copy {
     fi
 }
 
-# odoo_db_dump [options] <dbname> <file-path>
-# dump database to specified path
-function odoo_db_dump {
-    local usage="
-    Dump database
-
-    WARNING: This command is deprecated and will be removed in next release
-
-    Usage:
-
-        $SCRIPT_NAME db dump [options] <dbname> <file-path>
-
-    Arguments:
-        <dbname>         - name of database to dump
-        <file-path>      - path to save dump in
-
-    Options:
-       --format <fmt>    - format of dump: zip or sql. Default: zip
-       --conf <path>     - path to configuration file
-       --tmp-dir <path>  - use different temp dir
-       --help            - display this help message
-    ";
-
-    # Default options
-    local conf_file=$ODOO_CONF_FILE;
-    local format="zip";
-    local custom_temp_dir;
-
-    echoe -e "${YELLOWC}WARNING${NC}: command ${YELLOWC}odoo-helper db dump${NC} is deprecated and will be removed in next release!";
-
-    # Parse options
-    while [[ $# -gt 0 ]]
-    do
-        local key="$1";
-        case $key in
-            --format)
-                format="$2";
-                shift;
-            ;;
-            --conf)
-                conf_file="$2";
-                shift;
-            ;;
-            --tmp-dir)
-                if [ -d "$2" ]; then
-                    custom_temp_dir=$2;
-                else
-                    echoe -e "${REDC}ERROR${NC}: temp dir '$2' does not exists!";
-                    return 1;
-                fi
-                shift;
-            ;;
-            -h|--help|help)
-                echo "$usage";
-                return 0;
-            ;;
-            -*)
-                echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
-                return 1;
-            ;;
-            *)
-                break;
-            ;;
-        esac;
-        shift;
-    done
-    local db_name=$1;
-    local db_dump_file=$2;
-    local python_cmd="import lodoo, base64; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd dump=base64.b64decode(cl.db.dump(cl.odoo.tools.config['admin_passwd'], '$db_name', '$format'));";
-    python_cmd="$python_cmd open('$db_dump_file', 'wb').write(dump);";
-   
-    if [ -n "$custom_temp_dir" ] && [ -d "$custom_temp_dir" ]; then 
-        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd_u "$python_cmd"; then
-            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
-            return 0;
-        else
-            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
-            return 1;
-        fi
-    else
-        if run_python_cmd_u "$python_cmd"; then
-            echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} dumped to ${BLUEC}$db_dump_file${NC}!";
-            return 0;
-        else
-            echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
-            return 1;
-        fi
-    fi
-}
-
 
 # odoo_db_backup [options] <dbname>
 function odoo_db_backup {
@@ -976,11 +885,6 @@ function odoo_db_command {
             drop)
                 shift;
                 odoo_db_drop "$@";
-                return;
-            ;;
-            dump)
-                shift;
-                odoo_db_dump "$@";
                 return;
             ;;
             dump-manifest)

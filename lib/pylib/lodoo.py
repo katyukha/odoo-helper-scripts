@@ -379,8 +379,8 @@ class LOdoo(object):
         """
         if self._odoo is None:
             odoo.tools.config.parse_config(self._options)
-            if odoo.tools.config.get('sentry_enable', False):
-                odoo.tools.config['sentry_enable'] = False
+            if odoo.tools.config.get('sentry_enabled', False):
+                odoo.tools.config['sentry_enabled'] = False
 
             if not hasattr(odoo.api.Environment._local, 'environments'):
                 odoo.api.Environment._local.environments = (
@@ -417,11 +417,13 @@ LocalClient = LOdoo
 @atexit.register
 def cleanup():
     if odoo.release.version_info < (10,):
-        Registry = odoo.modules.registry.RegistryManager
+        dbnames = odoo.modules.registry.RegistryManager.registries.keys()
+    elif odoo.release.version_info < (13,):
+        dbnames = odoo.modules.registry.Registry.registries.keys()
     else:
-        Registry = odoo.modules.registry.Registry
+        dbnames = odoo.modules.registry.Registry.registries.d.keys()
 
-    for db in Registry.registries.keys():
+    for db in dbnames:
         odoo.sql_db.close_db(db)
 
 

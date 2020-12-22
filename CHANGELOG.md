@@ -1,5 +1,29 @@
 # Release Notes
 
+## Release 0.8.0 (2020-12-22)
+
+### Added
+- Aliase `odoo-helper addons link` that is same as `odoo-helper link`
+- Aliase `odoo-helper addons test` that is same as `odoo-helper test`
+- Added support for Odoo 14.0 (experimental)
+- Added option `--pot-update` to `odoo-helper tr regenerate` command,
+  that will automatically update translations according to .pot files
+- Added option `--installable` to `doc-utils addons-list` command
+- Added command `odoo-helper doc-utils addons-graph` that could be used to
+  build dependency graph for all addons in specified directory.
+- Added option `--show-log-on-error` for `odoo-helper addons install|update` commands.
+
+### Changed
+- Fail tests on `Comparing apples and oranges` warning
+- Command `odoo-helper ci check-versions-git` now simplified and coulde be
+  called with only single argument - path to repository
+
+### Removed
+- Removed command `odoo-helper db dump`
+- Removed support for clonning Hg repositories
+- Drop support for Ubuntu 16.04: odoo-helper have to be working there still, but without warranty.
+
+
 ## Release 0.7.0 (2020-08-17)
 
 ### Added

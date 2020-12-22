@@ -149,6 +149,7 @@ function test_parse_log_file {
                -e "invalid module names, ignored" \
                -e "no access rules, consider adding one" \
                -e "OperationalError: FATAL" \
+               -e "Comparing apples and oranges" \
                -e "WARNING $test_db_name odoo.modules.loading: Module [a-zA-Z0-9_]\+ demo data failed to install, installed without demo data" \
                -e "WARNING $test_db_name odoo.models: [a-zA-Z0-9\\._]\+.create() includes unknown fields" \
                -e "WARNING $test_db_name odoo.models: [a-zA-Z0-9\\._]\+.write() includes unknown fields" \

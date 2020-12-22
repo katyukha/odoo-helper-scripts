@@ -187,7 +187,6 @@ odoo-helper db create test-9-db;
 
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
 odoo-helper pip install Mercurial;
-odoo-helper fetch --hg https://bitbucket.org/anybox/bus_enhanced/ --branch 9.0
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
@@ -201,11 +200,7 @@ odoo-helper addons list --by-path ./repositories;
 odoo-helper addons update-list --help;
 odoo-helper addons update-list;
 odoo-helper start;
-odoo-helper addons install bus_enhanced;
 odoo-helper stop;
-odoo-helper addons test-installed bus_enhanced;  # find databases where this addons is installed
-odoo-helper addons update -m bus_enhanced;
-odoo-helper addons uninstall bus_enhanced;
 
 # uninstall addon that is not installed
 odoo-helper addons uninstall account;
@@ -485,9 +480,19 @@ odoo-helper tr load --lang uk_UA --db test-11-db;
 odoo-helper tr export test-11-db uk_UA uk-test web;
 odoo-helper tr import test-11-db uk_UA uk-test web;
 
+echo -e "${YELLOWC}
+==============================
+Fetch OCA/partner-contact repo
+==============================
+${NC}"
 # Install oca/partner-contact addons
 odoo-helper fetch --oca partner-contact;
 
+echo -e "${YELLOWC}
+===================================================================
+Test CI Tools (ensure icons, ensure changelog, check versions, etc)
+===================================================================
+${NC}"
 # Check oca/partner-contact with ci commands
 odoo-helper ci ensure-icons repositories/oca/partner-contact || true
 odoo-helper ci ensure-changelog repositories/oca/partner-contact HEAD^^^1 || true
@@ -496,18 +501,38 @@ odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contac
 odoo-helper ci check-versions-git --repo-version repositories/oca/partner-contact HEAD^^^1 || true
 odoo-helper ci check-versions-git --ignore-trans --repo-version repositories/oca/partner-contact HEAD^^^1 || true
 
+echo -e "${YELLOWC}
+===================================
+Show list of changed addons in repo
+===================================
+${NC}"
 # Show addons changed
 odoo-helper git changed-addons repositories/oca/partner-contact HEAD^^^1 HEAD
 
+echo -e "${YELLOWC}
+==================
+Fetch OCA/web repo
+==================
+${NC}"
 # Fetch oca/web passing only repo url and branch to fetch command
 odoo-helper fetch https://github.com/oca/web --branch 11.0;
 
-# Regenerate Ukrainian translations for all addons in partner-contact
-odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/oca/partner-contact;
-odoo-helper tr rate --lang uk_UA --dir ./repositories/oca/partner-contact;
-
+echo -e "${YELLOWC}
+============================================
+Update list of addons for specific databases
+============================================
+${NC}"
 # Update addons list on specific db
 odoo-helper addons update-list test-11-db
+
+echo -e "${YELLOWC}
+===========================================================================
+Regenerate UA translations for partner-contact and compute translation rate
+===========================================================================
+${NC}"
+# Regenerate Ukrainian translations for all addons in partner-contact
+odoo-helper tr regenerate --lang uk_UA --file uk_UA --dir ./repositories/oca/web;
+odoo-helper tr rate --lang uk_UA --dir ./repositories/oca/web;
 
 
 echo -e "${YELLOWC}
