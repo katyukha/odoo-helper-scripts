@@ -64,18 +64,36 @@ function test_module_impl {
 }
 
 # Get database name or create new one. Prints database name
-# test_get_or_create_db      # get db
-# test_get_or_create_db 1    # recreate db
-# test_get_or_create_db 0 1  # create new db
+# test_get_or_create_db [--recreate-db] [--create-test-db] [--test-db-name <dbname>]
 function test_get_or_create_db {
-    local recreate_db=$1;
-    local create_test_db=$2;
+    local recreate_db;
+    local create_test_db;
     local test_db_name;
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            --create-test-db)
+                create_test_db=1;
+            ;;
+            --recreate-db)
+                recreate_db=1;
+            ;;
+            --test-db-name)
+                test_db_name="$2";
+                shift;
+            ;;
+            *)
+                break;
+            ;;
+        esac;
+        shift;
+    done;
 
-    if [ "$create_test_db" -eq 1 ]; then
+    if [ -n "$create_test_db" ]; then
         test_db_name="test-$(< /dev/urandom tr -dc a-z0-9 | head -c24)";
         recreate_db=1;
-    else
+    elif [ -z "$test_db_name" ]; then
         test_db_name=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE");
         if [ -z "$test_db_name" ]; then
             test_db_name=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
@@ -83,7 +101,7 @@ function test_get_or_create_db {
         fi
     fi
 
-    if [ "$recreate_db" -eq 1 ] && odoo_db_exists -q "$test_db_name"; then
+    if [ -n "$recreate_db" ] && odoo_db_exists -q "$test_db_name"; then
         if ! odoo_db_drop --conf "$ODOO_TEST_CONF_FILE" "$test_db_name" 1>&2; then
             return 2;
         fi
@@ -181,20 +199,46 @@ function test_run_tests_handle_sigint {
 
 
 # Run tests
-# test_run_tests <recreate_db 1|0> <create_test_db 1|0> <fail_on_warn 1|0> <with_coverage 1|0> <modules>
+# test_run_tests [--recreate-db] [--create-test-db] [--fail-on-warn] [--with-coverage] <modules>
 function test_run_tests {
-    local recreate_db=$1;
-    local create_test_db=$2;
-    local fail_on_warn=$3;
-    local with_coverage=$4;
-    shift; shift; shift; shift;
+    local db_name_options=();
+    local create_test_db=0;
+    local fail_on_warn=0;
+    local with_coverage=0;
+    while [[ $# -gt 0 ]]
+    do
+        key="$1";
+        case $key in
+            --create-test-db)
+                create_test_db=1;
+                db_name_options+=( --create-test-db );
+            ;;
+            --recreate-db)
+                db_name_options+=( --recreate-db );
+            ;;
+            --test-db-name)
+                db_name_options+=( --test-db-name "$2" );
+                shift;
+            ;;
+            --fail-on-warn)
+                fail_on_warn=1;
+            ;;
+            --with-coverage)
+                with_coverage=1;
+            ;;
+            *)
+                break;
+            ;;
+        esac;
+        shift;
+    done;
 
     local res=0;
     local test_db_name;
     local test_log_file;
 
     # Create new test database if required
-    test_db_name=$(test_get_or_create_db "$recreate_db" "$create_test_db");
+    test_db_name=$(test_get_or_create_db "${db_name_options[@]}");
     if [ -z "$test_db_name" ]; then
         echoe -e "${REDC}ERROR${NC} Cannot use or create test database!";
         return 1;
@@ -259,15 +303,16 @@ function _test_check_conf_options {
 # Run flake8 for modules
 # test_module [--create-test-db] -m <module_name>
 function test_module {
-    local create_test_db=0;
-    local recreate_db=0;
-    local fail_on_warn=0;
-    local with_coverage=0;
-    local with_coverage_report_html=;
-    local with_coverage_report=;
-    local with_coverage_skip_covered=;
-    local with_coverage_ignore_errors=;
-    local with_coverage_report_html_dir=;
+    local create_test_db;
+    local recreate_db;
+    local fail_on_warn;
+    local with_coverage;
+    local with_coverage_report_html;
+    local with_coverage_report_html_view
+    local with_coverage_report_html_dir;
+    local with_coverage_report;
+    local with_coverage_skip_covered;
+    local with_coverage_ignore_errors;
     local modules_list;
     local modules=( );
     local module;
@@ -275,6 +320,7 @@ function test_module {
     local skip_addon;
     local skip_addon_re_list=( );
     local skip_addon_list;
+    local run_tests_options=();
     local res=;
 
     # Modules map if there is module in this map, than it have to be skipped
@@ -296,10 +342,13 @@ function test_module {
     Options:
         --create-test-db               - Creates temporary database to run tests in
         --recreate-db                  - Recreate test database if it already exists
+        --test-db-name <dbname>        - Use specific name for test database
+        --tdb <dbname>                 - Shortcut for --test-db-name
         --fail-on-warn                 - if this option passed, then tests will fail even on warnings
         --coverage                     - calculate code coverage (use python's *coverage* util)
         --coverage-html                - automaticaly generate coverage html report
         --coverage-html-dir <dir>      - Directory to save coverage report to. Default: ./htmlcov
+        --coverage-html-view           - Open coverage report in browser
         --coverage-report              - print coverage report
         --coverage-skip-covered        - skip covered files in coverage report
         --coverage-fail-under <value>  - fail if coverage is less then specified value
@@ -346,13 +395,17 @@ function test_module {
                 return 0;
             ;;
             --create-test-db)
-                create_test_db=1;
+                run_tests_options+=( --create-test-db );
             ;;
             --recreate-db)
-                recreate_db=1;
+                run_tests_options+=( --recreate-db );
+            ;;
+            --tdb|--test-db-name)
+                run_tests_options+=( --test-db-name "$2" );
+                shift;
             ;;
             --fail-on-warn)
-                fail_on_warn=1;
+                run_tests_options+=( --fail-on-warn );
             ;;
             --coverage)
                 with_coverage=1;
@@ -366,6 +419,11 @@ function test_module {
                 with_coverage_report_html=1;
                 with_coverage_report_html_dir=$(readlink -f "$2");
                 shift;
+            ;;
+            --coverage-html-view)
+                with_coverage=1;
+                with_coverage_report_html=1;
+                with_coverage_report_html_view=1;
             ;;
             --coverage-report)
                 with_coverage=1;
@@ -439,6 +497,10 @@ function test_module {
         shift;
     done;
 
+    if [ -n "$with_coverage" ]; then
+        run_tests_options+=( --with-coverage );
+    fi
+
     local modules_to_test=( );
     for module in "${modules[@]}"; do
         if [ -n "$module" ]; then
@@ -465,11 +527,9 @@ function test_module {
     _test_check_conf_options;
 
     # Run tests
-    if [ -n "$measure_test_time" ] && time test_run_tests "${recreate_db:-0}" "${create_test_db:-0}" \
-        "${fail_on_warn:-0}" "${with_coverage:-0}" "${modules_to_test[@]}"; then
+    if [ -n "$measure_test_time" ] && time test_run_tests "${run_tests_options[@]}" "${modules_to_test[@]}"; then
         res=0;
-    elif [ -z "$measure_test_time" ] && test_run_tests "${recreate_db:-0}" "${create_test_db:-0}" \
-        "${fail_on_warn:-0}" "${with_coverage:-0}" "${modules_to_test[@]}"; then
+    elif [ -z "$measure_test_time" ] && test_run_tests "${run_tests_options[@]}" "${modules_to_test[@]}"; then
         res=0;
     else
         res=1;
@@ -483,6 +543,14 @@ function test_module {
         fi
         echoe -e "${LBLUEC}HINT${NC}: Coverage report saved at ${YELLOWC}${with_coverage_report_html_dir}${NC}";
         echoe -e "${LBLUEC}HINT${NC}: Just open url (${YELLOWC}file://${with_coverage_report_html_dir}/index.html${NC}) in browser to view coverage report.";
+
+        if [ -n "$with_coverage_report_html_view" ]; then
+            if ! check_command xdg-open >/dev/null 2>&1; then
+                echoe -e "${REDC}ERROR${NC}: ${YELLOWC}xdg-open${NC} not installed.";
+            else
+                xdg-open "file://${with_coverage_report_html_dir}/index.html";
+            fi
+        fi
     fi
 
     if [ -n "$with_coverage_report" ]; then
@@ -498,8 +566,6 @@ function test_module {
         fi
         execv coverage report "${coverage_report_opts[@]}";
     fi
-    # ---------
 
     return $res;
 }
-

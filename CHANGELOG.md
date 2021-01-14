@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+## Added
+- New options for `odoo-helper test` command:
+    - `--test-db-name` that allows to specify name of test db to use to run tests
+    - `--coverage-html-view` that will automatically open coverage report in browser when tests completed
+
 ## Release 0.8.0 (2020-12-22)
 
 ### Added
