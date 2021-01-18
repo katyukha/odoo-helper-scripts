@@ -507,6 +507,8 @@ function ci_do_forwardport {
         -s|--src-branch <branch>   - [required] source branch to take changes from
         --path <path>              - path to git repository. default current ($git_path)
         -r|--remote <name>         - name of git remote. Default: $git_remote_name
+        --fm|--forward-migrations  - Rename all migrations for source version
+                                     to new odoo-version
 
         --help                     - show this help message
     ";
@@ -520,6 +522,7 @@ function ci_do_forwardport {
     local tmp_branch;
     local src_branch;
     local dst_branch="$ODOO_VERSION";
+    local forward_migrations;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -535,6 +538,9 @@ function ci_do_forwardport {
             --path)
                 git_path=$2
                 shift;
+            ;;
+            --fm|--forward-migrations)
+                forward_migrations=1;
             ;;
             -h|--help|help)
                 echo -e "$usage";
@@ -595,6 +601,30 @@ function ci_do_forwardport {
 
     # Attempt tot fix versions of modules
     ci_check_versions_git --fix-version-fp "$git_path" "$git_remote_name/$dst_branch";
+
+    # Forward migrations if needed
+    local changed_addons;
+    mapfile -t changed_addons < <(git_get_addons_changed "$git_path" "$git_remote_name/$dst_branch" "-working-tree-" | sed '/^$/d')
+    if [ -n "$forward_migrations" ]; then
+        for addon in "${changed_addons[@]}"; do
+            if [ ! -d "$addon/migrations" ]; then
+                continue
+            fi
+            local migration_src_prefix="$addon/migrations/$src_branch.";
+            local migration_dst_prefix="$addon/migrations/$dst_branch.";
+            for migration_src in "$migration_src_prefix"*; do
+                local migration_name=${migration_src#"$migration_src_prefix"};
+
+                local migration_dst=${migration_dst_prefix}${migration_name};
+                if [ -d "$migration_src" ] && [ ! -d "${migration_dst}" ]; then
+                    local addon_name=$(addons_get_addon_name "$addon");
+                    echoe -e "${LBLUEC}INFO${NC}: forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
+                    git mv "$migration_src" "${migration_dst_prefix}${migration_name}";
+                fi
+            done
+        done
+    fi
+    # Show resulting message
     if git_is_clean "$git_path"; then
         echoe -e "${YELLOWC}WARNING${NC}: It seems that there is no changes to forwardport!";
     else

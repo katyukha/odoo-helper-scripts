@@ -6,6 +6,9 @@
 - New options for `odoo-helper test` command:
     - `--test-db-name` that allows to specify name of test db to use to run tests
     - `--coverage-html-view` that will automatically open coverage report in browser when tests completed
+- Added new option `--fm` or `--forward-migration` to `odoo-helper ci do-forwardport` command,
+  that will automatically forwardport migrations to next serie.
+  Currently it just renames migration files.
 
 ## Release 0.8.0 (2020-12-22)
 
