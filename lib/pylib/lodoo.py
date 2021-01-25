@@ -17,7 +17,6 @@ import atexit
 import logging
 import functools
 import contextlib
-import pkg_resources
 
 # Odoo package import and start services logic are based on code:
 #     https://github.com/tinyerp/erppeek
@@ -29,7 +28,12 @@ try:
     # Odoo 10.0+
 
     # this is required if there are addons installed via setuptools_odoo
-    pkg_resources.declare_namespace('odoo.addons')
+    # TODO: Check if this line is actual and required.
+    #       Currently we have to disable it to make it work for recent odoo
+    #       version.
+    # NOTE: may be it have sense to rewrite import mechanism based on odoo
+    # version, that could be retrived via environment variables.
+    # pkg_resources.declare_namespace('odoo.addons')
 
     # import odoo itself
     import odoo
