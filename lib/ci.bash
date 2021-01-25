@@ -617,7 +617,8 @@ function ci_do_forwardport {
 
                 local migration_dst=${migration_dst_prefix}${migration_name};
                 if [ -d "$migration_src" ] && [ ! -d "${migration_dst}" ]; then
-                    local addon_name=$(addons_get_addon_name "$addon");
+                    local addon_name;
+                    addon_name=$(addons_get_addon_name "$addon");
                     echoe -e "${LBLUEC}INFO${NC}: forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
                     git mv "$migration_src" "${migration_dst_prefix}${migration_name}";
                 fi
