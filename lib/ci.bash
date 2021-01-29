@@ -569,7 +569,7 @@ function ci_do_forwardport {
 
     tmp_branch="$dst_branch-oh-forward-port-from-$src_branch-x-$(random_string 4)";
     git --git-dir "$git_path/.git" fetch --all;
-    git --git-dir "$git_path/.git" checkout -b "$tmp_branch" "$git_remote_name/$dst_branch";
+    git --git-dir "$git_path/.git" checkout --no-track -b "$tmp_branch" "$git_remote_name/$dst_branch";
 
     # Merge, but do not fail on error
     if ! git --git-dir "$git_path/.git" merge --no-ff --no-commit --edit "$git_remote_name/$src_branch"; then
