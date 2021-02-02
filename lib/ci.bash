@@ -605,26 +605,35 @@ function ci_do_forwardport {
     # Forward migrations if needed
     local changed_addons;
     mapfile -t changed_addons < <(git_get_addons_changed "$git_path" "$git_remote_name/$dst_branch" "-working-tree-" | sed '/^$/d')
-    if [ -n "$forward_migrations" ]; then
-        for addon in "${changed_addons[@]}"; do
-            if [ ! -d "$addon/migrations" ]; then
-                continue
-            fi
-            local migration_src_prefix="$addon/migrations/$src_branch.";
-            local migration_dst_prefix="$addon/migrations/$dst_branch.";
+    for addon_path in "${changed_addons[@]}"; do
+        local addon_name;
+        local manifest_path;
+        addon_name=$(addons_get_addon_name "$addon_path");
+        manifest_path=$(addons_get_manifest_file "$addon_path")
+        # Add to index manifest files with fixed versions if there is no conflicts
+        if ! git_file_has_conflicts "$addon_path" "$manifest_path"; then
+            git --git-dir "$git_path/.git" add "$manifest_path";
+        fi
+
+        if [ -d "$addon_path/migrations" ]; then
+            local migration_src_prefix="$addon_path/migrations/$src_branch.";
+            local migration_dst_prefix="$addon_path/migrations/$dst_branch.";
             for migration_src in "$migration_src_prefix"*; do
                 local migration_name=${migration_src#"$migration_src_prefix"};
 
                 local migration_dst=${migration_dst_prefix}${migration_name};
                 if [ -d "$migration_src" ] && [ ! -d "${migration_dst}" ]; then
-                    local addon_name;
-                    addon_name=$(addons_get_addon_name "$addon");
-                    echoe -e "${LBLUEC}INFO${NC}: forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
-                    git mv "$migration_src" "${migration_dst_prefix}${migration_name}";
+                    if [ -n "$forward_migrations" ]; then
+                        echoe -e "${LBLUEC}INFO${NC}: forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
+                        git mv "$migration_src" "${migration_dst_prefix}${migration_name}";
+                    else
+                        echoe -e "${YELLOWC}WARNING${NC}: There is chaged migrations for add ${BLUEC}${addon_name}${NC} in this forwardport, but automitic forwardport of migrations disables.";
+                    fi
                 fi
             done
-        done
-    fi
+        fi
+    done
+
     # Show resulting message
     if git_is_clean "$git_path"; then
         echoe -e "${YELLOWC}WARNING${NC}: It seems that there is no changes to forwardport!";
@@ -635,6 +644,9 @@ function ci_do_forwardport {
                  "    - ${BLUEC}git add -u${NC}\n" \
                  "    - ${BLUEC}git commit${NC}\n" \
                  "    - ${BLUEC}git push \"$git_remote_name\" \"$tmp_branch\"${NC}";
+        echoe -e "${LBLUEC}HINT${NC}: If you want to cancel this forwardport, then run following commands:\n" \
+                 "    - ${BLUEC}git add .${NC}\n" \
+                 "    - ${BLUEC}git merge --abort${NC}\n";
     fi
 }
 

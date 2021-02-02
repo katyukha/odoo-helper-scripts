@@ -10,6 +10,9 @@
   that will automatically forwardport migrations to next serie.
   Currently it just renames migration files.
 
+## Changed
+- `odoo-helper ci do-forwardport` not can automatically add manifests with fixed versions to index (if there are no other conflicts)
+
 ## Release 0.8.0 (2020-12-22)
 
 ### Added
