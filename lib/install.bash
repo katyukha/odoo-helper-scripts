@@ -87,7 +87,7 @@ function install_download_odoo {
         repo_base=$(basename "$repo");
         echov -e "${LBLUEC}Downloading from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz${NC}";
         if ! wget -q -T 15 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz"; then
-            echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz}${NC}."
+            echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz${NC}."
             echoe -e "Remove broken download (if it is exists) ${YELLOWC}${odoo_archive}${NC}."
             echoe -e "and try to run command below: ";
             echoe -e "    ${BLUEC}wget --debug -T 15 -O \"$odoo_archive\" \"$repo/archive/$ODOO_BRANCH.tar.gz\"${NC}"
