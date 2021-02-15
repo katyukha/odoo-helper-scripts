@@ -62,7 +62,7 @@ function ci_fix_version_serie {
 }
 
 # ci_fix_version_number <version>
-# Attempt to fix version number (increase minor part)
+# Attempt to fix version number (increase patch part)
 function ci_fix_version_number {
     local version="$1";
     if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+\.[0-9]+)\.([0-9]+)$ ]]; then
@@ -72,7 +72,16 @@ function ci_fix_version_number {
     fi
 }
 
-
+# ci_fix_version_minor <version>
+# Attempt to fix version number (increase minor part)
+function ci_fix_version_minor {
+    local version="$1";
+    if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$(( BASH_REMATCH[2] + 1)).${BASH_REMATCH[3]}";
+    else
+        return 1;
+    fi
+}
 
 # ci_git_get_repo_version_by_ref [-q] <repo path> <ref>
 function ci_git_get_repo_version_by_ref {
@@ -159,25 +168,27 @@ function ci_check_versions_git {
         $SCRIPT_NAME ci check-versions-git [options] <repo> [start] [end]
 
     Options:
-        --ignore-trans    - ignore translations
-                            Note: this option may not work on old git versions
-        --repo-version    - ensure repository version updated.
-                            Repository version have to be specified in
-                            file named VERSION placed in repository root.
-                            Version have to be string of
-                            5 numbers separated by dots.
-                            For example: 11.0.1.0.0
-                            Version number have to be updated if at least one
-                            addon changed
-        --fix-serie       - [experimental] Fix module serie only
-        --fix-version     - [experimental] Attempt to fix versions
-        --fix-version-fp  - [experimental] Fix version conflicts during
-                            forwardport
-        -h|--help|help    - print this help message end exit
+        --ignore-trans      - ignore translations
+                              Note: this option may not work on old git versions
+        --repo-version      - ensure repository version updated.
+                              Repository version have to be specified in
+                              file named VERSION placed in repository root.
+                              Version have to be string of
+                              5 numbers separated by dots.
+                              For example: 11.0.1.0.0
+                              Version number have to be updated if at least one
+                              addon changed
+        --fix-serie         - [experimental] Fix module serie only
+        --fix-version       - [experimental] Attempt to fix versions
+        --fix-version-minor - [experimental] Attempt to fix version changing
+                              minor serction of version number
+        --fix-version-fp    - [experimental] Fix version conflicts during
+                              forwardport
+        -h|--help|help      - print this help message end exit
 
     Parametrs:
         <repo>    - path to git repository to search for changed addons in
-        <start>   - git start revision
+        [start]   - git start revision
         [end]     - [optional] git end revision.
                     if not set then working tree used as end revision
     ";
@@ -193,6 +204,7 @@ function ci_check_versions_git {
     local check_repo_version=0;
     local opt_fix_serie=0;
     local opt_fix_version=0;
+    local opt_fix_version_minor=0;
     local opt_fix_version_fp=0;
     local cdir;
     while [[ $# -gt 0 ]]
@@ -219,6 +231,12 @@ function ci_check_versions_git {
             --fix-version)
                 opt_fix_serie=1;
                 opt_fix_version=1;
+                shift;
+            ;;
+            --fix-version-minor)
+                opt_fix_serie=1;
+                opt_fix_version=1;
+                opt_fix_version_minor=1;
                 shift;
             ;;
             --fix-version-fp)
@@ -306,7 +324,11 @@ function ci_check_versions_git {
             if [ "$opt_fix_version" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
-                new_version=$(ci_fix_version_number "$new_version");
+                if [ -n "$opt_fix_version_minor" ]; then
+                    new_version=$(ci_fix_version_minor "$new_version");
+                else
+                    new_version=$(ci_fix_version_number "$new_version");
+                fi
                 # shellcheck disable=SC2181
                 if [ "$?" -eq 0 ]; then
                     local addon_manifest_file;
