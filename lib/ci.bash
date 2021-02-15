@@ -83,6 +83,17 @@ function ci_fix_version_minor {
     fi
 }
 
+# ci_fix_version_major <version>
+# Attempt to fix version number (increase major part)
+function ci_fix_version_minor {
+    local version="$1";
+    if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        echo "${ODOO_VERSION}.$(( BASH_REMATCH[1] + 1)).${BASH_REMATCH[2]}.${BASH_REMATCH[3]}";
+    else
+        return 1;
+    fi
+}
+
 # ci_git_get_repo_version_by_ref [-q] <repo path> <ref>
 function ci_git_get_repo_version_by_ref {
     if [ "$1" == "-q" ]; then
@@ -179,9 +190,12 @@ function ci_check_versions_git {
                               Version number have to be updated if at least one
                               addon changed
         --fix-serie         - [experimental] Fix module serie only
-        --fix-version       - [experimental] Attempt to fix versions
-        --fix-version-minor - [experimental] Attempt to fix version changing
-                              minor serction of version number
+        --fix-version       - [experimental] Attempt to fix versions in changed
+                              addons. By default, it changes 'patch' part of version.
+        --fix-version-minor - [experimental] Attempt to fix versions in changed
+                              addons. Increases minor part of version number
+        --fix-version-major - [experimental] Attempt to fix versions in changed
+                              addons. Increases major part of version number
         --fix-version-fp    - [experimental] Fix version conflicts during
                               forwardport
         -h|--help|help      - print this help message end exit
@@ -205,6 +219,7 @@ function ci_check_versions_git {
     local opt_fix_serie=0;
     local opt_fix_version=0;
     local opt_fix_version_minor=0;
+    local opt_fix_version_major=0;
     local opt_fix_version_fp=0;
     local cdir;
     while [[ $# -gt 0 ]]
@@ -237,6 +252,12 @@ function ci_check_versions_git {
                 opt_fix_serie=1;
                 opt_fix_version=1;
                 opt_fix_version_minor=1;
+                shift;
+            ;;
+            --fix-version-major)
+                opt_fix_serie=1;
+                opt_fix_version=1;
+                opt_fix_version_major=1;
                 shift;
             ;;
             --fix-version-fp)
@@ -326,6 +347,8 @@ function ci_check_versions_git {
                 new_version=$(ci_fix_version_serie "$version_after");
                 if [ -n "$opt_fix_version_minor" ]; then
                     new_version=$(ci_fix_version_minor "$new_version");
+                elif [ -n "$opt_fix_version_major" ]; then
+                    new_version=$(ci_fix_version_major "$new_version");
                 else
                     new_version=$(ci_fix_version_number "$new_version");
                 fi

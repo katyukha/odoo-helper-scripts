@@ -9,8 +9,9 @@
 - Added new option `--fm` or `--forward-migration` to `odoo-helper ci do-forwardport` command,
   that will automatically forwardport migrations to next serie.
   Currently it just renames migration files.
-- Added new opt to `odoo-helper ci check-versions-git` command:
+- Added new opts to `odoo-helper ci check-versions-git` command:
     - `--fix-version-minor` that could be used to increase minor part of version nimber in changed modules
+    - `--fix-version-major` that could be used to increase major part of version nimber in changed modules
 
 ## Changed
 - `odoo-helper ci do-forwardport` not can automatically add manifests with fixed versions to index (if there are no other conflicts)
