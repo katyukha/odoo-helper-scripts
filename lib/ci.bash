@@ -85,7 +85,7 @@ function ci_fix_version_minor {
 
 # ci_fix_version_major <version>
 # Attempt to fix version number (increase major part)
-function ci_fix_version_minor {
+function ci_fix_version_major {
     local version="$1";
     if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
         echo "${ODOO_VERSION}.$(( BASH_REMATCH[1] + 1)).${BASH_REMATCH[2]}.${BASH_REMATCH[3]}";
@@ -206,11 +206,6 @@ function ci_check_versions_git {
         [end]     - [optional] git end revision.
                     if not set then working tree used as end revision
     ";
-    if [[ $# -lt 1 ]]; then
-        echo "$usage";
-        return 0;
-    fi
-
     local git_changed_extra_opts=( );
     local repo_path;
     local ref_start;
@@ -398,6 +393,80 @@ function ci_check_versions_git {
     fi
     cd "$cdir";
     return $result;
+}
+
+
+function ci_cmd_git_fix_versions {
+    local usage="
+    Fix (increase) versions of changed addons.
+
+    WARNING: this command is experimental
+
+    Usage:
+        $SCRIPT_NAME ci fix-versions [options] [repo] [start] [end]
+
+    Options:
+        --patch         - Attempt to fix versions in changed
+                          addons. By default, it changes 'patch' part of version.
+        --minor         - Attempt to fix versions in changed
+                          addons. Increases minor part of version number
+        --major         - Attempt to fix versions in changed
+                          addons. Increases major part of version number
+        -h|--help|help  - print this help message end exit
+
+    Parametrs:
+        [repo]    - path to git repository to search for changed addons in
+        [start]   - git start revision
+        [end]     - git end revision.
+                    if not set then working tree used as end revision
+    ";
+    local git_check_versions_opts=( );
+    local repo_path;
+    local ref_start;
+    local ref_end;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                shift;
+                return 0;
+            ;;
+            --patch)
+                git_check_versions_opts+=( --fix-version );
+                shift;
+            ;;
+            --minor)
+                git_check_versions_opts+=( --fix-version-minor );
+                shift;
+            ;;
+            --major)
+                git_check_versions_opts+=( --fix-version-major );
+                shift;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
+    # Repo path
+    if [ -n "$1" ]; then
+        git_check_versions_opts+=( "$1" );
+        shift;
+    fi
+    # Start revision
+    if [ -n "$1" ]; then
+        git_check_versions_opts+=( "$1" );
+        shift;
+    fi
+    # End revision
+    if [ -n "$1" ]; then
+        git_check_versions_opts+=( "$1" );
+        shift;
+    fi
+    ci_check_versions_git "${git_check_versions_opts[@]}"
 }
 
 # Ensure that all addons in specified directory have icons
@@ -812,6 +881,7 @@ function ci_command {
 
     Usage:
         $SCRIPT_NAME ci check-versions-git [--help]  - ensure versions of changed addons were updated
+        $SCRIPT_NAME ci fix-versions [--help]        - fix versions of changed addons
         $SCRIPT_NAME ci ensure-icons [--help]        - ensure all addons in specified directory have icons
         $SCRIPT_NAME ci ensure-changelog [--help]    - ensure that changes described in changelog
         $SCRIPT_NAME ci push-changes [--help]        - push changes to same branch
@@ -834,6 +904,11 @@ function ci_command {
             check-versions-git)
                 shift;
                 ci_check_versions_git "$@";
+                return;
+            ;;
+            fix-versions)
+                shift;
+                ci_cmd_git_fix_versions "$@";
                 return;
             ;;
             ensure-icons)

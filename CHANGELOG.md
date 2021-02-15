@@ -10,8 +10,10 @@
   that will automatically forwardport migrations to next serie.
   Currently it just renames migration files.
 - Added new opts to `odoo-helper ci check-versions-git` command:
-    - `--fix-version-minor` that could be used to increase minor part of version nimber in changed modules
-    - `--fix-version-major` that could be used to increase major part of version nimber in changed modules
+    - `--fix-version-minor` that could be used to increase minor part of version number in changed modules
+    - `--fix-version-major` that could be used to increase major part of version number in changed modules
+- Added new cmd `odoo-helper ci fix-versions` that could be used to fix version number in changed modules
+- Added new shortcut to run version fix: `odoo-helper fix-versions`
 
 ## Changed
 - `odoo-helper ci do-forwardport` not can automatically add manifests with fixed versions to index (if there are no other conflicts)
