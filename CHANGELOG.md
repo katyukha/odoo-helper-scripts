@@ -15,6 +15,9 @@
 
 ## Changed
 - `odoo-helper ci do-forwardport` not can automatically add manifests with fixed versions to index (if there are no other conflicts)
+- `odoo-helper ci check-versions-git` argument `repo` is now optional,
+  and by default, it assumes that repo path is current working directory,
+  unless repo path is not specified explicitly
 
 ## Release 0.8.0 (2020-12-22)
 

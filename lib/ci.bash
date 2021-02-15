@@ -176,7 +176,7 @@ function ci_check_versions_git {
     Check that versions of changed addons have been updated
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [options] <repo> [start] [end]
+        $SCRIPT_NAME ci check-versions-git [options] [repo] [start] [end]
 
     Options:
         --ignore-trans      - ignore translations
@@ -201,7 +201,7 @@ function ci_check_versions_git {
         -h|--help|help      - print this help message end exit
 
     Parametrs:
-        <repo>    - path to git repository to search for changed addons in
+        [repo]    - path to git repository to search for changed addons in
         [start]   - git start revision
         [end]     - [optional] git end revision.
                     if not set then working tree used as end revision
@@ -272,7 +272,11 @@ function ci_check_versions_git {
         esac
     done
 
-    repo_path=$(readlink -f "$1"); shift;
+    if [ -n "$1" ]; then
+        repo_path=$(readlink -f "$1"); shift;
+    else
+        repo_path=$(pwd);
+    fi
     if ! git_is_git_repo "$repo_path"; then
         echoe -e "${RED}ERROR${NC}: ${YELLOWC}${repo_path}${NC} is not git repository!";
         return 3;
