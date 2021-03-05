@@ -344,9 +344,9 @@ function ci_check_versions_git {
             if [ "$opt_fix_version" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
-                if [ -n "$opt_fix_version_minor" ]; then
+                if [ "$opt_fix_version_minor" -eq 1 ]; then
                     new_version=$(ci_fix_version_minor "$new_version");
-                elif [ -n "$opt_fix_version_major" ]; then
+                elif [ "$opt_fix_version_major" -eq 1 ]; then
                     new_version=$(ci_fix_version_major "$new_version");
                 else
                     new_version=$(ci_fix_version_number "$new_version");
