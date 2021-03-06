@@ -20,5 +20,5 @@ fi
 
 
 # Define version number
-ODOO_HELPER_VERSION="0.8.0";
+ODOO_HELPER_VERSION="0.9.0";
 ODOO_HELPER_CONFIG_VERSION="1";

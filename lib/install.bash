@@ -87,7 +87,7 @@ function install_download_odoo {
         repo_base=$(basename "$repo");
         echov -e "${LBLUEC}Downloading from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz${NC}";
         if ! wget -q -T 15 -O "$odoo_archive" "$repo/archive/$ODOO_BRANCH.tar.gz"; then
-            echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz}${NC}."
+            echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${repo}/archive/${ODOO_BRANCH}.tar.gz${NC}."
             echoe -e "Remove broken download (if it is exists) ${YELLOWC}${odoo_archive}${NC}."
             echoe -e "and try to run command below: ";
             echoe -e "    ${BLUEC}wget --debug -T 15 -O \"$odoo_archive\" \"$repo/archive/$ODOO_BRANCH.tar.gz\"${NC}"
@@ -476,9 +476,9 @@ function install_odoo_py_requirements_for_version {
                 # for python installed in system
                 if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
                     echo "gevent==1.1.2";
-                elif exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
+                elif exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 7);\"" > /dev/null 2>&1; then
                     echo "gevent==1.3.4";
-                elif exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                elif exec_py -c "\"import sys; assert (3, 7) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
                 else
                     echo "$dependency";
@@ -487,9 +487,7 @@ function install_odoo_py_requirements_for_version {
                 echo "greenlet==0.4.9";
             elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 # Set correct version of greenlet for gevent 1.5.0
-                if exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 8);\"" > /dev/null 2>&1; then
-                    echo "greenlet==0.4.14";
-                elif exec_py -c "\"import sys; assert (3, 8) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                if exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
                 else
                     echo "$dependency";

@@ -1,5 +1,26 @@
 # Release Notes
 
+## Release 0.9.0 (2021-03-06)
+
+## Added
+- New options for `odoo-helper test` command:
+    - `--test-db-name` that allows to specify name of test db to use to run tests
+    - `--coverage-html-view` that will automatically open coverage report in browser when tests completed
+- Added new option `--fm` or `--forward-migration` to `odoo-helper ci do-forwardport` command,
+  that will automatically forwardport migrations to next serie.
+  Currently it just renames migration files.
+- Added new opts to `odoo-helper ci check-versions-git` command:
+    - `--fix-version-minor` that could be used to increase minor part of version number in changed modules
+    - `--fix-version-major` that could be used to increase major part of version number in changed modules
+- Added new cmd `odoo-helper ci fix-versions` that could be used to fix version number in changed modules
+- Added new shortcut to run version fix: `odoo-helper fix-versions`
+
+## Changed
+- `odoo-helper ci do-forwardport` not can automatically add manifests with fixed versions to index (if there are no other conflicts)
+- `odoo-helper ci check-versions-git` argument `repo` is now optional,
+  and by default, it assumes that repo path is current working directory,
+  unless repo path is not specified explicitly
+
 ## Release 0.8.0 (2020-12-22)
 
 ### Added

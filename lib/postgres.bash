@@ -280,6 +280,7 @@ function postgres_config_speedify_unsafe {
     sudo -u postgres -H psql -qc "ALTER SYSTEM SET fsync TO off;";
     sudo -u postgres -H psql -qc "ALTER SYSTEM SET synchronous_commit TO off;";
     sudo -u postgres -H psql -qc "ALTER SYSTEM SET full_page_writes TO off;";
+    sudo -u postgres -H psql -qc "ALTER SYSTEM SET max_connections TO 1000;";
     sudo service postgresql restart
     echoe -e "Postgres speedify: ${GREENC}OK${NC}";
 }

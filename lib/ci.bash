@@ -62,7 +62,7 @@ function ci_fix_version_serie {
 }
 
 # ci_fix_version_number <version>
-# Attempt to fix version number (increase minor part)
+# Attempt to fix version number (increase patch part)
 function ci_fix_version_number {
     local version="$1";
     if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+\.[0-9]+)\.([0-9]+)$ ]]; then
@@ -72,7 +72,27 @@ function ci_fix_version_number {
     fi
 }
 
+# ci_fix_version_minor <version>
+# Attempt to fix version number (increase minor part)
+function ci_fix_version_minor {
+    local version="$1";
+    if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$(( BASH_REMATCH[2] + 1)).${BASH_REMATCH[3]}";
+    else
+        return 1;
+    fi
+}
 
+# ci_fix_version_major <version>
+# Attempt to fix version number (increase major part)
+function ci_fix_version_major {
+    local version="$1";
+    if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        echo "${ODOO_VERSION}.$(( BASH_REMATCH[1] + 1)).${BASH_REMATCH[2]}.${BASH_REMATCH[3]}";
+    else
+        return 1;
+    fi
+}
 
 # ci_git_get_repo_version_by_ref [-q] <repo path> <ref>
 function ci_git_get_repo_version_by_ref {
@@ -156,36 +176,36 @@ function ci_check_versions_git {
     Check that versions of changed addons have been updated
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [options] <repo> [start] [end]
+        $SCRIPT_NAME ci check-versions-git [options] [repo] [start] [end]
 
     Options:
-        --ignore-trans    - ignore translations
-                            Note: this option may not work on old git versions
-        --repo-version    - ensure repository version updated.
-                            Repository version have to be specified in
-                            file named VERSION placed in repository root.
-                            Version have to be string of
-                            5 numbers separated by dots.
-                            For example: 11.0.1.0.0
-                            Version number have to be updated if at least one
-                            addon changed
-        --fix-serie       - [experimental] Fix module serie only
-        --fix-version     - [experimental] Attempt to fix versions
-        --fix-version-fp  - [experimental] Fix version conflicts during
-                            forwardport
-        -h|--help|help    - print this help message end exit
+        --ignore-trans      - ignore translations
+                              Note: this option may not work on old git versions
+        --repo-version      - ensure repository version updated.
+                              Repository version have to be specified in
+                              file named VERSION placed in repository root.
+                              Version have to be string of
+                              5 numbers separated by dots.
+                              For example: 11.0.1.0.0
+                              Version number have to be updated if at least one
+                              addon changed
+        --fix-serie         - [experimental] Fix module serie only
+        --fix-version       - [experimental] Attempt to fix versions in changed
+                              addons. By default, it changes 'patch' part of version.
+        --fix-version-minor - [experimental] Attempt to fix versions in changed
+                              addons. Increases minor part of version number
+        --fix-version-major - [experimental] Attempt to fix versions in changed
+                              addons. Increases major part of version number
+        --fix-version-fp    - [experimental] Fix version conflicts during
+                              forwardport
+        -h|--help|help      - print this help message end exit
 
     Parametrs:
-        <repo>    - path to git repository to search for changed addons in
-        <start>   - git start revision
+        [repo]    - path to git repository to search for changed addons in
+        [start]   - git start revision
         [end]     - [optional] git end revision.
                     if not set then working tree used as end revision
     ";
-    if [[ $# -lt 1 ]]; then
-        echo "$usage";
-        return 0;
-    fi
-
     local git_changed_extra_opts=( );
     local repo_path;
     local ref_start;
@@ -193,6 +213,8 @@ function ci_check_versions_git {
     local check_repo_version=0;
     local opt_fix_serie=0;
     local opt_fix_version=0;
+    local opt_fix_version_minor=0;
+    local opt_fix_version_major=0;
     local opt_fix_version_fp=0;
     local cdir;
     while [[ $# -gt 0 ]]
@@ -221,6 +243,18 @@ function ci_check_versions_git {
                 opt_fix_version=1;
                 shift;
             ;;
+            --fix-version-minor)
+                opt_fix_serie=1;
+                opt_fix_version=1;
+                opt_fix_version_minor=1;
+                shift;
+            ;;
+            --fix-version-major)
+                opt_fix_serie=1;
+                opt_fix_version=1;
+                opt_fix_version_major=1;
+                shift;
+            ;;
             --fix-version-fp)
                 opt_fix_serie=1;
                 opt_fix_version=1;
@@ -233,7 +267,11 @@ function ci_check_versions_git {
         esac
     done
 
-    repo_path=$(readlink -f "$1"); shift;
+    if [ -n "$1" ]; then
+        repo_path=$(readlink -f "$1"); shift;
+    else
+        repo_path=$(pwd);
+    fi
     if ! git_is_git_repo "$repo_path"; then
         echoe -e "${RED}ERROR${NC}: ${YELLOWC}${repo_path}${NC} is not git repository!";
         return 3;
@@ -306,7 +344,13 @@ function ci_check_versions_git {
             if [ "$opt_fix_version" -eq 1 ]; then
                 local new_version;
                 new_version=$(ci_fix_version_serie "$version_after");
-                new_version=$(ci_fix_version_number "$new_version");
+                if [ "$opt_fix_version_minor" -eq 1 ]; then
+                    new_version=$(ci_fix_version_minor "$new_version");
+                elif [ "$opt_fix_version_major" -eq 1 ]; then
+                    new_version=$(ci_fix_version_major "$new_version");
+                else
+                    new_version=$(ci_fix_version_number "$new_version");
+                fi
                 # shellcheck disable=SC2181
                 if [ "$?" -eq 0 ]; then
                     local addon_manifest_file;
@@ -349,6 +393,80 @@ function ci_check_versions_git {
     fi
     cd "$cdir";
     return $result;
+}
+
+
+function ci_cmd_git_fix_versions {
+    local usage="
+    Fix (increase) versions of changed addons.
+
+    WARNING: this command is experimental
+
+    Usage:
+        $SCRIPT_NAME ci fix-versions [options] [repo] [start] [end]
+
+    Options:
+        --patch         - Attempt to fix versions in changed
+                          addons. By default, it changes 'patch' part of version.
+        --minor         - Attempt to fix versions in changed
+                          addons. Increases minor part of version number
+        --major         - Attempt to fix versions in changed
+                          addons. Increases major part of version number
+        -h|--help|help  - print this help message end exit
+
+    Parametrs:
+        [repo]    - path to git repository to search for changed addons in
+        [start]   - git start revision
+        [end]     - git end revision.
+                    if not set then working tree used as end revision
+    ";
+    local git_check_versions_opts=( );
+    local repo_path;
+    local ref_start;
+    local ref_end;
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                shift;
+                return 0;
+            ;;
+            --patch)
+                git_check_versions_opts+=( --fix-version );
+                shift;
+            ;;
+            --minor)
+                git_check_versions_opts+=( --fix-version-minor );
+                shift;
+            ;;
+            --major)
+                git_check_versions_opts+=( --fix-version-major );
+                shift;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+    done
+
+    # Repo path
+    if [ -n "$1" ]; then
+        git_check_versions_opts+=( "$1" );
+        shift;
+    fi
+    # Start revision
+    if [ -n "$1" ]; then
+        git_check_versions_opts+=( "$1" );
+        shift;
+    fi
+    # End revision
+    if [ -n "$1" ]; then
+        git_check_versions_opts+=( "$1" );
+        shift;
+    fi
+    ci_check_versions_git "${git_check_versions_opts[@]}"
 }
 
 # Ensure that all addons in specified directory have icons
@@ -507,6 +625,8 @@ function ci_do_forwardport {
         -s|--src-branch <branch>   - [required] source branch to take changes from
         --path <path>              - path to git repository. default current ($git_path)
         -r|--remote <name>         - name of git remote. Default: $git_remote_name
+        --fm|--forward-migrations  - Rename all migrations for source version
+                                     to new odoo-version
 
         --help                     - show this help message
     ";
@@ -520,6 +640,7 @@ function ci_do_forwardport {
     local tmp_branch;
     local src_branch;
     local dst_branch="$ODOO_VERSION";
+    local forward_migrations;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -535,6 +656,9 @@ function ci_do_forwardport {
             --path)
                 git_path=$2
                 shift;
+            ;;
+            --fm|--forward-migrations)
+                forward_migrations=1;
             ;;
             -h|--help|help)
                 echo -e "$usage";
@@ -563,7 +687,7 @@ function ci_do_forwardport {
 
     tmp_branch="$dst_branch-oh-forward-port-from-$src_branch-x-$(random_string 4)";
     git --git-dir "$git_path/.git" fetch --all;
-    git --git-dir "$git_path/.git" checkout -b "$tmp_branch" "$git_remote_name/$dst_branch";
+    git --git-dir "$git_path/.git" checkout --no-track -b "$tmp_branch" "$git_remote_name/$dst_branch";
 
     # Merge, but do not fail on error
     if ! git --git-dir "$git_path/.git" merge --no-ff --no-commit --edit "$git_remote_name/$src_branch"; then
@@ -595,6 +719,40 @@ function ci_do_forwardport {
 
     # Attempt tot fix versions of modules
     ci_check_versions_git --fix-version-fp "$git_path" "$git_remote_name/$dst_branch";
+
+    # Forward migrations if needed
+    local changed_addons;
+    mapfile -t changed_addons < <(git_get_addons_changed "$git_path" "$git_remote_name/$dst_branch" "-working-tree-" | sed '/^$/d')
+    for addon_path in "${changed_addons[@]}"; do
+        local addon_name;
+        local manifest_path;
+        addon_name=$(addons_get_addon_name "$addon_path");
+        manifest_path=$(addons_get_manifest_file "$addon_path")
+        # Add to index manifest files with fixed versions if there is no conflicts
+        if ! git_file_has_conflicts "$addon_path" "$manifest_path"; then
+            git --git-dir "$git_path/.git" add "$manifest_path";
+        fi
+
+        if [ -d "$addon_path/migrations" ]; then
+            local migration_src_prefix="$addon_path/migrations/$src_branch.";
+            local migration_dst_prefix="$addon_path/migrations/$dst_branch.";
+            for migration_src in "$migration_src_prefix"*; do
+                local migration_name=${migration_src#"$migration_src_prefix"};
+
+                local migration_dst=${migration_dst_prefix}${migration_name};
+                if [ -d "$migration_src" ] && [ ! -d "${migration_dst}" ]; then
+                    if [ -n "$forward_migrations" ]; then
+                        echoe -e "${LBLUEC}INFO${NC}: forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
+                        git mv "$migration_src" "${migration_dst_prefix}${migration_name}";
+                    else
+                        echoe -e "${YELLOWC}WARNING${NC}: There is chaged migrations for add ${BLUEC}${addon_name}${NC} in this forwardport, but automitic forwardport of migrations disables.";
+                    fi
+                fi
+            done
+        fi
+    done
+
+    # Show resulting message
     if git_is_clean "$git_path"; then
         echoe -e "${YELLOWC}WARNING${NC}: It seems that there is no changes to forwardport!";
     else
@@ -604,6 +762,9 @@ function ci_do_forwardport {
                  "    - ${BLUEC}git add -u${NC}\n" \
                  "    - ${BLUEC}git commit${NC}\n" \
                  "    - ${BLUEC}git push \"$git_remote_name\" \"$tmp_branch\"${NC}";
+        echoe -e "${LBLUEC}HINT${NC}: If you want to cancel this forwardport, then run following commands:\n" \
+                 "    - ${BLUEC}git add .${NC}\n" \
+                 "    - ${BLUEC}git merge --abort${NC}\n";
     fi
 }
 
@@ -720,6 +881,7 @@ function ci_command {
 
     Usage:
         $SCRIPT_NAME ci check-versions-git [--help]  - ensure versions of changed addons were updated
+        $SCRIPT_NAME ci fix-versions [--help]        - fix versions of changed addons
         $SCRIPT_NAME ci ensure-icons [--help]        - ensure all addons in specified directory have icons
         $SCRIPT_NAME ci ensure-changelog [--help]    - ensure that changes described in changelog
         $SCRIPT_NAME ci push-changes [--help]        - push changes to same branch
@@ -742,6 +904,11 @@ function ci_command {
             check-versions-git)
                 shift;
                 ci_check_versions_git "$@";
+                return;
+            ;;
+            fix-versions)
+                shift;
+                ci_cmd_git_fix_versions "$@";
                 return;
             ;;
             ensure-icons)

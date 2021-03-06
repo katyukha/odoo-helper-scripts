@@ -12,12 +12,14 @@
 import io
 import os
 import re
+import sys
 import json
 import atexit
 import logging
 import functools
 import contextlib
 import pkg_resources
+
 
 # Odoo package import and start services logic are based on code:
 #     https://github.com/tinyerp/erppeek
@@ -29,7 +31,10 @@ try:
     # Odoo 10.0+
 
     # this is required if there are addons installed via setuptools_odoo
-    pkg_resources.declare_namespace('odoo.addons')
+    # Also, this needed to make odoo10 work, if running this script with
+    # current working directory set to project root
+    if sys.version_info.major == 2:
+        pkg_resources.declare_namespace('odoo.addons')
 
     # import odoo itself
     import odoo

@@ -93,6 +93,7 @@ function odoo_helper_print_usage {
         pg                                  - shortcut for 'postgres' command
         lsa                                 - shortcut for 'addons list' command
         lsd                                 - shortcut for 'db list' command
+        fix-versions                        - shortcut for 'ci fix-versions' command
     
     Global options:
         --use-copy                          - if set, then downloaded modules, repositories will
@@ -466,6 +467,12 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 ci_command "$@";
+                return;
+            ;;
+            fix-versions)
+                shift;
+                config_load_project;
+                ci_cmd_git_fix_versions "$@";
                 return;
             ;;
             psql)
