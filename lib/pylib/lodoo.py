@@ -20,11 +20,8 @@ import functools
 import contextlib
 import pkg_resources
 
+import click
 
-# Odoo package import and start services logic are based on code:
-#     https://github.com/tinyerp/erppeek
-# With PR #92 applied: https://github.com/tinyerp/erppeek/pull/92
-# Removed support of Odoo versions less then 8.0
 
 # Import odoo package
 try:
@@ -362,39 +359,50 @@ class LOdoo(object):
             cls.__lodoo = super(LOdoo, cls).__new__(cls)
         return cls.__lodoo
 
-    def __init__(self, options=None):
-        # Set workers = 0 if other not specified
-        options = options[:] if options is not None else []
-        if not any(o.startswith('--workers') for o in options):
-            options.append('--workers=0')
-
-        self._options = options
-
+    def __init__(self, conf_path):
+        self._conf_path = conf_path
         self._odoo = None
         self._registries = {}
         self._db_service = None
 
-    @classmethod
-    def get_lodoo(cls):
-        return cls.__lodoo
+    def start_odoo(self, options=None):
+        """ Start the odoo services.
+            Optionally provide extra options
+        """
+        if self._odoo:
+            raise Exception("Odoo already started!")
+
+        options = options[:] if options is not None else []
+
+        if not any(
+                o.startswith('--conf') or o.startswith('-c') for o in options):
+            options += ["--conf=%s" % self._conf_path]
+
+        # Set workers = 0 if other not specified
+        if not any(o.startswith('--workers') for o in options):
+            options.append('--workers=0')
+
+        odoo.tools.config.parse_config(options)
+        if odoo.tools.config.get('sentry_enabled', False):
+            odoo.tools.config['sentry_enabled'] = False
+
+        if not hasattr(odoo.api.Environment._local, 'environments'):
+            odoo.api.Environment._local.environments = (
+                odoo.api.Environments())
+
+        # Load server-wide modules
+        odoo.service.server.load_server_wide_modules()
+
+        # Save odoo var on object level
+        self._odoo = odoo
 
     @property
     def odoo(self):
         """ Return initialized Odoo package
         """
         if self._odoo is None:
-            odoo.tools.config.parse_config(self._options)
-            if odoo.tools.config.get('sentry_enabled', False):
-                odoo.tools.config['sentry_enabled'] = False
-
-            if not hasattr(odoo.api.Environment._local, 'environments'):
-                odoo.api.Environment._local.environments = (
-                    odoo.api.Environments())
-
-            # Load server-wide modules
-            odoo.service.server.load_server_wide_modules()
-
-            self._odoo = odoo
+            raise Exception(
+                "Odoo is not started. please call 'start_odoo' method first.")
         return self._odoo
 
     @property
@@ -415,12 +423,10 @@ class LOdoo(object):
         return self.get_registry(name)
 
 
-# Backward comatability
-LocalClient = LOdoo
-
-
 @atexit.register
 def cleanup():
+    """ Do clean up and close database connections on exit
+    """
     if odoo.release.version_info < (10,):
         dbnames = odoo.modules.registry.RegistryManager.registries.keys()
     elif odoo.release.version_info < (13,):
@@ -432,4 +438,182 @@ def cleanup():
         odoo.sql_db.close_db(db)
 
 
-# TODO Use 'click' to provide commandline interface?
+# Command Line Interface
+@click.group()
+@click.option('--conf', type=click.Path(exists=True))
+@click.pass_context
+def cli(ctx, conf):
+    ctx.obj = LOdoo(conf)
+
+
+@cli.command('db-list')
+@click.pass_context
+def db_list_databases(ctx):
+    ctx.obj.start_odoo(['--logfile=/dev/null'])
+    dbs = ctx.obj.db.list_databases()
+    click.echo('\n'.join(['%s' % d for d in dbs]))
+
+
+@cli.command('db-create')
+@click.argument('dbname', required=True)
+@click.option('--demo/--no-demo', type=bool, default=False)
+@click.option('--lang', default='en_US')
+@click.option('--password', default=None)
+@click.option('--country', default=None)
+@click.pass_context
+def db_create_database(ctx, dbname, demo, lang, password, country):
+    ctx.obj.start_odoo()
+    kwargs = {}
+    if password:
+        kwargs['user_password'] = password
+    if country and ctx.obj.odoo.release.version_info > (8,):
+        kwargs['country_code'] = country
+    ctx.obj.db.create_database(dbname, demo, lang, **kwargs)
+
+
+@cli.command('db-exists')
+@click.argument('dbname')
+@click.pass_context
+def db_exists_database(ctx, dbname):
+    ctx.obj.start_odoo(['--logfile=/dev/null'])
+    success = ctx.obj.db.db_exist(dbname)
+    if not success:
+        ctx.exit(1)
+
+
+@cli.command('db-drop')
+@click.argument('dbname')
+@click.pass_context
+def db_drop_database(ctx, dbname):
+    ctx.obj.start_odoo()
+
+    # TODO: Find a way to avoid reading it from config
+    success = ctx.obj.db.drop(ctx.obj.odoo.tools.config['admin_passwd'], dbname)
+    if not success:
+        ctx.exit(1)
+        raise click.ClickException("Cannot drop database %s" % dbname)
+
+
+@cli.command('db-rename')
+@click.argument('oldname')
+@click.argument('newname')
+@click.pass_context
+def db_rename_database(ctx, oldname, newname):
+    ctx.obj.start_odoo()
+
+    ctx.obj.db.rename(
+        ctx.obj.odoo.tools.config['admin_passwd'], oldname, newname)
+
+
+@cli.command('db-copy')
+@click.argument('srcname')
+@click.argument('newname')
+@click.pass_context
+def db_copy_database(ctx, srcname, newname):
+    ctx.obj.start_odoo()
+
+    ctx.obj.db.duplicate_database(
+        ctx.obj.odoo.tools.config['admin_passwd'], srcname, newname)
+
+
+@cli.command('db-backup')
+@click.argument('dbname')
+@click.argument('dumpfile', type=click.Path(exists=False))
+@click.option('--format', '-f', '_format', type=click.Choice(['zip', 'sql']), default='zip')
+@click.pass_context
+def db_backup_database(ctx, dbname, dumpfile, _format):
+    ctx.obj.start_odoo()
+    ctx.obj.db.backup_database(dbname, _format, dumpfile)
+
+
+@cli.command('db-restore')
+@click.argument('dbname')
+@click.argument('backup', type=click.Path(exists=True))
+@click.pass_context
+def db_restore_database(ctx, dbname, backup):
+    ctx.obj.start_odoo()
+
+    success = ctx.obj.db.restore_database(dbname, backup)
+    if not success:
+        ctx.exit(1)
+
+
+@cli.command('db-dump-manifest')
+@click.argument('dbname')
+@click.pass_context
+def db_dump_database_manifest(ctx, dbname):
+    ctx.obj.start_odoo()
+    click.echo(ctx.obj.db.dump_db_manifest(dbname))
+
+
+@cli.command('addons-uninstall')
+@click.argument('dbname')
+@click.argument('addons')
+@click.pass_context
+def addons_uninstall_addons(ctx, dbname, addons):
+    ctx.obj.start_odoo([
+        '--stop-after-init', '--max-cron-threads=0',
+        '--pidfile=/dev/null', '--no-xmlrpc', '--no-http',
+    ])
+
+    domain = [
+        ('name', 'in', addons.split(',')),
+        ('state', 'in', ('installed', 'to upgrade', 'to remove')),
+    ]
+    db = ctx.obj[dbname]
+    modules = db['ir.module.module'].search([
+        ('name', 'in', addons.split(',')),
+        ('state', 'in', ('installed', 'to upgrade', 'to remove')),
+    ])
+    modules.button_immediate_uninstall()
+    click.echo(", ".join(modules.mapped('name')))
+
+
+@cli.command('addons-update-list')
+@click.argument('dbname')
+@click.pass_context
+def addons_update_module_list(ctx, dbname):
+    ctx.obj.start_odoo([
+        '--stop-after-init', '--max-cron-threads=0',
+        '--pidfile=/dev/null', '--no-xmlrpc', '--no-http',
+    ])
+
+    db = ctx.obj[dbname]
+    updated, added = db['ir.module.module'].update_list()
+    db.cursor.commit()
+    click.echo("updated: %d\nadded: %d\n" % (updated, added))
+
+
+@cli.command('tr-generate-pot-file')
+@click.argument('dbname')
+@click.argument('addon')
+@click.option('--remove-dates/--no-remove-dates', type=bool, default=False)
+@click.pass_context
+def translations_generate_pot_file(ctx, dbname, addon, remove_dates):
+    ctx.obj.start_odoo()
+    ctx.obj[dbname].generate_pot_file(addon, remove_dates)
+
+
+@cli.command('tr-check-translation-rate')
+@click.argument('dbname', type=str)
+@click.argument('addons', type=str)
+@click.option('--lang', '-l', type=str, required=True)
+@click.option('--min-total-rate', type=int, default=None)
+@click.option('--min-addon-rate', type=int, default=None)
+@click.option('--colors/--no-colors', type=bool, default=False)
+@click.pass_context
+def translations_check_translations_rate(ctx, dbname, addons, lang,
+                                         min_total_rate, min_addon_rate,
+                                         colors):
+    ctx.obj.start_odoo()
+    res = ctx.obj[dbname].check_translation_rate(
+        lang, addons.split(','),
+        min_total_rate=min_total_rate,
+        min_addon_rate=min_addon_rate,
+        colored=colors,
+    )
+    ctx.exit(res)
+
+
+if __name__ == '__main__':
+    cli()
