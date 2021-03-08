@@ -258,6 +258,7 @@ function odoo_recompute_stored_fields {
     local fields=;
     local parent_store=;
     local conf_file=$ODOO_CONF_FILE;
+    local recompute_opts=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -272,10 +273,12 @@ function odoo_recompute_stored_fields {
             ;;
             -f|--field)
                 fields="'$2',$fields";
+                recompute_opts+=( --field="$2" );
                 shift;
             ;;
             --parent-store)
                 parent_store=1;
+                recompute_opts+=( --parent-store );
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -309,15 +312,9 @@ function odoo_recompute_stored_fields {
         return 4;
     fi
 
-    local python_cmd="import lodoo; db=lodoo.LOdoo(['-c', '$conf_file'])['$dbname'];";
-    if [ -z "$parent_store" ]; then
-        python_cmd="$python_cmd db.recompute_fields('$model', [$fields]);"
-    else
-        python_cmd="$python_cmd db.recompute_parent_store('$model');"
-    fi
-
-    run_python_cmd_u "$python_cmd";
+    exec_lodoo_u "$dbname" "$model" "${recompute_opts[@]}";
 }
+
 
 function odoo_recompute_menu {
     local usage="
@@ -365,6 +362,7 @@ function odoo_recompute_menu {
         return 1;
     fi
 
+    # TODO: use lodoo here
     odoo_recompute_stored_fields --db "$dbname" --model 'ir.ui.menu' --parent-store;
 }
 

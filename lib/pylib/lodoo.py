@@ -619,5 +619,20 @@ def translations_check_translations_rate(ctx, dbname, addons, lang,
     ctx.exit(res)
 
 
+@cli.command('odoo-recompute')
+@click.argument('dbname')
+@click.argument('model')
+@click.option('--parent-store', type=bool, is_flag=True, default=False)
+@click.option('--field', '-f', multiple=True, default=[])
+@click.pass_context
+def odoo_recompute_fields(ctx, dbname, model, parent_store, fields):
+    ctx.obj.start_odoo()
+
+    if parent_store:
+        ctx.obj[dbname].recompute_parent_store(model)
+    else:
+        ctx.obj[dbname].recompute_fields(model, fields)
+
+
 if __name__ == '__main__':
     cli()
