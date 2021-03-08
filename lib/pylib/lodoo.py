@@ -365,7 +365,7 @@ class LOdoo(object):
         self._registries = {}
         self._db_service = None
 
-    def start_odoo(self, options=None):
+    def start_odoo(self, options=None, no_http=False):
         """ Start the odoo services.
             Optionally provide extra options
         """
@@ -381,6 +381,11 @@ class LOdoo(object):
         # Set workers = 0 if other not specified
         if not any(o.startswith('--workers') for o in options):
             options.append('--workers=0')
+
+        if no_http and odoo.release.version_info < (11,):
+            options.append('--no-xmlrpc')
+        elif no_http:
+            options.append('--no-http')
 
         odoo.tools.config.parse_config(options)
         if odoo.tools.config.get('sentry_enabled', False):
@@ -555,10 +560,9 @@ def db_dump_database_manifest(ctx, dbname):
 @click.argument('addons')
 @click.pass_context
 def addons_uninstall_addons(ctx, dbname, addons):
-    ctx.obj.start_odoo([
-        '--stop-after-init', '--max-cron-threads=0',
-        '--pidfile=/dev/null', '--no-xmlrpc', '--no-http',
-    ])
+    ctx.obj.start_odoo(
+        ['--stop-after-init', '--max-cron-threads=0', '--pidfile=/dev/null'],
+        no_http=True)
 
     db = ctx.obj[dbname]
     modules = db['ir.module.module'].search([
@@ -573,10 +577,10 @@ def addons_uninstall_addons(ctx, dbname, addons):
 @click.argument('dbname')
 @click.pass_context
 def addons_update_module_list(ctx, dbname):
-    ctx.obj.start_odoo([
-        '--stop-after-init', '--max-cron-threads=0',
-        '--pidfile=/dev/null', '--no-xmlrpc', '--no-http',
-    ])
+    ctx.obj.start_odoo(
+        ['--stop-after-init', '--max-cron-threads=0', '--pidfile=/dev/null'],
+        no_http=True,
+    )
 
     db = ctx.obj[dbname]
     updated, added = db['ir.module.module'].update_list()
