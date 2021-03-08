@@ -488,7 +488,8 @@ def db_drop_database(ctx, dbname):
     ctx.obj.start_odoo()
 
     # TODO: Find a way to avoid reading it from config
-    success = ctx.obj.db.drop(ctx.obj.odoo.tools.config['admin_passwd'], dbname)
+    success = ctx.obj.db.drop(
+        ctx.obj.odoo.tools.config['admin_passwd'], dbname)
     if not success:
         ctx.exit(1)
         raise click.ClickException("Cannot drop database %s" % dbname)
@@ -519,7 +520,10 @@ def db_copy_database(ctx, srcname, newname):
 @cli.command('db-backup')
 @click.argument('dbname')
 @click.argument('dumpfile', type=click.Path(exists=False))
-@click.option('--format', '-f', '_format', type=click.Choice(['zip', 'sql']), default='zip')
+@click.option(
+    '--format', '-f', '_format',
+    type=click.Choice(['zip', 'sql']),
+    default='zip')
 @click.pass_context
 def db_backup_database(ctx, dbname, dumpfile, _format):
     ctx.obj.start_odoo()
@@ -556,10 +560,6 @@ def addons_uninstall_addons(ctx, dbname, addons):
         '--pidfile=/dev/null', '--no-xmlrpc', '--no-http',
     ])
 
-    domain = [
-        ('name', 'in', addons.split(',')),
-        ('state', 'in', ('installed', 'to upgrade', 'to remove')),
-    ]
     db = ctx.obj[dbname]
     modules = db['ir.module.module'].search([
         ('name', 'in', addons.split(',')),
