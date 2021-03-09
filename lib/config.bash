@@ -75,12 +75,14 @@ function config_set_defaults {
 
 # Return default config for specified tool
 # TODO: look at project level for configuration files
+# config_get_default_tool_conf <conf-name>
 function config_get_default_tool_conf {
     local default_conf_dir="${ODOO_HELPER_LIB}/default_config";
     local tool_name="$1";
-    local tool_conf="$default_conf_dir/$tool_name";
-    if [ -f "$tool_conf" ]; then
-        echo "$tool_conf";
+    if [ -f "$CONF_DIR/$tool_name" ]; then
+        echo "$CONF_DIR/$tool_name";
+    elif [ -f "$default_conf_dir/$tool_name" ]; then
+        echo "$default_conf_dir/$tool_name";
     else
         return 1;
     fi

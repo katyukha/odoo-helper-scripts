@@ -88,9 +88,6 @@ function lint_run_pylint {
 
     pylint_rc=$(config_get_default_tool_conf "pylint_odoo.cfg");
 
-    # specify valid odoo version for pylint manifest version check
-    pylint_opts+=( "--rcfile=$pylint_rc" "--valid_odoo_versions=$ODOO_VERSION" );
-
     # Pre-process commandline arguments to be forwarded to pylint
     while [[ "$1" =~ ^--[a-zA-Z0-9\-]+(=[a-zA-Z0-9,-.]+)? ]]; do
         if [[ "$1" =~ ^--disable=([a-zA-Z0-9,-]*) ]]; then
@@ -100,11 +97,17 @@ function lint_run_pylint {
         elif [[ "$1" =~ --help|--long-help|--version ]]; then
             local show_help=1;
             pylint_opts+=( "$1" );
+        elif [[ "$1" =~ --pylint-conf=(.+) ]]; then
+            pylint_rc=$(config_get_default_tool_conf "${BASH_REMATCH[1]}")
         else
             pylint_opts+=( "$1" );
         fi
         shift;
     done
+
+    # specify valid odoo version for pylint manifest version check
+    pylint_opts+=( "--rcfile=$pylint_rc" "--valid_odoo_versions=$ODOO_VERSION" );
+
     pylint_opts+=( "-d" "$pylint_disable" );
 
     # Show help if requested

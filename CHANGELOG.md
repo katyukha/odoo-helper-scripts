@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Added
+
+- Added ability to use project-level (odoo-helper project-level) configs for
+  tools (linters). Just place correct config file on conf dir of your odoo-helper project.
+- Pylint, handle following additional warnings:
+    - undefined-variable - E0602
+    - signature-differs - W0222
+    - inconsistent-return-statements - R1710
+    - no-else-continue - R1724
+
+### Deprecated
+
+- Support for Odoo 10 and below is now deprecated and will be removed in one of next releases.
+  The python2 support is over, and there is no sense to continues to support odoo versions,
+  that rely on unsupported python versions.
+
 ## Release 0.9.0 (2021-03-06)
 
 ### Added
