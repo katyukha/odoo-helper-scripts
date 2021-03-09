@@ -650,7 +650,6 @@ function tr_translation_rate {
                 rm "$trans_file";
 
                 # Compute translation rate and print it
-
                 if ! exec_lodoo_u --conf="$ODOO_CONF_FILE" tr-check-translation-rate --lang="$lang" "${check_tr_rate_opts[@]}" "$tmp_db_name" "$addons_cs"; then
                     res=1;
                 fi

@@ -257,7 +257,6 @@ function odoo_recompute_stored_fields {
     local model=;
     local fields=;
     local parent_store=;
-    local conf_file=$ODOO_CONF_FILE;
     local recompute_opts=( );
     while [[ $# -gt 0 ]]
     do
@@ -312,7 +311,7 @@ function odoo_recompute_stored_fields {
         return 4;
     fi
 
-    exec_lodoo_u "$dbname" "$model" "${recompute_opts[@]}";
+    exec_lodoo_u --conf="$ODOO_CONF_FILE" odoo-recompute "$dbname" "$model" "${recompute_opts[@]}";
 }
 
 

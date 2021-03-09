@@ -623,7 +623,7 @@ def translations_check_translations_rate(ctx, dbname, addons, lang,
 @click.argument('dbname')
 @click.argument('model')
 @click.option('--parent-store', type=bool, is_flag=True, default=False)
-@click.option('--field', '-f', multiple=True, default=[])
+@click.option('--field', '-f', 'fields', multiple=True, default=[])
 @click.pass_context
 def odoo_recompute_fields(ctx, dbname, model, parent_store, fields):
     ctx.obj.start_odoo()
