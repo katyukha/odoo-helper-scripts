@@ -12,6 +12,10 @@
     - inconsistent-return-statements - R1710
     - no-else-continue - R1724
 
+### Changed
+
+- Fail tests on warning (The group defined in view does not exist!)
+
 ### Deprecated
 
 - Support for Odoo 10 and below is now deprecated and will be removed in one of next releases.
