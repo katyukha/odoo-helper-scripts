@@ -70,7 +70,9 @@ function config_set_defaults {
     ODOO_PATH="${ODOO_PATH:-$PROJECT_ROOT_DIR/odoo}";
     BACKUP_DIR="${BACKUP_DIR:-$PROJECT_ROOT_DIR/backups}";
     REPOSITORIES_DIR="${REPOSITORIES_DIR:-$PROJECT_ROOT_DIR/repositories}";
-    INIT_SCRIPT="${INIT_SCRIPT}";
+
+    # No default value for init script
+    # INIT_SCRIPT="${INIT_SCRIPT}";
 }
 
 # Return default config for specified tool

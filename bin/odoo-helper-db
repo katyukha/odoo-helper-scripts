@@ -30,7 +30,7 @@ fi
 set -e;  # Fail on errors
 
 
-if [ -z "$ODOO_HELPER_LIB" ]; then
+if [ -z "$ODOO_HELPER_BIN" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
     echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
     exit 1;
