@@ -15,6 +15,7 @@
 ### Changed
 
 - Fail tests on warning (The group defined in view does not exist!)
+- Forwardport migrations during forwardport by default.
 
 ### Deprecated
 

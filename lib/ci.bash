@@ -622,13 +622,14 @@ function ci_do_forwardport {
         $SCRIPT_NAME ci do-forward-port --help     - print this help message
 
     Options:
-        -s|--src-branch <branch>   - [required] source branch to take changes from
-        --path <path>              - path to git repository. default current ($git_path)
-        -r|--remote <name>         - name of git remote. Default: $git_remote_name
-        --fm|--forward-migrations  - Rename all migrations for source version
-                                     to new odoo-version
+        -s|--src-branch <branch>         - [required] source branch to take changes from
+        --path <path>                    - path to git repository. default current ($git_path)
+        -r|--remote <name>               - name of git remote. Default: $git_remote_name
+        --fm|--forward-migrations        - Rename all migrations for source version
+                                           to new odoo-version. Now it is enabled by default.
+        --no-fm|--no-forward-migrations  - Do not forward-port migrations
 
-        --help                     - show this help message
+        --help                           - show this help message
     ";
 
     # Parse options
@@ -640,7 +641,7 @@ function ci_do_forwardport {
     local tmp_branch;
     local src_branch;
     local dst_branch="$ODOO_VERSION";
-    local forward_migrations;
+    local forward_migrations=1;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -659,6 +660,9 @@ function ci_do_forwardport {
             ;;
             --fm|--forward-migrations)
                 forward_migrations=1;
+            ;;
+            --no|--no-forward-migrations)
+                forward_migrations=0;
             ;;
             -h|--help|help)
                 echo -e "$usage";
@@ -741,7 +745,7 @@ function ci_do_forwardport {
 
                 local migration_dst=${migration_dst_prefix}${migration_name};
                 if [ -d "$migration_src" ] && [ ! -d "${migration_dst}" ]; then
-                    if [ -n "$forward_migrations" ]; then
+                    if [ "$forward_migrations" -eq 1 ]; then
                         echoe -e "${LBLUEC}INFO${NC}: forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
                         git mv "$migration_src" "${migration_dst_prefix}${migration_name}";
                     else
