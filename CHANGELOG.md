@@ -11,6 +11,8 @@
     - signature-differs - W0222
     - inconsistent-return-statements - R1710
     - no-else-continue - R1724
+- Added option `--create-db-user` to `odoo-install` command, that allows
+  to create postgresql user for installation automatically.
 
 ### Changed
 
