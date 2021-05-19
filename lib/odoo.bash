@@ -145,13 +145,18 @@ function odoo_update_sources_archive {
 }
 
 function odoo_update_sources {
+    local need_start;
     local usage="
     Update odoo sources
 
     Usage:
 
-        $SCRIPT_NAME update-odoo          - update odoo sourcess
-        $SCRIPT_NAME update-odoo --help   - show this help message
+        $SCRIPT_NAME update-odoo [options]  - update odoo sourcess
+
+    Options:
+
+        --no-restart     - do not restart the server
+        -h|--help|help   - show this help message
     ";
 
     while [[ $# -gt 0 ]]
@@ -161,6 +166,9 @@ function odoo_update_sources {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            --no-restart)
+                local no_restart_server=1;
             ;;
             -*)
                 echoe -e "${REDC}ERROR${NC}: Unknown command '$1'";
@@ -172,6 +180,12 @@ function odoo_update_sources {
         esac;
         shift;
     done
+
+    # Stop server if it is running
+    if [ -z "$no_restart_server" ] && [ "$(server_get_pid)" -gt 0 ]; then
+        server_stop;
+        local need_start=1;
+    fi
 
     if git_is_git_repo "$ODOO_PATH"; then
         echoe -e "${LBLUEC}Odoo source seems to be git repository. Attemt to update...${NC}";
@@ -189,6 +203,10 @@ function odoo_update_sources {
 
     echoe -e "${GREENC}Odoo sources update finished!${NC}";
     echoe -e "${LBLUEC}It is recommended to update module ${YELLOC}base${NC} on all databases on this server!${NC}";
+
+    if [ -n "$need_start" ] && ! server_is_running; then
+        server_start;
+    fi
 }
 
 

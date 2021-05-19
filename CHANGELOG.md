@@ -15,11 +15,14 @@
   to create postgresql user for installation automatically.
 - Added new option `--format` to command `doc-utils addons-graph`.
   So, now it is possible to specify output format for result graph
+- Added new option `--no-restart` to `odoo-helper update-odoo` command
 
 ### Changed
 
 - Fail tests on warning (The group defined in view does not exist!)
 - Forwardport migrations during forwardport by default.
+- `odoo-helper update-odoo` now will restart server automatically
+  (stop server before update and start server after)
 
 ### Deprecated
 
