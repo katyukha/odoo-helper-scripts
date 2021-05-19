@@ -13,6 +13,8 @@
     - no-else-continue - R1724
 - Added option `--create-db-user` to `odoo-install` command, that allows
   to create postgresql user for installation automatically.
+- Added new option `--format` to command `doc-utils addons-graph`.
+  So, now it is possible to specify output format for result graph
 
 ### Changed
 
