@@ -504,6 +504,9 @@ function install_odoo_py_requirements_for_version {
                 echo "lxml==3.7.1";
             elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
                 echo "lxml";
+            elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                # Download latst version for python 3.9 and odoo 11.0
+                echo "PyYAML";
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
