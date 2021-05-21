@@ -507,6 +507,9 @@ function install_odoo_py_requirements_for_version {
             elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
                 # Download latst version for python 3.9 and odoo 11.0
                 echo "PyYAML";
+            elif [[ "$dependency_stripped" =~ reportlab ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                # In case of python 3.9 latest version of reportlab have to be used
+                echo "reportlab"
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
