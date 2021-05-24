@@ -342,7 +342,7 @@ function install_parse_debian_control_file {
             python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
                 continue
             ;;
-            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass|python3-polib|python3-qrcode|python3-xlrd|python3-zeep|python3-ofxparse|python3-freezegun|python3-stdnum)
+            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass|python3-polib|python3-qrcode|python3-xlrd|python3-zeep|python3-ofxparse|python3-freezegun|python3-stdnum|python3-num2words)
                 continue
             ;;
             python-libxslt1|python-simplejson|python-unittest2|python-zeep)
