@@ -19,7 +19,9 @@
 
 ### Changed
 
-- Fail tests on warning (The group defined in view does not exist!)
+- Fail tests on warning:
+    - The group defined in view does not exist!
+    - inconsistent `compute_sudo` for computed fields
 - Forwardport migrations during forwardport by default.
 - `odoo-helper update-odoo` now will restart server automatically
   (stop server before update and start server after)
