@@ -65,6 +65,13 @@ flake8:
     artifacts:
         paths:
              - coverage
+             - odoo-8.0/logs/*
+             - odoo-9.0/logs/*
+             - odoo-10.0/logs/*
+             - odoo-11.0/logs/*
+             - odoo-12.0/logs/*
+             - odoo-13.0/logs/*
+             - odoo-14.0/logs/*
 
 tests:ubuntu:18.04:
     image: ubuntu:18.04
