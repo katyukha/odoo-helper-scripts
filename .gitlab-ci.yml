@@ -72,6 +72,8 @@ flake8:
              - odoo-12.0/logs/*
              - odoo-13.0/logs/*
              - odoo-14.0/logs/*
+        expire_in: 1 week
+        when: always
 
 tests:ubuntu:18.04:
     image: ubuntu:18.04
