@@ -752,6 +752,59 @@ if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then
 
     # Drop created databases
     odoo-helper db drop odoo13-odoo-test;
+
+
+    # Odoo 14 runs only with python 3.6+
+    echo -e "${YELLOWC}
+    =================================
+    Install and check Odoo 14.0 (Py3)
+    =================================
+    ${NC}"
+
+    cd ../;
+    odoo-helper install sys-deps -y 14.0;
+    odoo-install --install-dir odoo-14.0 --odoo-version 14.0 \
+        --http-port 8569 --http-host local-odoo-14 \
+        --db-user odoo14 --db-pass odoo --create-db-user
+
+    cd odoo-14.0;
+
+    # Install py-tools and js-tools
+    odoo-helper install py-tools;
+    odoo-helper install js-tools;
+
+    odoo-helper server run --stop-after-init;  # test that it runs
+
+    # Show project status
+    odoo-helper status;
+    odoo-helper server status;
+    odoo-helper start;
+    odoo-helper ps;
+    odoo-helper status;
+    odoo-helper server status;
+    odoo-helper stop;
+
+    # Show complete odoo-helper status
+    odoo-helper status  --tools-versions --ci-tools-versions;
+
+    # Database management
+    odoo-helper db create --demo --lang en_US odoo14-odoo-test;
+
+    # Fetch oca/contract
+    odoo-helper fetch --github crnd-inc/generic-addons
+
+    # Install addons from OCA contract
+    odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
+
+    # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
+    odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+    odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+
+    # Print list of installed addons
+    odoo-helper addons find-installed;
+
+    # Drop created databases
+    odoo-helper db drop odoo14-odoo-test;
 fi
 
 echo -e "${YELLOWC}
