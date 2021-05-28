@@ -441,7 +441,7 @@ if python3 -c "import sys; exit(sys.version_info < (3, 9));"; then
     # Odoo 11 does not run on python 3.9, so build custom python interpreter
     odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
         --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-        --db-user odoo11 --db-pass odoo --build-python 3.6.0
+        --db-user odoo11 --db-pass odoo --build-python 3.8.9
 else
     # System python is less then 3.9, so it have to work in right way
     odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
@@ -626,9 +626,18 @@ ${NC}"
 cd ../;
 odoo-helper install sys-deps -y 12.0;
 odoo-helper postgres user-create odoo12 odoo;
-odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
-    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo12 --db-pass odoo --ocb
+
+if python3 -c "import sys; exit(sys.version_info < (3, 9));"; then 
+    # Odoo 11 does not run on python 3.9, so build custom python interpreter
+    odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
+        --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+        --db-user odoo12 --db-pass odoo --ocb --build-python 3.8.9
+else
+    # System python is less then 3.9, so it have to work in right way
+    odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
+        --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+        --db-user odoo12 --db-pass odoo --ocb
+fi
 
 cd odoo-12.0;
 
