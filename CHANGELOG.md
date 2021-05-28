@@ -16,6 +16,8 @@
 - Added new option `--format` to command `doc-utils addons-graph`.
   So, now it is possible to specify output format for result graph
 - Added new option `--no-restart` to `odoo-helper update-odoo` command
+- Added ability to build custom (non-system) python when installing odoo.
+  Use option like `--build-python 3.8.0` in command `odoo-install` to use custom python version
 
 ### Changed
 

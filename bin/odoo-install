@@ -92,6 +92,7 @@ function print_usage {
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
+         --build-python <ver>          - build custom python for specified version
          --node-version <ver>          - Version of node.js to be installed. by default latest.
          --no-single-branch            - Set '--signle-branch' option to 'off'
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
@@ -99,7 +100,6 @@ function print_usage {
          --db-pass <password>          - database password to be used in settings. default: odoo
          --create-db-user              - [sudo] if set, odoo-helper will try to create
                                          postgresql user after the installation of odoo.
-
          --http-port <port>            - automatically set configuration for http port for this instance
          --http-host <host>            - automatically set configuration for http host for this instance
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
@@ -167,6 +167,10 @@ function parse_options {
             ;;
             --no-single-branch)
                 CLONE_SINGLE_BRANCH='off';
+            ;;
+            --build-python)
+                ODOO_BUILD_PYTHON_VERSION=$2;
+                shift;
             ;;
             --node-version)
                 ODOO_INSTALL_NODE_VERSION=$2;

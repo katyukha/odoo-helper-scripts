@@ -626,13 +626,61 @@ function install_system_prerequirements {
     fi
 }
 
+
+# Download and build specified python version
+function install_build_python {
+    local python_version="$1"
+    local python_download_link="https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tgz";
+    local python_download_path="$DOWNLOADS_DIR/python-${python_version}.tgz"
+    local python_path="$PROJECT_ROOT_DIR/python"
+
+    if [[ "$python_version" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+        local python_version_short="${BASH_REMATCH[1]}"
+    else
+        echoe -e "${REDC}ERROR${NC}: Wrong python version format '$python_version'";
+        return 1
+    fi
+
+    if ! wget -q -T 15 -O "$python_download_path" "$python_download_link"; then
+            echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${python_download_link}${NC}."
+            echoe -e "Remove broken download (if it is exists) ${YELLOWC}${python_download_path}${NC}."
+            echoe -e "and try to run command below: ";
+            echoe -e "    ${BLUEC}wget --debug -T 15 -O \"$python_download_path\" \"$python_download_link\"${NC}"
+            echoe -e "and analyze its output";
+            return 2;
+    fi
+    if ! (cd "$DOWNLOADS_DIR" && tar -zxf "$python_download_path"); then
+        echoe -e "${REDC}ERROR${NC}: Cannot unpack downloaded python archive ${YELLOWC}${python_download_path}${NC}."
+        return 3;
+    fi
+
+    # build python
+    echo -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
+    (cd "$DOWNLOADS_DIR/Python-$python_version" && \
+        ./configure --prefix="$python_path" && \
+        make && \
+        make install)
+
+    # Remove downloaded python
+    rm -r "$DOWNLOADS_DIR/Python-$python_version" "$python_download_path";
+    echo -e "${GREENC}OK${NC}: Python built successfully!"
+
+    # create python symlink if needed
+    if [ ! -f "${python_path}/bin/python" ]; then
+        ln "${python_path}/bin/python${python_version_short}" "${python_path}/bin/python";
+    fi
+}
+
 # Install virtual environment.
 #
 # install_virtual_env
 function install_virtual_env {
     local venv_script=${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py;
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
-        if [ -z "$VIRTUALENV_PYTHON" ]; then
+        if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
+            install_build_python "$ODOO_BUILD_PYTHON_VERSION";
+            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" "$venv_script" "$VENV_DIR";
+        elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
             VIRTUALENV_PYTHON="$venv_python_version" "$venv_script" "$VENV_DIR";
