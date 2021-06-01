@@ -18,6 +18,7 @@
 - Added new option `--no-restart` to `odoo-helper update-odoo` command
 - Added ability to build custom (non-system) python when installing odoo.
   Use option like `--build-python 3.8.0` in command `odoo-install` to use custom python version
+- Added ability to build custom (non-system) python when reinstalling venv
 
 ### Changed
 

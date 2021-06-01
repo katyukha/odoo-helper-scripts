@@ -1052,6 +1052,8 @@ function install_reinstall_venv {
         --node-version <version>  - version of node.js to be installed.
                                     Default: latest
         --no-backup               - do not backup virtualenv
+        --build-python <version>  - build custom version of python for
+                                    this virtual environment
     ";
     while [[ $# -gt 0 ]]
     do
@@ -1066,6 +1068,10 @@ function install_reinstall_venv {
             ;;
             --node-version)
                 ODOO_INSTALL_NODE_VERSION=$2;
+                shift;
+            ;;
+            --build-python)
+                ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
             ;;
             -h|--help|help)
