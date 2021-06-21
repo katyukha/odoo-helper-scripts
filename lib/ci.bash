@@ -77,7 +77,7 @@ function ci_fix_version_number {
 function ci_fix_version_minor {
     local version="$1";
     if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$(( BASH_REMATCH[2] + 1)).${BASH_REMATCH[3]}";
+        echo "${ODOO_VERSION}.${BASH_REMATCH[1]}.$(( BASH_REMATCH[2] + 1)).0";
     else
         return 1;
     fi
@@ -88,7 +88,7 @@ function ci_fix_version_minor {
 function ci_fix_version_major {
     local version="$1";
     if [[ "$version" =~ ^${ODOO_VERSION}\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-        echo "${ODOO_VERSION}.$(( BASH_REMATCH[1] + 1)).${BASH_REMATCH[2]}.${BASH_REMATCH[3]}";
+        echo "${ODOO_VERSION}.$(( BASH_REMATCH[1] + 1)).0.0";
     else
         return 1;
     fi
