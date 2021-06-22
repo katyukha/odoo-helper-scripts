@@ -93,6 +93,7 @@ function odoo_helper_print_usage {
         pg                                  - shortcut for 'postgres' command
         lsa                                 - shortcut for 'addons list' command
         lsd                                 - shortcut for 'db list' command
+        ual                                 - shortcut for 'addons update-list'
         fix-versions                        - shortcut for 'ci fix-versions' command
     
     Global options:
@@ -524,6 +525,12 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 odoo_db_list "$@";
+                return;
+            ;;
+            ual)
+                shift;
+                config_load_project;
+                addons_update_module_list "$@";
                 return;
             ;;
             exec)
