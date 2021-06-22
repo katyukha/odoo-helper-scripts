@@ -628,6 +628,7 @@ function ci_do_forwardport {
         --fm|--forward-migrations        - Rename all migrations for source version
                                            to new odoo-version. Now it is enabled by default.
         --no-fm|--no-forward-migrations  - Do not forward-port migrations
+        --migrate-modules                - [experimental] Migrate module's code
 
         --help                           - show this help message
     ";
@@ -642,6 +643,7 @@ function ci_do_forwardport {
     local src_branch;
     local dst_branch="$ODOO_VERSION";
     local forward_migrations=1;
+    local migrate_modules=0;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -663,6 +665,9 @@ function ci_do_forwardport {
             ;;
             --no|--no-forward-migrations)
                 forward_migrations=0;
+            ;;
+            --migrate-modules)
+                migrate_modules=1;
             ;;
             -h|--help|help)
                 echo -e "$usage";
@@ -755,6 +760,16 @@ function ci_do_forwardport {
             done
         fi
     done
+
+    if [ "$migrate_modules" -eq 1 ]; then
+        for addon_path in "${changed_addons[@]}"; do
+            local addon_name;
+            addon_name=$(addons_get_addon_name "$addon_path");
+            echoe -e "${BLUEC}Migrating addon ${YELLOWC}${addon_name}${BLUEC} ...${NC}";
+            exec_py "${ODOO_HELPER_LIB}/pylib/ci_fw_postfixes.py" --version="$ODOO_VERSION" --path="$addon_path";
+            echoe -e "${BLUEC}Migrated addon ${YELLOWC}${addon_name}${BLUEC}: ${GREENC}OK${NC}";
+        done
+    fi
 
     # Show resulting message
     if git_is_clean "$git_path"; then

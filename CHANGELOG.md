@@ -20,6 +20,7 @@
   Use option like `--build-python 3.8.0` in command `odoo-install` to use custom python version
 - Added ability to build custom (non-system) python when reinstalling venv
 - Added new shortut `odoo-helper ual` to `odoo-helper addons update-list`
+- Added experimental option `--migrate-modules` to `odoo-helper ci do-forwardport` command
 
 ### Changed
 
