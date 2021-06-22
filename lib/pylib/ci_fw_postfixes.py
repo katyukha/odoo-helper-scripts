@@ -71,10 +71,12 @@ def run_command(fpath, fcontent, command, args):
                               file_okay=False,
                               resolve_path=True),
     help='Path to directory to check code in.')
-def main(version, path):
+@click.pass_context
+def main(ctx, version, path):
     checks = CHECKS.get(version)
     if not checks:
         click.echo("There are no checks for version %s" % version)
+        ctx.exit(1)
 
     for fpath in iglob("%s/**" % path, recursive=True):
         if not os.path.isfile(fpath):
@@ -89,7 +91,8 @@ def main(version, path):
         with open(fpath, 'r+') as f:
             fcontent = f.read()
             for command in fchecks:
-                fcontent = run_command(fpath, fcontent, command[0], command[1:])
+                fcontent = run_command(
+                    fpath, fcontent, command[0], command[1:])
             f.seek(0)
             f.write(fcontent)
             f.truncate(f.tell())
