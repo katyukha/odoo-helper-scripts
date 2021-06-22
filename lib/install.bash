@@ -342,10 +342,10 @@ function install_parse_debian_control_file {
             python-six|python-pychart|python-reportlab|python-tz|python-werkzeug|python-suds|python-xlsxwriter)
                 continue
             ;;
-            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass|python3-polib|python3-qrcode|python3-xlrd)
+            python3-six|python3-pychart|python3-reportlab|python3-tz|python3-werkzeug|python3-suds|python3-xlsxwriter|python3-html2text|python3-chardet|python3-libsass|python3-polib|python3-qrcode|python3-xlrd|python3-zeep|python3-ofxparse|python3-freezegun|python3-stdnum|python3-num2words)
                 continue
             ;;
-            python-libxslt1|python-simplejson|python-unittest2)
+            python-libxslt1|python-simplejson|python-unittest2|python-zeep)
                 continue
             ;;
             *)
@@ -471,7 +471,7 @@ function install_odoo_py_requirements_for_version {
                 # Note that gevent (1.3.1) may break odoo 10.0, 11.0
                 # and in Odoo 10.0, 11.0 working version of gevent is placed in requirements
                 echo "gevent==1.1.0";
-            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
+            elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
                 # Starting from Odoo 11 python 3 is used. choose correct gevent  version
                 # for python installed in system
                 if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
@@ -480,24 +480,38 @@ function install_odoo_py_requirements_for_version {
                     echo "gevent==1.3.4";
                 elif exec_py -c "\"import sys; assert (3, 7) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
+                elif exec_py -c "\"import sys; sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                    echo "gevent>=20.6.0";
                 else
                     echo "$dependency";
                 fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 echo "greenlet==0.4.9";
-            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+            elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 # Set correct version of greenlet for gevent 1.5.0
                 if exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
+                elif exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                    echo "greenlet==0.4.16"
                 else
                     echo "$dependency";
                 fi
-            elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
+            elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.7.3.1";
+            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "\"import sys; assert sys.version_info <= (3, 5);\"" > /dev/null 2>&1; then
+                echo "psycopg2-binary==2.8.7";
             elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
                 echo "lxml==3.7.1";
+            elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                echo "lxml";
+            elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                # Download latst version for python 3.9 and odoo 11.0
+                echo "PyYAML";
+            elif [[ "$dependency_stripped" =~ reportlab ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                # In case of python 3.9 latest version of reportlab have to be used
+                echo "reportlab"
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
@@ -614,13 +628,61 @@ function install_system_prerequirements {
     fi
 }
 
+
+# Download and build specified python version
+function install_build_python {
+    local python_version="$1"
+    local python_download_link="https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tgz";
+    local python_download_path="$DOWNLOADS_DIR/python-${python_version}.tgz"
+    local python_path="$PROJECT_ROOT_DIR/python"
+
+    if [[ "$python_version" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+        local python_version_short="${BASH_REMATCH[1]}"
+    else
+        echoe -e "${REDC}ERROR${NC}: Wrong python version format '$python_version'";
+        return 1
+    fi
+
+    if ! wget -q -T 15 -O "$python_download_path" "$python_download_link"; then
+            echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${python_download_link}${NC}."
+            echoe -e "Remove broken download (if it is exists) ${YELLOWC}${python_download_path}${NC}."
+            echoe -e "and try to run command below: ";
+            echoe -e "    ${BLUEC}wget --debug -T 15 -O \"$python_download_path\" \"$python_download_link\"${NC}"
+            echoe -e "and analyze its output";
+            return 2;
+    fi
+    if ! (cd "$DOWNLOADS_DIR" && tar -zxf "$python_download_path"); then
+        echoe -e "${REDC}ERROR${NC}: Cannot unpack downloaded python archive ${YELLOWC}${python_download_path}${NC}."
+        return 3;
+    fi
+
+    # build python
+    echo -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
+    (cd "$DOWNLOADS_DIR/Python-$python_version" && \
+        ./configure --prefix="$python_path" && \
+        make && \
+        make install)
+
+    # Remove downloaded python
+    rm -r "$DOWNLOADS_DIR/Python-$python_version" "$python_download_path";
+    echo -e "${GREENC}OK${NC}: Python built successfully!"
+
+    # create python symlink if needed
+    if [ ! -f "${python_path}/bin/python" ]; then
+        ln "${python_path}/bin/python${python_version_short}" "${python_path}/bin/python";
+    fi
+}
+
 # Install virtual environment.
 #
 # install_virtual_env
 function install_virtual_env {
     local venv_script=${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py;
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
-        if [ -z "$VIRTUALENV_PYTHON" ]; then
+        if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
+            install_build_python "$ODOO_BUILD_PYTHON_VERSION";
+            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" "$venv_script" "$VENV_DIR";
+        elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
             VIRTUALENV_PYTHON="$venv_python_version" "$venv_script" "$VENV_DIR";
@@ -894,7 +956,8 @@ function install_openupgradelib {
 function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
     # setuptools, so we do not need to upgrade them
-    exec_pip -q install phonenumbers python-slugify setuptools-odoo cffi jinja2;
+    exec_pip -q install phonenumbers python-slugify setuptools-odoo cffi \
+        jinja2 click;
 
     if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
         exec_pip -q install Python-Chart;
@@ -991,6 +1054,8 @@ function install_reinstall_venv {
         --node-version <version>  - version of node.js to be installed.
                                     Default: latest
         --no-backup               - do not backup virtualenv
+        --build-python <version>  - build custom version of python for
+                                    this virtual environment
     ";
     while [[ $# -gt 0 ]]
     do
@@ -1005,6 +1070,10 @@ function install_reinstall_venv {
             ;;
             --node-version)
                 ODOO_INSTALL_NODE_VERSION=$2;
+                shift;
+            ;;
+            --build-python)
+                ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
             ;;
             -h|--help|help)

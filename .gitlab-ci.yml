@@ -65,6 +65,15 @@ flake8:
     artifacts:
         paths:
              - coverage
+             - odoo-8.0/logs/*
+             - odoo-9.0/logs/*
+             - odoo-10.0/logs/*
+             - odoo-11.0/logs/*
+             - odoo-12.0/logs/*
+             - odoo-13.0/logs/*
+             - odoo-14.0/logs/*
+        expire_in: 1 week
+        when: always
 
 tests:ubuntu:18.04:
     image: ubuntu:18.04
@@ -74,9 +83,14 @@ tests:ubuntu:20.04:
     image: ubuntu:20.04
     <<: *tests-definition
 
+tests:ubuntu:21.04:
+    image: ubuntu:21.04
+    <<: *tests-definition
+    allow_failure: true
+
 
 build_packages:
-    image: ubuntu:18.04
+    image: ubuntu:20.04
     stage: build
     variables:
         ODOO_HELPER_ROOT: $CI_PROJECT_DIR
@@ -94,7 +108,7 @@ build_packages:
         - tags
  
 pages:
-    image: ubuntu:18.04
+    image: ubuntu:20.04
     stage: deploy
     before_script:
         - apt-get update

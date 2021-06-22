@@ -272,12 +272,15 @@ function doc_utils_module_graph {
         $SCRIPT_NAME doc-utils addons-graph --help             - show this help message
 
     Options
-        --out <path>   - output path (default ./graph.svg)
+        --out <path>          - output path (default ./graph.svg)
+        -f|--format <format>  - output format (default: svg)
+                              - supported formats: https://graphviz.org/doc/info/output.html
 
     ";
 
 
     local out_path;
+    local out_format="svg";
     out_path="$(pwd)/graph.svg";
     while [[ $# -gt 0 ]]
     do
@@ -285,6 +288,10 @@ function doc_utils_module_graph {
         case $key in
             --out)
                 out_path="$2";
+                shift;
+            ;;
+            -f|--format)
+                out_format="$2";
                 shift;
             ;;
             -h|--help|help)
@@ -323,7 +330,7 @@ function doc_utils_module_graph {
         done
     done;
     echo "}" >> "$tmp_graph_file";
-    dot -Tsvg -o "$out_path" "$tmp_graph_file";
+    dot "-T${out_format}" -o "$out_path" "$tmp_graph_file";
     rm "$tmp_graph_file";
 }
 

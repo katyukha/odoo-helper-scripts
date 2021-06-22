@@ -54,29 +54,26 @@ function odoo_db_create {
     ";
 
     # Parse options
-    local demo_data='False';
-    local db_lang="en_US";
-    local db_country=;
     local db_recreate=;
-    local db_user_password=admin
     local db_install_addons=( );
+    local db_create_opts=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             --demo)
-                demo_data='True';
+                db_create_opts+=("--demo")
             ;;
             --lang)
-                db_lang=$2;
+                db_create_opts+=("--lang" "$2");
                 shift;
             ;;
             --password)
-                db_user_password=$2;
+                db_create_opts+=("--password" "$2");
                 shift;
             ;;
             --country)
-                db_country=$2;
+                db_create_opts+=("--country" "$2");
                 shift;
             ;;
             --recreate)
@@ -132,15 +129,7 @@ function odoo_db_create {
         fi
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd kwargs={'user_password': '$db_user_password'};"
-    if [ "$(odoo_get_major_version)" -gt 8 ] && [ -n "$db_country" ]; then
-        python_cmd="$python_cmd kwargs['country_code'] = '$db_country';";
-    fi
-    python_cmd="$python_cmd cl.db.create_database('$db_name', $demo_data, '$db_lang', **kwargs);"
-
-    # Filestore should be created by server user, so run this command as server user
-    if ! run_python_cmd_u "$python_cmd"; then
+    if ! exec_lodoo_u --conf="$conf_file" db-create "${db_create_opts[@]}" "$db_name"; then
         echoe -e "${REDC}ERROR${NC}: Cannot create database ${YELLOWC}$db_name${NC}!";
         return 1;
     else
@@ -213,11 +202,7 @@ function odoo_db_drop {
         fi
 
         echov -e "${LBLUEC}Dropping database ${YELLOWC}${dbname}${LBLUEC} using conf file ${YELLOWC}${conf_file}${NC}";
-        local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-        python_cmd="$python_cmd exit(int(not(cl.db.drop(cl.odoo.tools.config['admin_passwd'], '$db_name'))));";
-        echov -e "${LBLUEC}Python cmd used to drop database:\n${NC}${python_cmd}"
-
-        if ! run_python_cmd_u "$python_cmd"; then
+        if ! exec_lodoo_u --conf="$conf_file" db-drop "$db_name"; then
             if [ -z "$opt_quite" ]; then
                 echoe -e "${REDC}ERROR${NC}: Cannot drop database ${YELLOWC}$db_name${NC}!";
             fi
@@ -262,10 +247,7 @@ function odoo_db_list {
 
     local conf_file=${1:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file', '--logfile', '/dev/null']);";
-    python_cmd="$python_cmd print('\n'.join(['%s' % d for d in cl.db.list_databases()]));";
-    
-    if ! run_python_cmd_u "$python_cmd"; then
+    if ! exec_lodoo_u --conf="$conf_file" db-list; then
         echoe -e "${REDC}ERROR${NC}: Cannot get list of databases!";
         return 1;
     fi
@@ -318,10 +300,7 @@ function odoo_db_exists {
     local db_name=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file', '--logfile', '/dev/null']);";
-    python_cmd="$python_cmd exit(int(not(cl.db.db_exist('$db_name'))));";
-    
-    if run_python_cmd_u "$python_cmd"; then
+    if exec_lodoo_u --conf="$conf_file" db-exists "$db_name"; then
         if [ -z "$opt_quite" ]; then
             echoe -e "Database named ${YELLOWC}$db_name${NC} exists!";
         fi
@@ -388,15 +367,12 @@ function odoo_db_rename {
         return 2;
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.rename(cl.odoo.tools.config['admin_passwd'], '$old_db_name', '$new_db_name');"
-    
     # Filestore should be created by server user, so run resotore command as server user
-    if run_python_cmd_u "$python_cmd"; then
-        echoe -e "${GREENC}OK${NC}: Database ${BLUEC}$old_db_name${NC} renamed to ${BLUEC}$new_db_name${NC} successfuly!";
+    if exec_lodoo_u --conf="$conf_file" db-rename "$old_db_name" "$new_db_name"; then
+        echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$old_db_name${NC} renamed to ${YELLOWC}$new_db_name${NC} successfuly!";
         return 0;
     else
-        echoe -e "${REDC}ERROR${NC}: Cannot rename databse ${BLUEC}$old_db_name${NC} to ${BLUEC}$new_db_name${NC}!";
+        echoe -e "${REDC}ERROR${NC}: Cannot rename databse ${YELLOWC}$old_db_name${NC} to ${YELLOWC}$new_db_name${NC}!";
         return 1;
     fi
 }
@@ -455,11 +431,8 @@ function odoo_db_copy {
         return 2;
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.duplicate_database(cl.odoo.tools.config['admin_passwd'], '$src_db_name', '$new_db_name');"
-    
     # Filestore should be created by server user, so run duplicate command as server user
-    if run_python_cmd_u "$python_cmd"; then
+    if exec_lodoo_u --conf="$conf_file" db-copy "$src_db_name" "$new_db_name"; then
         echoe -e "${GREENC}OK${NC}: Database ${YELLOWC}$src_db_name${NC} copied to ${YELLOWC}$new_db_name${NC} successfuly!";
         return 0;
     else
@@ -546,19 +519,16 @@ function odoo_db_backup {
         db_dump_file="$db_dump_file.backup";
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd cl.db.backup_database('$db_name', '$format', '$db_dump_file');";
-
     local res=0
     if [ -n "$custom_temp_dir" ] && [ -d "$custom_temp_dir" ]; then 
-        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd_u "$python_cmd"; then
+        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" exec_lodoo_u --conf="$conf_file" db-backup -f "$format" "$db_name" "$db_dump_file"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} backed up to ${BLUEC}$db_dump_file${NC}!";
         else
             echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
             res=1;
         fi
     else
-        if run_python_cmd_u "$python_cmd"; then
+        if exec_lodoo_u --conf="$conf_file" db-backup -f "$format" "$db_name" "$db_dump_file"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} backed up to ${BLUEC}$db_dump_file${NC}!";
         else
             echoe -e "${REDC}ERROR${NC}: Database ${BLUEC}$db_name${NC} fails on dump!";
@@ -700,13 +670,9 @@ function odoo_db_restore {
     local db_name=$1;
     local db_dump_file=$2;
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd res=cl.db.restore_database('$db_name', '$db_dump_file');";
-    python_cmd="$python_cmd exit(0 if res else 1);";
-
     # Filestore should be created by server user, so run resotore command as server user
     if [ -n "$custom_temp_dir" ]; then
-        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" run_python_cmd_u "$python_cmd"; then
+        if TMP="$custom_temp_dir" TEMP="$custom_temp_dir" TMPDIR="$custom_temp_dir" exec_lodoo_u --conf="$conf_file" db-restore "$db_name" "$db_dump_file"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} restored from ${BLUEC}$db_dump_file${NC}!";
             return 0;
         else
@@ -714,7 +680,7 @@ function odoo_db_restore {
             return 1;
         fi
     else
-        if run_python_cmd_u "$python_cmd"; then
+        if exec_lodoo_u --conf="$conf_file" db-restore "$db_name" "$db_dump_file"; then
             echov -e "${GREENC}OK${NC}: Database named ${BLUEC}$db_name${NC} restored from ${BLUEC}$db_dump_file${NC}!";
             return 0;
         else
@@ -825,16 +791,13 @@ function odoo_db_dump_manifest {
     done
 
     local db_name=$1;
-    local conf_file=$ODOO_CONF_FILE;
 
     if ! odoo_db_exists -q "$db_name"; then
         echoe -e "${REDC}ERROR${NC}: Database ${YELLOWC}${db_name}${NC} does not exists!";
         return 2;
     fi
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd print(cl.db.dump_db_manifest('$db_name'));";
-    if ! run_python_cmd_u "$python_cmd"; then
+    if ! exec_lodoo_u --conf="$ODOO_CONF_FILE" db-dump-manifest "$db_name"; then
         echoe -e "${REDC}ERROR${NC}: Cannot generate manifest for database: ${YELLOWC}$db_name${NC}!";
         return 1;
     fi

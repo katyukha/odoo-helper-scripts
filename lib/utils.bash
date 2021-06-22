@@ -249,6 +249,14 @@ function exec_py_u {
 
 }
 
+# Shortcut to exec lodoo command
+function exec_lodoo {
+    exec_py "${ODOO_HELPER_LIB}/pylib/lodoo.py" "$@";
+}
+function exec_lodoo_u {
+    exec_py_u "${ODOO_HELPER_LIB}/pylib/lodoo.py" "$@";
+}
+
 
 function run_python_cmd_prepare {
     local cmd="

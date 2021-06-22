@@ -1,8 +1,45 @@
 # Release Notes
 
+## Release 0.10.0 (2021-06-22)
+
+### Added
+
+- Added ability to use project-level (odoo-helper project-level) configs for
+  tools (linters). Just place correct config file on conf dir of your odoo-helper project.
+- Pylint, handle following additional warnings:
+    - undefined-variable - E0602
+    - signature-differs - W0222
+    - inconsistent-return-statements - R1710
+    - no-else-continue - R1724
+- Added option `--create-db-user` to `odoo-install` command, that allows
+  to create postgresql user for installation automatically.
+- Added new option `--format` to command `doc-utils addons-graph`.
+  So, now it is possible to specify output format for result graph
+- Added new option `--no-restart` to `odoo-helper update-odoo` command
+- Added ability to build custom (non-system) python when installing odoo.
+  Use option like `--build-python 3.8.0` in command `odoo-install` to use custom python version
+- Added ability to build custom (non-system) python when reinstalling venv
+- Added new shortut `odoo-helper ual` to `odoo-helper addons update-list`
+- Added experimental option `--migrate-modules` to `odoo-helper ci do-forwardport` command
+
+### Changed
+
+- Fail tests on warning:
+    - The group defined in view does not exist!
+    - inconsistent `compute_sudo` for computed fields
+- Forwardport migrations during forwardport by default.
+- `odoo-helper update-odoo` now will restart server automatically
+  (stop server before update and start server after)
+
+### Deprecated
+
+- Support for Odoo 10 and below is now deprecated and will be removed in one of next releases.
+  The python2 support is over, and there is no sense to continues to support odoo versions,
+  that rely on unsupported python versions.
+
 ## Release 0.9.0 (2021-03-06)
 
-## Added
+### Added
 - New options for `odoo-helper test` command:
     - `--test-db-name` that allows to specify name of test db to use to run tests
     - `--coverage-html-view` that will automatically open coverage report in browser when tests completed
@@ -15,8 +52,8 @@
 - Added new cmd `odoo-helper ci fix-versions` that could be used to fix version number in changed modules
 - Added new shortcut to run version fix: `odoo-helper fix-versions`
 
-## Changed
-- `odoo-helper ci do-forwardport` not can automatically add manifests with fixed versions to index (if there are no other conflicts)
+### Changed
+- `odoo-helper ci do-forwardport` now can automatically add manifests with fixed versions to index (if there are no other conflicts)
 - `odoo-helper ci check-versions-git` argument `repo` is now optional,
   and by default, it assumes that repo path is current working directory,
   unless repo path is not specified explicitly

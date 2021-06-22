@@ -142,12 +142,7 @@ function addons_update_module_list_db {
     local db=$1;
     local conf_file=${2:-$ODOO_CONF_FILE};
 
-    local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$conf_file']);";
-    python_cmd="$python_cmd res=cl['$db']['ir.module.module'].update_list();";
-    python_cmd="$python_cmd cl['$db'].cursor.commit();";
-    python_cmd="$python_cmd print('updated: %d\nadded: %d\n' % tuple(res));";
-
-    if run_python_cmd_u "$python_cmd"; then
+    if exec_lodoo_u --conf="$conf_file" addons-update-list "$db"; then
         echoe -e "${GREENC}OK${NC}: Addons list successfully updated for ${YELLOWC}${db}${NC} database";
     else
         echoe -e "${REDC}ERROR${NC}: Cannot update module list for ${YELLOWC}${db}${NC} database";
@@ -733,13 +728,7 @@ function addons_install_update_internal {
         return $?
     elif [ "$cmd" == "uninstall" ]; then
         local addons_uninstalled;
-        local addons_domain="[('name', 'in', '$todo_addons'.split(',')),('state', 'in', ('installed', 'to upgrade', 'to remove'))]";
-        local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE', '--stop-after-init', '--max-cron-threads', '0', '--pidfile', '/dev/null', '--no-xmlrpc']);";
-        python_cmd="$python_cmd db=cl['$db'];";
-        python_cmd="$python_cmd modules=db['ir.module.module'].search($addons_domain);";
-        python_cmd="$python_cmd modules.button_immediate_uninstall();";
-        python_cmd="$python_cmd print(', '.join(modules.mapped('name')));";
-        addons_uninstalled=$(run_python_cmd_u "$python_cmd");
+        addons_uninstalled=$(exec_lodoo_u --conf="$ODOO_CONF_FILE" addons-uninstall "$db" "$todo_addons");
         if [ -z "$addons_uninstalled" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: Nothing to uninstall";
         else

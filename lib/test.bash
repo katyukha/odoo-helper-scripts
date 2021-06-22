@@ -171,6 +171,8 @@ function test_parse_log_file {
                -e "WARNING $test_db_name odoo.modules.loading: Module [a-zA-Z0-9_]\+ demo data failed to install, installed without demo data" \
                -e "WARNING $test_db_name odoo.models: [a-zA-Z0-9\\._]\+.create() includes unknown fields" \
                -e "WARNING $test_db_name odoo.models: [a-zA-Z0-9\\._]\+.write() includes unknown fields" \
+               -e "WARNING $test_db_name odoo.addons.base.models.ir_ui_view: The group [a-zA-Z0-9\\._]\+ defined in view [a-zA-Z0-9\\._]\+ [a-z]\+ does not exist!" \
+               -e "WARNING $test_db_name odoo.modules.registry: [a-zA-Z0-9\\._]\+: inconsistent 'compute_sudo' for computed fields" \
                "$test_log_file"; then
         res=1;
     fi

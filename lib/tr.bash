@@ -172,13 +172,13 @@ function tr_generate_pot {
             db        - name of database to regenerate translations.
             addonN    - name of addon to regenerate transaltions for.
     ";
-    local opt_remove_dates="False";
+    local extra_opts=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             --remove-dates)
-                opt_remove_dates="True";
+                extra_opts+=( --remove-dates );
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -210,12 +210,7 @@ function tr_generate_pot {
     IFS=',' read -r -a addons <<< "$addons_data";
     for addon in "${addons[@]}"; do
         echoe -e "${BLUEC}Executing ${YELLOWC}generate .pot file${BLUEC} for (db=${YELLOWC}$db${BLUEC}).${NC} Processing addon: ${YELLOWC}$addon${NC};";
-
-        local python_cmd="import lodoo; cl=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE']);";
-        python_cmd="$python_cmd cl['$db'].generate_pot_file('$addon', $opt_remove_dates);"
-
-        # Filestore should be created by server user, so run this command as server user
-        if ! run_python_cmd_u "$python_cmd"; then
+        if ! exec_lodoo_u --conf="$ODOO_CONF_FILE" tr-generate-pot-file "${extra_opts[@]}" "$db" "$addon"; then
             echoe -e "${REDC}ERROR${NC}: Cannot generate pot file!";
             return 1;
         else
@@ -577,6 +572,10 @@ function tr_translation_rate {
     local res=0;
     declare -a addons;
     declare -a addons_list;
+    local check_tr_rate_opts=( );
+    if [ "$OH_COLORS_ENABLED" -eq 1 ]; then
+        check_tr_rate_opts+=( --colors );
+    fi
 
     local usage="
     Usage
@@ -607,11 +606,11 @@ function tr_translation_rate {
                 shift;
             ;;
             --min-total-rate)
-                min_total_rate=$2;
+                check_tr_rate_opts+=( --min-total-rate="$2" );
                 shift;
             ;;
             --min-addon-rate)
-                min_addon_rate=$2;
+                check_tr_rate_opts+=( --min-addon-rate="$2" );
                 shift;
             ;;
             --dir)
@@ -651,9 +650,7 @@ function tr_translation_rate {
                 rm "$trans_file";
 
                 # Compute translation rate and print it
-                local python_cmd="import lodoo; db=lodoo.LOdoo(['-c', '$ODOO_CONF_FILE'])['$tmp_db_name'];";
-                python_cmd="$python_cmd exit(db.check_translation_rate('$lang', '$addons_cs'.split(','),min_total_rate=$min_total_rate, min_addon_rate=$min_addon_rate, colored=bool(${OH_COLORS_ENABLED:-0})));";
-                if ! run_python_cmd "$python_cmd"; then
+                if ! exec_lodoo_u --conf="$ODOO_CONF_FILE" tr-check-translation-rate --lang="$lang" "${check_tr_rate_opts[@]}" "$tmp_db_name" "$addons_cs"; then
                     res=1;
                 fi
             fi

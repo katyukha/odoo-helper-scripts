@@ -92,12 +92,14 @@ function print_usage {
                                          which will speed-up install process.
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
+         --build-python <ver>          - build custom python for specified version
          --node-version <ver>          - Version of node.js to be installed. by default latest.
          --no-single-branch            - Set '--signle-branch' option to 'off'
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER
          --db-pass <password>          - database password to be used in settings. default: odoo
-
+         --create-db-user              - [sudo] if set, odoo-helper will try to create
+                                         postgresql user after the installation of odoo.
          --http-port <port>            - automatically set configuration for http port for this instance
          --http-host <host>            - automatically set configuration for http host for this instance
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
@@ -166,6 +168,10 @@ function parse_options {
             --no-single-branch)
                 CLONE_SINGLE_BRANCH='off';
             ;;
+            --build-python)
+                ODOO_BUILD_PYTHON_VERSION=$2;
+                shift;
+            ;;
             --node-version)
                 ODOO_INSTALL_NODE_VERSION=$2;
                 shift;
@@ -181,6 +187,9 @@ function parse_options {
             --db-pass)
                 DB_PASSWORD=$2;
                 shift;
+            ;;
+            --create-db-user)
+                DB_ENFORCE_CREATE_PG_USER=1;
             ;;
             --http-port)
                 ODOO_HTTP_PORT=$2;
@@ -318,6 +327,12 @@ echo -e "${BLUEC}Generating configurations...${NC}";
 config_print > "$PROJECT_ROOT_DIR/$CONF_FILE_NAME";
 generate_conf;
 generate_test_conf;
+
+# Create pg user if needed
+if [ "${DB_ENFORCE_CREATE_PG_USER}" -eq 1 ]; then
+    echo -e "${BLUEC}Creating postgresql user ${YELLOWC}${DB_USER}${BLUEC}...${NC}";
+    postgres_user_create "${DB_USER}" "${DB_PASSWORD}";
+fi
 #------------------------------------------------------------------------
 
 echo -e "${GREENC}Odoo has been successfully installed!${NC}";
