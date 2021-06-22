@@ -86,10 +86,11 @@ tests:ubuntu:20.04:
 tests:ubuntu:21.04:
     image: ubuntu:21.04
     <<: *tests-definition
+    allow_failure: true
 
 
 build_packages:
-    image: ubuntu:18.04
+    image: ubuntu:20.04
     stage: build
     variables:
         ODOO_HELPER_ROOT: $CI_PROJECT_DIR
@@ -107,7 +108,7 @@ build_packages:
         - tags
  
 pages:
-    image: ubuntu:18.04
+    image: ubuntu:20.04
     stage: deploy
     before_script:
         - apt-get update
