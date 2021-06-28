@@ -2,6 +2,11 @@
 
 ## Release 0.10.0 (2021-06-22)
 
+- Added new module migration for version 14.0:
+    - automatically replace `track_visibility='...'` to `tracking=True`
+
+## Release 0.10.0 (2021-06-22)
+
 ### Added
 
 - Added ability to use project-level (odoo-helper project-level) configs for

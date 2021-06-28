@@ -40,6 +40,15 @@ CHECKS['13.0'] = {
     ],
 }
 
+CHECKS['14.0'] = {
+    '.py': [
+        ("replace",
+            r"track_visibility\s*=\s*['\"]\w+['\"]",
+            "tracking=True",
+            "Replace track_visibility='...' with tracking=True"),
+    ],
+}
+
 
 def run_command_replace(fpath, fcontent, expr, subst, msg):
     """ Replace all occurences of <expr> in <fcontent> by <subst>
