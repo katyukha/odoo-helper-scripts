@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added new module migration for version 14.0:
+    - automatically replace `track_visibility='...'` to `tracking=True`
+
+## Release 0.10.0 (2021-06-22)
+
 ### Added
 
 - Install py dependencies defined in `requirements.auto.txt` file duting linking addons.
