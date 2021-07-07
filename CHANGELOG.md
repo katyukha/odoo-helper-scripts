@@ -4,6 +4,9 @@
 
 - Added new module migration for version 14.0:
     - automatically replace `track_visibility='...'` to `tracking=True`
+- Added new shortcuts:
+    - `odoo-helper addin` - `odoo-helper addons install`
+    - `odoo-helper addup` - `odoo-helper addons update`
 
 ## Release 0.10.0 (2021-06-22)
 
