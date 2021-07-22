@@ -2,11 +2,18 @@
 
 ## Release 0.10.0 (2021-06-22)
 
+### Added
+
 - Added new module migration for version 14.0:
     - automatically replace `track_visibility='...'` to `tracking=True`
 - Added new shortcuts:
     - `odoo-helper addin` - `odoo-helper addons install`
     - `odoo-helper addup` - `odoo-helper addons update`
+
+### Fixed
+
+- `odoo-helper odoo clean-compiled-assets` now will clean up dev-mode CSS files
+  generated from SCSS and LESS files.
 
 ## Release 0.10.0 (2021-06-22)
 
