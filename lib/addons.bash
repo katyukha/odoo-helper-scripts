@@ -906,6 +906,7 @@ function addons_install_update {
     fi
 
     if [ "$update_addons_list" -eq 1 ]; then
+        # TODO: Handle skip errors here
         addons_update_module_list "${dbs[@]}";
     fi
 
