@@ -25,7 +25,7 @@ ohelper_require "odoo";
 
 # Simple function to exec command in virtual environment if required
 function execv {
-    if [ -n "$VENV_DIR" ]; then
+    if [ -n "$VENV_DIR" ] && [ -f "$VENV_DIR/bin/activate" ]; then
         source "$VENV_DIR/bin/activate";
     fi
 

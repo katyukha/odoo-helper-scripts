@@ -480,7 +480,7 @@ function install_odoo_py_requirements_for_version {
                     echo "gevent==1.3.4";
                 elif exec_py -c "\"import sys; assert (3, 7) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
-                elif exec_py -c "\"import sys; sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                elif exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
                     echo "gevent>=20.6.0";
                 else
                     echo "$dependency";
@@ -492,7 +492,7 @@ function install_odoo_py_requirements_for_version {
                 if exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
                 elif exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
-                    echo "greenlet==0.4.16"
+                    echo "greenlet==0.4.16";
                 else
                     echo "$dependency";
                 fi
@@ -511,7 +511,15 @@ function install_odoo_py_requirements_for_version {
                 echo "PyYAML";
             elif [[ "$dependency_stripped" =~ reportlab ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
                 # In case of python 3.9 latest version of reportlab have to be used
-                echo "reportlab"
+                echo "reportlab";
+            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ feedparser ]]; then
+                # Recent versions of setup tools do not support `use_2to3` flag,so,
+                # we have to use last version of feedparser to avoid errors during install
+                echo "feedparser";
+            elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ suds-jurko ]]; then
+                # Recent versions of setup tools do not support `use_2to3` flag,so,
+                # we have to use another fork of suds to avoid errors during install
+                echo "suds-py3";
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
@@ -685,11 +693,15 @@ function install_virtual_env {
         elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
-            VIRTUALENV_PYTHON="$venv_python_version" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$venv_python_version" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
         else
-            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
         fi
         exec_pip -q install nodeenv;
+
+        if [ "$(odoo_get_major_version)" -gt 10 ]; then
+            exec_pip -q install "setuptools\<58";
+        fi
 
         local nodeenv_opts;
         nodeenv_opts=( "--python-virtualenv" );
@@ -1010,6 +1022,11 @@ function install_generate_odoo_conf {
 function odoo_run_setup_py {
     # Install dependencies via pip (it is faster if they are cached)
     install_odoo_py_requirements_for_version;
+
+    if [ "$(odoo_get_major_version)" -gt 10 ]; then
+        # We have to replace suds-jurko with suds-py3 to make it installable.
+        sed -i 's/suds-jurko/suds-py3/g' "$ODOO_PATH/setup.py";
+    fi
 
     # Install odoo
     (cd "$ODOO_PATH" && exec_py setup.py -q develop);

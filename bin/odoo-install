@@ -329,7 +329,7 @@ generate_conf;
 generate_test_conf;
 
 # Create pg user if needed
-if [ "${DB_ENFORCE_CREATE_PG_USER}" -eq 1 ]; then
+if [ -n "${DB_ENFORCE_CREATE_PG_USER}" ] && [ "${DB_ENFORCE_CREATE_PG_USER}" -eq 1 ]; then
     echo -e "${BLUEC}Creating postgresql user ${YELLOWC}${DB_USER}${BLUEC}...${NC}";
     postgres_user_create "${DB_USER}" "${DB_PASSWORD}";
 fi
