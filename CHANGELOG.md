@@ -9,6 +9,15 @@
 - Added new shortcuts:
     - `odoo-helper addin` - `odoo-helper addons install`
     - `odoo-helper addup` - `odoo-helper addons update`
+- Added new command:
+    - `odoo-helper install py-prerequirements` that could be used to install
+      or update project-level python dependencies needed by odoo-helper
+
+### Changed
+
+- Command `odoo-helper install js-tools` now will also install
+  `stylelint-config-sass-guidelines` package, that could be used as config for
+  linter for sass file (`*.scss`)
 
 ### Fixed
 

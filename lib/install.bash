@@ -843,7 +843,7 @@ function install_js_tools {
         esac
         shift
     done
-    local deps=( eslint stylelint stylelint-config-standard );
+    local deps=( eslint stylelint stylelint-config-standard stylelint-config-sass-guidelines );
     if [ "$(odoo_get_major_version)" -lt 12 ]; then
         deps+=( phantomjs-prebuilt );
     fi
@@ -1176,6 +1176,8 @@ function install_entry_point {
         $SCRIPT_NAME install pre-requirements [--help]   - [sudo] install system pre-requirements
         $SCRIPT_NAME install sys-deps [--help]           - [sudo] install system dependencies for odoo version
         $SCRIPT_NAME install py-deps [--help]            - install python dependencies for odoo version (requirements.txt)
+        $SCRIPT_NAME install py-prerequirements          - install project-level python prerequirements
+                                                           (python packages required for odoo-helper)
         $SCRIPT_NAME install py-tools [--help]           - install python tools (pylint, flake8, ...)
         $SCRIPT_NAME install js-tools [--help]           - install javascript tools (jshint, phantomjs)
         $SCRIPT_NAME install bin-tools [--help]          - [sudo] install binary tools. at this moment it is *unbuffer*,
@@ -1222,6 +1224,12 @@ function install_entry_point {
                 shift;
                 config_load_project;
                 install_odoo_py_requirements_for_version "$@";
+                return 0;
+            ;;
+            py-prerequirements)
+                shift;
+                config_load_project;
+                install_python_prerequirements;
                 return 0;
             ;;
             py-tools)
