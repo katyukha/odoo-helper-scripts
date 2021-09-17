@@ -94,6 +94,8 @@ function odoo_helper_print_usage {
         lsa                                 - shortcut for 'addons list' command
         lsd                                 - shortcut for 'db list' command
         ual                                 - shortcut for 'addons update-list'
+        addin                               - shortcut for 'addons install'
+        addup                               - shortcut for 'addons update'
         fix-versions                        - shortcut for 'ci fix-versions' command
     
     Global options:
@@ -531,6 +533,18 @@ function odoo_helper_main {
                 shift;
                 config_load_project;
                 addons_update_module_list "$@";
+                return;
+            ;;
+            addin)
+                shift;
+                config_load_project;
+                addons_install_update "install" "$@";
+                return;
+            ;;
+            addup)
+                shift;
+                config_load_project;
+                addons_install_update "update" "$@";
                 return;
             ;;
             exec)

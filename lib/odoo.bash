@@ -449,6 +449,7 @@ function odoo_clean_compiled_assets {
 # TODO select id,name,store_fname from ir_attachment where name ilike '%/web/content/%-%/%';
 PGAPPNAME="odoo-helper" postgres_psql -d "$dbname" << EOF
             DELETE FROM ir_attachment WHERE name ILIKE '%/web/content/%/web.assets%';
+            DELETE FROM ir_attachment WHERE name ~* '/[a-z0-9_]+/static/(lib|src)/.*.(scss|less).css';
 EOF
     done
 }

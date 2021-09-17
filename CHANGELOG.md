@@ -1,5 +1,37 @@
 # Release Notes
 
+## Release 0.11.0 (2021-09-17)
+
+### Added
+
+- Added new module migration for version 14.0:
+    - automatically replace `track_visibility='...'` to `tracking=True`
+- Added new shortcuts:
+    - `odoo-helper addin` - `odoo-helper addons install`
+    - `odoo-helper addup` - `odoo-helper addons update`
+- Added new command:
+    - `odoo-helper install py-prerequirements` that could be used to install
+      or update project-level python dependencies needed by odoo-helper
+
+### Changed
+
+- Command `odoo-helper install js-tools` now will also install
+  `stylelint-config-sass-guidelines` package, that could be used as config for
+  linter for sass file (`*.scss`)
+
+### Fixed
+
+- `odoo-helper odoo clean-compiled-assets` now will clean up dev-mode CSS files
+  generated from SCSS and LESS files.
+- Fixed odoo installation. New setuptools has dropt support of `use_2to3` build param,
+  so odoo helper will enforce setup tools less then version 58 to make odoo installable.
+
+### Deprecation
+- Support for Odoo 10 and below is now deprecated and will be removed in one of next releases.
+  The python2 support is over, and there is no sense to continues to support odoo versions,
+  that rely on unsupported python versions.
+
+
 ## Release 0.10.0 (2021-06-22)
 
 ### Added

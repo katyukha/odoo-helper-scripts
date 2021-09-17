@@ -723,8 +723,8 @@ function ci_do_forwardport {
     # Do not forwardport translations
     git --git-dir "$git_path/.git" reset -q -- "*.po" "*.pot"
     git --git-dir "$git_path/.git" clean -fdx -- "*.po" "*.pot"
-    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot"
-    git --git-dir "$git_path/.git" add "*.po" "*.pot"
+    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot" || true
+    git --git-dir "$git_path/.git" add "*.po" "*.pot" || true
 
     # Attempt tot fix versions of modules
     ci_check_versions_git --fix-version-fp "$git_path" "$git_remote_name/$dst_branch";
