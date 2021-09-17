@@ -1,6 +1,6 @@
 # Release Notes
 
-## Release 0.10.0 (2021-06-22)
+## Release 0.11.0 (2021-09-17)
 
 ### Added
 
@@ -23,6 +23,14 @@
 
 - `odoo-helper odoo clean-compiled-assets` now will clean up dev-mode CSS files
   generated from SCSS and LESS files.
+- Fixed odoo installation. New setuptools has dropt support of `use_2to3` build param,
+  so odoo helper will enforce setup tools less then version 58 to make odoo installable.
+
+### Deprecation
+- Support for Odoo 10 and below is now deprecated and will be removed in one of next releases.
+  The python2 support is over, and there is no sense to continues to support odoo versions,
+  that rely on unsupported python versions.
+
 
 ## Release 0.10.0 (2021-06-22)
 
