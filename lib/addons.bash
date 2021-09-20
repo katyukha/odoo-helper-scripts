@@ -174,12 +174,21 @@ function addons_update_module_list {
         local key="$1";
         case $key in
             --cdb|--conf-db)
-                dbs+=( "$(odoo_get_conf_val db_name)" );
+                local conf_db=$(odoo_get_conf_val db_name);
+                if [ -n "$conf_db" ]; then
+                    dbs+=( "$conf_db" );
+                fi
             ;;
             --tdb|--test-db)
                 local test_db;
                 test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
-                dbs+=( "$test_db" );
+                if [ -z "$test_db" ]; then
+                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
+                    test_db="$test_db-odoo-test";
+                fi
+                if [ -n "$test_db" ]; then
+                    dbs+=( "$test_db" );
+                fi
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -800,11 +809,21 @@ function addons_install_update {
                 shift;
             ;;
             --cdb|--conf-db)
-                dbs+=( "$(odoo_get_conf_val db_name)" );
+                local conf_db=$(odoo_get_conf_val db_name);
+                if [ -n "$conf_db" ]; then
+                    dbs+=( "$conf_db" );
+                else
+                    echoe -e "${REDC}ERROR${NC}: Default database not configured";
+                    return 1;
+                fi
             ;;
             --tdb|--test-db)
                 local test_db;
-                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE");
+                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
+                if [ -z "$test_db" ]; then
+                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
+                    test_db="$test_db-odoo-test";
+                fi
                 if [ -n "$test_db" ]; then
                     dbs+=( "$test_db" );
                 else
