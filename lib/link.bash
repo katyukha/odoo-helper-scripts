@@ -83,7 +83,7 @@ function link_module_impl {
     fetch_pip_requirements "$dest";
     fetch_oca_requirements "$dest";
 
-    if [ -n "$py_deps_manifest" ] && [ -f "$dest/__manifest__.py" ]; then
+    if [ "$py_deps_manifest" == "on" ] && [ -f "$dest/__manifest__.py" ]; then
         local py_deps;
         py_deps=$(exec_py "$ODOO_HELPER_LIB/pylib/py_utils.py" addon-py-deps --addon-path "$dest");
         if [ -n "$py_deps" ]; then
