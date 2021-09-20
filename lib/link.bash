@@ -184,7 +184,7 @@ function link_module {
             done
         else
             # Module name specified, then only single module should be linked
-            link_module_impl "$REPO_PATH/$MODULE_NAME" "$ADDONS_DIR/$MODULE_NAME" "$force" "$fetch_manifest_py_deps";
+            link_module_impl "$repo_path/$module_name" "$ADDONS_DIR/$module_name" "$force" "$fetch_manifest_py_deps";
         fi
     fi
 }

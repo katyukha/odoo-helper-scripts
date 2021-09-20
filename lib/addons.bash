@@ -174,7 +174,8 @@ function addons_update_module_list {
         local key="$1";
         case $key in
             --cdb|--conf-db)
-                local conf_db=$(odoo_get_conf_val db_name);
+                local conf_db;
+                conf_db=$(odoo_get_conf_val db_name);
                 if [ -n "$conf_db" ]; then
                     dbs+=( "$conf_db" );
                 fi
@@ -809,7 +810,8 @@ function addons_install_update {
                 shift;
             ;;
             --cdb|--conf-db)
-                local conf_db=$(odoo_get_conf_val db_name);
+                local conf_db;
+                conf_db=$(odoo_get_conf_val db_name);
                 if [ -n "$conf_db" ]; then
                     dbs+=( "$conf_db" );
                 else
