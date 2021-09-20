@@ -25,11 +25,6 @@ ohelper_require 'fetch';
 
 set -e; # fail on errors
 
-# Define veriables
-REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
-PIP_REQUIREMENTS_FILE_NAME="requirements.txt";
-OCA_REQUIREMENTS_FILE_NAME="oca_dependencies.txt";
-
 
 # link_is_addon_linked <addon_path>
 # Return statuses
@@ -84,8 +79,8 @@ function link_module_impl {
         echov "Module $src already linked to $dest";
     fi
     fetch_requirements "$dest";
-    fetch_pip_requirements "$dest/$PIP_REQUIREMENTS_FILE_NAME";
-    fetch_oca_requirements "$dest/$OCA_REQUIREMENTS_FILE_NAME";
+    fetch_pip_requirements "$dest";
+    fetch_oca_requirements "$dest";
 }
 
 # link_module <force: on|off> <repo_path> [<module_name>]
@@ -120,8 +115,8 @@ function link_module {
         if [ -z "$MODULE_NAME" ]; then
             # Check for requirements files in repository root dir
             fetch_requirements "$REPO_PATH";
-            fetch_pip_requirements "$REPO_PATH/$PIP_REQUIREMENTS_FILE_NAME";
-            fetch_oca_requirements "$REPO_PATH/$OCA_REQUIREMENTS_FILE_NAME";
+            fetch_pip_requirements "$REPO_PATH";
+            fetch_oca_requirements "$REPO_PATH";
 
             # No module name specified, then all modules in repository should be linked
             for file in "$REPO_PATH"/*; do

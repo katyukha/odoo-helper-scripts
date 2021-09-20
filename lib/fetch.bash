@@ -29,6 +29,7 @@ set -e; # fail on errors
 # Define veriables
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 PIP_REQUIREMENTS_FILE_NAME="requirements.txt";
+PIP_REQUIREMENTS_AUTO_FILE_NAME="requirements.auto.txt";
 OCA_REQUIREMENTS_FILE_NAME="oca_dependencies.txt";
 
 
@@ -77,7 +78,9 @@ function fetch_requirements {
 function fetch_pip_requirements {
     local pip_requirements=${1:-$WORKDIR};
     if [ -d "$pip_requirements" ]; then
-        pip_requirements=$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME;
+        fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME";
+        fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_AUTO_FILE_NAME";
+        return 0;
     fi
 
     if [ ! -f "$pip_requirements" ]; then

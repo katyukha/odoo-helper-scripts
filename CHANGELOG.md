@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Install py dependencies defined in `requirements.auto.txt` file duting linking addons.
+  This may be used to handle auto-generated requirements by tools like [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit).
+
 ## Release 0.11.0 (2021-09-17)
 
 ### Added
