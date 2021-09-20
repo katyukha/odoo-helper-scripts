@@ -586,7 +586,7 @@ function addons_git_pull_updates {
                 echoe -e "${BLUEC}Pulling updates for ${YELLOWC}${addon_repo}${BLUEC}...${NC}" && \
                 git pull && \
                 echoe -e "${BLUEC}Linking repository ${YELLOWC}${addon_repo}${BLUEC}...${NC}" && \
-                link_module off . && \
+                link_module . && \
                 echoe -e "${BLUEC}Pull ${YELLOWC}${addon_repo}${BLUEC}: ${GREENC}OK${NC}"
             );
         fi

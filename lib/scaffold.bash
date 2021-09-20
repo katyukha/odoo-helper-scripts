@@ -208,7 +208,7 @@ function scaffold_addon {
         -D ADDON_DEPENDS="\"'$depends_cs'\"" \
         "$TMPL_ADDON_README" > "$addon_path/README.rst";
 
-    link_module off "$addon_path";
+    link_module "$addon_path";
 }
 
 function scaffold_model {

@@ -6,6 +6,11 @@
 
 - Install py dependencies defined in `requirements.auto.txt` file duting linking addons.
   This may be used to handle auto-generated requirements by tools like [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit).
+- Added experimental support for automatic discover of python dependencies defined in addon's manifest during addon linking process.
+
+### Changed
+
+- Changed signature of `odoo-helper link` command. See `odoo-helper link --help` for more info.
 
 ## Release 0.11.0 (2021-09-17)
 

@@ -362,7 +362,7 @@ function fetch_download_odoo_app {
         fi
         mv "$app_tmp_path" "$DOWNLOADS_DIR/$app_tmp_name";
         echoe -e "${LBLUEC}INFO: ${BLUEC}Linking addon ${YELLOWC}${app_tmp_name}${BLUEC}...${NC}";
-        link_module off "$DOWNLOADS_DIR/$app_tmp_name";
+        link_module "$DOWNLOADS_DIR/$app_tmp_name";
     done
 
     rm -r "$tmp_dir";
@@ -538,8 +538,10 @@ function fetch_module {
         fi
     fi
 
-    if [ -d "$REPO_PATH" ]; then
-        # Link repo only if it exists
-        link_module off "$REPO_PATH" "$MODULE";
+    # Link repo only if it exists
+    if [ -d "$REPO_PATH" ] && [ -n "$MODULE" ]; then
+        link_module --module-name "$MODULE" "$REPO_PATH";
+    elif [ -d "$REPO_PATH" ]; then
+        link_module "$REPO_PATH";
     fi
 }
