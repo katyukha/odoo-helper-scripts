@@ -7,6 +7,13 @@
 - Install py dependencies defined in `requirements.auto.txt` file duting linking addons.
   This may be used to handle auto-generated requirements by tools like [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit).
 - Added experimental support for automatic discover of python dependencies defined in addon's manifest during addon linking process.
+- Try to automatically detect config for linters, if it is placed in root of repository and if linter invoked inside this repo.
+  Available linter config file names are:
+    - `flake8.cfg`
+    - `pylint_odoo.cfg`
+    - `stylelint-default.json`
+    - `stylelint-default-less.json`
+    - `stylelint-default-scss.json`
 
 ### Changed
 

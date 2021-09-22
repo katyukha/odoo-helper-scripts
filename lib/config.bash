@@ -15,6 +15,8 @@ fi
 if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
     source "$ODOO_HELPER_LIB/common.bash";
 fi
+
+ohelper_require 'git';
 # -----------------------------------------------------------------------------
 
 # function to print odoo-helper config
@@ -81,7 +83,13 @@ function config_set_defaults {
 function config_get_default_tool_conf {
     local default_conf_dir="${ODOO_HELPER_LIB}/default_config";
     local tool_name="$1";
-    if [ -f "$CONF_DIR/$tool_name" ]; then
+    local git_repo_root_dir;
+    if git_is_git_repo "$(pwd)"; then
+        git_repo_root_dir=$(git_get_abs_repo_path "$(pwd)");
+    fi
+    if [ -n "$git_repo_root_dir" ] && [ -f "$git_repo_root_dir/$tool_name" ]; then
+        echo "$git_repo_root_dir/$tool_name";
+    elif [ -f "$CONF_DIR/$tool_name" ]; then
         echo "$CONF_DIR/$tool_name";
     elif [ -f "$default_conf_dir/$tool_name" ]; then
         echo "$default_conf_dir/$tool_name";
