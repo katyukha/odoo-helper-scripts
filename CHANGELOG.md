@@ -14,6 +14,7 @@
     - `stylelint-default.json`
     - `stylelint-default-less.json`
     - `stylelint-default-scss.json`
+- Added new opt `--upgrade` to `odoo-helper install py-tools` and `odoo-helper install dev-tools` commands
 
 ### Changed
 

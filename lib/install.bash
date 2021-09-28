@@ -797,15 +797,20 @@ function install_python_tools {
     Options:
 
         -q|--quiet     - quiet mode. reduce output
+        --upgrade      - upgrade the tools
 
     ";
     local pip_options=( );
+    local pip_install_opts=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -q|--quiet)
                 pip_options+=( --quiet );
+            ;;
+            --upgrade)
+                pip_install_opts+=( --upgrade );
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -818,7 +823,7 @@ function install_python_tools {
         esac
         shift
     done
-    exec_pip "${pip_options[@]}" install setproctitle watchdog pylint-odoo coverage \
+    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors websocket-client jingtrang;
 }
 
@@ -873,9 +878,15 @@ function install_dev_tools {
 
     Usage:
 
-        $SCRIPT_NAME install dev-tools        - install extra dev tools
-        $SCRIPT_NAME install dev-tools --help - show this help message
+        $SCRIPT_NAME install dev-tools [options]  - install extra dev tools
+        $SCRIPT_NAME install dev-tools --help     - show this help message
+
+    Options:
+
+        --upgrade       - upgrade tools
+        -h|--help|help  - show this help message
     ";
+    local py_options=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -883,6 +894,9 @@ function install_dev_tools {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            --upgrade)
+                py_options+=( --upgrade );
             ;;
             *)
                 echo "Unknown option / command $key";
@@ -892,7 +906,7 @@ function install_dev_tools {
         shift
     done
     install_bin_tools;
-    install_python_tools;
+    install_python_tools "${py_options[@]}";
     install_js_tools;
 }
 
@@ -980,7 +994,7 @@ function install_python_prerequirements {
 # Now it is less compiler. install if it is not installed yet
 function install_js_prerequirements {
     if ! check_command lessc > /dev/null; then
-        execu npm install -g less@3.9.0;
+        execu npm install -g less@3.9.0 rtlcss;
     fi
 }
 
