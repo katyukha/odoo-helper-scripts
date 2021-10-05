@@ -2,11 +2,6 @@
 
 ## Unreleased
 
-- Added new module migration for version 14.0:
-    - automatically replace `track_visibility='...'` to `tracking=True`
-
-## Release 0.10.0 (2021-06-22)
-
 ### Added
 
 - Install py dependencies defined in `requirements.auto.txt` file duting linking addons.
@@ -20,10 +15,12 @@
     - `stylelint-default-less.json`
     - `stylelint-default-scss.json`
 - Added new opt `--upgrade` to `odoo-helper install py-tools` and `odoo-helper install dev-tools` commands
+- Experimental support of Odoo 15.0
 
 ### Changed
 
 - Changed signature of `odoo-helper link` command. See `odoo-helper link --help` for more info.
+
 
 ## Release 0.11.0 (2021-09-17)
 

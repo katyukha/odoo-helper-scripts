@@ -391,9 +391,10 @@ class LOdoo(object):
         if odoo.tools.config.get('sentry_enabled', False):
             odoo.tools.config['sentry_enabled'] = False
 
-        if not hasattr(odoo.api.Environment._local, 'environments'):
-            odoo.api.Environment._local.environments = (
-                odoo.api.Environments())
+        if odoo.release.version_info < (15,):
+            if not hasattr(odoo.api.Environment._local, 'environments'):
+                odoo.api.Environment._local.environments = (
+                    odoo.api.Environments())
 
         # Load server-wide modules
         odoo.service.server.load_server_wide_modules()
