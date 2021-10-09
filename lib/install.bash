@@ -823,7 +823,7 @@ function install_python_tools {
         esac
         shift
     done
-    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" setproctitle watchdog pylint-odoo coverage \
+    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" setproctitle watchdog pylint pylint-odoo coverage \
         flake8 flake8-colors websocket-client jingtrang;
 }
 
