@@ -186,7 +186,6 @@ odoo-helper db create test-9-db;
 ! odoo-helper db is-demo -q test-9-db;
 
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
-odoo-helper pip install Mercurial;
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
@@ -225,6 +224,9 @@ odoo-helper update-odoo
 
 # Reinstall odoo downloading archive
 odoo-helper install reinstall-odoo download;
+
+# Remove created backup of previous odoo code
+rm -rf ./odoo-backup-*;
 
 # Reinstall python dependencies for Odoo
 odoo-helper install py-deps
@@ -375,6 +377,9 @@ odoo-helper status
 
 # Update odoo-sources
 odoo-helper update-odoo
+
+# Clean up odoo backups dir
+rm -rf ./backups/*;
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions

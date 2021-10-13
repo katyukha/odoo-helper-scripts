@@ -1189,7 +1189,10 @@ function install_reinstall_odoo {
     fi
 
     if [ -d "$ODOO_PATH" ]; then
-        mv "$ODOO_PATH" "$ODOO_PATH-backup-$(random_string 4)";
+        local odoo_backup_path;
+        odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
+        mv "$ODOO_PATH" "$odoo_backup_path";
+        echo -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
     fi
 
     install_fetch_odoo "$reinstall_action";
