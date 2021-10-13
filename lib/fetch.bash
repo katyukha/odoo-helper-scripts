@@ -78,8 +78,8 @@ function fetch_requirements {
 function fetch_pip_requirements {
     local pip_requirements=${1:-$WORKDIR};
     if [ -d "$pip_requirements" ]; then
-        fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME";
         fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_AUTO_FILE_NAME";
+        fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME";
         return 0;
     fi
 

@@ -712,9 +712,9 @@ odoo-helper addons install --dir ./repositories/oca/partner-contact;
 # Test pull-updates with --do-update option
 odoo-helper-addons pull-updates --do-update;
 
-# Regenerate pot files for modules from partner-contact
-odoo-helper tr regenerate --pot --dir ./repositories/oca/partner-contact;
-odoo-helper tr regenerate --lang-file "uk_UA:uk" --lang-file "ru_RU:ru" --dir ./repositories/oca/partner-contact;
+# Regenerate pot files for modules from generic-addons
+odoo-helper tr regenerate --pot --dir ./repositories/crnd-inc/generic-addons;
+odoo-helper tr regenerate --lang-file "uk_UA:uk" --lang-file "ru_RU:ru" --dir ./repositories/crnd-inc/generic-addons;
 
 # Print list of installed addons
 odoo-helper addons find-installed;
@@ -780,7 +780,7 @@ odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
 odoo-helper addons install --ual bureaucrat_helpdesk_lite;
 
 # Print list of installed addons
-odoo-helper addons find-installed;
+odoo-helper addons find-installed --packager-format;
 
 # Drop created databases
 odoo-helper db drop odoo13-odoo-test;
@@ -896,7 +896,19 @@ odoo-helper stop;
 odoo-helper status  --tools-versions --ci-tools-versions;
 
 # Database management
-odoo-helper db create --demo --lang en_US odoo15-odoo-test;
+odoo-helper db create --tdb --lang en_US;
+
+odoo-helper addons update-list --tdb;
+odoo-helper addons install --tdb --module crm;
+odoo-helper addons test-installed crm;
+
+# Reinstall venv without backup and build for python 3.9.7
+odoo-helper install reinstall-venv --no-backup --build-python 3.9.7;
+
+odoo-helper lsd;  # List databases
+
+# Install addon website via 'odoo-helper install'
+odoo-helper install website;
 
 ## Fetch oca/contract
 #odoo-helper fetch --github crnd-inc/generic-addons

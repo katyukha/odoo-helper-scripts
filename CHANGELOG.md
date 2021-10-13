@@ -15,6 +15,9 @@
     - `stylelint-default-less.json`
     - `stylelint-default-scss.json`
 - Added new opt `--upgrade` to `odoo-helper install py-tools` and `odoo-helper install dev-tools` commands
+- Added new opts to `odoo-helper db create` command:
+    - `--tdb` - create test database with auto-generated name
+    - `--name <name>` - allows to specify name of database as option
 - Experimental support of Odoo 15.0
 
 ### Changed
