@@ -664,8 +664,16 @@ function install_build_python {
         return 3;
     fi
 
+
+    # Check if make package / command is installed, and install if it is not installed yet
+    if ! check_command 'make' > /dev/null; then
+        echoe -e "${YELLOWC}make${BLUEC} seems to be not installed. ${YELLOWC}make${BLUEC} is package required to build python and will be installed.${NC}";
+        install_sys_deps_internal "make";
+    fi
+
     # build python
     echo -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
+    # TODO: enable optimizations via './configure --enable-optimizations'
     (cd "$DOWNLOADS_DIR/Python-$python_version" && \
         ./configure --prefix="$python_path" && \
         make && \
