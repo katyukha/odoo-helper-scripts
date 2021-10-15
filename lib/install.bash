@@ -667,16 +667,21 @@ function install_build_python {
 
     # Check if make package / command is installed, and install if it is not installed yet
     if ! check_command 'make' > /dev/null; then
-        echoe -e "${YELLOWC}make${BLUEC} seems to be not installed. ${YELLOWC}make${BLUEC} is package required to build python and will be installed.${NC}";
+        # TODO: May be it have sense to add it to pre-requirements, or somewhere else.
+        #       Or may be it have sense to ask for confirmation?
+        echoe -e "${YELLOWC}make${BLUEC} seems to be not installed. ${YELLOWC}make${BLUEC} is package required to build python and will be installed automatically.${NC}";
         install_sys_deps_internal "make";
     fi
 
     # build python
-    echo -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
+    echoe -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
     # TODO: enable optimizations via './configure --enable-optimizations'
     (cd "$DOWNLOADS_DIR/Python-$python_version" && \
-        ./configure --prefix="$python_path" && \
+        echoe -e "${BLUEC}Configuring python (prefix=$python_path)...${NC}" && \
+        ./configure --enable-optimizations --prefix="$python_path" && \
+        echoe -e "${BLUEC}Compiling python...${NC}" && \
         make && \
+        echoe -e "${BLUEC}Installing python...${NC}" && \
         make install)
 
     # Remove downloaded python

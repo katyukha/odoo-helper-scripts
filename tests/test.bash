@@ -902,13 +902,14 @@ odoo-helper addons update-list --tdb;
 odoo-helper addons install --tdb --module crm;
 odoo-helper addons test-installed crm;
 
-# Reinstall venv without backup and build for python 3.9.7
-odoo-helper install reinstall-venv --no-backup --build-python 3.9.7;
+## Reinstall venv without backup and build for python 3.9.7
+# Python compiling does not work because conflict with bashcov test coverage util
+#odoo-helper install reinstall-venv --no-backup --build-python 3.9.7;
 
-odoo-helper lsd;  # List databases
+#odoo-helper lsd;  # List databases
 
-# Install addon website via 'odoo-helper install'
-odoo-helper install website;
+## Install addon website via 'odoo-helper install'
+#odoo-helper install website;
 
 ## Fetch oca/contract
 #odoo-helper fetch --github crnd-inc/generic-addons
