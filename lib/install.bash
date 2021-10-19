@@ -643,6 +643,11 @@ function install_build_python {
     local python_download_link="https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tgz";
     local python_download_path="$DOWNLOADS_DIR/python-${python_version}.tgz"
     local python_path="$PROJECT_ROOT_DIR/python"
+    local python_configure_options=( --prefix="$python_path" );
+
+    if [ -n "$ODOO_BUILD_PYTHON_OPTIMIZE" ]; then
+        python_configure_options+=( --enable-optimizations );
+    fi
 
     if [[ "$python_version" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
         local python_version_short="${BASH_REMATCH[1]}"
@@ -676,13 +681,20 @@ function install_build_python {
     # build python
     echoe -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
     # TODO: enable optimizations via './configure --enable-optimizations'
+    local number_of_jobs;
+    if check_command "nproc"; then
+        number_of_jobs=$(nproc --ignore=1);
+    else
+        number_of_jobs=1;
+    fi
+
     (cd "$DOWNLOADS_DIR/Python-$python_version" && \
         echoe -e "${BLUEC}Configuring python (prefix=$python_path)...${NC}" && \
-        ./configure --enable-optimizations --prefix="$python_path" && \
+        ./configure "${python_configure_options[@]}" && \
         echoe -e "${BLUEC}Compiling python...${NC}" && \
-        make && \
+        make --jobs="${number_of_jobs}" && \
         echoe -e "${BLUEC}Installing python...${NC}" && \
-        make install)
+        make --jobs="${number_of_jobs}" install)
 
     # Remove downloaded python
     rm -r "$DOWNLOADS_DIR/Python-$python_version" "$python_download_path";
@@ -1098,8 +1110,10 @@ function install_reinstall_venv {
         --node-version <version>  - version of node.js to be installed.
                                     Default: latest
         --no-backup               - do not backup virtualenv
-        --build-python <version>  - build custom version of python for
+        --build-python <version>  - Build custom version of python for
                                     this virtual environment
+        --build-python-optimize   - Apply --enable-optimizations to python build.
+                                    This could take a while.
     ";
     while [[ $# -gt 0 ]]
     do
@@ -1119,6 +1133,9 @@ function install_reinstall_venv {
             --build-python)
                 ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
+            ;;
+            --build-python-optimize)
+                ODOO_BUILD_PYTHON_OPTIMIZE=1;
             ;;
             -h|--help|help)
                 echo "$usage";

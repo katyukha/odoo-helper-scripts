@@ -93,6 +93,8 @@ function print_usage {
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
          --build-python <ver>          - build custom python for specified version
+         --build-python-optimize       - Apply '--enable-optimizations' for python build.
+                                         This could take a while.
          --node-version <ver>          - Version of node.js to be installed. by default latest.
          --no-single-branch            - Set '--signle-branch' option to 'off'
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
@@ -171,6 +173,9 @@ function parse_options {
             --build-python)
                 ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
+            ;;
+            --build-python-optimize)
+                ODOO_BUILD_PYTHON_OPTIMIZE=1;
             ;;
             --node-version)
                 ODOO_INSTALL_NODE_VERSION=$2;
