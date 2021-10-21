@@ -95,7 +95,7 @@ function print_usage {
          --build-python <ver>          - build custom python for specified version
          --build-python-optimize       - Apply '--enable-optimizations' for python build.
                                          This could take a while.
-        --build-python-sqlite3         - Apply  --enable-loadable-sqlite-extensions
+         --build-python-sqlite3        - Apply  --enable-loadable-sqlite-extensions
                                          when building python.
          --node-version <ver>          - Version of node.js to be installed. by default latest.
          --no-single-branch            - Set '--signle-branch' option to 'off'

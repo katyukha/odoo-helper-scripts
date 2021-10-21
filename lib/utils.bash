@@ -79,13 +79,7 @@ function exec_conf {
 
 # Exec pip for this project. Also adds OCA wheelhouse to pip FINDLINKS list
 function exec_pip {
-    if [ -n "$1" ] && [ "$1" == "--oca" ]; then
-        shift;
-        local extra_index="$PIP_EXTRA_INDEX_URL https://wheelhouse.odoo-community.org/oca-simple";
-        PIP_EXTRA_INDEX_URL="$extra_index" exec_py -m pip "$@";
-    else
-        exec_py -m pip "$@";
-    fi
+    exec_py -m pip "$@";
 }
 
 # Exec npm for this project

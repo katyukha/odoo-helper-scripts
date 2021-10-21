@@ -22,11 +22,16 @@
 - Added new options to `odoo-install` and `odoo-helper install reinstall-venv`
   that influence on building python:
     - `--build-python-optimize`: enable expensive, stable optimizations (PGO, etc.)
-    - `--build-python-sqlite3`: support loadable extensions in _sqlite module
+    - `--build-python-sqlite3`: support loadable extensions in `_sqlite` module
 
 ### Changed
 
 - Changed signature of `odoo-helper link` command. See `odoo-helper link --help` for more info.
+
+### Removed
+
+- `odoo-helper pip --oca` option support. There is no sense to use this option anymore,
+  because all OCA apps now published on standard PyPI.
 
 
 ## Release 0.11.0 (2021-09-17)
