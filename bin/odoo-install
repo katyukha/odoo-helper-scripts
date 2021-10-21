@@ -83,6 +83,9 @@ function print_usage {
          -b|--odoo-branch <branch>     - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
                                          from diferent branch, use this option.
+         --dev                         - [sudo] This option enables automatic installation of developer tools,
+                                         like, pylint, flake8, unbuffer, etc.
+                                         May require sudo.
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
@@ -157,6 +160,10 @@ function parse_options {
             --odoo-branch|--branch|-b)
                 ODOO_BRANCH=$2;
                 shift;
+            ;;
+            --dev)
+                USE_UNBUFFER=1;
+                ODOO_INSTALL_DEV_TOOLS=1;
             ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
@@ -348,6 +355,12 @@ generate_test_conf;
 if [ -n "${DB_ENFORCE_CREATE_PG_USER}" ] && [ "${DB_ENFORCE_CREATE_PG_USER}" -eq 1 ]; then
     echo -e "${BLUEC}Creating postgresql user ${YELLOWC}${DB_USER}${BLUEC}...${NC}";
     postgres_user_create "${DB_USER}" "${DB_PASSWORD}";
+fi
+
+# Install dev-tools if needed
+if [ -n "${ODOO_INSTALL_DEV_TOOLS}" ]; then
+    echo -e "${BLUEC}Installing development tools ...${NC}";
+    install_dev_tools;
 fi
 #------------------------------------------------------------------------
 

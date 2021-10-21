@@ -27,6 +27,7 @@
     - `--build-python-sqlite3`: support loadable extensions in `_sqlite` module
 - Added new option to `odoo-install` command: `--enable-unbuffer`.
   This option enables usage of `unbuffer` command, to make output of test logs colored.
+- Added new option to `odoo-install` command `--dev` that will automatically install dev tools after odoo installation.
 
 ### Changed
 
