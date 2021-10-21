@@ -4,8 +4,10 @@
 
 ### Added
 
-- Install py dependencies defined in `requirements.auto.txt` file duting linking addons.
+- Optionally, install py dependencies defined in `requirements.auto.txt` file duting linking addons.
   This may be used to handle auto-generated requirements by tools like [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit).
+  This feature have to be enabled by setting environment variable `ODOO_HELPER_FETCH_PIP_AUTO_REQUIREMENTS` to non-zero value.
+  If you want to enable this feature on permanent basis, then you can place this var to odoo-helper's project-level or global config file.
 - Added experimental support for automatic discover of python dependencies defined in addon's manifest during addon linking process.
 - Try to automatically detect config for linters, if it is placed in root of repository and if linter invoked inside this repo.
   Available linter config file names are:

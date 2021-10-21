@@ -78,7 +78,9 @@ function fetch_requirements {
 function fetch_pip_requirements {
     local pip_requirements=${1:-$WORKDIR};
     if [ -d "$pip_requirements" ]; then
-        fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_AUTO_FILE_NAME";
+        if [ -n "$ODOO_HELPER_FETCH_PIP_AUTO_REQUIREMENTS" ]; then
+            fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_AUTO_FILE_NAME";
+        fi
         fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME";
         return 0;
     fi
