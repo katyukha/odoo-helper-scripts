@@ -47,6 +47,9 @@ function config_print {
     if [ -n "$ODOO_REPO" ]; then
         echo "ODOO_REPO=$ODOO_REPO;";
     fi
+    if [ -n "$USE_UNBUFFER" ]; then
+        echo "USE_UNBUFFER=$USE_UNBUFFER";
+    fi
 }
 
 

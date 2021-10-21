@@ -25,6 +25,8 @@
   that influence on building python:
     - `--build-python-optimize`: enable expensive, stable optimizations (PGO, etc.)
     - `--build-python-sqlite3`: support loadable extensions in `_sqlite` module
+- Added new option to `odoo-install` command: `--enable-unbuffer`.
+  This option enables usage of `unbuffer` command, to make output of test logs colored.
 
 ### Changed
 

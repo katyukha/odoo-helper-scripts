@@ -108,6 +108,9 @@ function print_usage {
          --http-host <host>            - automatically set configuration for http host for this instance
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
          --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xmlrpc_port 9998'
+         --enable-unbuffer             - use this optiona to enable usage of unbuffer for this installation.
+                                         this option will use unbuffer to make output of tests colored,
+                                         thus more readable.
          --verbose|--vv                - show extra output
          --help|-h|help                - show this help message
 
@@ -218,6 +221,9 @@ function parse_options {
                 local opt_name="${key#--test-conf-opt-}"
                 TEST_CONF_OPTIONS[$opt_name]=$2;
                 shift;
+            ;;
+            --enable-unbuffer)
+                USE_UNBUFFER=1;
             ;;
             --verbose|-vv)
                 VERBOSE=1;
