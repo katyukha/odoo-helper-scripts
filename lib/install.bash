@@ -649,6 +649,10 @@ function install_build_python {
         python_configure_options+=( --enable-optimizations );
     fi
 
+    if [ -n "$ODOO_BUILD_PYTHON_SQLITE3" ]; then
+        python_configure_options+=( --enable-loadable-sqlite-extensions );
+    fi
+
     if [[ "$python_version" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
         local python_version_short="${BASH_REMATCH[1]}"
     else
@@ -1114,6 +1118,8 @@ function install_reinstall_venv {
                                     this virtual environment
         --build-python-optimize   - Apply --enable-optimizations to python build.
                                     This could take a while.
+        --build-python-sqlite3    - Apply  --enable-loadable-sqlite-extensions
+                                    when building python.
     ";
     while [[ $# -gt 0 ]]
     do
@@ -1137,6 +1143,9 @@ function install_reinstall_venv {
             --build-python-optimize)
                 ODOO_BUILD_PYTHON_OPTIMIZE=1;
             ;;
+            --build-python-sqlite3)
+                ODOO_BUILD_PYTHON_SQLITE3=1;
+            ;;
             -h|--help|help)
                 echo "$usage";
                 return 0;
@@ -1157,13 +1166,22 @@ function install_reinstall_venv {
     # Backup old venv
     if [ -d "$VENV_DIR" ] && [ -z "$do_not_backup_virtualenv" ]; then
         local venv_backup_path;
+        local python_backup_path;
         venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
+        python_backup_path="$PROJECT_ROOT_DIR/python-$(random_string 4)";
         mv "$VENV_DIR" "$venv_backup_path";
         echoe -e "${BLUEC}Old ${YELLOWC}virtualenv${BLUEC} backed up at ${YELLOWC}${venv_backup_path}${NC}";
+        if [ -d "$PROJECT_ROOT_DIR/python" ]; then
+            mv "$PROJECT_ROOT_DIR/python" "$python_backup_path";
+            echoe -e "${BLUEC}Old ${YELLOWC}python${BLUEC} backed up at ${YELLOWC}${python_backup_path}${NC}";
+        fi
     elif [ -d "$VENV_DIR" ]; then
         # If we do not need to backup virtualenv, then we have to removed it before installing;
         echoe -e "${YELLOWC}Removing virualenv...${NC}";
         rm -r "$VENV_DIR";
+        if [ -d "$PROJECT_ROOT_DIR/python" ]; then
+            rm -r "$PROJECT_ROOT_DIR/python";
+        fi
         echoe -e "${YELLOWC}Virtualenv removed!${NC}";
     fi
 

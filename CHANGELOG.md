@@ -19,6 +19,10 @@
     - `--tdb` - create test database with auto-generated name
     - `--name <name>` - allows to specify name of database as option
 - Experimental support of Odoo 15.0
+- Added new options to `odoo-install` and `odoo-helper install reinstall-venv`
+  that influence on building python:
+    - `--build-python-optimize`: enable expensive, stable optimizations (PGO, etc.)
+    - `--build-python-sqlite3`: support loadable extensions in _sqlite module
 
 ### Changed
 
