@@ -167,7 +167,7 @@ odoo-helper install sys-deps -y 9.0;
 odoo-helper postgres user-create odoo9 odoo;
 odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo9 --db-pass odoo --download-archive off --single-branch on
+    --db-user odoo9 --db-pass odoo
 
 cd odoo-9.0;
 
@@ -861,13 +861,13 @@ cd ../;
 odoo-helper install sys-deps -y 15.0;
 
 
-if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then 
-    # Odoo 15 runs only with python 3.6+
+if python3 -c "import sys; exit(sys.version_info < (3, 7));"; then 
+    # Odoo 15 runs only with python 3.7+
     odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
         --http-port 8569 --http-host local-odoo-15 \
         --db-user odoo15 --db-pass odoo --create-db-user
 else
-    # System python is less then 3.6, so build python 3.7 to use for
+    # System python is less then 3.7, so build python 3.7 to use for
     # this odoo version
     odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
         --http-port 8569 --http-host local-odoo-15 \

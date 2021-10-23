@@ -641,8 +641,10 @@ function install_system_prerequirements {
 function install_build_python {
     local python_version="$1"
     local python_download_link="https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tgz";
-    local python_download_path="$DOWNLOADS_DIR/python-${python_version}.tgz"
-    local python_path="$PROJECT_ROOT_DIR/python"
+    local python_download_dir="$DOWNLOADS_DIR";
+    local python_download_path="$python_download_dir/python-${python_version}.tgz";
+    local python_build_dir="$python_download_dir/Python-$python_version";
+    local python_path="$PROJECT_ROOT_DIR/python";
     local python_configure_options=( --prefix="$python_path" );
 
     if [ -n "$ODOO_BUILD_PYTHON_OPTIMIZE" ]; then
@@ -668,7 +670,7 @@ function install_build_python {
             echoe -e "and analyze its output";
             return 2;
     fi
-    if ! (cd "$DOWNLOADS_DIR" && tar -zxf "$python_download_path"); then
+    if ! (cd "$python_download_dir" && tar -zxf "$python_download_path"); then
         echoe -e "${REDC}ERROR${NC}: Cannot unpack downloaded python archive ${YELLOWC}${python_download_path}${NC}."
         return 3;
     fi
@@ -682,26 +684,30 @@ function install_build_python {
         install_sys_deps_internal "make";
     fi
 
-    # build python
+    # Prepare build python
     echoe -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
-    # TODO: enable optimizations via './configure --enable-optimizations'
     local number_of_jobs;
-    if check_command "nproc"; then
+    if check_command "nproc" > /dev/null; then
         number_of_jobs=$(nproc --ignore=1);
     else
         number_of_jobs=1;
     fi
 
-    (cd "$DOWNLOADS_DIR/Python-$python_version" && \
-        echoe -e "${BLUEC}Configuring python (prefix=$python_path)...${NC}" && \
-        ./configure "${python_configure_options[@]}" && \
-        echoe -e "${BLUEC}Compiling python...${NC}" && \
-        make --jobs="${number_of_jobs}" && \
-        echoe -e "${BLUEC}Installing python...${NC}" && \
-        make --jobs="${number_of_jobs}" install)
+    # Run build python
+    echoe -e "${BLUEC}Configuring python (prefix=$python_path)...${NC}"
+    if [ -n "$CI_RUN" ]; then
+        # This is needed to make tests pass
+        (cd "$python_build_dir" && "$ODOO_HELPER_LIB/pylib/bash_unwrap.py" ./configure "${python_configure_options[@]}")
+    else
+        (cd "$python_build_dir" && ./configure "${python_configure_options[@]}")
+    fi
+    echoe -e "${BLUEC}Compiling python...${NC}"
+    (cd "$python_build_dir" && make --jobs="${number_of_jobs}")
+    echoe -e "${BLUEC}Installing python...${NC}"
+    (cd "$python_build_dir" && make --jobs="${number_of_jobs}" install)
 
     # Remove downloaded python
-    rm -r "$DOWNLOADS_DIR/Python-$python_version" "$python_download_path";
+    rm -r "$python_download_dir/Python-$python_version" "$python_download_path";
     echo -e "${GREENC}OK${NC}: Python built successfully!"
 
     # create python symlink if needed
