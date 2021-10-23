@@ -28,6 +28,10 @@
 - Added new option to `odoo-install` command: `--enable-unbuffer`.
   This option enables usage of `unbuffer` command, to make output of test logs colored.
 - Added new option to `odoo-install` command `--dev` that will automatically install dev tools after odoo installation.
+- Added short versions of options to `odoo-helper fix-versions` command:
+    - `-p` for patch version fix
+    - `-m` for minor version fix
+    - `-M` for major version fix
 
 ### Changed
 
