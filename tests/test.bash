@@ -335,6 +335,11 @@ odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
     --db-user odoo10 --db-pass odoo
 
+# Remove odoo 8 and odoo 9,
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-8.0
+rm -rf ./odoo-9.0
+
 cd odoo-10.0;
 
 echo "";
@@ -730,6 +735,15 @@ Install and check Odoo 13.0 (Py3)
 ${NC}"
 
 cd ../;
+
+
+# Remove odoo 10, 11, 12,
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-10.0
+rm -rf ./odoo-11.0
+rm -rf ./odoo-12.0
+
+# Install odoo 13
 odoo-helper install sys-deps -y 13.0;
 odoo-helper postgres user-create odoo13 odoo;
 
@@ -858,6 +872,13 @@ Install and check Odoo 15.0 (Py3)
 ${NC}"
 
 cd ../;
+
+# Remove odoo 13, 14,
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-13.0
+rm -rf ./odoo-14.0
+
+# Install odoo 15
 odoo-helper install sys-deps -y 15.0;
 
 
@@ -872,7 +893,7 @@ else
     odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
         --http-port 8569 --http-host local-odoo-15 \
         --db-user odoo15 --db-pass odoo --create-db-user \
-        --build-python 3.7.0
+        --build-python 3.7.9
 fi
 
 cd odoo-15.0;
