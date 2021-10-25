@@ -1,5 +1,9 @@
 # Release Notes
 
+## Release 0.12.1 (2021-10-25)
+
+- Fixed: `libmagic1` added to system pre-requirements
+
 ## Release 0.12.0 (2021-10-25)
 
 ### Added

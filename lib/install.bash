@@ -629,7 +629,8 @@ function install_system_prerequirements {
         procps libevent-dev g++ libpq-dev libsass-dev \
         python-dev python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
-        libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig;
+        libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
+        libmagic1;
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
