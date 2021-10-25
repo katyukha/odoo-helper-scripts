@@ -36,6 +36,7 @@
 ### Changed
 
 - Changed signature of `odoo-helper link` command. See `odoo-helper link --help` for more info.
+- Automatically install `python-magic` package during odoo installation.
 
 ### Removed
 
