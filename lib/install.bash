@@ -876,10 +876,16 @@ function install_js_tools {
 
     Usage:
 
-        $SCRIPT_NAME install js-tools        - install extra tools
-        $SCRIPT_NAME install js-tools --help - show this help message
+        $SCRIPT_NAME install js-tools [options] - install extra js tools
+        $SCRIPT_NAME install js-tools --help    - show this help message
 
+    Options:
+
+        -u|--update       - update js packages
+        -h|--help|help    - show this help message
     ";
+    local npm_update;
+
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -887,6 +893,9 @@ function install_js_tools {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            -u|--update)
+                npm_update=1;
             ;;
             *)
                 echo "Unknown option / command $key";
@@ -900,6 +909,9 @@ function install_js_tools {
         deps+=( phantomjs-prebuilt );
     fi
     exec_npm install -g "${deps[@]}";
+    if [ -n "$npm_update" ]; then
+        exec_npm update -g "${deps[@]}";
+    fi
 }
 
 function install_dev_tools {
@@ -922,6 +934,7 @@ function install_dev_tools {
         -h|--help|help  - show this help message
     ";
     local py_options=( );
+    local js_options=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -932,6 +945,7 @@ function install_dev_tools {
             ;;
             --upgrade)
                 py_options+=( --upgrade );
+                js_options+=( --update );
             ;;
             *)
                 echo "Unknown option / command $key";
@@ -942,7 +956,7 @@ function install_dev_tools {
     done
     install_bin_tools;
     install_python_tools "${py_options[@]}";
-    install_js_tools;
+    install_js_tools "${js_options[@]}";
 }
 
 function install_unoconv {
