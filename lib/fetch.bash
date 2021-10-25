@@ -29,6 +29,7 @@ set -e; # fail on errors
 # Define veriables
 REQUIREMENTS_FILE_NAME="odoo_requirements.txt";
 PIP_REQUIREMENTS_FILE_NAME="requirements.txt";
+PIP_REQUIREMENTS_AUTO_FILE_NAME="requirements.auto.txt";
 OCA_REQUIREMENTS_FILE_NAME="oca_dependencies.txt";
 
 
@@ -77,7 +78,11 @@ function fetch_requirements {
 function fetch_pip_requirements {
     local pip_requirements=${1:-$WORKDIR};
     if [ -d "$pip_requirements" ]; then
-        pip_requirements=$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME;
+        if [ -n "$ODOO_HELPER_FETCH_PIP_AUTO_REQUIREMENTS" ]; then
+            fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_AUTO_FILE_NAME";
+        fi
+        fetch_pip_requirements "$pip_requirements/$PIP_REQUIREMENTS_FILE_NAME";
+        return 0;
     fi
 
     if [ ! -f "$pip_requirements" ]; then
@@ -359,7 +364,7 @@ function fetch_download_odoo_app {
         fi
         mv "$app_tmp_path" "$DOWNLOADS_DIR/$app_tmp_name";
         echoe -e "${LBLUEC}INFO: ${BLUEC}Linking addon ${YELLOWC}${app_tmp_name}${BLUEC}...${NC}";
-        link_module off "$DOWNLOADS_DIR/$app_tmp_name";
+        link_module "$DOWNLOADS_DIR/$app_tmp_name";
     done
 
     rm -r "$tmp_dir";
@@ -535,8 +540,10 @@ function fetch_module {
         fi
     fi
 
-    if [ -d "$REPO_PATH" ]; then
-        # Link repo only if it exists
-        link_module off "$REPO_PATH" "$MODULE";
+    # Link repo only if it exists
+    if [ -d "$REPO_PATH" ] && [ -n "$MODULE" ]; then
+        link_module --module-name "$MODULE" "$REPO_PATH";
+    elif [ -d "$REPO_PATH" ]; then
+        link_module "$REPO_PATH";
     fi
 }

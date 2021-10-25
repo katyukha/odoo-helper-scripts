@@ -406,13 +406,13 @@ function ci_cmd_git_fix_versions {
         $SCRIPT_NAME ci fix-versions [options] [repo] [start] [end]
 
     Options:
-        --patch         - Attempt to fix versions in changed
-                          addons. By default, it changes 'patch' part of version.
-        --minor         - Attempt to fix versions in changed
-                          addons. Increases minor part of version number
-        --major         - Attempt to fix versions in changed
-                          addons. Increases major part of version number
-        -h|--help|help  - print this help message end exit
+        -p|--patch         - Attempt to fix versions in changed
+                             addons. By default, it changes 'patch' part of version.
+        -m|--minor         - Attempt to fix versions in changed
+                             addons. Increases minor part of version number
+        -M|--major         - Attempt to fix versions in changed
+                             addons. Increases major part of version number
+        -h|--help|help     - print this help message end exit
 
     Parametrs:
         [repo]    - path to git repository to search for changed addons in
@@ -433,15 +433,15 @@ function ci_cmd_git_fix_versions {
                 shift;
                 return 0;
             ;;
-            --patch)
+            -p|--patch)
                 git_check_versions_opts+=( --fix-version );
                 shift;
             ;;
-            --minor)
+            -m|--minor)
                 git_check_versions_opts+=( --fix-version-minor );
                 shift;
             ;;
-            --major)
+            -M|--major)
                 git_check_versions_opts+=( --fix-version-major );
                 shift;
             ;;
@@ -723,8 +723,8 @@ function ci_do_forwardport {
     # Do not forwardport translations
     git --git-dir "$git_path/.git" reset -q -- "*.po" "*.pot"
     git --git-dir "$git_path/.git" clean -fdx -- "*.po" "*.pot"
-    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot" || true
-    git --git-dir "$git_path/.git" add "*.po" "*.pot" || true
+    git --git-dir "$git_path/.git" checkout --ours "*.po" "*.pot" || true;
+    git --git-dir "$git_path/.git" add "*.po" "*.pot" || true;
 
     # Attempt tot fix versions of modules
     ci_check_versions_git --fix-version-fp "$git_path" "$git_remote_name/$dst_branch";

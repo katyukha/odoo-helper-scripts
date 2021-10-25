@@ -167,7 +167,7 @@ odoo-helper install sys-deps -y 9.0;
 odoo-helper postgres user-create odoo9 odoo;
 odoo-install --install-dir odoo-9.0 --odoo-version 9.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-    --db-user odoo9 --db-pass odoo --download-archive off --single-branch on
+    --db-user odoo9 --db-pass odoo
 
 cd odoo-9.0;
 
@@ -186,7 +186,6 @@ odoo-helper db create test-9-db;
 ! odoo-helper db is-demo -q test-9-db;
 
 # Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
-odoo-helper pip install Mercurial;
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;
@@ -225,6 +224,9 @@ odoo-helper update-odoo
 
 # Reinstall odoo downloading archive
 odoo-helper install reinstall-odoo download;
+
+# Remove created backup of previous odoo code
+rm -rf ./odoo-backup-*;
 
 # Reinstall python dependencies for Odoo
 odoo-helper install py-deps
@@ -333,6 +335,11 @@ odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
     --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
     --db-user odoo10 --db-pass odoo
 
+# Remove odoo 8 and odoo 9,
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-8.0
+rm -rf ./odoo-9.0
+
 cd odoo-10.0;
 
 echo "";
@@ -375,6 +382,9 @@ odoo-helper status
 
 # Update odoo-sources
 odoo-helper update-odoo
+
+# Clean up odoo backups dir
+rm -rf ./backups/*;
 
 # Show complete odoo-helper status
 odoo-helper status  --tools-versions --ci-tools-versions
@@ -707,9 +717,9 @@ odoo-helper addons install --dir ./repositories/oca/partner-contact;
 # Test pull-updates with --do-update option
 odoo-helper-addons pull-updates --do-update;
 
-# Regenerate pot files for modules from partner-contact
-odoo-helper tr regenerate --pot --dir ./repositories/oca/partner-contact;
-odoo-helper tr regenerate --lang-file "uk_UA:uk" --lang-file "ru_RU:ru" --dir ./repositories/oca/partner-contact;
+# Regenerate pot files for modules from generic-addons
+odoo-helper tr regenerate --pot --dir ./repositories/crnd-inc/generic-addons;
+odoo-helper tr regenerate --lang-file "uk_UA:uk" --lang-file "ru_RU:ru" --dir ./repositories/crnd-inc/generic-addons;
 
 # Print list of installed addons
 odoo-helper addons find-installed;
@@ -725,6 +735,15 @@ Install and check Odoo 13.0 (Py3)
 ${NC}"
 
 cd ../;
+
+
+# Remove odoo 10, 11, 12,
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-10.0
+rm -rf ./odoo-11.0
+rm -rf ./odoo-12.0
+
+# Install odoo 13
 odoo-helper install sys-deps -y 13.0;
 odoo-helper postgres user-create odoo13 odoo;
 
@@ -775,7 +794,7 @@ odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
 odoo-helper addons install --ual bureaucrat_helpdesk_lite;
 
 # Print list of installed addons
-odoo-helper addons find-installed;
+odoo-helper addons find-installed --packager-format;
 
 # Drop created databases
 odoo-helper db drop odoo13-odoo-test;
@@ -844,6 +863,93 @@ odoo-helper addons find-installed;
 
 # Drop created databases
 odoo-helper db drop odoo14-odoo-test;
+
+
+echo -e "${YELLOWC}
+=================================
+Install and check Odoo 15.0 (Py3)
+=================================
+${NC}"
+
+cd ../;
+
+# Remove odoo 13, 14,
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-13.0
+rm -rf ./odoo-14.0
+
+# Install odoo 15
+odoo-helper install sys-deps -y 15.0;
+
+
+if python3 -c "import sys; exit(sys.version_info < (3, 7));"; then 
+    # Odoo 15 runs only with python 3.7+
+    odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
+        --http-port 8569 --http-host local-odoo-15 \
+        --db-user odoo15 --db-pass odoo --create-db-user
+else
+    # System python is less then 3.7, so build python 3.7 to use for
+    # this odoo version
+    odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
+        --http-port 8569 --http-host local-odoo-15 \
+        --db-user odoo15 --db-pass odoo --create-db-user \
+        --build-python 3.7.9
+fi
+
+cd odoo-15.0;
+
+# Install py-tools and js-tools
+odoo-helper install py-tools;
+odoo-helper install js-tools;
+
+odoo-helper server run --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status;
+odoo-helper server status;
+odoo-helper start;
+odoo-helper ps;
+odoo-helper status;
+odoo-helper server status;
+odoo-helper stop;
+
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions;
+
+# Database management
+odoo-helper db create --tdb --lang en_US;
+
+odoo-helper addons update-list --tdb;
+odoo-helper addons install --tdb --module crm;
+odoo-helper addons test-installed crm;
+
+## Reinstall venv without backup and build for python 3.9.7
+# Python compiling does not work because conflict with bashcov test coverage util
+#odoo-helper install reinstall-venv --no-backup --build-python 3.9.7;
+
+#odoo-helper lsd;  # List databases
+
+## Install addon website via 'odoo-helper install'
+#odoo-helper install website;
+
+## Fetch oca/contract
+#odoo-helper fetch --github crnd-inc/generic-addons
+
+## Install addons from OCA contract
+#odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
+
+## Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
+#odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+#odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+
+## Print list of installed addons
+#odoo-helper addons find-installed;
+
+## Run tests for helpdesk lite
+#odoo-helper test generic_request crnd_wsd
+
+# Drop created databases
+odoo-helper db drop odoo15-odoo-test;
 
 echo -e "${YELLOWC}
 =============================================================

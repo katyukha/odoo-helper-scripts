@@ -37,6 +37,7 @@ function odoo_db_create {
        <name>                - name of new database
 
     Options:
+       --name <name>         - name of new database
        --demo                - load demo-data (default: no demo-data)
        --lang <lang>         - specified language for this db.
                                <lang> is language code like 'en_US'...
@@ -47,6 +48,8 @@ function odoo_db_create {
                                Only supported on Odoo 9.0+
        --recreate            - if database with such name exists,
                                then drop it first
+       --tdb                 - create test database with standard name
+                               and with demo data
        -i|--install <addon>  - Install specified addon to created db.
                                Could be specified multiple times
        --install-dir <dir>   - Install all addons in spcified directory.
@@ -55,26 +58,43 @@ function odoo_db_create {
 
     # Parse options
     local db_recreate=;
+    local db_name=;
     local db_install_addons=( );
     local db_create_opts=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
+            --name)
+                db_name="$2";
+                shift;
+            ;;
             --demo)
-                db_create_opts+=("--demo")
+                db_create_opts+=( "--demo" )
             ;;
             --lang)
-                db_create_opts+=("--lang" "$2");
+                db_create_opts+=( "--lang" "$2" );
                 shift;
             ;;
             --password)
-                db_create_opts+=("--password" "$2");
+                db_create_opts+=( "--password" "$2" );
                 shift;
             ;;
             --country)
-                db_create_opts+=("--country" "$2");
+                db_create_opts+=( "--country" "$2" );
                 shift;
+            ;;
+            --tdb)
+                local test_db;
+                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
+                if [ -z "$test_db" ]; then
+                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
+                    test_db="$test_db-odoo-test";
+                fi
+                if [ -n "$test_db" ]; then
+                    db_name="$test_db";
+                    db_create_opts+=( "--demo" );
+                fi
             ;;
             --recreate)
                 db_recreate=1;
@@ -109,8 +129,12 @@ function odoo_db_create {
         shift;
     done
 
-    local db_name=$1;
-    local conf_file=${2:-$ODOO_CONF_FILE};
+    if [ -z "$db_name" ]; then
+        db_name=$1;
+        shift;
+    fi
+
+    local conf_file=${1:-$ODOO_CONF_FILE};
 
     if [ -z "$db_name" ]; then
         echoe -e "${REDC}ERROR${NC}: dbname not specified!!!";

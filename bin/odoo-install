@@ -83,6 +83,9 @@ function print_usage {
          -b|--odoo-branch <branch>     - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
                                          from diferent branch, use this option.
+         --dev                         - [sudo] This option enables automatic installation of developer tools,
+                                         like, pylint, flake8, unbuffer, etc.
+                                         May require sudo.
          --download-archive on|off     - if on, then odoo will be downloaded as archive. it is faster
                                          if You want to clone Odoo repository set this option to 'off'
                                          Default: $DOWNLOAD_ARCHIVE
@@ -93,6 +96,10 @@ function print_usage {
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
          --build-python <ver>          - build custom python for specified version
+         --build-python-optimize       - Apply '--enable-optimizations' for python build.
+                                         This could take a while.
+         --build-python-sqlite3        - Apply  --enable-loadable-sqlite-extensions
+                                         when building python.
          --node-version <ver>          - Version of node.js to be installed. by default latest.
          --no-single-branch            - Set '--signle-branch' option to 'off'
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
@@ -104,6 +111,9 @@ function print_usage {
          --http-host <host>            - automatically set configuration for http host for this instance
          --conf-opt-<option_name>      - rewrite configuration option. Ex: '--conf-opt-xmlrpc_port 9999'
          --test-conf-opt-<option_name> - rewrite test configuration option Ex: '--conf-opt-xmlrpc_port 9998'
+         --enable-unbuffer             - use this optiona to enable usage of unbuffer for this installation.
+                                         this option will use unbuffer to make output of tests colored,
+                                         thus more readable.
          --verbose|--vv                - show extra output
          --help|-h|help                - show this help message
 
@@ -151,6 +161,10 @@ function parse_options {
                 ODOO_BRANCH=$2;
                 shift;
             ;;
+            --dev)
+                USE_UNBUFFER=1;
+                ODOO_INSTALL_DEV_TOOLS=1;
+            ;;
             --download-archive)
                 DOWNLOAD_ARCHIVE=$2;
                 shift;
@@ -171,6 +185,12 @@ function parse_options {
             --build-python)
                 ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
+            ;;
+            --build-python-optimize)
+                ODOO_BUILD_PYTHON_OPTIMIZE=1;
+            ;;
+            --build-python-sqlite3)
+                ODOO_BUILD_PYTHON_SQLITE3=1;
             ;;
             --node-version)
                 ODOO_INSTALL_NODE_VERSION=$2;
@@ -208,6 +228,9 @@ function parse_options {
                 local opt_name="${key#--test-conf-opt-}"
                 TEST_CONF_OPTIONS[$opt_name]=$2;
                 shift;
+            ;;
+            --enable-unbuffer)
+                USE_UNBUFFER=1;
             ;;
             --verbose|-vv)
                 VERBOSE=1;
@@ -332,6 +355,12 @@ generate_test_conf;
 if [ -n "${DB_ENFORCE_CREATE_PG_USER}" ] && [ "${DB_ENFORCE_CREATE_PG_USER}" -eq 1 ]; then
     echo -e "${BLUEC}Creating postgresql user ${YELLOWC}${DB_USER}${BLUEC}...${NC}";
     postgres_user_create "${DB_USER}" "${DB_PASSWORD}";
+fi
+
+# Install dev-tools if needed
+if [ -n "${ODOO_INSTALL_DEV_TOOLS}" ]; then
+    echo -e "${BLUEC}Installing development tools ...${NC}";
+    install_dev_tools;
 fi
 #------------------------------------------------------------------------
 

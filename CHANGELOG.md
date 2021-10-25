@@ -1,5 +1,53 @@
 # Release Notes
 
+## Release 0.12.0 (2021-10-25)
+
+### Added
+
+- Optionally, install py dependencies defined in `requirements.auto.txt` file duting linking addons.
+  This may be used to handle auto-generated requirements by tools like [Yodoo Cockpit](https://crnd.pro/yodoo-cockpit).
+  This feature have to be enabled by setting environment variable `ODOO_HELPER_FETCH_PIP_AUTO_REQUIREMENTS` to non-zero value.
+  If you want to enable this feature on permanent basis, then you can place this var to odoo-helper's project-level or global config file.
+- Added experimental support for automatic discover of python dependencies defined in addon's manifest during addon linking process.
+- Try to automatically detect config for linters, if it is placed in root of repository and if linter invoked inside this repo.
+  Available linter config file names are:
+    - `flake8.cfg`
+    - `pylint_odoo.cfg`
+    - `stylelint-default.json`
+    - `stylelint-default-less.json`
+    - `stylelint-default-scss.json`
+- Added new opt `--upgrade` to `odoo-helper install py-tools` and `odoo-helper install dev-tools` commands
+- Added new opt `--update` to `odoo-helper install js-tools`
+- Added new opts to `odoo-helper db create` command:
+    - `--tdb` - create test database with auto-generated name
+    - `--name <name>` - allows to specify name of database as option
+- Experimental support of Odoo 15.0
+- Added new options to `odoo-install` and `odoo-helper install reinstall-venv`
+  that influence on building python:
+    - `--build-python-optimize`: enable expensive, stable optimizations (PGO, etc.)
+    - `--build-python-sqlite3`: support loadable extensions in `_sqlite` module
+- Added new option to `odoo-install` command: `--enable-unbuffer`.
+  This option enables usage of `unbuffer` command, to make output of test logs colored.
+- Added new option to `odoo-install` command `--dev` that will automatically install dev tools after odoo installation.
+- Added short versions of options to `odoo-helper fix-versions` command:
+    - `-p` for patch version fix
+    - `-m` for minor version fix
+    - `-M` for major version fix
+
+### Changed
+
+- Changed signature of `odoo-helper link` command. See `odoo-helper link --help` for more info.
+- Automatically install `python-magic` package during odoo installation.
+- Use another config for `stylelint` for `scss` files.
+  This was done, because `stylelint` started throwing errors, when parsing `scss` files in standard way,
+  so it was desided to update use specific config for style lint with this update.
+
+### Removed
+
+- `odoo-helper pip --oca` option support. There is no sense to use this option anymore,
+  because all OCA apps now published on standard PyPI.
+
+
 ## Release 0.11.0 (2021-09-17)
 
 ### Added

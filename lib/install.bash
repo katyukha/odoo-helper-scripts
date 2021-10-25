@@ -641,8 +641,19 @@ function install_system_prerequirements {
 function install_build_python {
     local python_version="$1"
     local python_download_link="https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tgz";
-    local python_download_path="$DOWNLOADS_DIR/python-${python_version}.tgz"
-    local python_path="$PROJECT_ROOT_DIR/python"
+    local python_download_dir="$DOWNLOADS_DIR";
+    local python_download_path="$python_download_dir/python-${python_version}.tgz";
+    local python_build_dir="$python_download_dir/Python-$python_version";
+    local python_path="$PROJECT_ROOT_DIR/python";
+    local python_configure_options=( --prefix="$python_path" );
+
+    if [ -n "$ODOO_BUILD_PYTHON_OPTIMIZE" ]; then
+        python_configure_options+=( --enable-optimizations );
+    fi
+
+    if [ -n "$ODOO_BUILD_PYTHON_SQLITE3" ]; then
+        python_configure_options+=( --enable-loadable-sqlite-extensions );
+    fi
 
     if [[ "$python_version" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
         local python_version_short="${BASH_REMATCH[1]}"
@@ -659,20 +670,44 @@ function install_build_python {
             echoe -e "and analyze its output";
             return 2;
     fi
-    if ! (cd "$DOWNLOADS_DIR" && tar -zxf "$python_download_path"); then
+    if ! (cd "$python_download_dir" && tar -zxf "$python_download_path"); then
         echoe -e "${REDC}ERROR${NC}: Cannot unpack downloaded python archive ${YELLOWC}${python_download_path}${NC}."
         return 3;
     fi
 
-    # build python
-    echo -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
-    (cd "$DOWNLOADS_DIR/Python-$python_version" && \
-        ./configure --prefix="$python_path" && \
-        make && \
-        make install)
+
+    # Check if make package / command is installed, and install if it is not installed yet
+    if ! check_command 'make' > /dev/null; then
+        # TODO: May be it have sense to add it to pre-requirements, or somewhere else.
+        #       Or may be it have sense to ask for confirmation?
+        echoe -e "${YELLOWC}make${BLUEC} seems to be not installed. ${YELLOWC}make${BLUEC} is package required to build python and will be installed automatically.${NC}";
+        install_sys_deps_internal "make";
+    fi
+
+    # Prepare build python
+    echoe -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
+    local number_of_jobs;
+    if check_command "nproc" > /dev/null; then
+        number_of_jobs=$(nproc --ignore=1);
+    else
+        number_of_jobs=1;
+    fi
+
+    # Run build python
+    echoe -e "${BLUEC}Configuring python (prefix=$python_path)...${NC}"
+    if [ -n "$CI_RUN" ]; then
+        # This is needed to make tests pass
+        (cd "$python_build_dir" && "$ODOO_HELPER_LIB/pylib/bash_unwrap.py" ./configure "${python_configure_options[@]}")
+    else
+        (cd "$python_build_dir" && ./configure "${python_configure_options[@]}")
+    fi
+    echoe -e "${BLUEC}Compiling python...${NC}"
+    (cd "$python_build_dir" && make --jobs="${number_of_jobs}")
+    echoe -e "${BLUEC}Installing python...${NC}"
+    (cd "$python_build_dir" && make --jobs="${number_of_jobs}" install)
 
     # Remove downloaded python
-    rm -r "$DOWNLOADS_DIR/Python-$python_version" "$python_download_path";
+    rm -r "$python_download_dir/Python-$python_version" "$python_download_path";
     echo -e "${GREENC}OK${NC}: Python built successfully!"
 
     # create python symlink if needed
@@ -797,15 +832,20 @@ function install_python_tools {
     Options:
 
         -q|--quiet     - quiet mode. reduce output
+        --upgrade      - upgrade the tools
 
     ";
     local pip_options=( );
+    local pip_install_opts=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             -q|--quiet)
                 pip_options+=( --quiet );
+            ;;
+            --upgrade)
+                pip_install_opts+=( --upgrade );
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -818,7 +858,7 @@ function install_python_tools {
         esac
         shift
     done
-    exec_pip "${pip_options[@]}" install setproctitle watchdog pylint-odoo coverage \
+    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" setproctitle watchdog pylint pylint-odoo coverage \
         flake8 flake8-colors websocket-client jingtrang;
 }
 
@@ -836,10 +876,16 @@ function install_js_tools {
 
     Usage:
 
-        $SCRIPT_NAME install js-tools        - install extra tools
-        $SCRIPT_NAME install js-tools --help - show this help message
+        $SCRIPT_NAME install js-tools [options] - install extra js tools
+        $SCRIPT_NAME install js-tools --help    - show this help message
 
+    Options:
+
+        -u|--update       - update js packages
+        -h|--help|help    - show this help message
     ";
+    local npm_update;
+
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -848,6 +894,9 @@ function install_js_tools {
                 echo "$usage";
                 return 0;
             ;;
+            -u|--update)
+                npm_update=1;
+            ;;
             *)
                 echo "Unknown option / command $key";
                 return 1;
@@ -855,11 +904,14 @@ function install_js_tools {
         esac
         shift
     done
-    local deps=( eslint stylelint stylelint-config-standard stylelint-config-sass-guidelines );
+    local deps=( eslint stylelint stylelint-config-standard stylelint-config-standard-scss postcss-scss postcss-less);
     if [ "$(odoo_get_major_version)" -lt 12 ]; then
         deps+=( phantomjs-prebuilt );
     fi
     exec_npm install -g "${deps[@]}";
+    if [ -n "$npm_update" ]; then
+        exec_npm update -g "${deps[@]}";
+    fi
 }
 
 function install_dev_tools {
@@ -873,9 +925,16 @@ function install_dev_tools {
 
     Usage:
 
-        $SCRIPT_NAME install dev-tools        - install extra dev tools
-        $SCRIPT_NAME install dev-tools --help - show this help message
+        $SCRIPT_NAME install dev-tools [options]  - install extra dev tools
+        $SCRIPT_NAME install dev-tools --help     - show this help message
+
+    Options:
+
+        --upgrade       - upgrade tools
+        -h|--help|help  - show this help message
     ";
+    local py_options=( );
+    local js_options=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -883,6 +942,10 @@ function install_dev_tools {
             -h|--help|help)
                 echo "$usage";
                 return 0;
+            ;;
+            --upgrade)
+                py_options+=( --upgrade );
+                js_options+=( --update );
             ;;
             *)
                 echo "Unknown option / command $key";
@@ -892,8 +955,8 @@ function install_dev_tools {
         shift
     done
     install_bin_tools;
-    install_python_tools;
-    install_js_tools;
+    install_python_tools "${py_options[@]}";
+    install_js_tools "${js_options[@]}";
 }
 
 function install_unoconv {
@@ -969,7 +1032,7 @@ function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
     # setuptools, so we do not need to upgrade them
     exec_pip -q install phonenumbers python-slugify setuptools-odoo cffi \
-        jinja2 click;
+        jinja2 click python-magic;
 
     if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
         exec_pip -q install Python-Chart;
@@ -980,7 +1043,7 @@ function install_python_prerequirements {
 # Now it is less compiler. install if it is not installed yet
 function install_js_prerequirements {
     if ! check_command lessc > /dev/null; then
-        execu npm install -g less@3.9.0;
+        execu npm install -g less@3.9.0 rtlcss;
     fi
 }
 
@@ -1071,8 +1134,12 @@ function install_reinstall_venv {
         --node-version <version>  - version of node.js to be installed.
                                     Default: latest
         --no-backup               - do not backup virtualenv
-        --build-python <version>  - build custom version of python for
+        --build-python <version>  - Build custom version of python for
                                     this virtual environment
+        --build-python-optimize   - Apply --enable-optimizations to python build.
+                                    This could take a while.
+        --build-python-sqlite3    - Apply  --enable-loadable-sqlite-extensions
+                                    when building python.
     ";
     while [[ $# -gt 0 ]]
     do
@@ -1092,6 +1159,12 @@ function install_reinstall_venv {
             --build-python)
                 ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
+            ;;
+            --build-python-optimize)
+                ODOO_BUILD_PYTHON_OPTIMIZE=1;
+            ;;
+            --build-python-sqlite3)
+                ODOO_BUILD_PYTHON_SQLITE3=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -1113,13 +1186,22 @@ function install_reinstall_venv {
     # Backup old venv
     if [ -d "$VENV_DIR" ] && [ -z "$do_not_backup_virtualenv" ]; then
         local venv_backup_path;
+        local python_backup_path;
         venv_backup_path="$PROJECT_ROOT_DIR/venv-backup-$(random_string 4)";
+        python_backup_path="$PROJECT_ROOT_DIR/python-$(random_string 4)";
         mv "$VENV_DIR" "$venv_backup_path";
         echoe -e "${BLUEC}Old ${YELLOWC}virtualenv${BLUEC} backed up at ${YELLOWC}${venv_backup_path}${NC}";
+        if [ -d "$PROJECT_ROOT_DIR/python" ]; then
+            mv "$PROJECT_ROOT_DIR/python" "$python_backup_path";
+            echoe -e "${BLUEC}Old ${YELLOWC}python${BLUEC} backed up at ${YELLOWC}${python_backup_path}${NC}";
+        fi
     elif [ -d "$VENV_DIR" ]; then
         # If we do not need to backup virtualenv, then we have to removed it before installing;
         echoe -e "${YELLOWC}Removing virualenv...${NC}";
         rm -r "$VENV_DIR";
+        if [ -d "$PROJECT_ROOT_DIR/python" ]; then
+            rm -r "$PROJECT_ROOT_DIR/python";
+        fi
         echoe -e "${YELLOWC}Virtualenv removed!${NC}";
     fi
 
@@ -1175,7 +1257,10 @@ function install_reinstall_odoo {
     fi
 
     if [ -d "$ODOO_PATH" ]; then
-        mv "$ODOO_PATH" "$ODOO_PATH-backup-$(random_string 4)";
+        local odoo_backup_path;
+        odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
+        mv "$ODOO_PATH" "$odoo_backup_path";
+        echo -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
     fi
 
     install_fetch_odoo "$reinstall_action";

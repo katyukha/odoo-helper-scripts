@@ -202,7 +202,7 @@ function odoo_update_sources {
     odoo_run_setup_py;  # imported from 'install' module
 
     echoe -e "${GREENC}Odoo sources update finished!${NC}";
-    echoe -e "${LBLUEC}It is recommended to update module ${YELLOC}base${NC} on all databases on this server!${NC}";
+    echoe -e "${LBLUEC}It is recommended to update module ${YELLOWC}base${LBLUEC} on all databases on this server!${NC}";
 
     if [ -n "$need_start" ] && ! server_is_running; then
         server_start;
