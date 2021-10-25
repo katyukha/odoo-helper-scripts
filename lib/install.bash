@@ -904,7 +904,7 @@ function install_js_tools {
         esac
         shift
     done
-    local deps=( eslint stylelint stylelint-config-standard stylelint-config-sass-guidelines );
+    local deps=( eslint stylelint stylelint-config-standard stylelint-config-standard-scss postcss-scss postcss-less);
     if [ "$(odoo_get_major_version)" -lt 12 ]; then
         deps+=( phantomjs-prebuilt );
     fi

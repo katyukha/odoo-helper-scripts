@@ -38,6 +38,9 @@
 
 - Changed signature of `odoo-helper link` command. See `odoo-helper link --help` for more info.
 - Automatically install `python-magic` package during odoo installation.
+- Use another config for `stylelint` for `scss` files.
+  This was done, because `stylelint` started throwing errors, when parsing `scss` files in standard way,
+  so it was desided to update use specific config for style lint with this update.
 
 ### Removed
 
