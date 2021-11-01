@@ -628,7 +628,7 @@ function ci_do_forwardport {
         --fm|--forward-migrations        - Rename all migrations for source version
                                            to new odoo-version. Now it is enabled by default.
         --no-fm|--no-forward-migrations  - Do not forward-port migrations
-        --migrate-modules                - [experimental] Migrate module's code
+        --mm|--migrate-modules           - [experimental] Migrate module's code
 
         --help                           - show this help message
     ";
@@ -666,7 +666,7 @@ function ci_do_forwardport {
             --no|--no-forward-migrations)
                 forward_migrations=0;
             ;;
-            --migrate-modules)
+            --mm|--migrate-modules)
                 migrate_modules=1;
             ;;
             -h|--help|help)

@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Short version of `--migrate-modules` option to `odoo-helper ci do-forwardport`: `--mm`.
+  So, now forwardport command could look like: `odoo-helper ci do-forward-port -s 12.0 --mm`
+
 ## Release 0.12.1 (2021-10-25)
 
 - Fixed: `libmagic1` added to system pre-requirements
