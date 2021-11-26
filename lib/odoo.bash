@@ -72,6 +72,19 @@ function odoo_get_server_url {
     echo "http://$(odoo_get_conf_val_http_host):$(odoo_get_conf_val_http_port)/";
 }
 
+# Get name of default test database.
+function odoo_conf_get_test_db {
+    local test_db;
+    test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
+    if [ -z "$test_db" ] || [ "$test_db" == "False" ]; then
+        # if test database is not specified in conf, use name of test database
+        # based on name of db user
+        db_user=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
+        test_db="$db_user-odoo-test";
+    fi
+    echo "$test_db";
+}
+
 function odoo_update_sources_git {
     local update_date;
     local tag_name;
@@ -257,6 +270,7 @@ function odoo_recompute_stored_fields {
     Options:
 
         -d|--db|--dbname <dbname>  - name of database to recompute stored fields on
+        --tdb                      - recompute for test database
         -m|--model <model name>    - name of model (in 'model.name.x' format)
                                      to recompute stored fields on
         -f|--field <field name>    - name of field to be recomputed.
@@ -283,6 +297,9 @@ function odoo_recompute_stored_fields {
             -d|--db|--dbname)
                 dbname=$2;
                 shift;
+            ;;
+            --tdb)
+                dbname=$(odoo_conf_get_test_db);
             ;;
             -m|--model)
                 model=$2;
@@ -347,6 +364,7 @@ function odoo_recompute_menu {
     Options:
 
         -d|--db|--dbname <dbname>  - name of database to recompute menu for
+        --tdb                      - recompute for test database
     ";
     if [[ $# -lt 1 ]]; then
         echo "$usage";
@@ -361,6 +379,9 @@ function odoo_recompute_menu {
             -d|--db|--dbname)
                 dbname=$2;
                 shift;
+            ;;
+            --tdb)
+                dbname=$(odoo_conf_get_test_db);
             ;;
             -h|--help|help)
                 echo "$usage";

@@ -86,11 +86,7 @@ function odoo_db_create {
             ;;
             --tdb)
                 local test_db;
-                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
-                if [ -z "$test_db" ]; then
-                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
-                    test_db="$test_db-odoo-test";
-                fi
+                test_db=$(odoo_conf_get_test_db)
                 if [ -n "$test_db" ]; then
                     db_name="$test_db";
                     db_create_opts+=( "--demo" );

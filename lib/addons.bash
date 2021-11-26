@@ -182,11 +182,7 @@ function addons_update_module_list {
             ;;
             --tdb|--test-db)
                 local test_db;
-                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
-                if [ -z "$test_db" ]; then
-                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
-                    test_db="$test_db-odoo-test";
-                fi
+                test_db=$(odoo_conf_get_test_db)
                 if [ -n "$test_db" ]; then
                     dbs+=( "$test_db" );
                 fi
@@ -821,11 +817,7 @@ function addons_install_update {
             ;;
             --tdb|--test-db)
                 local test_db;
-                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
-                if [ -z "$test_db" ]; then
-                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
-                    test_db="$test_db-odoo-test";
-                fi
+                test_db=$(odoo_conf_get_test_db)
                 if [ -n "$test_db" ]; then
                     dbs+=( "$test_db" );
                 else
