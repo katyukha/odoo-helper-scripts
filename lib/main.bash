@@ -472,7 +472,7 @@ function odoo_helper_main {
                 ci_command "$@";
                 return;
             ;;
-            fix-versions)
+            fix-versions|fix-version)
                 shift;
                 config_load_project;
                 ci_cmd_git_fix_versions "$@";
