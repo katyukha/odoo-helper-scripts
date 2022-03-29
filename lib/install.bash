@@ -685,6 +685,12 @@ function install_build_python {
         install_sys_deps_internal "make";
     fi
 
+    # Check if we need to install SQLite lib dev package  dpkg -s sqlite3 2&>1 > /dev/null
+    if [ -n "$ODOO_BUILD_PYTHON_SQLITE3" ] && ! dpkg -s libsqlite3-dev > /dev/null 2>&1; then
+        echoe -e "${YELLOWC}libsqlite3-dev${BLUEC} seems to be not installed. Installing...${NC}";
+        install_sys_deps_internal "libsqlite3-dev";
+    fi
+
     # Prepare build python
     echoe -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
     local number_of_jobs;
