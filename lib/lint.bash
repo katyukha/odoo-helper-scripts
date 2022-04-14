@@ -85,6 +85,7 @@ function lint_run_pylint {
     local pylint_rc
     local pylint_opts;
     local pylint_disable="manifest-required-author";
+    local guess_jslintrc=1;
 
     pylint_rc=$(config_get_default_tool_conf "pylint_odoo.cfg");
 
@@ -99,11 +100,25 @@ function lint_run_pylint {
             pylint_opts+=( "$1" );
         elif [[ "$1" =~ --pylint-conf=(.+) ]]; then
             pylint_rc=$(config_get_default_tool_conf "${BASH_REMATCH[1]}")
+        elif [[ "$1" =~ --jslintrc.* ]]; then
+            guess_jslintrc=0;
+            pylint_opts+=( "$1" );
         else
             pylint_opts+=( "$1" );
         fi
         shift;
     done
+
+    if ! git_is_git_repo "$1"; then
+        guess_jslintrc=0;
+    else
+        local repo_path;
+        repo_path=$(git_get_abs_repo_path "$1");
+        if [ -e "${repo_path}/.jslintrc"  ]; then
+            echoe -e "${BLUEC}INFO${NC}: Applying auto-detected repo-wide jslintrc ${BLUEC}${repo_path}/.jslintrc${NC}.";
+            pylint_opts+=( "--jslintrc" "${repo_path}/.jslintrc" );
+        fi
+    fi
 
     # specify valid odoo version for pylint manifest version check
     pylint_opts+=( "--rcfile=$pylint_rc" "--valid_odoo_versions=$ODOO_VERSION" );
