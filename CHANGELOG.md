@@ -7,6 +7,8 @@
 - Short version of `--migrate-modules` option to `odoo-helper ci do-forwardport`: `--mm`.
   So, now forwardport command could look like: `odoo-helper ci do-forward-port -s 12.0 --mm`
 - Automatically detect `.jslintrc` placed in repo root directory. If found, then apply it to pylint by default.
+- Added shortcut for `odoo-helper fix-versions` - `odoo-helper fix-version`
+- Added option `--tdb` to `odoo-helper odoo recompute` command`
 
 ### Changed
 
