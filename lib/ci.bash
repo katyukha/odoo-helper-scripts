@@ -532,7 +532,7 @@ function ci_push_changes {
     Have to be used in Continious Integration pipelines.
     Have to be ran only in Gitlab
 
-    This command could be used in automated flows that midifies repository code
+    This command could be used in automated flows that modifies repository code
 
     WARNING: this command is experimental, and have to be used carefully
 
@@ -581,6 +581,8 @@ function ci_push_changes {
         return 4;
     fi
 
+    local git_remote_url="git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_PATH}";
+
     echoe -e "${LBLUEC}INFO${NC}: committing as user (name=${GITLAB_USER_NAME}, email=${GITLAB_USER_EMAIL})";
     git -c "user.name='${GITLAB_USER_NAME}'" -c "user.email='${GITLAB_USER_EMAIL}'" commit -m "${commit_name}";
     echo "$CI_SSH_PRIVATE_KEY" > /tmp/push_key;
@@ -589,8 +591,8 @@ function ci_push_changes {
     chmod 600 /tmp/push_key;
     chmod 600 /tmp/push_key.pub;
     chmod 600 /tmp/pushsshconfig;
-    echoe -e "${LBLUEC}INFO${NC}: setting remote url to git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
-    git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
+    echoe -e "${LBLUEC}INFO${NC}: setting remote url to ${git_remote_name}";
+    git remote set-url --push origin "${git_remote_name}";
     echoe -e "${LBLUEC}INFO${NC}: pushing changes to ${CI_COMMIT_BRANCH}";
     git -c core.sshCommand='ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /tmp/pushsshconfig -i /tmp/push_key' \
         push origin "HEAD:${CI_COMMIT_BRANCH}";
