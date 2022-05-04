@@ -884,7 +884,7 @@ function ci_ensure_addons_have_changelog {
             echee -e "${REDC}WARNING${NC}: It seems that addon ${YELLOWC}${addon_name}${NC} removed. skipping...";
             continue;
         fi
-        addon_version_short=${addon_version##$ODOO_VERSION.};
+        addon_version_short=${addon_version##"$ODOO_VERSION".};
         if [ ! -f "$addon/changelog/changelog.$addon_version_short.$changelog_format" ]; then
             echoe -e "${REDC}ERROR${NC}: addon ${YELLOWC}${addon_name}${NC} have no changelog entry! (format: ${YELLOWC}${changelog_format}${NC})";
             res=1;

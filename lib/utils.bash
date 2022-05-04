@@ -30,7 +30,7 @@ function execv {
     fi
 
     # Eval command and save result
-    if eval "$@"; then
+    if eval "$@"; then  # shellcheck disable=SC2294
         local res=$?;
     else
         local res=$?;
