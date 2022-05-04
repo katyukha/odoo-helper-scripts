@@ -100,7 +100,7 @@ function print_usage {
                                          This could take a while.
          --build-python-sqlite3        - Apply  --enable-loadable-sqlite-extensions
                                          when building python.
-         --node-version <ver>          - Version of node.js to be installed. by default latest.
+         --node-version <ver>          - Version of node.js to be installed. By default lts.
          --no-single-branch            - Set '--signle-branch' option to 'off'
          --db-host <host>              - database host to be used in settings. default: $DB_HOST
          --db-user <user>              - database user to be used in settings. default: $DB_USER

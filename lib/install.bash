@@ -749,6 +749,8 @@ function install_virtual_env {
         nodeenv_opts=( "--python-virtualenv" );
         if [ -n "$ODOO_INSTALL_NODE_VERSION" ]; then
             nodeenv_opts+=( "--node" "$ODOO_INSTALL_NODE_VERSION" );
+        else
+            nodeenv_opts+=( "--node" "lts" );
         fi
 
         execv nodeenv "${nodeenv_opts[@]}";  # Install node environment
@@ -1139,7 +1141,7 @@ function install_reinstall_venv {
         -p|--python <python ver>  - python version to recreate virtualenv with.
                                     Same as --python option of virtualenv
         --node-version <version>  - version of node.js to be installed.
-                                    Default: latest
+                                    Default: lts
         --no-backup               - do not backup virtualenv
         --build-python <version>  - Build custom version of python for
                                     this virtual environment

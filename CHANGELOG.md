@@ -8,6 +8,12 @@
   So, now forwardport command could look like: `odoo-helper ci do-forward-port -s 12.0 --mm`
 - Automatically detect `.jslintrc` placed in repo root directory. If found, then apply it to pylint by default.
 
+### Changed
+
+- Install LTS version of nodejs by default.
+  In previous version latest stable version was installed by default.
+
+
 ## Release 0.12.1 (2021-10-25)
 
 - Fixed: `libmagic1` added to system pre-requirements
