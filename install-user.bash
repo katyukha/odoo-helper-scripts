@@ -52,10 +52,13 @@ ODOO_HELPER_BIN=${ODOO_HELPER_BIN:-$INSTALL_PATH/bin};
 
 # clone repo
 if [ ! -d $INSTALL_PATH ]; then
+    echo -e "${BLUEC}INFO${NC}: clonning odoo-helper-scripts...${NC}";
     git clone --recurse-submodules -q https://gitlab.com/katyukha/odoo-helper-scripts $INSTALL_PATH;
+    echo -e "${BLUEC}INFO${NC}: fetching submodules...${NC}";
     (cd $INSTALL_PATH && git checkout -q $ODOO_HELPER_BRANCH && git submodule init && git submodule update);
     # TODO: may be it is good idea to pull changes from repository if it is already exists?
     # TODO: implement here some sort of upgrade mechanism?
+    echo -e "${GREENC}OK${NC}: odoo-helper-scripts successfully clonned${NC}";
 fi
 
 # install odoo-helper user config
