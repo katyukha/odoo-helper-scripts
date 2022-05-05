@@ -251,6 +251,11 @@ function exec_lodoo_u {
     exec_py_u "${ODOO_HELPER_LIB}/pylib/lodoo.py" "$@";
 }
 
+# Shortcut for exec py_utils
+function exec_py_utils {
+    exec_py "$ODOO_HELPER_LIB/pylib/py_utils.py" "$@";
+}
+
 
 function run_python_cmd_prepare {
     local cmd="
@@ -274,6 +279,7 @@ except Exception:
 #
 # run_python_cmd <code>
 function run_python_cmd {
+    echoe -e "${YELLOWC}WARNING${NC}: 'run_python_cmd' func is deprecated.";
     local python_cmdl
     python_cmd=$(run_python_cmd_prepare "$1");
     exec_py -c "\"$python_cmd\"";

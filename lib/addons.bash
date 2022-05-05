@@ -117,12 +117,7 @@ function addons_is_odoo_addon {
 function addons_is_installable {
     local addon_path=$1;
     local manifest_file;
-    manifest_file=$(addons_get_manifest_file "$addon_path");
-    if run_python_cmd "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
-        return 0;
-    else
-        return 1;
-    fi
+    exec_py_utils addon-is-installable --addon-path="$addon_path";
 }
 
 # Get list of addon dependencies
