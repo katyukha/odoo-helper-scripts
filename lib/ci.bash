@@ -30,7 +30,7 @@ function ci_ensure_versions_ok {
     local version2="$1"; shift;
 
     # NOTE: here we inverse pythons True to bash zero status code
-    if ! run_python_cmd "from pkg_resources import parse_version as V; exit(V('${version1}') < V('${version2}'));"; then
+    if ! execv python -c "from pkg_resources import parse_version as V; exit(V('${version1}') < V('${version2}'));"; then
         return 0;
     else
         return 1;
@@ -160,7 +160,7 @@ function ci_git_get_addon_version_by_ref {
     if [ -z "$manifest_content" ]; then
         version="${ODOO_VERSION}.0.0.0";
     else
-        version=$(echo "$manifest_content" | execv python -c "\"import sys; print(eval(sys.stdin.read()).get('version', '${ODOO_VERSION}.1.0.0'))\"");
+        version=$(echo "$manifest_content" | execv python -c "import sys; print(eval(sys.stdin.read()).get('version', '${ODOO_VERSION}.1.0.0'))");
         # shellcheck disable=SC2181
         if [ "$?" -ne 0 ]; then
             [ -z "$quiet" ] && echoe -e "${YELLOWC}WARNING${NC} Cannot read version from manifest in first revision! Using ${BLUEC}${ODOO_VERSION}.0.0.0${NC} as default.";
