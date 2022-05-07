@@ -51,7 +51,7 @@ function addons_get_manifest_key {
 
     local manifest_file;
     manifest_file=$(addons_get_manifest_file "$addon_path");
-    run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', $default_val))"
+    exec_py -c "print(eval(open('$manifest_file', 'rt').read()).get('$key', $default_val))"
 }
 
 # Echo path to addon specified by name
@@ -127,7 +127,7 @@ function addons_get_addon_dependencies {
     local manifest_file;
     manifest_file=$(addons_get_manifest_file "$addon_path");
 
-    run_python_cmd "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))";
+    exec_py -c "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))";
 }
 
 

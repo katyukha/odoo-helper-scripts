@@ -71,7 +71,7 @@ function tr_parse_addons {
             shift;
         done
         todo_addons=$(join_by , "${addons[@]}");
-        run_python_cmd "print(','.join(set('$todo_addons'.split(',')) & set('$installed_addons_cs'.split(','))))";
+        exec_py -c "print(','.join(set('$todo_addons'.split(',')) & set('$installed_addons_cs'.split(','))))";
     fi;
 }
 

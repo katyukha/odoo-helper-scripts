@@ -256,47 +256,9 @@ function exec_py_utils {
 }
 
 
-function run_python_cmd_prepare {
-    local cmd="
-import sys
-
-sys.path.append('$ODOO_HELPER_LIB/pylib')
-
-try:
-    $1
-except SystemExit:
-    raise
-except Exception:
-    import traceback
-    traceback.print_exc(file=sys.stderr)
-    sys.exit(1)
-";
-    echo "$cmd";
-}
-
-# Run python code
-#
-# run_python_cmd <code>
-function run_python_cmd {
-    echoe -e "${YELLOWC}WARNING${NC}: 'run_python_cmd' func is deprecated.";
-    local python_cmdl
-    python_cmd=$(run_python_cmd_prepare "$1");
-    exec_py -c "\"$python_cmd\"";
-}
-
-# Run python code as server user (if provided)
-#
-# run_python_cmd <code>
-function run_python_cmd_u {
-    local python_cmd;
-    python_cmd=$(run_python_cmd_prepare "$@");
-    exec_py_u -c "\"$python_cmd\"";
-}
-
-
 # Check that version1 is greater or equal than version2
 #
 # version_cmp_gte <version1> <version2>
 function version_cmp_gte {
-    exec_py -c "\"from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));\"";
+    exec_py -c "from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));";
 }

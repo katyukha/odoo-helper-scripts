@@ -348,9 +348,9 @@ function fetch_download_odoo_app {
             local manifest_file;
             local version_installed;
             manifest_file=$(addons_get_manifest_file "$DOWNLOADS_DIR/$app_tmp_name");
-            version_installed=$(run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('version', '$ODOO_VERSION.0.0.0'))");
+            version_installed=$(exec_py -c "print(eval(open('$manifest_file', 'rt').read()).get('version', '$ODOO_VERSION.0.0.0'))");
             manifest_file=$(addons_get_manifest_file "$app_tmp_path");
-            version_downloaded=$(run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('version', '$ODOO_VERSION.0.0.0'))");
+            version_downloaded=$(exec_py -c "print(eval(open('$manifest_file', 'rt').read()).get('version', '$ODOO_VERSION.0.0.0'))");
             if version_cmp_gte "$version_installed" "$version_downloaded"; then
                 echoe -e "${YELLOWC}WARNING:${BLUEC} you have new version of ${YELLOWC}${app_tmp_name}${BLUEC} installed. Skipping...${NC}";
                 continue;

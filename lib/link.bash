@@ -85,7 +85,7 @@ function link_module_impl {
 
     if [ "$py_deps_manifest" == "on" ] && [ -f "$dest/__manifest__.py" ]; then
         local py_deps;
-        py_deps=$(exec_py "$ODOO_HELPER_LIB/pylib/py_utils.py" addon-py-deps --addon-path "$dest");
+        py_deps=$(exec_py_utils addon-py-deps --addon-path "$dest");
         if [ -n "$py_deps" ]; then
             odoo-helper pip install "$py_deps";
         fi
