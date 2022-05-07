@@ -76,10 +76,10 @@ function tr_parse_addons {
 }
 
 
-# tr_import_export_internal [options] <db> <lang> <filename> <extra_options> <export|import> <addons>
-# note, <extra_options> may be string with one space (empty)
+# tr_import_export_internal [options] <db> <lang> <filename> <export|import> <addons>
 function tr_import_export_internal {
     local missing_only;
+    local extra_opts=( );
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -89,6 +89,9 @@ function tr_import_export_internal {
             ;;
             --pot-update)
                 local pot_update=1;
+            ;;
+            --i18n-overwrite)
+                local extra_opts+=( --i18n-overwrite );
             ;;
             *)
                 break;
@@ -105,10 +108,14 @@ function tr_import_export_internal {
     local db=$1;
     local lang=$2;
     local file_name=$3;
-    local extra_opt=$4;
-    local cmd=$5;
+    local cmd=$4;
     local addon_path;
     shift; shift; shift; shift; shift;
+
+    if [ "$cmd" != "export" ] && [ "$cmd" != "import" ]; then
+        echoe -e "${REDC}ERROR${NC}: Unknown command '${YELLOWC}${cmd}${NC}'!";
+        return 3
+    fi
 
     if ! odoo_db_exists -q "$db"; then
         echoe -e "${REDC}ERROR:${NC} Database '$db' does not exists!";
@@ -148,7 +155,7 @@ function tr_import_export_internal {
         fi
 
         # do the work
-        server_run -- -d "$db" -l "$lang" "$extra_opt" "--i18n-$cmd=$i18n_file" "--modules=$addon" --stop-after-init --pidfile=/dev/null;
+        server_run -- -d "$db" -l "$lang" "${extra_opts[@]}" "--i18n-$cmd=$i18n_file" "--modules=$addon" --stop-after-init --pidfile=/dev/null;
     done
 }
 
@@ -280,7 +287,7 @@ function tr_export {
     local file_name=$3;
     shift; shift; shift;
 
-    tr_import_export_internal "${extra_opts[@]}" "$db" "$lang" "$file_name" " " export "$@";
+    tr_import_export_internal "${extra_opts[@]}" "$db" "$lang" "$file_name" export "$@";
 }
 
 function tr_import {
@@ -316,7 +323,8 @@ function tr_import {
                     it is possible to specify 'all' name of addon, in this case
                     translations will be updated for all installed addons.
     ";
-    
+
+    local extra_opts=( );
     while [[ $# -gt 0 ]]
     do
         key="$1";
@@ -326,7 +334,7 @@ function tr_import {
                 return 0;
             ;;
             --overwrite)
-                local opt_overwrite=" --i18n-overwrite ";
+                extra_opts+=( --i18n-overwrite );
                 shift;
             ;;
             *)
@@ -345,7 +353,7 @@ function tr_import {
     shift; shift; shift;
 
     for idb in $(tr_parse_db_name "$db"); do
-        tr_import_export_internal "$idb" "$lang" "$file_name" "$opt_overwrite" import "$@";
+        tr_import_export_internal "${extra_opts[@]}" "$idb" "$lang" "$file_name" import "$@";
     done
 }
 
