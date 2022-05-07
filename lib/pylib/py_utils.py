@@ -1,6 +1,7 @@
 """ Find python dependencies from manifest
 """
 import os
+import re
 import click
 
 
@@ -51,6 +52,29 @@ def addon_is_installable(ctx, addon_path):
     manifest = read_addon_manifest(addon_path)
     if not manifest.get('installable', True):
         return ctx.exit(1)
+
+
+
+@cli.command(
+    'install-parse-deb-deps',
+    help="Parse deb control file to find dependencies")
+@click.option(
+    '--path', type=click.Path(exists=True,
+                                  dir_okay=False,
+                                  file_okay=True,
+                                  resolve_path=True),
+    help='Path to debian control file.')
+@click.pass_context
+def install_parse_deb_debendencies(ctx, path):
+    RE_DEPS=re.compile(
+        r'.*Depends:(?P<deps>(\n [^,]+,)+).*',
+        re.MULTILINE | re.DOTALL)
+    m = RE_DEPS.match(open(path).read())
+    deps = m and m.groupdict().get('deps', '')
+    deps = deps.replace(',', '').replace(' ', '').split('\n')
+    click.echo(
+        '\n'.join(filter(lambda l: l and not l.startswith('${'), deps))
+    )
 
 if __name__ == '__main__':
     cli()

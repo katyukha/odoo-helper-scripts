@@ -241,13 +241,7 @@ function install_parse_debian_control_file {
     local file_path=$1;
     local sys_deps_raw=( );
 
-    local python_cmd="import re; RE_DEPS=re.compile(r'.*Depends:(?P<deps>(\n [^,]+,)+).*', re.MULTILINE | re.DOTALL);";
-    python_cmd="$python_cmd m = RE_DEPS.match(open('$file_path').read());";
-    python_cmd="$python_cmd deps = m and m.groupdict().get('deps', '');";
-    python_cmd="$python_cmd deps = deps.replace(',', '').replace(' ', '').split('\n');";
-    python_cmd="$python_cmd print('\n'.join(filter(lambda l: l and not l.startswith('\\\${'), deps)))";
-
-    mapfile -t sys_deps_raw < <(run_python_cmd "$python_cmd");
+    mapfile -t sys_deps_raw < <(exec_py_utils install-parse-deb-deps --path="$file_path");
 
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
@@ -499,7 +493,7 @@ function install_odoo_py_requirements_for_version {
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.7.3.1";
             elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "\"import sys; assert sys.version_info <= (3, 5);\"" > /dev/null 2>&1; then
-                echo "psycopg2-binary==2.8.7";
+                echo "psycopg2-binary==2.8.6";
             elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
@@ -742,7 +736,7 @@ function install_virtual_env {
         exec_pip -q install nodeenv;
 
         if [ "$(odoo_get_major_version)" -gt 10 ]; then
-            exec_pip -q install "setuptools\<58";
+            exec_pip -q install "setuptools<58";
         fi
 
         local nodeenv_opts;

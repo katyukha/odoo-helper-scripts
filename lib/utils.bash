@@ -60,12 +60,11 @@ function execu {
 
     # Decide wether to use unbuffer or not
     if [ -n "$USE_UNBUFFER" ]; then
-        local unbuffer_opt="unbuffer";
+        execv unbuffer "$@";
     else
         local unbuffer_opt="";
+        execv "$@";
     fi
-
-    execv "$unbuffer_opt" "$@";
 }
 
 # Exec command with specified odoo config
