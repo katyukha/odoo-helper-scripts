@@ -468,13 +468,13 @@ function install_odoo_py_requirements_for_version {
             elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
                 # Starting from Odoo 11 python 3 is used. choose correct gevent  version
                 # for python installed in system
-                if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
+                if exec_py -c "import sys; assert (3, 4) <= sys.version_info < (3, 6);" > /dev/null 2>&1; then
                     echo "gevent==1.1.2";
-                elif exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 7);\"" > /dev/null 2>&1; then
+                elif exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 7);" > /dev/null 2>&1; then
                     echo "gevent==1.3.4";
-                elif exec_py -c "\"import sys; assert (3, 7) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                elif exec_py -c "import sys; assert (3, 7) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
-                elif exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                     echo "gevent>=20.6.0";
                 else
                     echo "$dependency";
@@ -483,27 +483,27 @@ function install_odoo_py_requirements_for_version {
                 echo "greenlet==0.4.9";
             elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 # Set correct version of greenlet for gevent 1.5.0
-                if exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                if exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
-                elif exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.16";
                 else
                     echo "$dependency";
                 fi
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.7.3.1";
-            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "\"import sys; assert sys.version_info <= (3, 5);\"" > /dev/null 2>&1; then
+            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "import sys; assert sys.version_info <= (3, 5);" > /dev/null 2>&1; then
                 echo "psycopg2-binary==2.8.6";
             elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
                 echo "lxml==3.7.1";
-            elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+            elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 echo "lxml";
-            elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+            elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 # Download latst version for python 3.9 and odoo 11.0
                 echo "PyYAML";
-            elif [[ "$dependency_stripped" =~ reportlab ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+            elif [[ "$dependency_stripped" =~ reportlab ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 # In case of python 3.9 latest version of reportlab have to be used
                 echo "reportlab";
             elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ feedparser ]]; then
