@@ -102,7 +102,7 @@ function create_dirs {
 # Returns first existing command
 function check_command {
     for test_cmd in "$@"; do
-        if execv command -v $test_cmd >/dev/null 2>&1; then
+        if execv command -v "$test_cmd" >/dev/null 2>&1; then
             execv command -v "$test_cmd";
             return 0;
         fi;
