@@ -100,7 +100,7 @@ function tr_import_export_internal {
         shift
     done
 
-    if [[ $# -lt 6 ]]; then
+    if [[ $# -lt 5 ]]; then
         echoe -e "${REDC}ERROR:${NC} No all arguments passed to translations export/import";
         return 1;
     fi
