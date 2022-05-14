@@ -1230,7 +1230,8 @@ function install_reinstall_odoo {
         download  - reinstall Odoo from archive.
     ";
 
-    local reinstall_action;
+    local reinstall_action="download";
+    local do_not_backup_old_odoo;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -1240,6 +1241,9 @@ function install_reinstall_odoo {
             ;;
             download|archive)
                 reinstall_action="download";
+            ;;
+            --no-backup)
+                do_not_backup_old_odoo=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -1260,10 +1264,15 @@ function install_reinstall_odoo {
     fi
 
     if [ -d "$ODOO_PATH" ]; then
-        local odoo_backup_path;
-        odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
-        mv "$ODOO_PATH" "$odoo_backup_path";
-        echo -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
+        if [ -z "$do_not_backup_old_odoo" ]; then
+            local odoo_backup_path;
+            odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
+            mv "$ODOO_PATH" "$odoo_backup_path";
+            echo -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
+        else
+            echo -e "${BLUEC}INFO:${NC}: Removing old Odoo installation...";
+            rm -rf "$ODOO_PATH";
+        fi
     fi
 
     install_fetch_odoo "$reinstall_action";

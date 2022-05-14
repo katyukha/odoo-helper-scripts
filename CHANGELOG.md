@@ -9,6 +9,7 @@
 - Automatically detect `.jslintrc` placed in repo root directory. If found, then apply it to pylint by default.
 - Added shortcut for `odoo-helper fix-versions` - `odoo-helper fix-version`
 - Added option `--tdb` to `odoo-helper odoo recompute` command
+- Added new option `--no-backup` to `odoo-helper install reinstall-odoo`
 
 ### Changed
 

@@ -19,15 +19,12 @@ def cli(ctx):
     pass
 
 
-@cli.command(
-    'addon-py-deps',
+@cli.command('addon-py-deps',
     help="Print space-separated list of python dependencies from addon's "
          "manifest file.")
-@click.option(
-    '--addon-path', type=click.Path(exists=True,
-                                    dir_okay=True,
-                                    file_okay=False,
-                                    resolve_path=True),
+@click.option('--addon-path',
+    type=click.Path(
+        exists=True, dir_okay=True, file_okay=False, resolve_path=True),
     help='Path to addon folder.')
 @click.pass_context
 def addon_py_deps(ctx, addon_path):
@@ -38,14 +35,11 @@ def addon_py_deps(ctx, addon_path):
     click.echo(' '.join(python_deps), nl=False)
 
 
-@cli.command(
-    'addon-is-installable',
+@cli.command('addon-is-installable',
     help="Check if addon is installable")
-@click.option(
-    '--addon-path', type=click.Path(exists=True,
-                                    dir_okay=True,
-                                    file_okay=False,
-                                    resolve_path=True),
+@click.option('--addon-path',
+    type=click.Path(
+        exists=True, dir_okay=True, file_okay=False, resolve_path=True),
     help='Path to addon folder.')
 @click.pass_context
 def addon_is_installable(ctx, addon_path):
@@ -54,15 +48,11 @@ def addon_is_installable(ctx, addon_path):
         return ctx.exit(1)
 
 
-
-@cli.command(
-    'install-parse-deb-deps',
+@cli.command('install-parse-deb-deps',
     help="Parse deb control file to find dependencies")
-@click.option(
-    '--path', type=click.Path(exists=True,
-                                  dir_okay=False,
-                                  file_okay=True,
-                                  resolve_path=True),
+@click.option('--path',
+    type=click.Path(
+        exists=True, dir_okay=False, file_okay=True, resolve_path=True),
     help='Path to debian control file.')
 @click.pass_context
 def install_parse_deb_debendencies(ctx, path):
