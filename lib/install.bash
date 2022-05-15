@@ -1222,12 +1222,15 @@ function install_reinstall_odoo {
 
     Usage:
 
-        $SCRIPT_NAME install reinstall-odoo <type> - reinstall odoo
-        $SCRIPT_NAME install reinstall-odoo --help - show this help message
+        $SCRIPT_NAME install reinstall-odoo [options] <type> - reinstall odoo
 
     <type> could be:
-        clone     - reinstall Odoo as git repository.
-        download  - reinstall Odoo from archive.
+        git      - reinstall Odoo as git repository.
+        archive  - reinstall Odoo from archive.
+
+    Options:
+        --no-backup     - do not backup old version of odoo
+        -h|--help|help  - show this help message
     ";
 
     local reinstall_action="download";
