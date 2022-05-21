@@ -50,10 +50,6 @@ CHECKS['13.0'] = {
             r"[\s\t]*<field name=['\"]view_type['\"]>.*</field>\n",
             "",
             "Remove <field name='view_type'>...</field>"),
-        ("replace",
-            r"\.phantom_js\(",
-            ".browser_js(",
-            "Replace calls to 'phantom_js' with 'browser_js'."),
     ],
 }
 
@@ -64,6 +60,10 @@ CHECKS['14.0'] = {
             r"track_visibility\s*=\s*['\"]\w+['\"]",
             "tracking=True",
             "Replace track_visibility='...' with tracking=True"),
+        ("replace",
+            r"\.phantom_js\(",
+            ".browser_js(",
+            "Replace calls to 'phantom_js' with 'browser_js'."),
     ],
 }
 
