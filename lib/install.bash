@@ -621,11 +621,18 @@ function install_system_prerequirements {
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release \
         procps libevent-dev g++ libpq-dev libsass-dev \
-        python-dev python3-dev libjpeg-dev libyaml-dev \
+        python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
         libmagic1;
 
+    echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
+    if ! install_sys_deps_internal python2-dev; then
+        echo -e "${YELLOWC}WARNING${NC}: It seems that it is too old version of OS, trying old version of python2 support...";
+        if ! install_sys_deps_internal python-dev; then
+            echo -e "${YELLOWC}WARNING${NC}: Cannot install python2 support... skipping...";
+        fi
+    fi
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
     fi
