@@ -245,9 +245,15 @@ function odoo_get_python_version {
     py_version=$(odoo_get_python_version_number);
     if [ -n "$py_version" ]; then
         echo "python${py_version}";
-    else
+    elif check_command python3; then
+        echoe -e "${YELLOWC}WARNING${NC}: odoo version not specified, Using python3";
+        echo "python3";
+    elif check_command python; then
         echoe -e "${YELLOWC}WARNING${NC}: odoo version not specified, using default python executable";
         echo "python";
+    else
+        echoe -e "${REDC}ERROR${NC}: odoo version not specified and cannot find default python interpreter.";
+        return 1;
     fi
 }
 

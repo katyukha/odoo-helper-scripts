@@ -732,7 +732,7 @@ function install_virtual_env {
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
         if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
             install_build_python "$ODOO_BUILD_PYTHON_VERSION";
-            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
         elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
