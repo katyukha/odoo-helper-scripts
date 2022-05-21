@@ -10,6 +10,7 @@
 - Added shortcut for `odoo-helper fix-versions` - `odoo-helper fix-version`
 - Added option `--tdb` to `odoo-helper odoo recompute` command
 - Added new option `--no-backup` to `odoo-helper install reinstall-odoo`
+- On module migration automatically replace `phantom_js(` to `browser_js(`.
 
 ### Changed
 
