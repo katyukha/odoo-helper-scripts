@@ -83,6 +83,7 @@ tests:ubuntu:21.04:
 tests:ubuntu:22.04:
     image: ubuntu:22.04
     <<: *tests-definition
+    allow_failure: true
 
 build_packages:
     image: ubuntu:20.04
