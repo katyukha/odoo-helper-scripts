@@ -48,6 +48,7 @@ function odoo_db_create {
                                Only supported on Odoo 9.0+
        --recreate            - if database with such name exists,
                                then drop it first
+       --if-not-exists       - create database if it is not exists yet
        --tdb                 - create test database with standard name
                                and with demo data
        -i|--install <addon>  - Install specified addon to created db.
@@ -59,6 +60,7 @@ function odoo_db_create {
     # Parse options
     local db_recreate=;
     local db_name=;
+    local db_create_if_not_exists=;
     local db_install_addons=( );
     local db_create_opts=( );
     while [[ $# -gt 0 ]]
@@ -94,6 +96,9 @@ function odoo_db_create {
             ;;
             --recreate)
                 db_recreate=1;
+            ;;
+            --if-not-exists)
+                db_create_if_not_exists=1;
             ;;
             -i|--install)
                 # To be consistent with *odoo-helper test* command
@@ -143,6 +148,9 @@ function odoo_db_create {
         if [ -n "$db_recreate" ]; then
             echoe -e "${YELLOWC}WARNING${NC}: dropting existing database ${YELLOWC}${db_name}${NC}";
             odoo_db_drop --conf "$conf_file" "$db_name";
+        elif [ -n "$db_create_if_not_exists" ]; then
+            echoe -e "${BLUEC}INFO${NC}: Db already exists. do nothing...";
+            return 0;
         else
             echoe -e "${REDC}ERROR${NC}: database ${YELLOWC}${db_name}${NC} already exists!";
             return 2;
