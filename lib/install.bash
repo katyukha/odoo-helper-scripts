@@ -149,7 +149,7 @@ function install_wkhtmltopdf_download {
 
         if [ "$(lsb_release -si)" == "Ubuntu" ]; then
             # fallback to trusty release for ubuntu systems
-            release=bionic;
+            release=focal;
         elif [ "$(lsb_release -si)" == "Debian" ]; then
             release=stretch;
         else
@@ -754,6 +754,7 @@ function install_virtual_env {
             nodeenv_opts+=( "--node" "lts" );
         fi
 
+        echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
         execv nodeenv "${nodeenv_opts[@]}";  # Install node environment
 
         exec_npm set user 0;
