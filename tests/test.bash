@@ -710,9 +710,7 @@ odoo-helper addons install --ual bureaucrat_helpdesk_lite;
 odoo-helper-fetch --odoo-app bureaucrat_helpdesk_lite;
 
 # Prepare to test pull updates with --do-update option
-odoo-helper fetch --oca partner-contact;
-(cd ./repositories/oca/partner-contact && git reset --hard HEAD^^^1);
-odoo-helper addons install --dir ./repositories/oca/partner-contact;
+(cd ./repositories/crnd-inc/generic-addons && git reset --hard HEAD^^^5);
 
 # Test pull-updates with --do-update option
 odoo-helper-addons pull-updates --do-update;
@@ -728,12 +726,6 @@ odoo-helper addons find-installed;
 odoo-helper-db drop odoo12-odoo-test;
 odoo-helper db drop -q odoo12-odoo-tmp;
 
-echo -e "${YELLOWC}
-=================================
-Install and check Odoo 13.0 (Py3)
-=================================
-${NC}"
-
 cd ../;
 
 
@@ -742,6 +734,12 @@ cd ../;
 rm -rf ./odoo-10.0
 rm -rf ./odoo-11.0
 rm -rf ./odoo-12.0
+
+echo -e "${YELLOWC}
+=================================
+Install and check Odoo 13.0 (Py3)
+=================================
+${NC}"
 
 # Install odoo 13
 odoo-helper install sys-deps -y 13.0;

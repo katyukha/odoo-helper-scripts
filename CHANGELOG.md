@@ -17,6 +17,8 @@
 
 - Install LTS version of nodejs by default.
   In previous version latest stable version was installed by default.
+- [openupgradelib](https://github.com/OCA/openupgradelib) now will be downloaded from pypi.
+  It seems that now relevant versions of this lib are published on pypi
 
 
 ## Release 0.12.1 (2021-10-25)
