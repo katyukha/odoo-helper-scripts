@@ -241,7 +241,7 @@ function install_parse_debian_control_file {
     local file_path=$1;
     local sys_deps_raw=( );
 
-    mapfile -t sys_deps_raw < <(exec_py_utils install-parse-deb-deps --path="$file_path");
+    mapfile -t sys_deps_raw < <(python3 "$ODOO_HELPER_LIB/pylib/parse_deb_deps.py" "$file_path");
 
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
