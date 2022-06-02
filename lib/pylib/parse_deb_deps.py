@@ -17,8 +17,7 @@ if __name__ == '__main__':
         description='Parse dependencies of deb file')
     parser.add_argument(
         'path',
-        required=True,
         help='Path to debian control file.')
     args = parser.parse_args()
-    print(parse_deb_dependencies(args.path))
+    print("\n".join(parse_deb_dependencies(args.path)))
 
