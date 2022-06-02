@@ -1279,13 +1279,14 @@ function install_reinstall_odoo {
             local odoo_backup_path;
             odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
             mv "$ODOO_PATH" "$odoo_backup_path";
-            echo -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
+            echoe -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
         else
-            echo -e "${BLUEC}INFO:${NC}: Removing old Odoo installation...";
+            echoe -e "${BLUEC}INFO:${NC}: Removing old Odoo installation...";
             rm -rf "$ODOO_PATH";
         fi
     fi
 
+    echoe -e "${BLUEC}INFO${NC}: Reinstalling Odoo...";
     install_fetch_odoo "$reinstall_action";
     install_reinstall_venv;
 }
