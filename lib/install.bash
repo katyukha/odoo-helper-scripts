@@ -624,7 +624,7 @@ function install_system_prerequirements {
         python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
-        libmagic1;
+        libmagic1 python3-virtualenv;
 
     echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
     if ! install_sys_deps_internal python2-dev; then
@@ -728,17 +728,16 @@ function install_build_python {
 #
 # install_virtual_env
 function install_virtual_env {
-    local venv_script=${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py;
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
         if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
             install_build_python "$ODOO_BUILD_PYTHON_VERSION";
-            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" python3 -m virtualenv "$VENV_DIR";
         elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
-            VIRTUALENV_PYTHON="$venv_python_version" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$venv_python_version" python3 -m virtualenv "$VENV_DIR";
         else
-            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" python3 -m virtualenv "$VENV_DIR";
         fi
         exec_pip -q install nodeenv;
 
