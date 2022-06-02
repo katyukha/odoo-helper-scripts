@@ -1034,7 +1034,7 @@ function install_openupgradelib {
         esac
         shift
     done
-    exec_pip install --upgrade "git+https://github.com/OCA/openupgradelib.git@master#egg=openupgradelib"
+    exec_pip install --upgrade openupgradelib
 }
 
 # install_python_prerequirements
