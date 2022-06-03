@@ -262,6 +262,14 @@ function install_parse_debian_control_file {
                 # Will be installed into virtual env via node-env
                 continue
             ;;
+            python)
+                if [ "$(odoo_get_major_version)" -lt 11 ]; then
+                    # We have to set it explicitly to 2.7 to be compatibale with ubuntu 18.04 that does not have python2 package
+                    echo "python2.7";
+                else
+                    echo "$dep";
+                fi
+            ;;
             python-pypdf|python-pypdf2|python3-pypdf2)
                 # Will be installed by pip from requirements.txt
                 continue
