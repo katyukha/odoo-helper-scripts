@@ -241,7 +241,7 @@ function install_parse_debian_control_file {
     local file_path=$1;
     local sys_deps_raw=( );
 
-    mapfile -t sys_deps_raw < <(exec_py_utils install-parse-deb-deps --path="$file_path");
+    mapfile -t sys_deps_raw < <(python3 "$ODOO_HELPER_LIB/pylib/parse_deb_deps.py" "$file_path");
 
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
@@ -261,6 +261,14 @@ function install_parse_debian_control_file {
             node-less)
                 # Will be installed into virtual env via node-env
                 continue
+            ;;
+            python)
+                if [ "$(odoo_get_major_version)" -lt 11 ]; then
+                    # We have to set it explicitly to 2.7 to be compatibale with ubuntu 18.04 that does not have python2 package
+                    echo "python2.7";
+                else
+                    echo "$dep";
+                fi
             ;;
             python-pypdf|python-pypdf2|python3-pypdf2)
                 # Will be installed by pip from requirements.txt
@@ -624,7 +632,7 @@ function install_system_prerequirements {
         python3-dev libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
-        libmagic1;
+        libmagic1 python3-virtualenv;
 
     echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
     if ! install_sys_deps_internal python2-dev; then
@@ -722,23 +730,32 @@ function install_build_python {
     if [ ! -f "${python_path}/bin/python" ]; then
         ln "${python_path}/bin/python${python_version_short}" "${python_path}/bin/python";
     fi
+    if [ ! -f "${python_path}/bin/pip" ]; then
+        ln "${python_path}/bin/pip${python_version_short}" "${python_path}/bin/pip";
+    fi
 }
 
 # Install virtual environment.
 #
 # install_virtual_env
 function install_virtual_env {
-    local venv_script=${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py;
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
         if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
             install_build_python "$ODOO_BUILD_PYTHON_VERSION";
-            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            if [ -f "$PROJECT_ROOT_DIR/python/bin/pip" ]; then
+                # Try to install virtualenv for newly build python and use it,
+                # instead of global one
+                "$PROJECT_ROOT_DIR/python/bin/python" -m pip install virtualenv;
+                "$PROJECT_ROOT_DIR/python/bin/python" -m virtualenv "$VENV_DIR";
+            else
+                VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python3" python3 -m virtualenv "$VENV_DIR";
+            fi
         elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
-            VIRTUALENV_PYTHON="$venv_python_version" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$venv_python_version" python3 -m virtualenv "$VENV_DIR";
         else
-            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" python3 -m virtualenv "$VENV_DIR";
         fi
         exec_pip -q install nodeenv;
 
@@ -869,7 +886,8 @@ function install_python_tools {
         esac
         shift
     done
-    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" setproctitle watchdog pylint pylint-odoo coverage \
+    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" \
+        setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors websocket-client jingtrang;
 }
 
@@ -1035,7 +1053,7 @@ function install_openupgradelib {
         esac
         shift
     done
-    exec_pip install --upgrade "git+https://github.com/OCA/openupgradelib.git@master#egg=openupgradelib"
+    exec_pip install --upgrade openupgradelib
 }
 
 # install_python_prerequirements
@@ -1279,13 +1297,14 @@ function install_reinstall_odoo {
             local odoo_backup_path;
             odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
             mv "$ODOO_PATH" "$odoo_backup_path";
-            echo -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
+            echoe -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
         else
-            echo -e "${BLUEC}INFO:${NC}: Removing old Odoo installation...";
+            echoe -e "${BLUEC}INFO:${NC}: Removing old Odoo installation...";
             rm -rf "$ODOO_PATH";
         fi
     fi
 
+    echoe -e "${BLUEC}INFO${NC}: Reinstalling Odoo...";
     install_fetch_odoo "$reinstall_action";
     install_reinstall_venv;
 }
