@@ -710,7 +710,7 @@ odoo-helper addons install --ual bureaucrat_helpdesk_lite;
 odoo-helper-fetch --odoo-app bureaucrat_helpdesk_lite;
 
 # Prepare to test pull updates with --do-update option
-(cd ./repositories/crnd-inc/generic-addons && git reset --hard HEAD^^^5);
+(cd ./repositories/crnd-inc/generic-addons && git reset --hard HEAD^^^1);
 
 # Test pull-updates with --do-update option
 odoo-helper-addons pull-updates --do-update;

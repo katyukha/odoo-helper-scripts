@@ -722,6 +722,9 @@ function install_build_python {
     if [ ! -f "${python_path}/bin/python" ]; then
         ln "${python_path}/bin/python${python_version_short}" "${python_path}/bin/python";
     fi
+    if [ ! -f "${python_path}/bin/pip" ]; then
+        ln "${python_path}/bin/pip${python_version_short}" "${python_path}/bin/pip";
+    fi
 }
 
 # Install virtual environment.
@@ -731,7 +734,14 @@ function install_virtual_env {
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
         if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
             install_build_python "$ODOO_BUILD_PYTHON_VERSION";
-            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" python3 -m virtualenv "$VENV_DIR";
+            if [ -f "$PROJECT_ROOT_DIR/python/bin/pip" ]; then
+                # Try to install virtualenv for newly build python and use it,
+                # instead of global one
+                "$PROJECT_ROOT_DIR/python/bin/python" -m pip install virtualenv;
+                "$PROJECT_ROOT_DIR/python/bin/python" -m virtualenv "$VENV_DIR";
+            else
+                VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python3" python3 -m virtualenv "$VENV_DIR";
+            fi
         elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
