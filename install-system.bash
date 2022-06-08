@@ -29,7 +29,8 @@ ODOO_HELPER_BRANCH=${1:-master}
 set -e;  # Fail on each error
 
 # Install git if not installed yet
-if ! command -v git >/dev/null 2>&1; then
+if ! command -v git >/dev/null 2>&1 || ! command -v wget >/dev/null 2>&1; then
+    echo -e "${BLUEC}INFO${NC}: Installing minimal system dependencies...${NC}";
     apt-get install -yqq --no-install-recommends git wget;
 fi
 

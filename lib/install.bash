@@ -494,7 +494,7 @@ function install_odoo_py_requirements_for_version {
                 if exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
                 elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
-                    echo "greenlet==0.4.16";
+                    echo "greenlet>=0.4.16";
                 else
                     echo "$dependency";
                 fi
