@@ -745,14 +745,14 @@ ${NC}"
 odoo-helper install sys-deps -y 13.0;
 odoo-helper postgres user-create odoo13 odoo;
 
-if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then 
-    # Odoo 13 runs only with python 3.6+
+if python3 -c "import sys; exit(not (3, 6) <= sys.version_info <= (3, 9));"; then
+    # Odoo 13 runs only with python 3.6-3.9
     odoo-install --install-dir odoo-13.0 --odoo-version 13.0 \
         --http-port 8469 --http-host local-odoo-13 \
         --db-user odoo13 --db-pass odoo
 else
-    # System python is less then 3.6, so build python 3.7 to use for
-    # this odoo version
+    # System python is less than 3.6 or greater than 3.9,
+    # so build python 3.7 to use for this odoo version
     odoo-install --install-dir odoo-13.0 --odoo-version 13.0 \
         --http-port 8469 --http-host local-odoo-13 \
         --db-user odoo13 --db-pass odoo --build-python 3.7.0
@@ -809,7 +809,7 @@ cd ../;
 odoo-helper install sys-deps -y 14.0;
 
 
-if python3 -c "import sys; exit(sys.version_info < (3, 6));"; then 
+if python3 -c "import sys; exit(not (3, 6) <= sys.version_info <= (3, 9));"; then
     # Odoo 14 runs only with python 3.6+
     odoo-install --install-dir odoo-14.0 --odoo-version 14.0 \
         --http-port 8569 --http-host local-odoo-14 \
@@ -880,7 +880,7 @@ rm -rf ./odoo-14.0
 odoo-helper install sys-deps -y 15.0;
 
 
-if python3 -c "import sys; exit(sys.version_info < (3, 7));"; then 
+if python3 -c "import sys; exit(sys.version_info < (3, 7));"; then
     # Odoo 15 runs only with python 3.7+
     odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
         --http-port 8569 --http-host local-odoo-15 \
