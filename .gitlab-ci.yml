@@ -68,24 +68,23 @@ flake8:
         expire_in: 3 day
         when: always
 
-tests:ubuntu:18.04:
-    image: ubuntu:18.04
-    <<: *tests-definition
+#tests:ubuntu:18.04:
+    #image: ubuntu:18.04
+    #<<: *tests-definition
 
-tests:ubuntu:20.04:
-    image: ubuntu:20.04
-    <<: *tests-definition
+#tests:ubuntu:20.04:
+    #image: ubuntu:20.04
+    #<<: *tests-definition
 
-tests:ubuntu:21.04:
-    image: ubuntu:21.04
-    <<: *tests-definition
+#tests:ubuntu:21.04:
+    #image: ubuntu:21.04
+    #<<: *tests-definition
 
-tests:ubuntu:22.04:
-    image: ubuntu:22.04
-    <<: *tests-definition
-    allow_failure: true
+#tests:ubuntu:22.04:
+    #image: ubuntu:22.04
+    #<<: *tests-definition
 
-build_packages:
+build:package:tag:
     image: ubuntu:20.04
     stage: build
     variables:
@@ -93,15 +92,32 @@ build_packages:
         ODOO_HELPER_BIN: $CI_PROJECT_DIR/bin
         ODOO_HELPER_LIB: $CI_PROJECT_DIR/lib
     before_script:
-        - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc
+        - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc curl
         - gem install fpm
     script:
-        - bash scripts/build_packages.bash
-    artifacts:
-        paths:
-            - build/*.deb
+        - bash scripts/build_packages.bash "${CI_COMMIT_TAG_NAME#v}"
+    after_script:
+        - bash scripts/upload_package.bash "${CI_COMMIT_TAG_NAME#v}"
     only:
         - tags
+
+build:package:branch:
+    image: ubuntu:20.04
+    stage: build
+    variables:
+        ODOO_HELPER_ROOT: $CI_PROJECT_DIR
+        ODOO_HELPER_BIN: $CI_PROJECT_DIR/bin
+        ODOO_HELPER_LIB: $CI_PROJECT_DIR/lib
+    before_script:
+        - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc curl
+        - gem install fpm
+    script:
+        - bash scripts/build_packages.bash "${CI_COMMIT_REF_NAME}"
+    after_script:
+        - bash scripts/upload_package.bash "${CI_COMMIT_REF_NAME}"
+    only:
+        - master
+        - dev-test-releases
  
 pages:
     image: ubuntu:20.04
