@@ -635,7 +635,7 @@ function install_system_prerequirements {
         libmagic1 python3-virtualenv;
 
     echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
-    if ! install_sys_deps_internal python2-dev; then
+    if ! install_sys_deps_internal python2-dev python2-pip-whl; then
         echo -e "${YELLOWC}WARNING${NC}: It seems that it is too old version of OS, trying old version of python2 support...";
         if ! install_sys_deps_internal python-dev; then
             echo -e "${YELLOWC}WARNING${NC}: Cannot install python2 support... skipping...";
@@ -757,11 +757,13 @@ function install_virtual_env {
         else
             VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" python3 -m virtualenv "$VENV_DIR";
         fi
-        exec_pip -q install nodeenv;
 
         if [ "$(odoo_get_major_version)" -gt 10 ]; then
             exec_pip -q install "setuptools<58";
         fi
+
+        echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
+        exec_pip -q install nodeenv;
 
         local nodeenv_opts;
         nodeenv_opts=( "--python-virtualenv" );
@@ -771,11 +773,12 @@ function install_virtual_env {
             nodeenv_opts+=( "--node" "lts" );
         fi
 
-        echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
         execv nodeenv "${nodeenv_opts[@]}";  # Install node environment
 
         exec_npm set user 0;
         exec_npm set unsafe-perm true;
+
+        echoe -e "${BLUEC}Virtualeenv initialization completed!${NC}"
     fi
 }
 
