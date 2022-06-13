@@ -451,7 +451,7 @@ if python3 -c "import sys; exit(sys.version_info < (3, 9));"; then
     # Odoo 11 does not run on python 3.9, so build custom python interpreter
     odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
         --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-        --db-user odoo11 --db-pass odoo --build-python 3.8.9
+        --db-user odoo11 --db-pass odoo --build-python 3.8.13
 else
     # System python is less then 3.9, so it have to work in right way
     odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
@@ -641,7 +641,7 @@ if python3 -c "import sys; exit(sys.version_info < (3, 9));"; then
     # Odoo 11 does not run on python 3.9, so build custom python interpreter
     odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
         --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-        --db-user odoo12 --db-pass odoo --ocb --build-python 3.8.9
+        --db-user odoo12 --db-pass odoo --ocb --build-python 3.8.13
 else
     # System python is less then 3.9, so it have to work in right way
     odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
@@ -755,7 +755,7 @@ else
     # so build python 3.7 to use for this odoo version
     odoo-install --install-dir odoo-13.0 --odoo-version 13.0 \
         --http-port 8469 --http-host local-odoo-13 \
-        --db-user odoo13 --db-pass odoo --build-python 3.7.0
+        --db-user odoo13 --db-pass odoo --build-python 3.8.13
 fi
 
 cd odoo-13.0;
@@ -820,7 +820,7 @@ else
     odoo-install --install-dir odoo-14.0 --odoo-version 14.0 \
         --http-port 8569 --http-host local-odoo-14 \
         --db-user odoo14 --db-pass odoo --create-db-user \
-        --build-python 3.7.0
+        --build-python 3.8.13
 fi
 
 cd odoo-14.0;
@@ -891,7 +891,7 @@ else
     odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
         --http-port 8569 --http-host local-odoo-15 \
         --db-user odoo15 --db-pass odoo --create-db-user \
-        --build-python 3.7.9
+        --build-python 3.8.13
 fi
 
 cd odoo-15.0;
