@@ -136,9 +136,10 @@ function install_wkhtmltopdf_get_dw_link {
 
 # Download wkhtmltopdf to specified path
 #
-# install_wkhtmltopdf_download <path>
+# install_wkhtmltopdf_download <path> <fallback>
 function install_wkhtmltopdf_download {
     local wkhtmltox_path=$1;
+    local wkhtmltox_fallback=$2;
     local release;
     local download_link;
     release=$(lsb_release -sc);
@@ -147,13 +148,19 @@ function install_wkhtmltopdf_download {
     if ! wget -q -T 15 "$download_link" -O "$wkhtmltox_path"; then
         local old_release=$release;
 
-        if [ "$(lsb_release -si)" == "Ubuntu" ]; then
+        if [ -n "$wkhtmltox_fallback" ] && [ "$(lsb_release -si)" == "Ubuntu" ]; then
             # fallback to trusty release for ubuntu systems
             release=focal;
-        elif [ "$(lsb_release -si)" == "Debian" ]; then
+        elif [ -n "$wkhtmltox_fallback" ] && [ "$(lsb_release -si)" == "Debian" ]; then
             release=stretch;
+        elif [ -z "$wkhtmltox_fallback" ]; then
+            echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Try to use --fallback option to install wkthmltopdf for other supported release, or install system's wkhtmltopdf.";
+            if [ -e "$wkhtmltox_path" ]; then rm "$wkhtmltox_path"; fi
+            return 2;
+
         else
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
+            if [ -e "$wkhtmltox_path" ]; then rm "$wkhtmltox_path"; fi
             return 2;
         fi
 
@@ -161,6 +168,7 @@ function install_wkhtmltopdf_download {
         download_link=$(install_wkhtmltopdf_get_dw_link "$release");
         if ! wget -q -T 15 "$download_link" -O "$wkhtmltox_path"; then
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
+            if [ -e "$wkhtmltox_path" ]; then rm "$wkhtmltox_path"; fi
             return 1;
         fi
     fi
@@ -179,16 +187,22 @@ function install_wkhtmltopdf {
     Options:
 
         --update   - install even if it is already installed
+        --fallback - if there is no wkhtmltodpf for current release,
+                     then try to install from fallback repos.
         --help     - show this help message
     ";
 
     local force_install;
+    local wkhtmltox_fallback;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             --update)
                 force_install=1;
+            ;;
+            --fallback)
+                wkhtmltox_fallback=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -206,13 +220,14 @@ function install_wkhtmltopdf {
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f "$wkhtmltox_path" ]; then
             echoe -e "${BLUEC}Downloading ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
-            install_wkhtmltopdf_download "$wkhtmltox_path";
+            install_wkhtmltopdf_download "$wkhtmltox_path" "$wkhtmltox_fallback";
         fi
         echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
         local wkhtmltox_deps;
         read -ra wkhtmltox_deps < <(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal "${wkhtmltox_deps[@]}" && with_sudo dpkg -i "$wkhtmltox_path"); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
+            echoe -e "${LBLUEC}HINT:${NC} If your system has wkhtmltopdf>=0.12.5 then try to install system package.";
             rm "$wkhtmltox_path" || true;  # try to remove downloaded file, ignore errors
             return 2;
         fi
@@ -655,7 +670,6 @@ function install_system_prerequirements {
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
-        echoe -e "${LBLUEC}HINT:${NC} If your system has wkhtmltopdf>=0.12.5 then try to install system package.";
     fi
 }
 

@@ -252,9 +252,6 @@ odoo-helper install openupgradelib
 # And show odoo-helper status after tools installed
 odoo-helper status  --tools-versions --ci-tools-versions
 
-# Install wkhtmltopdf (if it is not installed yet)
-odoo-helper install wkhtmltopdf
-
 
 echo -e "${YELLOWC}
 =================================
