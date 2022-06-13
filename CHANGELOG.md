@@ -19,6 +19,8 @@
   In previous version latest stable version was installed by default.
 - [openupgradelib](https://github.com/OCA/openupgradelib) now will be downloaded from pypi.
   It seems that now relevant versions of this lib are published on pypi
+- Simplify installation for debian-like systems: automatically install preprequirements
+- Python2 support is not installed only for Odoo 10.0 and below.
 
 
 ## Release 0.12.1 (2021-10-25)

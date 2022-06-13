@@ -30,8 +30,13 @@ set -e;  # Fail on each error
 
 # Install git if not installed yet
 if ! command -v git >/dev/null 2>&1 || ! command -v wget >/dev/null 2>&1; then
-    echo -e "${BLUEC}INFO${NC}: Installing minimal system dependencies...${NC}";
-    apt-get install -yqq --no-install-recommends git wget;
+    if [ -e "/etc/debian_version" ]; then
+        echo -e "${BLUEC}INFO${NC}: Installing minimal system dependencies...${NC}";
+        apt-get install -yqq --no-install-recommends git wget;
+    else
+        echo -e "${REDC}ERROR${NC}: Please, install wget and git to be able to install odoo-helper-scripts!"
+        exit 2;
+    fi
 fi
 
 # define vars
@@ -73,13 +78,21 @@ for oh_cmd in $ODOO_HELPER_BIN/*; do
     fi
 done
 
+
+if [ -e "/etc/debian_version" ]; then
+    odoo-helper install pre-requirements;
+    ODOO_HELPER_PRE_REQUIREMENTS_INSTALLED=1;
+fi
+
 echo -e "${YELLOWC}odoo-helper-scripts${GREENC} seems to be successfully installed system-wide!${NC}";
 echo -e "Install path is ${YELLOWC}${INSTALL_PATH}${NC}";
 echo;
-echo -e "${YELLOWC}NOTE${NC}: Do not forget to install odoo-helper system dependencies.";
-echo -e "To do this for debian-like systems run following command (${YELLOWC}sudo access required${NC}):";
-echo -e "    $ ${BLUEC}odoo-helper install pre-requirements${NC}";
-echo;
+if [ -z "$ODOO_HELPER_PRE_REQUIREMENTS_INSTALLED" ]; then
+    echo -e "${YELLOWC}NOTE${NC}: Do not forget to install odoo-helper system dependencies.";
+    echo -e "To do this for debian-like systems run following command (${YELLOWC}sudo access required${NC}):";
+    echo -e "    $ ${BLUEC}odoo-helper install pre-requirements${NC}";
+    echo;
+fi
 echo -e "${YELLOWC}NOTE2${NC}: Do not forget to install and configure postgresql.";
 echo -e "To do this for debian-like systems run following command (${YELLOWC}sudo access required${NC}):";
 echo -e "    $ ${BLUEC}odoo-helper install postgres${NC}";

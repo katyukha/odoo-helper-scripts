@@ -213,6 +213,8 @@ function install_wkhtmltopdf {
         read -ra wkhtmltox_deps < <(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal "${wkhtmltox_deps[@]}" && with_sudo dpkg -i "$wkhtmltox_path"); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
+            rm "$wkhtmltox_path" || true;  # try to remove downloaded file, ignore errors
+            return 2;
         fi
 
         rm "$wkhtmltox_path" || true;  # try to remove downloaded file, ignore errors
@@ -402,6 +404,12 @@ function install_sys_deps_for_odoo_version {
         return 1;
     fi
 
+    local odoo_major_version="${odoo_version%.*}";
+    if [ "$odoo_major_version" -lt 11 ]; then
+        # We have to install python2 support for odoo versions less than 11.0
+        install_python2_support;
+    fi
+
     odoo_branch=${odoo_branch:-$odoo_version};
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
     local tmp_control;
@@ -588,6 +596,17 @@ function install_and_configure_postgresql {
 }
 
 
+function install_python2_support {
+    echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
+    if ! install_sys_deps_internal python2-dev python2-pip-whl; then
+        echo -e "${YELLOWC}WARNING${NC}: It seems that it is too old version of OS, trying old version of python2 support...";
+        if ! install_sys_deps_internal python-dev; then
+            echo -e "${YELLOWC}WARNING${NC}: Cannot install python2 support... skipping...";
+        fi
+    fi
+}
+
+
 # install_system_prerequirements
 function install_system_prerequirements {
     local usage="
@@ -634,15 +653,9 @@ function install_system_prerequirements {
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
         libmagic1 python3-virtualenv;
 
-    echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
-    if ! install_sys_deps_internal python2-dev python2-pip-whl; then
-        echo -e "${YELLOWC}WARNING${NC}: It seems that it is too old version of OS, trying old version of python2 support...";
-        if ! install_sys_deps_internal python-dev; then
-            echo -e "${YELLOWC}WARNING${NC}: Cannot install python2 support... skipping...";
-        fi
-    fi
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
+        echoe -e "${LBLUEC}HINT:${NC} If your system has wkhtmltopdf>=0.12.5 then try to install system package.";
     fi
 }
 

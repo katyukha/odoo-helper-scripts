@@ -64,6 +64,8 @@ function system_update_odoo_helper_scripts {
             fi
         fi
     done
+
+    echoe -e "${LBLUEC}HINT${NC}: Update pre-requirements to ensure all system dependencies are installed.";
     cd "$cdir";
 }
 
