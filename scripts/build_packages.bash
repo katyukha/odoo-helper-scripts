@@ -19,9 +19,7 @@ if [ -z "$deb_version" ]; then
     exit 1;
 fi
 
-#x_commit_ref="${CI_COMMIT_TAG_NAME:-$CI_COMMIT_REF_NAME}";
-#deb_version=${x_commit_ref:-$($PROJECT_DIR/bin/odoo-helper exec echo "\$ODOO_HELPER_VERSION" 2>/dev/null)};
-#deb_version=${deb_version#v}
+echo "Building package for version '$deb_version'...";
 
 deb_depends="git wget lsb-release 
     procps libevent-dev g++ libpq-dev libsass-dev

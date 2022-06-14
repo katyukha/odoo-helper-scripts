@@ -14,7 +14,7 @@ variables:
     APT_DIR: "$CI_PROJECT_DIR/.apt-cache"
     APT_STATE_LISTS: "$APT_DIR/lists"
     APT_CACHE_ARCHIVES: "$APT_DIR/archives"
-    PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/odoo-helper-scripts/"
+    PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/odoo-helper-scripts"
 
 cache:
     key: ${CI_JOB_NAME}
@@ -27,13 +27,13 @@ stages:
   - release
   - deploy
 
-shellcheck:
-    image: koalaman/shellcheck-alpine:stable
-    stage: lint
-    before_script:
-        - shellcheck --version
-    script:
-        - shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/* ./lib/*.bash
+#shellcheck:
+    #image: koalaman/shellcheck-alpine:stable
+    #stage: lint
+    #before_script:
+        #- shellcheck --version
+    #script:
+        #- shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/* ./lib/*.bash
 
 flake8:
     image: python:3
@@ -97,9 +97,9 @@ build:package:tag:
         - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc curl
         - gem install fpm
     script:
-        - bash scripts/build_packages.bash "${CI_COMMIT_TAG_NAME}"
+        - bash scripts/build_packages.bash "${CI_COMMIT_TAG#v}"
     after_script:
-        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_TAG_NAME}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG_NAME}/odoo-helper-scripts_${CI_COMMIT_TAG_NAME}.deb"'
+        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_TAG#v}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG#v}/odoo-helper-scripts_${CI_COMMIT_TAG#v}.deb"'
     only:
         - tags
 
@@ -127,15 +127,15 @@ do_release:tag:
   rules:
     - if: $CI_COMMIT_TAG   # Run this job when a tag is created manually
   script:
-    - echo "Preparing release $CI_COMMIT_TAG_NAME."
+    - echo "Preparing release $CI_COMMIT_TAG."
   release:
     tag_name: $CI_COMMIT_TAG
     name: "${CI_COMMIT_TAG}"
     description: "./CHANGELOG.md"
     assets:
       links:
-        - name: "odoo-helper-scripts_${CI_COMMIT_TAG_NAME}.deb"
-          url: "$PACKAGE_REGISTRY_URL/${CI_COMMIT_TAG_NAME}/odoo-helper-scripts_${CI_COMMIT_TAG_NAME}.deb"
+        - name: "odoo-helper-scripts_${CI_COMMIT_TAG}.deb"
+          url: "$PACKAGE_REGISTRY_URL/${CI_COMMIT_TAG#v}/odoo-helper-scripts_${CI_COMMIT_TAG#v}.deb"
           link_type: "package"
  
 pages:
