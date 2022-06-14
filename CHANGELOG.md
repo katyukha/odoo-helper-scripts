@@ -20,7 +20,7 @@
 - [openupgradelib](https://github.com/OCA/openupgradelib) now will be downloaded from pypi.
   It seems that now relevant versions of this lib are published on pypi
 - Simplify installation for debian-like systems: automatically install preprequirements
-- Python2 support is not installed only for Odoo 10.0 and below.
+- Python2 support is now installed only for Odoo 10.0 and below.
 - Do not use fallback packages when installing wkhtmltopdf.
   By default install wkhtml to pdf from wkhtmltopdf releases only fore supported releases.
   Otherwise, user have to manually choose if he needs to try fallback repo or install system's wkhtmltopdf.

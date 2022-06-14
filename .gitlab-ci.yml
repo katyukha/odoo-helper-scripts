@@ -70,21 +70,21 @@ flake8:
         expire_in: 3 day
         when: always
 
-tests:ubuntu:18.04:
-    image: ubuntu:18.04
-    <<: *tests-definition
+#tests:ubuntu:18.04:
+    #image: ubuntu:18.04
+    #<<: *tests-definition
 
-tests:ubuntu:20.04:
-    image: ubuntu:20.04
-    <<: *tests-definition
+#tests:ubuntu:20.04:
+    #image: ubuntu:20.04
+    #<<: *tests-definition
 
-tests:ubuntu:21.04:
-    image: ubuntu:21.04
-    <<: *tests-definition
+#tests:ubuntu:21.04:
+    #image: ubuntu:21.04
+    #<<: *tests-definition
 
-tests:ubuntu:22.04:
-    image: ubuntu:22.04
-    <<: *tests-definition
+#tests:ubuntu:22.04:
+    #image: ubuntu:22.04
+    #<<: *tests-definition
 
 build:package:tag:
     image: ubuntu:20.04
@@ -97,9 +97,9 @@ build:package:tag:
         - apt-get update -qq && apt-get install -qqy ruby ruby-dev make gcc curl
         - gem install fpm
     script:
-        - bash scripts/build_packages.bash "${CI_COMMIT_TAG_NAME#v}"
+        - bash scripts/build_packages.bash "${CI_COMMIT_TAG_NAME}"
     after_script:
-        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_TAG_NAME#v}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG_NAME#v}/odoo-helper-scripts_${CI_COMMIT_TAG_NAME#v}.deb"'
+        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_TAG_NAME}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG_NAME}/odoo-helper-scripts_${CI_COMMIT_TAG_NAME}.deb"'
     only:
         - tags
 
@@ -119,7 +119,7 @@ build:package:branch:
         - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_REF_NAME}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_NAME}/odoo-helper-scripts_${CI_COMMIT_REF_NAME}.deb"'
     only:
         - master
-        - dev-test-releases
+        - dev
 
 do_release:tag:
   stage: release
@@ -135,7 +135,7 @@ do_release:tag:
     assets:
       links:
         - name: "odoo-helper-scripts_${CI_COMMIT_TAG_NAME}.deb"
-          url: "$PACKAGE_REGISTRY_URL/${CI_COMMIT_TAG_NAME#v}/odoo-helper-scripts_${CI_COMMIT_TAG_NAME#v}.deb"
+          url: "$PACKAGE_REGISTRY_URL/${CI_COMMIT_TAG_NAME}/odoo-helper-scripts_${CI_COMMIT_TAG_NAME}.deb"
           link_type: "package"
  
 pages:
