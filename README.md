@@ -125,8 +125,11 @@ Test all available features of [Bureaucrat ITSM](https://crnd.pro/itsm) with [th
 
 For full list of installation options look at [installation documentation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
 
-*Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
-but this feature is still experimental. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/tags) *page.*
+Basically, odoo-helper could be installed in two way:
+- Traditional installation via shell script
+- Installation via deb package (still experimental)
+
+### Traditional installation
 
 To install *odoo-helper-scripts* system-wide (the recommended way) do folowing:
 
@@ -152,6 +155,12 @@ sudo bash /tmp/odoo-helper-install.bash;
 # NOTE: Works only on debian-based systems
 odoo-helper install pre-requirements
 ```
+
+### Installation as deb package
+
+Also, you can install *odoo-helper-scripts* as debian package. See [releases](https://gitlab.com/katyukha/odoo-helper-scripts/-/releases) page.
+To install the latest **stable** version just download and install following deb package: [odoo-helper-scripts_master.deb](https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb)
+
 
 ## Test your OS support
 
