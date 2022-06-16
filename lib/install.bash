@@ -792,8 +792,15 @@ function install_virtual_env {
         echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
         exec_pip -q install nodeenv;
 
+        local number_of_jobs;
+        if check_command "nproc" > /dev/null; then
+            number_of_jobs=$(nproc --ignore=1);
+        else
+            number_of_jobs=2;
+        fi
+
         local nodeenv_opts;
-        nodeenv_opts=( "--python-virtualenv" );
+        nodeenv_opts=( --python-virtualenv --clean-src --jobs="${number_of_jobs}" );
         if [ -n "$ODOO_INSTALL_NODE_VERSION" ]; then
             nodeenv_opts+=( "--node" "$ODOO_INSTALL_NODE_VERSION" );
         else
