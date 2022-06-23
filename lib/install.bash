@@ -81,6 +81,10 @@ function install_download_odoo {
         rm "$odoo_archive";
     fi
 
+    if [ -z "$ODOO_REPO" ]; then
+        ODOO_REPO="$DEFAULT_ODOO_REPO";
+    fi
+
     if [[ "$ODOO_REPO" == "https://github.com"* ]]; then
         local repo=${clone_odoo_repo%.git};
         local repo_base;
