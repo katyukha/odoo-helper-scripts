@@ -130,12 +130,15 @@ do_release:tag:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   rules:
     - if: $CI_COMMIT_TAG   # Run this job when a tag is created manually
+  before_script:
+    - apk add coreutils
   script:
     - echo "Preparing release $CI_COMMIT_TAG."
+    - csplit --prefix=CHANGELOG. --suffix=%02d.md CHANGELOG.md '/---/'
   release:
     tag_name: $CI_COMMIT_TAG
     name: "${CI_COMMIT_TAG}"
-    description: "./CHANGELOG.md"
+    description: "./CHANGELOG.00.md"
     assets:
       links:
         - name: "odoo-helper-scripts_${CI_COMMIT_TAG}.deb"
