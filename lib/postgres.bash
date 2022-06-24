@@ -285,6 +285,14 @@ function postgres_config_speedify_unsafe {
     echoe -e "Postgres speedify: ${GREENC}OK${NC}";
 }
 
+
+# Wait for postgresql availability
+function postgres_wait_availability {
+    while ! postgres_psql -l >/dev/null; do
+        sleep 2;
+    done
+}
+
 # Parse command line args
 function postgres_command {
     local usage="
@@ -311,6 +319,8 @@ function postgres_command {
                                                                         to make it faster. But also makes postgres unsafe.
                                                                         Usualy this is normal for dev machines,
                                                                         but not for production
+        $SCRIPT_NAME postgres wait-availability                       - wait for postgresql availability.
+                                                                        This could be usefule inside docker containers.
         $SCRIPT_NAME postgres --help                                  - show this help message
 
     ";
@@ -362,6 +372,12 @@ function postgres_command {
                 shift;
                 config_load_project;
                 postgres_psql_locks_info "$@";
+                return;
+            ;;
+            wait-availability)
+                shift;
+                config_load_project;
+                postgres_wait_availability "$@";
                 return;
             ;;
             -h|--help|help)

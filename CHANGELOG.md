@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## Release 0.13.0
 
 ### Added
 
@@ -12,6 +12,8 @@
 - Added new option `--no-backup` to `odoo-helper install reinstall-odoo`
 - On module migration automatically replace `phantom_js(` to `browser_js(`.
 - Added new option `--if-not-exists` to `odoo-helper db create` command
+- Added new command `odoo-helper postgres wait-availability` that allows to wait while postgres will be started and ready.
+  This command could be useful for docker containers
 
 ### Changed
 
@@ -25,6 +27,7 @@
   By default install wkhtml to pdf from wkhtmltopdf releases only fore supported releases.
   Otherwise, user have to manually choose if he needs to try fallback repo or install system's wkhtmltopdf.
 
+---
 
 ## Release 0.12.1 (2021-10-25)
 
