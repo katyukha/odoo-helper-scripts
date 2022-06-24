@@ -9,6 +9,17 @@ Quick links:
 - [Frequently used commands](./frequently-used-commands.md)
 - [Command reference](./command-reference.md)
 
+## The War in Ukraine
+
+2022-02-24 Russia invaded Ukraine...
+
+If you want to help or support Ukraine to stand against russian inavasion,
+please, visit [the official site of Ukraine](https://war.ukraine.ua/)
+and find the best way to do it.
+
+Thanks.
+
+
 ## Overview
 
 This project aims to simplify development process of Odoo addons as much as possible.
@@ -119,7 +130,7 @@ Test all available features of [Bureaucrat ITSM](https://crnd.pro/itsm) with [th
 For full list of installation options look at [installation documentation](./installation.md)
 or [Quick Start Guide](./quick-start-guide.md)
 
-*Starting from 0.1.7-alpha release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
+odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
 but this feature is still in alpha. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/releases) *page.*
 
 To install *odoo-helper-scripts* system-wide do folowing:

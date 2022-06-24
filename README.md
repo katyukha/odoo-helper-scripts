@@ -19,6 +19,16 @@ odoo-helper-scripts will do all routine operations for you:
 
 If you have any routine operation that you would like to automate with odoo-helper-scripts, just fill an issue or do pull request, and may be that feature will be available in one of next releases.
 
+## The War in Ukraine
+
+2022-02-24 Russia invaded Ukraine...
+
+If you want to help or support Ukraine to stand against russian inavasion,
+please, visit [the official site of Ukraine](https://war.ukraine.ua/)
+and find the best way to do it.
+
+Thanks.
+
 ## Canonical source
 
 The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).

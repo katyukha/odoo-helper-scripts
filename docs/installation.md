@@ -73,10 +73,9 @@ After instalation *odoo-helper-scripts* code will be placed in ``/opt/odoo-helpe
 
 ***Note***: this feature is experimental!
 
-Since release *0.1.7-alpha* it is possible to install *odoo-helper-scripts* as *.deb* package.
-
-Look for a link on [releases page](https://gitlab.com/katyukha/odoo-helper-scripts/tags)
-
+It is possible to install *odoo-helper-scripts* as *.deb* package.
+Find all generated *.deb* packages in [releases](https://gitlab.com/katyukha/odoo-helper-scripts/-/releases) page.
+To install the latest **stable** version just download and install following deb package: [odoo-helper-scripts_master.deb](https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb)
 
 ## Install system dependencies for odoo-helper-scripts
 
@@ -88,7 +87,7 @@ odoo-helper install pre-requirements
 ```
 
 On other operation systems it may require to install system dependencies manualy
-For example following command will isntall system dependencies for [OpenSUSE](https://www.opensuse.org/) linux
+For example following command will isntall system dependencies for [OpenSUSE](https://www.opensuse.org/) linux (this command could be outdated)
 
 ```bash
 zypper install git wget python-setuptools gcc postgresql-devel python-devel expect-devel libevent-devel libjpeg-devel libfreetype6-devel zlib-devel libxml2-devel libxslt-devel cyrus-sasl-devel openldap2-devel libssl43 libffi-devel
