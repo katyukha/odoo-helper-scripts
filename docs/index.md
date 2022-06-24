@@ -5,6 +5,7 @@
 Quick links:
 
 - [Quick Start Guide](./quick-start-guide.md) 
+- [Installation](.installation.md)
 - [Frequently used commands](./frequently-used-commands.md)
 - [Command reference](./command-reference.md)
 
@@ -26,10 +27,12 @@ If you have any routine operation that you would like to automate with odoo-help
 
 ## Features
 
-- Easily manage multiple instances of odoo that ran on same machine
-- High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
+- Easily manage multiple instances of Odoo that ran on same machine
+- Wide usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install [node.js](https://nodejs.org/en/), [phantom.js](http://phantomjs.org/), etc in isolated [virtualenv](https://virtualenv.pypa.io/en/stable/)
-- The easiest way to install Odoo for development purposes
+- The easiest way to install Odoo for development purposes (but not limited to development)
+    - single command to install odoo
+    - ability to build custom python for odoo
 - Powerful testing capabilities, including support for:
     - *python* and *js* code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
     - *python* code check via [flake8](https://pypi.python.org/pypi/flake8)
@@ -76,7 +79,7 @@ If you have any routine operation that you would like to automate with odoo-help
     - *12.0*
     - *13.0*
     - *14.0*
-    - *15.0* (**experimental support**)
+    - *15.0*
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
