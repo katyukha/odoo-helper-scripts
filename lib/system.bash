@@ -22,6 +22,30 @@ fi
 
 set -e; # fail on errors
 
+
+function system_update__run_post_update_hooks {
+    echoe -e "${BLUEC}INFO${NC}: Running post-update hooks...";
+    if [ -e "$ODOO_HELPER_ROOT/tools/virtualenv" ]; then
+        echoe -e "${BLUEC}INFO${NC}: Cleaning up old integrated virtualenv... (Now odoo-helper-scripts will use system virtual env)";
+        rm -rf "$ODOO_HELPER_ROOT/tools/virtualenv";
+    fi
+
+    # update odoo-helper bin links
+    base_path=$(dirname "$ODOO_HELPER_ROOT");
+    for oh_cmd in "$ODOO_HELPER_BIN"/*; do
+        local cmd_name;
+        cmd_name=$(basename "$oh_cmd");
+        if ! command -v "$cmd_name" >/dev/null 2>&1; then
+            if [[ "$base_path" == /opt/* ]]; then
+                with_sudo ln -s "$oh_cmd" /usr/local/bin/;
+            elif [[ "$base_path" == "$HOME"/* ]]; then
+                ln -s "$oh_cmd" "$HOME/bin";
+            fi
+        fi
+    done
+    echoe -e "${BLUEC}INFO${NC}: Post-update hooks completed...";
+}
+
 # update odoo-helper-scripts
 function system_update_odoo_helper_scripts {
     local cdir;
@@ -46,27 +70,13 @@ function system_update_odoo_helper_scripts {
             git checkout -q "$scripts_branch";
         fi
     fi
-
-    # Ensure submodule inited and updated;
-    git submodule init;
-    git submodule update;
-
-    # update odoo-helper bin links
-    base_path=$(dirname "$ODOO_HELPER_ROOT");
-    for oh_cmd in "$ODOO_HELPER_BIN"/*; do
-        local cmd_name;
-        cmd_name=$(basename "$oh_cmd");
-        if ! command -v "$cmd_name" >/dev/null 2>&1; then
-            if [[ "$base_path" == /opt/* ]]; then
-                with_sudo ln -s "$oh_cmd" /usr/local/bin/;
-            elif [[ "$base_path" == "$HOME"/* ]]; then
-                ln -s "$oh_cmd" "$HOME/bin";
-            fi
-        fi
-    done
-
-    echoe -e "${LBLUEC}HINT${NC}: Update pre-requirements to ensure all system dependencies are installed.";
     cd "$cdir";
+
+    # Run post-update hooks.
+    # Running in this way because we want to run new version of code here.
+    odoo-helper exec system_update__run_post_update_hooks;
+
+    echoe -e "${LBLUEC}HINT${NC}: Update pre-requirements to ensure all system dependencies are installed. To do this, you can run command ${YELLOWC}odoo-helper install pre-requirements${NC}.";
 }
 
 # Check if specified directory or current directory is odoo-hleper project
