@@ -43,7 +43,8 @@ fpm -s dir -t deb -p $BUILD_DIR/ \
     --license "Mozilla Public License, v. 2.0" \
     --deb-recommends expect-dev \
     --deb-recommends tcl8.6 \
-    $PROJECT_DIR/bin/=/usr/bin/ \
+    $PROJECT_DIR/bin/=/usr/local/bin/ \
     $PROJECT_DIR/lib/=/opt/odoo-helper-scripts/lib/ \
     $PROJECT_DIR/CHANGELOG.md=/opt/odoo-helper-scripts/ \
+    $PROJECT_DIR/LICENSE=/opt/odoo-helper-scripts/ \
     $PROJECT_DIR/defaults/odoo-helper.conf=/etc/
