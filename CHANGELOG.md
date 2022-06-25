@@ -2,6 +2,14 @@
 
 ## Release 0.13.0 (2022-06-25)
 
+### Changed
+
+- Updated minimal version for setuptools for odoo to be greater or equal to 45 and less than 58
+
+---
+
+## Release 0.13.0 (2022-06-25)
+
 ### Added
 
 - Short version of `--migrate-modules` option to `odoo-helper ci do-forwardport`: `--mm`.

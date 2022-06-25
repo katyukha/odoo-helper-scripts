@@ -778,7 +778,7 @@ function install_virtual_env {
         if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
             install_build_python "$ODOO_BUILD_PYTHON_VERSION";
             if [ -f "$PROJECT_ROOT_DIR/python/bin/pip" ]; then
-                # Try to install virtualenv for newly build python and use it,
+                # Try to install virtualenv for newly built python and use it,
                 # instead of global one
                 "$PROJECT_ROOT_DIR/python/bin/python" -m pip install virtualenv;
                 "$PROJECT_ROOT_DIR/python/bin/python" -m virtualenv "$VENV_DIR";
@@ -794,7 +794,8 @@ function install_virtual_env {
         fi
 
         if [ "$(odoo_get_major_version)" -gt 10 ]; then
-            exec_pip -q install "setuptools<58";
+            # Ensure correct version of setup tools installed.
+            exec_pip -q install "setuptools>=45,<58";
         fi
 
         echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
