@@ -81,6 +81,10 @@ function install_download_odoo {
         rm "$odoo_archive";
     fi
 
+    if [ -z "$ODOO_REPO" ]; then
+        ODOO_REPO="$DEFAULT_ODOO_REPO";
+    fi
+
     if [[ "$ODOO_REPO" == "https://github.com"* ]]; then
         local repo=${clone_odoo_repo%.git};
         local repo_base;
@@ -136,9 +140,10 @@ function install_wkhtmltopdf_get_dw_link {
 
 # Download wkhtmltopdf to specified path
 #
-# install_wkhtmltopdf_download <path>
+# install_wkhtmltopdf_download <path> <fallback>
 function install_wkhtmltopdf_download {
     local wkhtmltox_path=$1;
+    local wkhtmltox_fallback=$2;
     local release;
     local download_link;
     release=$(lsb_release -sc);
@@ -147,13 +152,19 @@ function install_wkhtmltopdf_download {
     if ! wget -q -T 15 "$download_link" -O "$wkhtmltox_path"; then
         local old_release=$release;
 
-        if [ "$(lsb_release -si)" == "Ubuntu" ]; then
+        if [ -n "$wkhtmltox_fallback" ] && [ "$(lsb_release -si)" == "Ubuntu" ]; then
             # fallback to trusty release for ubuntu systems
-            release=bionic;
-        elif [ "$(lsb_release -si)" == "Debian" ]; then
+            release=focal;
+        elif [ -n "$wkhtmltox_fallback" ] && [ "$(lsb_release -si)" == "Debian" ]; then
             release=stretch;
+        elif [ -z "$wkhtmltox_fallback" ]; then
+            echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Try to use --fallback option to install wkthmltopdf for other supported release, or install system's wkhtmltopdf.";
+            if [ -e "$wkhtmltox_path" ]; then rm "$wkhtmltox_path"; fi
+            return 2;
+
         else
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Not supported OS";
+            if [ -e "$wkhtmltox_path" ]; then rm "$wkhtmltox_path"; fi
             return 2;
         fi
 
@@ -161,6 +172,7 @@ function install_wkhtmltopdf_download {
         download_link=$(install_wkhtmltopdf_get_dw_link "$release");
         if ! wget -q -T 15 "$download_link" -O "$wkhtmltox_path"; then
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! cannot download package $download_link";
+            if [ -e "$wkhtmltox_path" ]; then rm "$wkhtmltox_path"; fi
             return 1;
         fi
     fi
@@ -179,16 +191,22 @@ function install_wkhtmltopdf {
     Options:
 
         --update   - install even if it is already installed
+        --fallback - if there is no wkhtmltodpf for current release,
+                     then try to install from fallback repos.
         --help     - show this help message
     ";
 
     local force_install;
+    local wkhtmltox_fallback;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
         case $key in
             --update)
                 force_install=1;
+            ;;
+            --fallback)
+                wkhtmltox_fallback=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -206,13 +224,20 @@ function install_wkhtmltopdf {
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f "$wkhtmltox_path" ]; then
             echoe -e "${BLUEC}Downloading ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
-            install_wkhtmltopdf_download "$wkhtmltox_path";
+            if ! install_wkhtmltopdf_download "$wkhtmltox_path" "$wkhtmltox_fallback"; then
+                # Error message displayed by install_wkhtmltopdf_download,
+                # so there is no need to display it here
+                return 3;
+            fi
         fi
         echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
         local wkhtmltox_deps;
         read -ra wkhtmltox_deps < <(dpkg -f "$wkhtmltox_path" Depends | sed -r 's/,//g');
         if ! (install_sys_deps_internal "${wkhtmltox_deps[@]}" && with_sudo dpkg -i "$wkhtmltox_path"); then
             echoe -e "${REDC}ERROR:${NC} Error caught while installing ${BLUEC}wkhtmltopdf${NC}.";
+            echoe -e "${LBLUEC}HINT:${NC} If your system has wkhtmltopdf>=0.12.5 then try to install system package.";
+            rm "$wkhtmltox_path" || true;  # try to remove downloaded file, ignore errors
+            return 2;
         fi
 
         rm "$wkhtmltox_path" || true;  # try to remove downloaded file, ignore errors
@@ -241,13 +266,7 @@ function install_parse_debian_control_file {
     local file_path=$1;
     local sys_deps_raw=( );
 
-    local python_cmd="import re; RE_DEPS=re.compile(r'.*Depends:(?P<deps>(\n [^,]+,)+).*', re.MULTILINE | re.DOTALL);";
-    python_cmd="$python_cmd m = RE_DEPS.match(open('$file_path').read());";
-    python_cmd="$python_cmd deps = m and m.groupdict().get('deps', '');";
-    python_cmd="$python_cmd deps = deps.replace(',', '').replace(' ', '').split('\n');";
-    python_cmd="$python_cmd print('\n'.join(filter(lambda l: l and not l.startswith('\\\${'), deps)))";
-
-    mapfile -t sys_deps_raw < <(run_python_cmd "$python_cmd");
+    mapfile -t sys_deps_raw < <(python3 "$ODOO_HELPER_LIB/pylib/parse_deb_deps.py" "$file_path");
 
     # Preprocess odoo dependencies
     # TODO: create list of packages that should not be installed via apt
@@ -267,6 +286,14 @@ function install_parse_debian_control_file {
             node-less)
                 # Will be installed into virtual env via node-env
                 continue
+            ;;
+            python)
+                if [ "$(odoo_get_major_version)" -lt 11 ]; then
+                    # We have to set it explicitly to 2.7 to be compatibale with ubuntu 18.04 that does not have python2 package
+                    echo "python2.7";
+                else
+                    echo "$dep";
+                fi
             ;;
             python-pypdf|python-pypdf2|python3-pypdf2)
                 # Will be installed by pip from requirements.txt
@@ -400,6 +427,12 @@ function install_sys_deps_for_odoo_version {
         return 1;
     fi
 
+    local odoo_major_version="${odoo_version%.*}";
+    if [ "$odoo_major_version" -lt 11 ]; then
+        # We have to install python2 support for odoo versions less than 11.0
+        install_python2_support;
+    fi
+
     odoo_branch=${odoo_branch:-$odoo_version};
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
     local tmp_control;
@@ -474,13 +507,13 @@ function install_odoo_py_requirements_for_version {
             elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
                 # Starting from Odoo 11 python 3 is used. choose correct gevent  version
                 # for python installed in system
-                if exec_py -c "\"import sys; assert (3, 4) <= sys.version_info < (3, 6);\"" > /dev/null 2>&1; then
+                if exec_py -c "import sys; assert (3, 4) <= sys.version_info < (3, 6);" > /dev/null 2>&1; then
                     echo "gevent==1.1.2";
-                elif exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 7);\"" > /dev/null 2>&1; then
+                elif exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 7);" > /dev/null 2>&1; then
                     echo "gevent==1.3.4";
-                elif exec_py -c "\"import sys; assert (3, 7) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                elif exec_py -c "import sys; assert (3, 7) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
-                elif exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+                elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                     echo "gevent>=20.6.0";
                 else
                     echo "$dependency";
@@ -489,27 +522,27 @@ function install_odoo_py_requirements_for_version {
                 echo "greenlet==0.4.9";
             elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 # Set correct version of greenlet for gevent 1.5.0
-                if exec_py -c "\"import sys; assert (3, 5) <= sys.version_info < (3, 9);\"" > /dev/null 2>&1; then
+                if exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
-                elif exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
-                    echo "greenlet==0.4.16";
+                elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
+                    echo "greenlet>=0.4.16";
                 else
                     echo "$dependency";
                 fi
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
-                echo "psycopg2==2.7.3.1";
-            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "\"import sys; assert sys.version_info <= (3, 5);\"" > /dev/null 2>&1; then
-                echo "psycopg2-binary==2.8.7";
+                echo "psycopg2==2.8.6";
+            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "import sys; assert sys.version_info <= (3, 5);" > /dev/null 2>&1; then
+                echo "psycopg2-binary==2.8.6";
             elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
                 echo "lxml==3.7.1";
-            elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+            elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 echo "lxml";
-            elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+            elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 # Download latst version for python 3.9 and odoo 11.0
                 echo "PyYAML";
-            elif [[ "$dependency_stripped" =~ reportlab ]] && exec_py -c "\"import sys; assert sys.version_info >= (3, 9);\"" > /dev/null 2>&1; then
+            elif [[ "$dependency_stripped" =~ reportlab ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 # In case of python 3.9 latest version of reportlab have to be used
                 echo "reportlab";
             elif [ "$odoo_major_version" -gt 10 ] && [[ "$dependency_stripped" =~ feedparser ]]; then
@@ -586,6 +619,17 @@ function install_and_configure_postgresql {
 }
 
 
+function install_python2_support {
+    echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
+    if ! install_sys_deps_internal python2-dev python2-pip-whl; then
+        echo -e "${YELLOWC}WARNING${NC}: It seems that it is too old version of OS, trying old version of python2 support...";
+        if ! install_sys_deps_internal python-dev; then
+            echo -e "${YELLOWC}WARNING${NC}: Cannot install python2 support... skipping...";
+        fi
+    fi
+}
+
+
 # install_system_prerequirements
 function install_system_prerequirements {
     local usage="
@@ -627,7 +671,7 @@ function install_system_prerequirements {
     echoe -e "${BLUEC}Installing system preprequirements...${NC}";
     install_sys_deps_internal git wget lsb-release \
         procps libevent-dev g++ libpq-dev libsass-dev \
-        python-dev python3-dev libjpeg-dev libyaml-dev \
+        python3-dev python3-virtualenv libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
         libmagic1;
@@ -685,6 +729,12 @@ function install_build_python {
         install_sys_deps_internal "make";
     fi
 
+    # Check if we need to install SQLite lib dev package  dpkg -s sqlite3 2&>1 > /dev/null
+    if [ -n "$ODOO_BUILD_PYTHON_SQLITE3" ] && ! dpkg -s libsqlite3-dev > /dev/null 2>&1; then
+        echoe -e "${YELLOWC}libsqlite3-dev${BLUEC} seems to be not installed. Installing...${NC}";
+        install_sys_deps_internal "libsqlite3-dev";
+    fi
+
     # Prepare build python
     echoe -e "${BLUEC}Building python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
     local number_of_jobs;
@@ -715,40 +765,62 @@ function install_build_python {
     if [ ! -f "${python_path}/bin/python" ]; then
         ln "${python_path}/bin/python${python_version_short}" "${python_path}/bin/python";
     fi
+    if [ ! -f "${python_path}/bin/pip" ]; then
+        ln "${python_path}/bin/pip${python_version_short}" "${python_path}/bin/pip";
+    fi
 }
 
 # Install virtual environment.
 #
 # install_virtual_env
 function install_virtual_env {
-    local venv_script=${ODOO_HELPER_ROOT}/tools/virtualenv/virtualenv.py;
     if [ -n "$VENV_DIR" ] && [ ! -d "$VENV_DIR" ]; then
         if [ -n "$ODOO_BUILD_PYTHON_VERSION" ]; then
             install_build_python "$ODOO_BUILD_PYTHON_VERSION";
-            VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python" "$venv_script" "$VENV_DIR";
+            if [ -f "$PROJECT_ROOT_DIR/python/bin/pip" ]; then
+                # Try to install virtualenv for newly build python and use it,
+                # instead of global one
+                "$PROJECT_ROOT_DIR/python/bin/python" -m pip install virtualenv;
+                "$PROJECT_ROOT_DIR/python/bin/python" -m virtualenv "$VENV_DIR";
+            else
+                VIRTUALENV_PYTHON="$PROJECT_ROOT_DIR/python/bin/python3" python3 -m virtualenv "$VENV_DIR";
+            fi
         elif [ -z "$VIRTUALENV_PYTHON" ]; then
             local venv_python_version;
             venv_python_version=$(odoo_get_python_version);
-            VIRTUALENV_PYTHON="$venv_python_version" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$venv_python_version" python3 -m virtualenv "$VENV_DIR";
         else
-            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" "$(odoo_get_python_interpreter)" "$venv_script" "$VENV_DIR";
+            VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" python3 -m virtualenv "$VENV_DIR";
         fi
-        exec_pip -q install nodeenv;
 
         if [ "$(odoo_get_major_version)" -gt 10 ]; then
-            exec_pip -q install "setuptools\<58";
+            exec_pip -q install "setuptools<58";
+        fi
+
+        echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
+        exec_pip -q install nodeenv;
+
+        local number_of_jobs;
+        if check_command "nproc" > /dev/null; then
+            number_of_jobs=$(nproc --ignore=1);
+        else
+            number_of_jobs=2;
         fi
 
         local nodeenv_opts;
-        nodeenv_opts=( "--python-virtualenv" );
+        nodeenv_opts=( --python-virtualenv --clean-src --jobs="${number_of_jobs}" );
         if [ -n "$ODOO_INSTALL_NODE_VERSION" ]; then
             nodeenv_opts+=( "--node" "$ODOO_INSTALL_NODE_VERSION" );
+        else
+            nodeenv_opts+=( "--node" "lts" );
         fi
 
         execv nodeenv "${nodeenv_opts[@]}";  # Install node environment
 
         exec_npm set user 0;
         exec_npm set unsafe-perm true;
+
+        echoe -e "${BLUEC}Virtualeenv initialization completed!${NC}"
     fi
 }
 
@@ -859,7 +931,8 @@ function install_python_tools {
         esac
         shift
     done
-    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" setproctitle watchdog pylint pylint-odoo coverage \
+    exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" \
+        setproctitle watchdog pylint-odoo coverage \
         flake8 flake8-colors websocket-client jingtrang;
 }
 
@@ -1025,7 +1098,7 @@ function install_openupgradelib {
         esac
         shift
     done
-    exec_pip install --upgrade "git+https://github.com/OCA/openupgradelib.git@master#egg=openupgradelib"
+    exec_pip install --upgrade openupgradelib
 }
 
 # install_python_prerequirements
@@ -1035,7 +1108,7 @@ function install_python_prerequirements {
     exec_pip -q install phonenumbers python-slugify setuptools-odoo cffi \
         jinja2 click python-magic;
 
-    if ! run_python_cmd "import pychart" >/dev/null 2>&1 ; then
+    if ! exec_py -c "import pychart" >/dev/null 2>&1 ; then
         exec_pip -q install Python-Chart;
     fi
 }
@@ -1133,7 +1206,7 @@ function install_reinstall_venv {
         -p|--python <python ver>  - python version to recreate virtualenv with.
                                     Same as --python option of virtualenv
         --node-version <version>  - version of node.js to be installed.
-                                    Default: latest
+                                    Default: lts
         --no-backup               - do not backup virtualenv
         --build-python <version>  - Build custom version of python for
                                     this virtual environment
@@ -1220,15 +1293,19 @@ function install_reinstall_odoo {
 
     Usage:
 
-        $SCRIPT_NAME install reinstall-odoo <type> - reinstall odoo
-        $SCRIPT_NAME install reinstall-odoo --help - show this help message
+        $SCRIPT_NAME install reinstall-odoo [options] <type> - reinstall odoo
 
     <type> could be:
-        clone     - reinstall Odoo as git repository.
-        download  - reinstall Odoo from archive.
+        git      - reinstall Odoo as git repository.
+        archive  - reinstall Odoo from archive.
+
+    Options:
+        --no-backup     - do not backup old version of odoo
+        -h|--help|help  - show this help message
     ";
 
-    local reinstall_action;
+    local reinstall_action="download";
+    local do_not_backup_old_odoo;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -1238,6 +1315,9 @@ function install_reinstall_odoo {
             ;;
             download|archive)
                 reinstall_action="download";
+            ;;
+            --no-backup)
+                do_not_backup_old_odoo=1;
             ;;
             -h|--help|help)
                 echo "$usage";
@@ -1258,12 +1338,18 @@ function install_reinstall_odoo {
     fi
 
     if [ -d "$ODOO_PATH" ]; then
-        local odoo_backup_path;
-        odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
-        mv "$ODOO_PATH" "$odoo_backup_path";
-        echo -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
+        if [ -z "$do_not_backup_old_odoo" ]; then
+            local odoo_backup_path;
+            odoo_backup_path="$ODOO_PATH-backup-$(random_string 4)";
+            mv "$ODOO_PATH" "$odoo_backup_path";
+            echoe -e "${BLUEC}NOTE:${NC}: Previous odoo code backed up at ${YELLOWC}${odoo_backup_path}${NC}!";
+        else
+            echoe -e "${BLUEC}INFO:${NC}: Removing old Odoo installation...";
+            rm -rf "$ODOO_PATH";
+        fi
     fi
 
+    echoe -e "${BLUEC}INFO${NC}: Reinstalling Odoo...";
     install_fetch_odoo "$reinstall_action";
     install_reinstall_venv;
 }

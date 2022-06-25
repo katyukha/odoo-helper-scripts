@@ -30,7 +30,7 @@ function ci_ensure_versions_ok {
     local version2="$1"; shift;
 
     # NOTE: here we inverse pythons True to bash zero status code
-    if ! run_python_cmd "from pkg_resources import parse_version as V; exit(V('${version1}') < V('${version2}'));"; then
+    if ! execv python -c "from pkg_resources import parse_version as V; exit(V('${version1}') < V('${version2}'));"; then
         return 0;
     else
         return 1;
@@ -160,7 +160,7 @@ function ci_git_get_addon_version_by_ref {
     if [ -z "$manifest_content" ]; then
         version="${ODOO_VERSION}.0.0.0";
     else
-        version=$(echo "$manifest_content" | execv python -c "\"import sys; print(eval(sys.stdin.read()).get('version', '${ODOO_VERSION}.1.0.0'))\"");
+        version=$(echo "$manifest_content" | execv python -c "import sys; print(eval(sys.stdin.read()).get('version', '${ODOO_VERSION}.1.0.0'))");
         # shellcheck disable=SC2181
         if [ "$?" -ne 0 ]; then
             [ -z "$quiet" ] && echoe -e "${YELLOWC}WARNING${NC} Cannot read version from manifest in first revision! Using ${BLUEC}${ODOO_VERSION}.0.0.0${NC} as default.";
@@ -532,7 +532,7 @@ function ci_push_changes {
     Have to be used in Continious Integration pipelines.
     Have to be ran only in Gitlab
 
-    This command could be used in automated flows that midifies repository code
+    This command could be used in automated flows that modifies repository code
 
     WARNING: this command is experimental, and have to be used carefully
 
@@ -581,6 +581,8 @@ function ci_push_changes {
         return 4;
     fi
 
+    local git_remote_url="git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_PATH}";
+
     echoe -e "${LBLUEC}INFO${NC}: committing as user (name=${GITLAB_USER_NAME}, email=${GITLAB_USER_EMAIL})";
     git -c "user.name='${GITLAB_USER_NAME}'" -c "user.email='${GITLAB_USER_EMAIL}'" commit -m "${commit_name}";
     echo "$CI_SSH_PRIVATE_KEY" > /tmp/push_key;
@@ -589,8 +591,8 @@ function ci_push_changes {
     chmod 600 /tmp/push_key;
     chmod 600 /tmp/push_key.pub;
     chmod 600 /tmp/pushsshconfig;
-    echoe -e "${LBLUEC}INFO${NC}: setting remote url to git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
-    git remote set-url --push origin "git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_URL#https://${CI_JOB_TOKEN_GIT_HOST}/}.git";
+    echoe -e "${LBLUEC}INFO${NC}: setting remote url to ${git_remote_name}";
+    git remote set-url --push origin "${git_remote_name}";
     echoe -e "${LBLUEC}INFO${NC}: pushing changes to ${CI_COMMIT_BRANCH}";
     git -c core.sshCommand='ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /tmp/pushsshconfig -i /tmp/push_key' \
         push origin "HEAD:${CI_COMMIT_BRANCH}";
@@ -628,7 +630,7 @@ function ci_do_forwardport {
         --fm|--forward-migrations        - Rename all migrations for source version
                                            to new odoo-version. Now it is enabled by default.
         --no-fm|--no-forward-migrations  - Do not forward-port migrations
-        --migrate-modules                - [experimental] Migrate module's code
+        --mm|--migrate-modules           - [experimental] Migrate module's code
 
         --help                           - show this help message
     ";
@@ -666,7 +668,7 @@ function ci_do_forwardport {
             --no|--no-forward-migrations)
                 forward_migrations=0;
             ;;
-            --migrate-modules)
+            --mm|--migrate-modules)
                 migrate_modules=1;
             ;;
             -h|--help|help)
@@ -882,7 +884,7 @@ function ci_ensure_addons_have_changelog {
             echee -e "${REDC}WARNING${NC}: It seems that addon ${YELLOWC}${addon_name}${NC} removed. skipping...";
             continue;
         fi
-        addon_version_short=${addon_version##$ODOO_VERSION.};
+        addon_version_short=${addon_version##"$ODOO_VERSION".};
         if [ ! -f "$addon/changelog/changelog.$addon_version_short.$changelog_format" ]; then
             echoe -e "${REDC}ERROR${NC}: addon ${YELLOWC}${addon_name}${NC} have no changelog entry! (format: ${YELLOWC}${changelog_format}${NC})";
             res=1;

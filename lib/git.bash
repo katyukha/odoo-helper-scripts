@@ -304,7 +304,7 @@ function git_get_addons_changed {
     done
 
     local repo_path;
-    repo_path=$(readlink -f "$1"); shift;
+    repo_path=$(git_get_abs_repo_path "$1"); shift;
     local ref_start="$1"; shift;
     local ref_end="$1"; shift;
     local cdir;

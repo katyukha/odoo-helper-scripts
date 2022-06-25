@@ -11,6 +11,15 @@ import click
 
 CHECKS = {}
 
+CHECKS['12.0'] = {
+    '.py': [
+        ("replace",
+            r"\.phantom_js\(",
+            ".browser_js(",
+            "Replace calls to 'phantom_js' with 'browser_js'."),
+    ],
+}
+
 # Auto checks for 13.0
 CHECKS['13.0'] = {
     '.py': [
@@ -31,6 +40,10 @@ CHECKS['13.0'] = {
             "._mail_find_partner_from_emails(",
             ("Rename _find_partner_from_emails -> "
                 "_mail_find_partner_from_emails")),
+        ("replace",
+            r"\.phantom_js\(",
+            ".browser_js(",
+            "Replace calls to 'phantom_js' with 'browser_js'."),
     ],
     '.xml': [
         ("replace",
@@ -40,12 +53,17 @@ CHECKS['13.0'] = {
     ],
 }
 
+# Auto checks for 14.0
 CHECKS['14.0'] = {
     '.py': [
         ("replace",
             r"track_visibility\s*=\s*['\"]\w+['\"]",
             "tracking=True",
             "Replace track_visibility='...' with tracking=True"),
+        ("replace",
+            r"\.phantom_js\(",
+            ".browser_js(",
+            "Replace calls to 'phantom_js' with 'browser_js'."),
     ],
 }
 

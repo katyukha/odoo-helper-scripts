@@ -19,16 +19,28 @@ odoo-helper-scripts will do all routine operations for you:
 
 If you have any routine operation that you would like to automate with odoo-helper-scripts, just fill an issue or do pull request, and may be that feature will be available in one of next releases.
 
+## The War in Ukraine
+
+2022-02-24 Russia invaded Ukraine...
+
+If you want to help or support Ukraine to stand against russian inavasion,
+please, visit [the official site of Ukraine](https://war.ukraine.ua/)
+and find the best way to do it.
+
+Thanks.
+
 ## Canonical source
 
 The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).
 
 ## Features
 
-- Easily manage multiple instances of odoo that ran on same machine
-- High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
+- Easily manage multiple instances of Odoo that ran on same machine
+- Wide usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install [node.js](https://nodejs.org/en/), [phantom.js](http://phantomjs.org/), etc in isolated [virtualenv](https://virtualenv.pypa.io/en/stable/)
-- The easiest way to install Odoo for development purposes
+- The easiest way to install Odoo for development purposes (but not limited to development)
+    - single command to install odoo
+    - ability to build custom python for odoo
 - Powerful testing capabilities, including support for:
     - *python* and *js* code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
     - *python* code check via [flake8](https://pypi.python.org/pypi/flake8)
@@ -75,7 +87,7 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - *12.0*
     - *13.0*
     - *14.0*
-    - *15.0* (**experimental support**)
+    - *15.0*
 - OS support:
     - On *Ubuntu* should work nice (auto tested on *Ubuntu 18.04, 20.04*)
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
@@ -125,8 +137,11 @@ Test all available features of [Bureaucrat ITSM](https://crnd.pro/itsm) with [th
 
 For full list of installation options look at [installation documentation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
 
-*Starting from 0.1.7 release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
-but this feature is still experimental. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/tags) *page.*
+Basically, odoo-helper could be installed in two way:
+- Traditional installation via shell script
+- Installation via deb package (still experimental)
+
+### Traditional installation
 
 To install *odoo-helper-scripts* system-wide (the recommended way) do folowing:
 
@@ -152,6 +167,12 @@ sudo bash /tmp/odoo-helper-install.bash;
 # NOTE: Works only on debian-based systems
 odoo-helper install pre-requirements
 ```
+
+### Installation as deb package
+
+Also, you can install *odoo-helper-scripts* as debian package. See [releases](https://gitlab.com/katyukha/odoo-helper-scripts/-/releases) page.
+To install the latest **stable** version just download and install following deb package: [odoo-helper-scripts_master.deb](https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb)
+
 
 ## Test your OS support
 

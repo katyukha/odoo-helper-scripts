@@ -51,7 +51,7 @@ function addons_get_manifest_key {
 
     local manifest_file;
     manifest_file=$(addons_get_manifest_file "$addon_path");
-    run_python_cmd "print(eval(open('$manifest_file', 'rt').read()).get('$key', $default_val))"
+    exec_py -c "print(eval(open('$manifest_file', 'rt').read()).get('$key', $default_val))"
 }
 
 # Echo path to addon specified by name
@@ -117,12 +117,7 @@ function addons_is_odoo_addon {
 function addons_is_installable {
     local addon_path=$1;
     local manifest_file;
-    manifest_file=$(addons_get_manifest_file "$addon_path");
-    if run_python_cmd "exit(not eval(open('$manifest_file', 'rt').read()).get('installable', True))"; then
-        return 0;
-    else
-        return 1;
-    fi
+    exec_py_utils addon-is-installable --addon-path="$addon_path";
 }
 
 # Get list of addon dependencies
@@ -132,7 +127,7 @@ function addons_get_addon_dependencies {
     local manifest_file;
     manifest_file=$(addons_get_manifest_file "$addon_path");
 
-    run_python_cmd "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))";
+    exec_py -c "print(' '.join(eval(open('$manifest_file', 'rt').read()).get('depends', [])))";
 }
 
 
@@ -182,11 +177,7 @@ function addons_update_module_list {
             ;;
             --tdb|--test-db)
                 local test_db;
-                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
-                if [ -z "$test_db" ]; then
-                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
-                    test_db="$test_db-odoo-test";
-                fi
+                test_db=$(odoo_conf_get_test_db)
                 if [ -n "$test_db" ]; then
                     dbs+=( "$test_db" );
                 fi
@@ -821,11 +812,7 @@ function addons_install_update {
             ;;
             --tdb|--test-db)
                 local test_db;
-                test_db=$(odoo_get_conf_val db_name "$ODOO_TEST_CONF_FILE")
-                if [ -z "$test_db" ]; then
-                    test_db=$(odoo_get_conf_val_default db_user odoo "$ODOO_TEST_CONF_FILE");
-                    test_db="$test_db-odoo-test";
-                fi
+                test_db=$(odoo_conf_get_test_db)
                 if [ -n "$test_db" ]; then
                     dbs+=( "$test_db" );
                 else

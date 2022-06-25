@@ -30,7 +30,7 @@ function execv {
     fi
 
     # Eval command and save result
-    if eval "$@"; then
+    if "$@"; then
         local res=$?;
     else
         local res=$?;
@@ -60,12 +60,11 @@ function execu {
 
     # Decide wether to use unbuffer or not
     if [ -n "$USE_UNBUFFER" ]; then
-        local unbuffer_opt="unbuffer";
+        execv unbuffer "$@";
     else
         local unbuffer_opt="";
+        execv "$@";
     fi
-
-    execv "$unbuffer_opt" "$@";
 }
 
 # Exec command with specified odoo config
@@ -103,7 +102,7 @@ function create_dirs {
 # Returns first existing command
 function check_command {
     for test_cmd in "$@"; do
-        if execv "command -v $test_cmd >/dev/null 2>&1"; then
+        if execv command -v "$test_cmd" >/dev/null 2>&1; then
             execv command -v "$test_cmd";
             return 0;
         fi;
@@ -251,41 +250,9 @@ function exec_lodoo_u {
     exec_py_u "${ODOO_HELPER_LIB}/pylib/lodoo.py" "$@";
 }
 
-
-function run_python_cmd_prepare {
-    local cmd="
-import sys
-
-sys.path.append('$ODOO_HELPER_LIB/pylib')
-
-try:
-    $1
-except SystemExit:
-    raise
-except Exception:
-    import traceback
-    traceback.print_exc(file=sys.stderr)
-    sys.exit(1)
-";
-    echo "$cmd";
-}
-
-# Run python code
-#
-# run_python_cmd <code>
-function run_python_cmd {
-    local python_cmdl
-    python_cmd=$(run_python_cmd_prepare "$1");
-    exec_py -c "\"$python_cmd\"";
-}
-
-# Run python code as server user (if provided)
-#
-# run_python_cmd <code>
-function run_python_cmd_u {
-    local python_cmd;
-    python_cmd=$(run_python_cmd_prepare "$@");
-    exec_py_u -c "\"$python_cmd\"";
+# Shortcut for exec py_utils
+function exec_py_utils {
+    exec_py "$ODOO_HELPER_LIB/pylib/py_utils.py" "$@";
 }
 
 
@@ -293,5 +260,5 @@ function run_python_cmd_u {
 #
 # version_cmp_gte <version1> <version2>
 function version_cmp_gte {
-    exec_py -c "\"from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));\"";
+    exec_py -c "from pkg_resources import parse_version as V; exit(not bool(V('$1') >= V('$2')));";
 }

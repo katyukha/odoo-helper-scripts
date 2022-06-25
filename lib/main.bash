@@ -161,8 +161,8 @@ function odoo_helper_show_project_ci_tools_versions {
         eslint_version="${REDC}Not installed${NC}"
     fi
 
-    if run_python_cmd "import pylint_odoo" >/dev/null 2>&1 ; then
-        pylint_odoo_version=$(run_python_cmd "import pkg_resources; print(pkg_resources.get_distribution('pylint_odoo').version)");
+    if exec_py -c "import pylint_odoo" >/dev/null 2>&1 ; then
+        pylint_odoo_version=$(exec_py -c "import pkg_resources; print(pkg_resources.get_distribution('pylint_odoo').version)");
         pylint_odoo_version="${BLUEC}${pylint_odoo_version}${NC}";
     else
         pylint_odoo_version="${REDC}Not installed${NC}";
@@ -472,7 +472,7 @@ function odoo_helper_main {
                 ci_command "$@";
                 return;
             ;;
-            fix-versions)
+            fix-versions|fix-version)
                 shift;
                 config_load_project;
                 ci_cmd_git_fix_versions "$@";

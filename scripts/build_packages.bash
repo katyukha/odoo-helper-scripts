@@ -12,15 +12,21 @@ BUILD_DIR="$PROJECT_DIR/build";
 mkdir -p $BUILD_DIR;
 rm -f $BUILD_DIR/*;
 
-x_commit_ref="${CI_COMMIT_TAG_NAME:-$CI_COMMIT_REF_NAME}";
-deb_version=${x_commit_ref:-$($PROJECT_DIR/bin/odoo-helper exec echo "\$ODOO_HELPER_VERSION" 2>/dev/null)};
-deb_version=${deb_version#v}
+deb_version="$1";
+
+if [ -z "$deb_version" ]; then
+    echo "Version is not specified";
+    exit 1;
+fi
+
+echo "Building package for version '$deb_version'...";
 
 deb_depends="git wget lsb-release 
     procps libevent-dev g++ libpq-dev libsass-dev
-    python-dev python3-dev libjpeg-dev libyaml-dev
+    python3-dev python3-virtualenv libjpeg-dev libyaml-dev
     libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2
-    libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig";
+    libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig
+    libmagic1";
 deb_depends_opt=$(for dep in $deb_depends; do echo "--depends $dep"; done);
 
 fpm -s dir -t deb -p $BUILD_DIR/ \
@@ -38,8 +44,8 @@ fpm -s dir -t deb -p $BUILD_DIR/ \
     --license "Mozilla Public License, v. 2.0" \
     --deb-recommends expect-dev \
     --deb-recommends tcl8.6 \
-    $PROJECT_DIR/bin/=/usr/bin/ \
+    $PROJECT_DIR/bin/=/usr/local/bin/ \
     $PROJECT_DIR/lib/=/opt/odoo-helper-scripts/lib/ \
-    $PROJECT_DIR/tools/=/opt/odoo-helper-scripts/tools/ \
     $PROJECT_DIR/CHANGELOG.md=/opt/odoo-helper-scripts/ \
+    $PROJECT_DIR/LICENSE=/opt/odoo-helper-scripts/ \
     $PROJECT_DIR/defaults/odoo-helper.conf=/etc/

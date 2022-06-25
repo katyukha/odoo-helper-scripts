@@ -1,5 +1,34 @@
 # Release Notes
 
+## Release 0.13.0 (2022-06-25)
+
+### Added
+
+- Short version of `--migrate-modules` option to `odoo-helper ci do-forwardport`: `--mm`.
+  So, now forwardport command could look like: `odoo-helper ci do-forward-port -s 12.0 --mm`
+- Automatically detect `.jslintrc` placed in repo root directory. If found, then apply it to pylint by default.
+- Added shortcut for `odoo-helper fix-versions` - `odoo-helper fix-version`
+- Added option `--tdb` to `odoo-helper odoo recompute` command
+- Added new option `--no-backup` to `odoo-helper install reinstall-odoo`
+- On module migration automatically replace `phantom_js(` to `browser_js(`.
+- Added new option `--if-not-exists` to `odoo-helper db create` command
+- Added new command `odoo-helper postgres wait-availability` that allows to wait while postgres will be started and ready.
+  This command could be useful for docker containers
+
+### Changed
+
+- Install LTS version of nodejs by default.
+  In previous version latest stable version was installed by default.
+- [openupgradelib](https://github.com/OCA/openupgradelib) now will be downloaded from pypi.
+  It seems that now relevant versions of this lib are published on pypi
+- Simplify installation for debian-like systems: automatically install preprequirements
+- Python2 support is now installed only for Odoo 10.0 and below.
+- Do not use fallback packages when installing wkhtmltopdf.
+  By default install wkhtml to pdf from wkhtmltopdf releases only fore supported releases.
+  Otherwise, user have to manually choose if he needs to try fallback repo or install system's wkhtmltopdf.
+
+---
+
 ## Release 0.12.1 (2021-10-25)
 
 - Fixed: `libmagic1` added to system pre-requirements

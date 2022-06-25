@@ -5,8 +5,20 @@
 Quick links:
 
 - [Quick Start Guide](./quick-start-guide.md) 
+- [Installation](.installation.md)
 - [Frequently used commands](./frequently-used-commands.md)
 - [Command reference](./command-reference.md)
+
+## The War in Ukraine
+
+2022-02-24 Russia invaded Ukraine...
+
+If you want to help or support Ukraine to stand against russian inavasion,
+please, visit [the official site of Ukraine](https://war.ukraine.ua/)
+and find the best way to do it.
+
+Thanks.
+
 
 ## Overview
 
@@ -26,10 +38,12 @@ If you have any routine operation that you would like to automate with odoo-help
 
 ## Features
 
-- Easily manage multiple instances of odoo that ran on same machine
-- High usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
+- Easily manage multiple instances of Odoo that ran on same machine
+- Wide usage of [virtualenv](https://virtualenv.pypa.io/en/stable/) for isolation purpose
 - Use [nodeenv](https://pypi.python.org/pypi/nodeenv) to install [node.js](https://nodejs.org/en/), [phantom.js](http://phantomjs.org/), etc in isolated [virtualenv](https://virtualenv.pypa.io/en/stable/)
-- The easiest way to install Odoo for development purposes
+- The easiest way to install Odoo for development purposes (but not limited to development)
+    - single command to install odoo
+    - ability to build custom python for odoo
 - Powerful testing capabilities, including support for:
     - *python* and *js* code check via [pylint\_odoo](https://pypi.python.org/pypi/pylint-odoo) (which uses [ESLint](https://eslint.org/) to check JS files)
     - *python* code check via [flake8](https://pypi.python.org/pypi/flake8)
@@ -76,7 +90,7 @@ If you have any routine operation that you would like to automate with odoo-help
     - *12.0*
     - *13.0*
     - *14.0*
-    - *15.0* (**experimental support**)
+    - *15.0*
 - OS support:
     - On *Ubuntu* should work nice
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
@@ -116,7 +130,7 @@ Test all available features of [Bureaucrat ITSM](https://crnd.pro/itsm) with [th
 For full list of installation options look at [installation documentation](./installation.md)
 or [Quick Start Guide](./quick-start-guide.md)
 
-*Starting from 0.1.7-alpha release odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
+odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
 but this feature is still in alpha. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/releases) *page.*
 
 To install *odoo-helper-scripts* system-wide do folowing:
