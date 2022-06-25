@@ -224,7 +224,11 @@ function install_wkhtmltopdf {
         local wkhtmltox_path=${DOWNLOADS_DIR:-/tmp}/wkhtmltox.deb;
         if [ ! -f "$wkhtmltox_path" ]; then
             echoe -e "${BLUEC}Downloading ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
-            install_wkhtmltopdf_download "$wkhtmltox_path" "$wkhtmltox_fallback";
+            if ! install_wkhtmltopdf_download "$wkhtmltox_path" "$wkhtmltox_fallback"; then
+                # Error message displayed by install_wkhtmltopdf_download,
+                # so there is no need to display it here
+                return 3;
+            fi
         fi
         echoe -e "${BLUEC}Installing ${YELLOWC}wkhtmltopdf${BLUEC}...${NC}";
         local wkhtmltox_deps;
