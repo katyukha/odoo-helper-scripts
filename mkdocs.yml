@@ -11,7 +11,7 @@ theme: cinder
 
 google_analytics: ['UA-122240221-1', 'auto']
 
-pages:
+nav:
   - Home: index.md
   - User Guide:
       - Quick Start: quick-start-guide.md
