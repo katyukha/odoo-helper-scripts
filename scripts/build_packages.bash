@@ -23,9 +23,10 @@ echo "Building package for version '$deb_version'...";
 
 deb_depends="git wget lsb-release 
     procps libevent-dev g++ libpq-dev libsass-dev
-    python3-dev libjpeg-dev libyaml-dev
+    python3-dev python3-virtualenv libjpeg-dev libyaml-dev
     libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2
-    libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig";
+    libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig
+    libmagic1";
 deb_depends_opt=$(for dep in $deb_depends; do echo "--depends $dep"; done);
 
 fpm -s dir -t deb -p $BUILD_DIR/ \
