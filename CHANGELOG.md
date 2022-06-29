@@ -1,5 +1,15 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Ability to automatically detect python for Odoo version via following options:
+    - `odoo-helper install reinstall-venv --build-python auto"
+    - `odoo-install --build-python auto`
+
+---
+
 ## Release 0.13.0 (2022-06-25)
 
 ### Changed
