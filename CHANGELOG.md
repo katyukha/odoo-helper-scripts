@@ -8,6 +8,11 @@
     - `odoo-helper install reinstall-venv --build-python auto"
     - `odoo-install --build-python auto`
 
+### Changed
+
+- On module migration automatically replace `related_sudo=` to `compute_sudo`
+  for field definitions.
+
 ---
 
 ## Release 0.13.0 (2022-06-25)

@@ -44,6 +44,10 @@ CHECKS['13.0'] = {
             r"\.phantom_js\(",
             ".browser_js(",
             "Replace calls to 'phantom_js' with 'browser_js'."),
+        ("replace",
+            r"related_sudo=(?P<value>(True|False))",
+            "compute_sudo=\g<value>",
+            "Replace related_sudo to compute_sudo"),
     ],
     '.xml': [
         ("replace",
@@ -64,6 +68,10 @@ CHECKS['14.0'] = {
             r"\.phantom_js\(",
             ".browser_js(",
             "Replace calls to 'phantom_js' with 'browser_js'."),
+        ("replace",
+            r"related_sudo=(?P<value>(True|False))",
+            "compute_sudo=\g<value>",
+            "Replace related_sudo to compute_sudo"),
     ],
 }
 
