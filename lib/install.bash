@@ -1307,6 +1307,7 @@ function install_reinstall_venv {
 
     # Update python dependencies for addons
     addons_update_py_deps;
+    echoe -e "${GREENC}OK${BLUEC}: ${YELLOWC}virtualenv${BLUEC} reinstalled successfully!${NC}";
 }
 
 function install_reinstall_odoo {
