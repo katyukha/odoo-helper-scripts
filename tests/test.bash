@@ -444,17 +444,10 @@ odoo-helper install sys-deps -y 11.0;
 odoo-helper postgres user-create odoo11 odoo;
 
 
-if python3 -c "import sys; exit(sys.version_info < (3, 9));"; then 
-    # Odoo 11 does not run on python 3.9, so build custom python interpreter
-    odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
-        --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-        --db-user odoo11 --db-pass odoo --build-python 3.8.13
-else
-    # System python is less then 3.9, so it have to work in right way
-    odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
-        --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-        --db-user odoo11 --db-pass odoo
-fi
+# Odoo 11 does not run on python 3.9, so build custom python interpreter
+odoo-install --install-dir odoo-11.0 --odoo-version 11.0 \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo11 --db-pass odoo --build-python-if-needed
 
 cd odoo-11.0;
 
@@ -634,17 +627,10 @@ cd ../;
 odoo-helper install sys-deps -y 12.0;
 odoo-helper postgres user-create odoo12 odoo;
 
-if python3 -c "import sys; exit(sys.version_info < (3, 9));"; then 
-    # Odoo 11 does not run on python 3.9, so build custom python interpreter
-    odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
-        --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-        --db-user odoo12 --db-pass odoo --ocb --build-python 3.8.13
-else
-    # System python is less then 3.9, so it have to work in right way
-    odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
-        --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
-        --db-user odoo12 --db-pass odoo --ocb
-fi
+# Odoo 12 does not run on python 3.9, so build custom python interpreter
+odoo-install --install-dir odoo-12.0 --odoo-version 12.0 \
+    --conf-opt-xmlrpc_port 8369 --conf-opt-xmlrpcs_port 8371 --conf-opt-longpolling_port 8372 \
+    --db-user odoo12 --db-pass odoo --ocb --build-python-if-needed
 
 cd odoo-12.0;
 
@@ -742,18 +728,11 @@ ${NC}"
 odoo-helper install sys-deps -y 13.0;
 odoo-helper postgres user-create odoo13 odoo;
 
-if python3 -c "import sys; exit(not (3, 6) <= sys.version_info <= (3, 9));"; then
-    # Odoo 13 runs only with python 3.6-3.9
-    odoo-install --install-dir odoo-13.0 --odoo-version 13.0 \
-        --http-port 8469 --http-host local-odoo-13 \
-        --db-user odoo13 --db-pass odoo
-else
-    # System python is less than 3.6 or greater than 3.9,
-    # so build python 3.7 to use for this odoo version
-    odoo-install --install-dir odoo-13.0 --odoo-version 13.0 \
-        --http-port 8469 --http-host local-odoo-13 \
-        --db-user odoo13 --db-pass odoo --build-python 3.8.13
-fi
+# System python is less than 3.6 or greater than 3.9,
+# so build python 3.7 to use for this odoo version
+odoo-install --install-dir odoo-13.0 --odoo-version 13.0 \
+    --http-port 8469 --http-host local-odoo-13 \
+    --db-user odoo13 --db-pass odoo --build-python-if-needed
 
 cd odoo-13.0;
 
@@ -805,20 +784,12 @@ ${NC}"
 cd ../;
 odoo-helper install sys-deps -y 14.0;
 
-
-if python3 -c "import sys; exit(not (3, 6) <= sys.version_info <= (3, 9));"; then
-    # Odoo 14 runs only with python 3.6+
-    odoo-install --install-dir odoo-14.0 --odoo-version 14.0 \
-        --http-port 8569 --http-host local-odoo-14 \
-        --db-user odoo14 --db-pass odoo --create-db-user
-else
-    # System python is less then 3.6, so build python 3.7 to use for
-    # this odoo version
-    odoo-install --install-dir odoo-14.0 --odoo-version 14.0 \
-        --http-port 8569 --http-host local-odoo-14 \
-        --db-user odoo14 --db-pass odoo --create-db-user \
-        --build-python 3.8.13
-fi
+# System python is less then 3.6, so build python 3.7 to use for
+# this odoo version
+odoo-install --install-dir odoo-14.0 --odoo-version 14.0 \
+    --http-port 8569 --http-host local-odoo-14 \
+    --db-user odoo14 --db-pass odoo --create-db-user \
+    --build-python-if-needed
 
 cd odoo-14.0;
 
@@ -877,19 +848,12 @@ rm -rf ./odoo-14.0
 odoo-helper install sys-deps -y 15.0;
 
 
-if python3 -c "import sys; exit(sys.version_info < (3, 7));"; then
-    # Odoo 15 runs only with python 3.7+
-    odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
-        --http-port 8569 --http-host local-odoo-15 \
-        --db-user odoo15 --db-pass odoo --create-db-user
-else
-    # System python is less then 3.7, so build python 3.7 to use for
-    # this odoo version
-    odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
-        --http-port 8569 --http-host local-odoo-15 \
-        --db-user odoo15 --db-pass odoo --create-db-user \
-        --build-python 3.8.13
-fi
+# System python is less then 3.7, so build python 3.7 to use for
+# this odoo version
+odoo-install --install-dir odoo-15.0 --odoo-version 15.0 \
+    --http-port 8569 --http-host local-odoo-15 \
+    --db-user odoo15 --db-pass odoo --create-db-user \
+    --build-python-if-needed
 
 cd odoo-15.0;
 

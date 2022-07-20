@@ -683,14 +683,18 @@ function install_system_prerequirements {
 
 
 function install_build_python_guess_version {
-    if [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 12 ]; then
+    if [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -lt 11 ]; then
+        echo "2.7.18";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 11 ]; then
+        echo "3.7.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 12 ]; then
         echo "3.7.13";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 13 ]; then
-        echo "3.8.12";
+        echo "3.8.13";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
-        echo "3.8.12";
+        echo "3.8.13";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
-        echo "3.8.12";
+        echo "3.8.13";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
         return 1;
@@ -1233,6 +1237,7 @@ function install_reinstall_venv {
         --build-python <version>  - Build custom version of python for
                                     this virtual environment.
                                     'auto' could be specified to automatically guess correct version.
+        --build-python-if-needed  - Automatically detect if it is necessary to build custom python.
         --build-python-optimize   - Apply --enable-optimizations to python build.
                                     This could take a while.
         --build-python-sqlite3    - Apply  --enable-loadable-sqlite-extensions
@@ -1256,6 +1261,11 @@ function install_reinstall_venv {
             --build-python)
                 ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
+            ;;
+            --build-python-if-needed)
+                if odoo_ensure_python_version; then
+                    ODOO_BUILD_PYTHON_VERSION=auto;
+                fi
             ;;
             --build-python-optimize)
                 ODOO_BUILD_PYTHON_OPTIMIZE=1;

@@ -7,6 +7,10 @@
 - Ability to automatically detect python for Odoo version via following options:
     - `odoo-helper install reinstall-venv --build-python auto"
     - `odoo-install --build-python auto`
+- Ability to automatically build python of odoo version only if system python do not satisfy odoo requirements.
+  For this reasone new option was added to following commands:
+    - `odoo-helper install reinstall-venv --build-python-if-needed"
+    - `odoo-install --build-python-if-needed`
 
 ### Changed
 

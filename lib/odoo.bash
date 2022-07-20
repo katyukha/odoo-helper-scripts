@@ -264,6 +264,33 @@ function odoo_get_python_interpreter {
     check_command "$python_version";
 }
 
+# Check if system (current) python satisfies odoo requirements
+function odoo_ensure_python_version {
+    if [ -z "$ODOO_VERSION" ]; then
+        return 1;  # Odoo version is not specified
+    fi
+    local python_interpreter;
+    python_interpreter=$(odoo_get_python_interpreter);
+    if [ -z "$python_interpreter" ]; then
+        return 2;  # Python interpreter is not available
+    fi
+
+    if [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 11 ]; then
+        ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 9);" > /dev/null 2>&1;
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 12 ]; then
+        ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 9);" > /dev/null 2>&1;
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 13 ]; then
+        ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 10);" > /dev/null 2>&1;
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
+        ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 10);" > /dev/null 2>&1;
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
+        ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);";
+    else
+        echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
+        return 1;
+    fi
+}
+
 function odoo_recompute_stored_fields {
     local usage="
     Recompute stored fields
