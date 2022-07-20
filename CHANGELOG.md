@@ -11,6 +11,9 @@
   For this reasone new option was added to following commands:
     - `odoo-helper install reinstall-venv --build-python-if-needed"
     - `odoo-install --build-python-if-needed`
+- Add ability to enforce `odoo-helper fetch` clone repos with `--single-branch` options.
+  This feature could be enabled via environment variable `ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH`.
+  This feature could be useful to reduce size of cloned repositories.
 
 ### Changed
 
