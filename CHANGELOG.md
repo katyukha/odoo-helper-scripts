@@ -17,6 +17,12 @@
 - On module migration automatically replace `related_sudo=` to `compute_sudo`
   for field definitions.
 
+
+### Deprecations
+
+- Option `odoo-install --openupgrade` is deprecated. It will raise error for odoo 14.0+.
+  Starting from Odoo 14.0, openupgrade separate odoo addons to store migrations, instead of full copy of odoo.
+
 ---
 
 ## Release 0.13.0 (2022-06-25)

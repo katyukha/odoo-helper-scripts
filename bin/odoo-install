@@ -78,7 +78,7 @@ function print_usage {
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
          --ocb                         - Use [OCB (Odoo Community Backports)](https://github.com/OCA/OCB) fork
-         --ou|--openupgrade            - Use [OpenUpgrade](https://github.com/OCA/OpenUpgrade) fork
+         --ou|--openupgrade            - [Deprecated] Use [OpenUpgrade](https://github.com/OCA/OpenUpgrade) fork
          --odoo-version <odoo version> - odoo version to install. default: $ODOO_VERSION
          -b|--odoo-branch <branch>     - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
@@ -140,6 +140,7 @@ function parse_options {
     # Set this as variable, because it's processing requires
     # that all other options already handled
     local build_python_if_needed;
+    local is_openupgrade_install;
 
     # Parse options
     while [[ $# -gt 0 ]]
@@ -158,6 +159,7 @@ function parse_options {
                 ODOO_REPO="https://github.com/OCA/OCB";
             ;;
             --ou|--openupgrade)
+                is_openupgrade_install=1;
                 ODOO_REPO="https://github.com/OCA/OpenUpgrade";
             ;;
             --odoo-version)
@@ -267,6 +269,12 @@ function parse_options {
         echoe -e "${BLUEC}Enabling automatic build of python...${NC}";
         ODOO_BUILD_PYTHON_VERSION=auto;
     fi
+
+    if [ -n "$is_openupgrade_install" ] && [ "$(odoo_get_major_version)" -gt 13 ]; then
+        echoe -e "${REDC}ERROR${NC}:${BLUEC}This option is not allowed of Odoo 14.0 and above, because starting from Odoo 14 openupgrade repo contains only migration scripts...${NC}";
+        exit 2;
+    fi
+
 }
 
 function install_odoo {
