@@ -8,11 +8,13 @@ PROJECT_DIR="$(readlink -f $SCRIPT_DIR/..)";
 
 BUILD_DIR="$PROJECT_DIR/build";
 
+source "$PROJECT_DIR/lib/version.bash";
+
 
 mkdir -p $BUILD_DIR;
 rm -f $BUILD_DIR/*;
 
-deb_version="$1";
+deb_version="$ODOO_HELPER_VERSION";
 
 if [ -z "$deb_version" ]; then
     echo "Version is not specified";
@@ -31,6 +33,7 @@ deb_depends_opt=$(for dep in $deb_depends; do echo "--depends $dep"; done);
 
 fpm -s dir -t deb -p $BUILD_DIR/ \
     --name odoo-helper-scripts \
+    --package odoo-helper-scripts.deb \
     --description "Just a simple collection of odoo scripts. mostly to ease addons development process (allows to install and manage odoo instances in virtualenv)" \
     --config-files /etc/odoo-helper.conf \
     --vendor "Dmytro Katyukha" \

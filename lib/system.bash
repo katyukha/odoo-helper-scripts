@@ -17,7 +17,6 @@ if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
 fi
 
 # ----------------------------------------------------------------------------------------
-#ohelper_require "postgres";
 
 
 set -e; # fail on errors
@@ -53,6 +52,8 @@ function system_update_odoo_helper_scripts {
     local scripts_branch=$1;
 
     if ! git_is_git_repo "$ODOO_HELPER_ROOT"; then
+        # TODO: handle updates for deb-based installations
+        # Use link:  https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb
         echoe -e "${REDC}ERROR${NC} this action is not available for non-git installs";
         return 1
     fi
