@@ -273,11 +273,13 @@ class LocalRegistry(object):
     def call_method(self, model, method, *args, **kwargs):
         """ Simple wrapper to call local model methods for database
         """
+        # TODO: do we need this?
         # For odoo 8, 9, 10, +(?) there is special function `odoo.registry`
         # to get registry instance for db
         return getattr(self.env[model], method)(*args, **kwargs)
 
     def __getitem__(self, name):
+        # TODO: may be it have sense to return here env[name] ?
         return LocalModel(self, name)
 
 
@@ -633,6 +635,33 @@ def odoo_recompute_fields(ctx, dbname, model, parent_store, fields):
         ctx.obj[dbname].recompute_parent_store(model)
     else:
         ctx.obj[dbname].recompute_fields(model, fields)
+
+
+@cli.command('run-py-script')
+@click.argument('dbname')
+@click.argument(
+    'script-path',
+    type=click.Path(
+        exists=True, dir_okay=False, file_okay=True, resolve_path=True))
+@click.pass_context
+def odoo_run_python_script(ctx, dbname, script_path):
+    ctx.obj.start_odoo(
+        ['--stop-after-init', '--max-cron-threads=0', '--pidfile=/dev/null'],
+        no_http=True)
+
+    context = {
+        'env': ctx.obj[dbname].env,
+        'cr': ctx.obj[dbname].cr,
+        'registry': ctx.obj[dbname].registry,
+        'odoo': ctx.obj.odoo,
+    }
+
+    if sys.version_info.major < 3:
+        print ("running file...")
+        execfile(script_path, globals(), context)
+    else:
+        with open(script_path, "rt") as script_file:
+            exec(script_file.read(), globals(), context)
 
 
 if __name__ == '__main__':
