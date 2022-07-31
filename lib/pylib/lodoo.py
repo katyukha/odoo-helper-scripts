@@ -657,8 +657,7 @@ def odoo_run_python_script(ctx, dbname, script_path):
     }
 
     if sys.version_info.major < 3:
-        print ("running file...")
-        execfile(script_path, globals(), context)
+        execfile(script_path, globals(), context)  # noqa
     else:
         with open(script_path, "rt") as script_file:
             exec(script_file.read(), globals(), context)
