@@ -1,4 +1,4 @@
-image: ubuntu:18.04
+image: ubuntu:20.04
 
 variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -94,10 +94,6 @@ tests:ubuntu:18.04:
 
 tests:ubuntu:20.04:
     image: ubuntu:20.04
-    <<: *tests-definition
-
-tests:ubuntu:21.04:
-    image: ubuntu:21.04
     <<: *tests-definition
 
 tests:ubuntu:22.04:
