@@ -1,6 +1,6 @@
 # Release Notes
 
-## Unreleased
+## Release 0.14.0
 
 ### Added
 
@@ -9,7 +9,7 @@
     - `odoo-install --build-python auto`
 - Ability to automatically build python of odoo version only if system python do not satisfy odoo requirements.
   For this reasone new option was added to following commands:
-    - `odoo-helper install reinstall-venv --build-python-if-needed"
+    - `odoo-helper install reinstall-venv --build-python-if-needed`
     - `odoo-install --build-python-if-needed`
 - Add ability to enforce `odoo-helper fetch` clone repos with `--single-branch` options.
   This feature could be enabled via environment variable `ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH`.

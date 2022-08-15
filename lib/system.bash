@@ -55,7 +55,7 @@ function system_update_odoo_helper_scripts {
     local oh_release_url="https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb";
 
     if ! git_is_git_repo "$ODOO_HELPER_ROOT"; then
-        if [ $(dpkg-query -W -f='${Status}' odoo-helper-scripts 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
+        if [ "$(dpkg-query -W -f='${Status}' odoo-helper-scripts 2>/dev/null | grep -c 'ok installed')" -eq 0 ]; then
             # In this case odoo-helper-scripts installed as debian package.
             # So, to run update, we have to download latest stable build
             # and install it.
