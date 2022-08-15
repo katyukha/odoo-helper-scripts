@@ -14,6 +14,7 @@
 - Add ability to enforce `odoo-helper fetch` clone repos with `--single-branch` options.
   This feature could be enabled via environment variable `ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH`.
   This feature could be useful to reduce size of cloned repositories.
+- Added ability to automatically update odoo-helper-scripts installed via debian package.
 
 ### Changed
 
