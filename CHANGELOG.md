@@ -1,6 +1,6 @@
 # Release Notes
 
-## Release 0.14.0
+## Release 0.14.0 (2022-08-16)
 
 ### Added
 
@@ -18,14 +18,15 @@
 
 ### Changed
 
-- On module migration automatically replace `related_sudo=` to `compute_sudo`
+- On module migration (during forwardport) automatically replace `related_sudo=` to `compute_sudo`
   for field definitions.
 
 
 ### Deprecations
 
 - Option `odoo-install --openupgrade` is deprecated. It will raise error for odoo 14.0+.
-  Starting from Odoo 14.0, openupgrade separate odoo addons to store migrations, instead of full copy of odoo.
+  Starting from Odoo 14.0, openupgrade uses separate odoo addons to store migrations,
+  instead of full copy of odoo.
 
 ---
 

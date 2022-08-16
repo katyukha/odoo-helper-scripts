@@ -185,7 +185,6 @@ odoo-helper db create test-9-db;
 ! odoo-helper db is-demo test-9-db;
 ! odoo-helper db is-demo -q test-9-db;
 
-# Clone addon from Mercurial repo (Note it is required Mercurial to be installed)
 odoo-helper addons list ./custom_addons;  # list addons available to odoo
 odoo-helper addons list --help;
 odoo-helper addons list --recursive ./custom_addons;

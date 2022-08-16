@@ -57,7 +57,6 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
         - Including dependencies
         - Semi-automatic upgrade when new version released
     - installation from *git* repositories
-    - installation from *Mercurial* repositories (**experimental**)
     - installation of python dependencies from [PyPI](pypi.python.org/pypi) or any [vcs supported by setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html?highlight=develop%20mode#dependencies-that-aren-t-in-pypi)
     - automatically processing of [requirements.txt](https://pip.pypa.io/en/stable/user_guide/#requirements-files) files located inside repository root and addon directories.
     - shortcuts that simplifies fetching addons from [OCA](https://github.com/OCA) or [github](https://github.com)

@@ -392,7 +392,7 @@ function fetch_module {
     # TODO: simplify this function. remove unneccessary options
     local usage="
     Fetch Odoo addons from various sources
-    (including git, mercurial, Odoo Apps)
+    (including git, Odoo Apps)
 
     Usage:
         $SCRIPT_NAME fetch -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
