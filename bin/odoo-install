@@ -78,7 +78,7 @@ function print_usage {
          --odoo-repo <git repo>        - git repository to get Odoo from. default: $ODOO_REPO
                                          Used only if *download-archive* set to *off*
          --ocb                         - Use [OCB (Odoo Community Backports)](https://github.com/OCA/OCB) fork
-         --ou|--openupgrade            - Use [OpenUpgrade](https://github.com/OCA/OpenUpgrade) fork
+         --ou|--openupgrade            - [Deprecated] Use [OpenUpgrade](https://github.com/OCA/OpenUpgrade) fork
          --odoo-version <odoo version> - odoo version to install. default: $ODOO_VERSION
          -b|--odoo-branch <branch>     - specify odoo branch to install. default: $ODOO_BRANCH
                                          Normaly it is same as odoo version, but if You want to install odoo
@@ -96,6 +96,8 @@ function print_usage {
                                          This option is used only if --download-archive is 'off'
                                          Default: $CLONE_SINGLE_BRANCH
          --build-python <ver>          - build custom python for specified version
+                                         'auto' could be specified to automatically guess correct version.
+         --build-python-if-needed      - Automatically detect if it is necessary to build custom python.
          --build-python-optimize       - Apply '--enable-optimizations' for python build.
                                          This could take a while.
          --build-python-sqlite3        - Apply  --enable-loadable-sqlite-extensions
@@ -135,6 +137,12 @@ function parse_options {
         exit 0;
     fi
 
+    # Set this as variable, because it's processing requires
+    # that all other options already handled
+    local build_python_if_needed;
+    local is_openupgrade_install;
+
+    # Parse options
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -151,6 +159,7 @@ function parse_options {
                 ODOO_REPO="https://github.com/OCA/OCB";
             ;;
             --ou|--openupgrade)
+                is_openupgrade_install=1;
                 ODOO_REPO="https://github.com/OCA/OpenUpgrade";
             ;;
             --odoo-version)
@@ -185,6 +194,9 @@ function parse_options {
             --build-python)
                 ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
+            ;;
+            --build-python-if-needed)
+                build_python_if_needed=1;
             ;;
             --build-python-optimize)
                 ODOO_BUILD_PYTHON_OPTIMIZE=1;
@@ -249,6 +261,20 @@ function parse_options {
         esac
         shift
     done
+
+    if [ -n "$build_python_if_needed" ] && ! odoo_ensure_python_version; then
+        # TODO: Possibly this have to be done on install_odoo func.
+        #       Especially, in case when we decide to automatically install
+        #       system dependencies during odoo installation.
+        echoe -e "${BLUEC}Enabling automatic build of python...${NC}";
+        ODOO_BUILD_PYTHON_VERSION=auto;
+    fi
+
+    if [ -n "$is_openupgrade_install" ] && [ "$(odoo_get_major_version)" -gt 13 ]; then
+        echoe -e "${REDC}ERROR${NC}:${BLUEC}This option is not allowed of Odoo 14.0 and above, because starting from Odoo 14 openupgrade repo contains only migration scripts...${NC}";
+        exit 2;
+    fi
+
 }
 
 function install_odoo {

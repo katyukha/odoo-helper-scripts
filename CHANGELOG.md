@@ -1,5 +1,35 @@
 # Release Notes
 
+## Release 0.14.0 (2022-08-16)
+
+### Added
+
+- Ability to automatically detect python for Odoo version via following options:
+    - `odoo-helper install reinstall-venv --build-python auto`
+    - `odoo-install --build-python auto`
+- Ability to automatically build python of odoo version only if system python do not satisfy odoo requirements.
+  For this reasone new option was added to following commands:
+    - `odoo-helper install reinstall-venv --build-python-if-needed`
+    - `odoo-install --build-python-if-needed`
+- Add ability to enforce `odoo-helper fetch` clone repos with `--single-branch` options.
+  This feature could be enabled via environment variable `ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH`.
+  This feature could be useful to reduce size of cloned repositories.
+- Added ability to automatically update odoo-helper-scripts installed via debian package.
+
+### Changed
+
+- On module migration (during forwardport) automatically replace `related_sudo=` to `compute_sudo`
+  for field definitions.
+
+
+### Deprecations
+
+- Option `odoo-install --openupgrade` is deprecated. It will raise error for odoo 14.0+.
+  Starting from Odoo 14.0, openupgrade uses separate odoo addons to store migrations,
+  instead of full copy of odoo.
+
+---
+
 ## Release 0.13.0 (2022-06-25)
 
 ### Changed

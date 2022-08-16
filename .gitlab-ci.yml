@@ -1,4 +1,4 @@
-image: ubuntu:18.04
+image: ubuntu:20.04
 
 variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -96,10 +96,6 @@ tests:ubuntu:20.04:
     image: ubuntu:20.04
     <<: *tests-definition
 
-tests:ubuntu:21.04:
-    image: ubuntu:21.04
-    <<: *tests-definition
-
 tests:ubuntu:22.04:
     image: ubuntu:22.04
     <<: *tests-definition
@@ -118,9 +114,9 @@ tests:ubuntu:22.04:
 build:package:tag:
     <<: *build-package-base-def
     script:
-        - bash scripts/build_packages.bash "${CI_COMMIT_TAG#v}"
+        - bash scripts/build_packages.bash
     after_script:
-        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_TAG#v}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG#v}/odoo-helper-scripts_${CI_COMMIT_TAG#v}.deb"'
+        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG#v}/odoo-helper-scripts_${CI_COMMIT_TAG#v}.deb"'
     rules:
         - if: $CI_COMMIT_TAG =~ /^v\d.*/
 
@@ -129,7 +125,7 @@ build:package:branch:dev:
     script:
         - bash scripts/build_packages.bash "${CI_COMMIT_REF_NAME}"
     after_script:
-        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_REF_NAME}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_NAME}/odoo-helper-scripts_${CI_COMMIT_REF_NAME}.deb"'
+        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_NAME}/odoo-helper-scripts_${CI_COMMIT_REF_NAME}.deb"'
     when: manual
     rules:
         - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -139,7 +135,7 @@ build:package:branch:master:
     script:
         - bash scripts/build_packages.bash "${CI_COMMIT_REF_NAME}"
     after_script:
-        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts_${CI_COMMIT_REF_NAME}-ubuntu_all.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_NAME}/odoo-helper-scripts_${CI_COMMIT_REF_NAME}.deb"'
+        - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "build/odoo-helper-scripts.deb" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_NAME}/odoo-helper-scripts_${CI_COMMIT_REF_NAME}.deb"'
     rules:
         - if: $CI_COMMIT_BRANCH == "master"
 

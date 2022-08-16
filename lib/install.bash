@@ -682,9 +682,31 @@ function install_system_prerequirements {
 }
 
 
+function install_build_python_guess_version {
+    if [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -lt 11 ]; then
+        echo "2.7.18";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 11 ]; then
+        echo "3.7.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 12 ]; then
+        echo "3.7.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 13 ]; then
+        echo "3.8.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
+        echo "3.8.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
+        echo "3.8.13";
+    else
+        echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
+        return 1;
+    fi
+}
+
 # Download and build specified python version
 function install_build_python {
     local python_version="$1"
+    if [[ "${python_version}" == auto ]]; then
+        python_version=$(install_build_python_guess_version);
+    fi
     local python_download_link="https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tgz";
     local python_download_dir="$DOWNLOADS_DIR";
     local python_download_path="$python_download_dir/python-${python_version}.tgz";
@@ -707,6 +729,7 @@ function install_build_python {
         return 1
     fi
 
+    echoe -e "${BLUEC}Downloading python version ${YELLOWC}${python_version}${BLUEC}...${NC}"
     if ! wget -q -T 15 -O "$python_download_path" "$python_download_link"; then
             echoe -e "${REDC}ERROR${NC}: Cannot download Odoo from ${YELLOWC}${python_download_link}${NC}."
             echoe -e "Remove broken download (if it is exists) ${YELLOWC}${python_download_path}${NC}."
@@ -1163,6 +1186,8 @@ function odoo_run_setup_py {
 
     if [ "$(odoo_get_major_version)" -gt 10 ]; then
         # We have to replace suds-jurko with suds-py3 to make it installable.
+        # Note, that we do it here, because it is mentioned in setup.py,
+        # thus it cannot be updated in standard way.
         sed -i 's/suds-jurko/suds-py3/g' "$ODOO_PATH/setup.py";
     fi
 
@@ -1210,7 +1235,9 @@ function install_reinstall_venv {
                                     Default: lts
         --no-backup               - do not backup virtualenv
         --build-python <version>  - Build custom version of python for
-                                    this virtual environment
+                                    this virtual environment.
+                                    'auto' could be specified to automatically guess correct version.
+        --build-python-if-needed  - Automatically detect if it is necessary to build custom python.
         --build-python-optimize   - Apply --enable-optimizations to python build.
                                     This could take a while.
         --build-python-sqlite3    - Apply  --enable-loadable-sqlite-extensions
@@ -1234,6 +1261,11 @@ function install_reinstall_venv {
             --build-python)
                 ODOO_BUILD_PYTHON_VERSION=$2;
                 shift;
+            ;;
+            --build-python-if-needed)
+                if odoo_ensure_python_version; then
+                    ODOO_BUILD_PYTHON_VERSION=auto;
+                fi
             ;;
             --build-python-optimize)
                 ODOO_BUILD_PYTHON_OPTIMIZE=1;
@@ -1285,6 +1317,7 @@ function install_reinstall_venv {
 
     # Update python dependencies for addons
     addons_update_py_deps;
+    echoe -e "${GREENC}OK${BLUEC}: ${YELLOWC}virtualenv${BLUEC} reinstalled successfully!${NC}";
 }
 
 function install_reinstall_odoo {

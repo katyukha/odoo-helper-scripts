@@ -523,7 +523,7 @@ function odoo_db_backup {
                 shift;
             ;;
             -h|--help|help)
-                echo "$usage";
+                echoe -e "$usage";
                 return 0;
             ;;
             -*)
@@ -613,7 +613,7 @@ function odoo_db_backup_all {
                 shift;
             ;;
             -h|--help|help)
-                echo "$usage";
+                echoe -e "$usage";
                 return 0;
             ;;
             -*)

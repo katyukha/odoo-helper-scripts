@@ -17,7 +17,6 @@ if [ -z "$ODOO_HELPER_COMMON_IMPORTED" ]; then
 fi
 
 # ----------------------------------------------------------------------------------------
-#ohelper_require "postgres";
 
 
 set -e; # fail on errors
@@ -52,9 +51,24 @@ function system_update_odoo_helper_scripts {
     local base_path;
     local scripts_branch=$1;
 
+    # TODO: Add optional ability to get latest release (including RC)
+    local oh_release_url="https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb";
+
     if ! git_is_git_repo "$ODOO_HELPER_ROOT"; then
-        echoe -e "${REDC}ERROR${NC} this action is not available for non-git installs";
-        return 1
+        if [ "$(dpkg-query -W -f='${Status}' odoo-helper-scripts 2>/dev/null | grep -c 'ok installed')" -eq 0 ]; then
+            # In this case odoo-helper-scripts installed as debian package.
+            # So, to run update, we have to download latest stable build
+            # and install it.
+            if wget -T 15 -q -O /tmp/odoo-helper-scripts.deb "$oh_release_url"; then
+                with_sudo dpkg -i "/tmp/odoo-helper-scripts.deb";
+                with_sudo apt-get install -f;  # Fix missing dependencies
+                echoe -e "${BLUEC}odoo-helper-scripts updated successfully.${NC}";
+                return 0;
+            fi
+        else
+            echoe -e "${REDC}ERROR${NC}: Cannot update non-standard installation of odoo-helper-scripts!";
+            return 1
+        fi
     fi
 
     # update

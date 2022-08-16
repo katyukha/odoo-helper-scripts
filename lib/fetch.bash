@@ -242,6 +242,7 @@ function fetch_get_repo_path {
 #
 # fetch_clone_repo <url> <dest> [branch]
 function fetch_clone_repo_git {
+    # TODO: Refactor this function to use arrays for command options
     local repo_url=$1; shift;
     local repo_dest=$1; shift;
 
@@ -261,6 +262,18 @@ function fetch_clone_repo_git {
         extra_git_opt="$extra_git_opt -c url.\"https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_JOB_TOKEN_GIT_HOST}/\".insteadOf=\"${CI_JOB_TOKEN_GIT_HOST}/\"";
         echoe -e "${BLUEC}Use ${YELLOWC}gitlab-ci-token${BLUEC} for auth to repository ${YELLOWC}${CI_JOB_TOKEN_GIT_HOST}${NC}";
     fi
+
+    if [ -n "$ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH" ]; then
+        if [ -z "$repo_branch_opt" ]; then
+            # In case of single branch we have to clone only single branch,
+            # thus we have to determine this branch before we clone repo.
+            repo_branch_opt="-b $ODOO_VERSION";
+            git_clone_opt="$git_clone_opt $repo_branch_opt";
+        fi
+        git_clone_opt="$git_clone_opt --single-branch";
+    fi
+
+    # TODO: Add support for cloning repos with depth=1
 
     [ -z "$VERBOSE" ] && git_clone_opt="$git_clone_opt -q "
     git_cmd="git $extra_git_opt clone --recurse-submodules $git_clone_opt $repo_url $repo_dest";
@@ -379,7 +392,7 @@ function fetch_module {
     # TODO: simplify this function. remove unneccessary options
     local usage="
     Fetch Odoo addons from various sources
-    (including git, mercurial, Odoo Apps)
+    (including git, Odoo Apps)
 
     Usage:
         $SCRIPT_NAME fetch -r|--repo <git repository> [-m|--module <odoo module name>] [-n|--name <repo name>] [-b|--branch <git branch>]
@@ -399,6 +412,15 @@ function fetch_module {
         -b|--branch <branch>   - name fo repository branch to clone
         --requirements <file>  - path to requirements file to fetch required modules
                                  NOTE: requirements file must end with newline.
+
+    Configuration via environment variables:
+        - ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH     - if set then odoo-helper
+                                                    will use --single-branch
+                                                    option to clone repo
+        - ODOO_HELPER_FETCH_PIP_AUTO_REQUIREMENTS - if set, then odoo-helper
+                                                    will process requirements.auto.txt
+                                                    file in repositories/modules
+
 
     Note that in one call only one option of
     (--repo, --github, --oca, --odoo-app)
