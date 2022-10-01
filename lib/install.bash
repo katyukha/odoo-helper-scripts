@@ -1267,7 +1267,7 @@ function install_reinstall_venv {
                 shift;
             ;;
             --build-python-if-needed)
-                if odoo_ensure_python_version; then
+                if ! odoo_ensure_python_version; then
                     ODOO_BUILD_PYTHON_VERSION=auto;
                 fi
             ;;
