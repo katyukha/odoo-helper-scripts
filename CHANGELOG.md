@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+### Fixes
+
+- `flake8-colors` not needed anymore, as flake8 support color output byt default.
+
+
 ## Release 0.14.1 (2022-09-09)
 
 ### Fixes

@@ -921,7 +921,6 @@ function install_python_tools {
         - pylint-odoo
         - coverage
         - flake8
-        - flake8-colors
         - websocket-client  (required for tests in Odoo 12.0)
         - jingtrang
 
@@ -961,7 +960,7 @@ function install_python_tools {
     done
     exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" \
         setproctitle watchdog pylint-odoo coverage \
-        flake8 flake8-colors websocket-client jingtrang;
+        flake8 websocket-client jingtrang;
 }
 
 # Install extra javascript tools
