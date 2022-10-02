@@ -1246,6 +1246,7 @@ function install_reinstall_venv {
         --build-python-sqlite3    - Apply  --enable-loadable-sqlite-extensions
                                     when building python.
     ";
+    local odoo_build_py_if_needed;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -1266,9 +1267,7 @@ function install_reinstall_venv {
                 shift;
             ;;
             --build-python-if-needed)
-                if ! odoo_ensure_python_version; then
-                    ODOO_BUILD_PYTHON_VERSION=auto;
-                fi
+                odoo_build_py_if_needed=1;
             ;;
             --build-python-optimize)
                 ODOO_BUILD_PYTHON_OPTIMIZE=1;
@@ -1310,9 +1309,17 @@ function install_reinstall_venv {
         echoe -e "${YELLOWC}Removing virualenv...${NC}";
         rm -r "$VENV_DIR";
         if [ -d "$PROJECT_ROOT_DIR/python" ]; then
-            rm -r "$PROJECT_ROOT_DIR/python";
+            rm -rf "$PROJECT_ROOT_DIR/python";
         fi
         echoe -e "${YELLOWC}Virtualenv removed!${NC}";
+    fi
+
+    # Decide if we need to build python if requested
+    # This code is placed here, because before checking python version
+    # we have to remove virtual env first to avoid detection of previously
+    # installed version.
+    if [ -n "$odoo_build_py_if_needed" ] && ! odoo_ensure_python_version; then
+        ODOO_BUILD_PYTHON_VERSION=auto;
     fi
 
     # Install odoo
