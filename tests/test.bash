@@ -881,14 +881,81 @@ odoo-helper addons update-list --tdb;
 odoo-helper addons install --tdb --module crm;
 odoo-helper addons test-installed crm;
 
-## Reinstall venv without backup and build for python 3.9.7
-# Python compiling does not work because conflict with bashcov test coverage util
-#odoo-helper install reinstall-venv --no-backup --build-python 3.9.7;
-
-#odoo-helper lsd;  # List databases
+odoo-helper lsd;  # List databases
 
 ## Install addon website via 'odoo-helper install'
-#odoo-helper install website;
+odoo-helper install website;
+
+## Fetch oca/contract
+odoo-helper fetch --github crnd-inc/generic-addons
+
+## Install addons from OCA contract
+odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
+
+## Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
+odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+
+## Print list of installed addons
+odoo-helper addons find-installed;
+
+## Run tests for helpdesk lite
+odoo-helper test generic_request crnd_wsd
+
+# Drop created databases
+odoo-helper db drop odoo15-odoo-test;
+
+echo -e "${YELLOWC}
+=================================
+Install and check Odoo 16.0 (Py3)
+=================================
+${NC}"
+
+cd ../;
+
+# Remove odoo 15
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-15.0
+
+# Install odoo 16
+odoo-helper install sys-deps -y 16.0;
+
+odoo-install --install-dir odoo-16.0 --odoo-version 16.0 \
+    --http-port 8569 --http-host local-odoo-16 \
+    --db-user odoo16 --db-pass odoo --create-db-user \
+    --build-python-if-needed
+
+cd odoo-16.0;
+
+# Install py-tools and js-tools
+odoo-helper install py-tools;
+odoo-helper install js-tools;
+
+odoo-helper server run --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status;
+odoo-helper server status;
+odoo-helper start;
+odoo-helper ps;
+odoo-helper status;
+odoo-helper server status;
+odoo-helper stop;
+
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions;
+
+# Database management
+odoo-helper db create --tdb --lang en_US;
+
+odoo-helper addons update-list --tdb;
+odoo-helper addons install --tdb --module crm;
+odoo-helper addons test-installed crm;
+
+odoo-helper lsd;  # List databases
+
+## Install addon website via 'odoo-helper install'
+odoo-helper install website;
 
 ## Fetch oca/contract
 #odoo-helper fetch --github crnd-inc/generic-addons
@@ -907,7 +974,8 @@ odoo-helper addons test-installed crm;
 #odoo-helper test generic_request crnd_wsd
 
 # Drop created databases
-odoo-helper db drop odoo15-odoo-test;
+odoo-helper db drop odoo16-odoo-test;
+
 
 echo -e "${YELLOWC}
 =============================================================
