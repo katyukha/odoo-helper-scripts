@@ -146,9 +146,11 @@ function odoo_update_sources_archive {
         echoe -e "${REDC}ERROR${NC}: Cannot download Odoo. Retry this operation with --verbose option.";
         return 1
     fi
- 
-    echoe -e "${LBLUEC}Removing old odoo sources...${NC}";
-    rm -r "$ODOO_PATH";
+
+    if [ -d "$ODOO_PATH" ]; then
+        echoe -e "${LBLUEC}Removing old odoo sources...${NC}";
+        rm -r "$ODOO_PATH";
+    fi
 
     echoe -e "${LBLUEC}Unpacking new source archive ...${NC}";
     (cd "$DOWNLOADS_DIR" && \
