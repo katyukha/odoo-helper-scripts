@@ -5,6 +5,9 @@
 ### Fixes
 
 - `flake8-colors` not needed anymore, as flake8 support color output byt default.
+- Limit version of `pylint-odoo` to less then 8.0 for backward compatibility.
+  This is done because OCA remove a large part of functionality in 8.0.
+  See merge request: https://github.com/OCA/pylint-odoo/pull/396
 
 
 ## Release 0.14.1 (2022-09-09)

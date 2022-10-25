@@ -959,7 +959,7 @@ function install_python_tools {
         shift
     done
     exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" \
-        setproctitle watchdog pylint-odoo coverage \
+        setproctitle watchdog "pylint-odoo<8.0" coverage \
         flake8 websocket-client jingtrang;
 }
 
