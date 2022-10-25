@@ -749,6 +749,11 @@ function ci_do_forwardport {
             local migration_dst_prefix="$addon_path/migrations/$dst_branch.";
             for migration_src in "$migration_src_prefix"*; do
                 local migration_name=${migration_src#"$migration_src_prefix"};
+                if [[ "$migration_name" == "0.0.0" ]]; then
+                    # We do not need to forward port odoo serie specific
+                    # migrations.
+                    continue;
+                fi
 
                 local migration_dst=${migration_dst_prefix}${migration_name};
                 if [ -d "$migration_src" ] && [ ! -d "${migration_dst}" ]; then
