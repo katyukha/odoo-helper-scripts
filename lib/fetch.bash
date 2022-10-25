@@ -274,6 +274,9 @@ function fetch_clone_repo_git {
     fi
 
     # TODO: Add support for cloning repos with depth=1
+    if [ -n "$ODOO_HELPER_FETCH_GIT_DEPTH_1" ]; then
+        git_clone_opt="$git_clone_opt --depth=1";
+    fi
 
     [ -z "$VERBOSE" ] && git_clone_opt="$git_clone_opt -q "
     git_cmd="git $extra_git_opt clone --recurse-submodules $git_clone_opt $repo_url $repo_dest";
@@ -401,22 +404,35 @@ function fetch_module {
         $SCRIPT_NAME fetch --requirements <requirements file>
 
     Options:
-        -r|--repo <repo>       - git repository to get module from
-        --github <user/repo>   - allows to specify repository located on github in short format
-        --oca <repo name>      - allows to specify Odoo Comunity Association module in simpler format
-        --odoo-app <app_name>  - [experimental] fetch module from Odoo Apps Market.
+        -r|--repo <repo>       - Git repository to get module from
+        --github <user/repo>   - Allows to specify repository located on github in short format
+        --oca <repo name>      - Allows to specify Odoo Comunity Association module in simpler format
+        --git-single-branch    - Clone git repositories with '--single-branch' options.
+                                 This could make clonning faster and use less space.
+                                 Suitable for server installations.
+        --git-depth-1          - Clone git repositories with '--depth=1' option.
+                                 This option could signifiantly reduce size of large git
+                                 repositories and download speed. But as drawback, it
+                                 does not suit well for development, because it could be difficult
+                                 to push changes back to repository.
+                                 But, it should be helpful in case of using docker to reduce
+                                 size of resulting docker image and faster build.
+        --odoo-app <app_name>  - [experimental] Fetch module from Odoo Apps Market.
                                  Works only for free modules.
-        -m|--module <module>   - module name to be fetched from repository
-        -n|--name <repo name>  - repository name. this name is used for directory to clone repository in.
+        -m|--module <module>   - Module name to be fetched from repository
+        -n|--name <repo name>  - Repository name. this name is used for directory to clone repository in.
                                  Usualy not required
-        -b|--branch <branch>   - name fo repository branch to clone
-        --requirements <file>  - path to requirements file to fetch required modules
+        -b|--branch <branch>   - Name fo repository branch to clone
+        --requirements <file>  - Path to requirements file to fetch required modules
                                  NOTE: requirements file must end with newline.
 
     Configuration via environment variables:
         - ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH     - if set then odoo-helper
                                                     will use --single-branch
-                                                    option to clone repo
+                                                    option to clone repositories
+        - ODOO_HELPER_FETCH_GIT_DEPTH_1           - if set, the odoo-helper
+                                                    will user --depth=1 option
+                                                    to clone repositories
         - ODOO_HELPER_FETCH_PIP_AUTO_REQUIREMENTS - if set, then odoo-helper
                                                     will process requirements.auto.txt
                                                     file in repositories/modules
@@ -489,6 +505,12 @@ function fetch_module {
                 # then use odoo branch
                 REPO_BRANCH=${REPO_BRANCH:-${ODOO_VERSION:-$ODOO_BRANCH}};
                 shift;
+            ;;
+            --git-single-branch)
+                ODOO_HELPER_FETCH_GIT_SINGLE_BRANCH=1;
+            ;;
+            --git-depth-1)
+                ODOO_HELPER_FETCH_GIT_DEPTH_1=1;
             ;;
             --odoo-app)
                 fetch_download_odoo_app "$2";

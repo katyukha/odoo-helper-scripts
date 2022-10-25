@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- Added new options to `fetch` command:
+    - `--git-single-branch` could be used to clone repos with single branch options
+    - `--git-depth-1` could be used to clone repos with option `--depth=1`
+
+
 ### Fixes
 
 - `flake8-colors` not needed anymore, as flake8 support color output byt default.

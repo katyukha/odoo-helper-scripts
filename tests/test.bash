@@ -360,7 +360,7 @@ odoo-helper install js-tools;
 
 
 # Install oca/partner-contact addons
-odoo-helper fetch --oca partner-contact;
+odoo-helper fetch --git-single-branch --oca partner-contact;
 
 # Regenerate Ukrainian translations for partner_firstname addons
 odoo-helper tr regenerate --lang uk_UA --file uk_UA partner_firstname;
@@ -397,7 +397,7 @@ odoo-helper-addons-update base
 
 # Fetch OCA account-financial-reporting, which seems to have
 # complicated enough dependencies for this test
-odoo-helper fetch --oca account-financial-reporting
+odoo-helper fetch --git-single-branch --oca account-financial-reporting
 
 # Clone repository explicitly and link it
 (cd repositories && \
@@ -412,7 +412,7 @@ odoo-helper addons update-list
 
 # Generate requirements and fetch them again
 odoo-helper addons generate-requirements > /tmp/odoo-requirements.txt
-odoo-helper fetch --requirements /tmp/odoo-requirements.txt
+odoo-helper fetch --git-single-branch --requirements /tmp/odoo-requirements.txt
 
 # Try to reinstall virtualenv and run server
 odoo-helper install reinstall-venv;
@@ -524,7 +524,7 @@ Fetch OCA/web repo
 ==================
 ${NC}"
 # Fetch oca/web passing only repo url and branch to fetch command
-odoo-helper fetch https://github.com/oca/web --branch 11.0;
+odoo-helper fetch https://github.com/oca/web --branch 11.0 --git-single-branch --git-depth-1;
 
 echo -e "${YELLOWC}
 ============================================
