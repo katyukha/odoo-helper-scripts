@@ -87,6 +87,7 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - *13.0*
     - *14.0*
     - *15.0*
+    - *16.0* (**experimental**)
 - OS support:
     - On *Ubuntu* should work nice (auto tested on *Ubuntu 18.04, 20.04*)
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.

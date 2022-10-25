@@ -557,6 +557,11 @@ function install_odoo_py_requirements_for_version {
                 # We have to use recent version of pyopenssl, because default version (19.0.0)
                 # is not compatible with openssl in recent versions of ubuntu.
                 echo "pyopenssl>=21.0.0";
+            elif [[ "$dependency_stripped" =~ cryptography* ]]; then
+                # Version of cryptography have to be chooses by pyopenssl,
+                # thus we have to remove version specification for this module.
+                # Actual for Odoo 16.0
+                echo "cryptography"
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
@@ -698,6 +703,8 @@ function install_build_python_guess_version {
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
         echo "3.8.13";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
+        echo "3.8.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
         echo "3.8.13";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
@@ -921,7 +928,6 @@ function install_python_tools {
         - pylint-odoo
         - coverage
         - flake8
-        - flake8-colors
         - websocket-client  (required for tests in Odoo 12.0)
         - jingtrang
 
@@ -960,8 +966,8 @@ function install_python_tools {
         shift
     done
     exec_pip "${pip_options[@]}" install "${pip_install_opts[@]}" \
-        setproctitle watchdog pylint-odoo coverage \
-        flake8 flake8-colors websocket-client jingtrang;
+        setproctitle watchdog "pylint-odoo<8.0" coverage \
+        flake8 websocket-client jingtrang;
 }
 
 # Install extra javascript tools
@@ -1247,6 +1253,7 @@ function install_reinstall_venv {
         --build-python-sqlite3    - Apply  --enable-loadable-sqlite-extensions
                                     when building python.
     ";
+    local odoo_build_py_if_needed;
     while [[ $# -gt 0 ]]
     do
         local key="$1";
@@ -1267,9 +1274,7 @@ function install_reinstall_venv {
                 shift;
             ;;
             --build-python-if-needed)
-                if odoo_ensure_python_version; then
-                    ODOO_BUILD_PYTHON_VERSION=auto;
-                fi
+                odoo_build_py_if_needed=1;
             ;;
             --build-python-optimize)
                 ODOO_BUILD_PYTHON_OPTIMIZE=1;
@@ -1311,9 +1316,17 @@ function install_reinstall_venv {
         echoe -e "${YELLOWC}Removing virualenv...${NC}";
         rm -r "$VENV_DIR";
         if [ -d "$PROJECT_ROOT_DIR/python" ]; then
-            rm -r "$PROJECT_ROOT_DIR/python";
+            rm -rf "$PROJECT_ROOT_DIR/python";
         fi
         echoe -e "${YELLOWC}Virtualenv removed!${NC}";
+    fi
+
+    # Decide if we need to build python if requested
+    # This code is placed here, because before checking python version
+    # we have to remove virtual env first to avoid detection of previously
+    # installed version.
+    if [ -n "$odoo_build_py_if_needed" ] && ! odoo_ensure_python_version; then
+        ODOO_BUILD_PYTHON_VERSION=auto;
     fi
 
     # Install odoo

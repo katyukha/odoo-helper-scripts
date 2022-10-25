@@ -146,9 +146,11 @@ function odoo_update_sources_archive {
         echoe -e "${REDC}ERROR${NC}: Cannot download Odoo. Retry this operation with --verbose option.";
         return 1
     fi
- 
-    echoe -e "${LBLUEC}Removing old odoo sources...${NC}";
-    rm -r "$ODOO_PATH";
+
+    if [ -d "$ODOO_PATH" ]; then
+        echoe -e "${LBLUEC}Removing old odoo sources...${NC}";
+        rm -r "$ODOO_PATH";
+    fi
 
     echoe -e "${LBLUEC}Unpacking new source archive ...${NC}";
     (cd "$DOWNLOADS_DIR" && \
@@ -284,6 +286,8 @@ function odoo_ensure_python_version {
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
         ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 10);" > /dev/null 2>&1;
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
+        ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
         ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
