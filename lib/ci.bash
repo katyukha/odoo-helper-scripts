@@ -899,6 +899,61 @@ function ci_ensure_addons_have_changelog {
     return $res;
 }
 
+function ci_auto_migrate_modules {
+    local usage="
+    Try to automatically migrate modules to current odoo version.
+    It is not full migration, but just some predefined actions, that
+    could simplify migrations. The changes made by this command does not
+    change or update logic. Currently it is only set of find-and-replace rules
+    applied to module.
+
+    Usage:
+
+        $SCRIPT_NAME ci auto-migrate-modules [options] [args]
+
+    Options:
+        --help             - print this help message
+
+    Args:
+        Same arguments as passed to odoo-helper addons list
+
+    Example:
+
+        # Command below will try to migrate all installable modules in
+        # current directory
+        $SCRIPT_NAME ci auto-migrate-modules --installable .
+    ";
+    # Parse options
+    if [[ $# -lt 1 ]]; then
+        echo "$usage";
+        return 0;
+    fi
+    while [[ $# -gt 0 ]]
+    do
+        local key="$1";
+        case $key in
+            -h|--help|help)
+                echo "$usage";
+                return 0;
+            ;;
+            *)
+                break;
+            ;;
+        esac
+        shift
+    done
+
+    local addons_to_migrate
+    mapfile -t addons_to_migrate < <(addons_list_in_directory --by-path "$@");
+    for addon_path in "${addons_to_migrate[@]}"; do
+        local addon_name;
+        addon_name=$(addons_get_addon_name "$addon_path");
+        echoe -e "${BLUEC}Migrating addon ${YELLOWC}${addon_name}${BLUEC} ...${NC}";
+        exec_py "${ODOO_HELPER_LIB}/pylib/ci_fw_postfixes.py" --version="$ODOO_VERSION" --path="$addon_path";
+        echoe -e "${BLUEC}Migrated addon ${YELLOWC}${addon_name}${BLUEC}: ${GREENC}OK${NC}";
+    done
+}
+
 function ci_command {
     local usage="
     This command provides subcommands useful in CI (Continious Integration) process
@@ -906,16 +961,17 @@ function ci_command {
     NOTE: This command is experimental and everything may be changed.
 
     Usage:
-        $SCRIPT_NAME ci check-versions-git [--help]  - ensure versions of changed addons were updated
-        $SCRIPT_NAME ci fix-versions [--help]        - fix versions of changed addons
-        $SCRIPT_NAME ci ensure-icons [--help]        - ensure all addons in specified directory have icons
-        $SCRIPT_NAME ci ensure-changelog [--help]    - ensure that changes described in changelog
-        $SCRIPT_NAME ci push-changes [--help]        - push changes to same branch
-        $SCRIPT_NAME ci do-forward-port [--help]     - do forwardport
-        $SCRIPT_NAME ci do-fwp [--help]              - alias to 'do-forward-port'
-        $SCRIPT_NAME ci do-fp [--help]               - alias to 'do-forward-port'
-        $SCRIPT_NAME ci do-fw [--help]               - alias to 'do-forward-port'
-        $SCRIPT_NAME ci -h|--help|help               - show this help message
+        $SCRIPT_NAME ci check-versions-git [--help]   - ensure versions of changed addons were updated
+        $SCRIPT_NAME ci fix-versions [--help]         - fix versions of changed addons
+        $SCRIPT_NAME ci ensure-icons [--help]         - ensure all addons in specified directory have icons
+        $SCRIPT_NAME ci ensure-changelog [--help]     - ensure that changes described in changelog
+        $SCRIPT_NAME ci push-changes [--help]         - push changes to same branch
+        $SCRIPT_NAME ci do-forward-port [--help]      - do forwardport
+        $SCRIPT_NAME ci do-fwp [--help]               - alias to 'do-forward-port'
+        $SCRIPT_NAME ci do-fp [--help]                - alias to 'do-forward-port'
+        $SCRIPT_NAME ci do-fw [--help]                - alias to 'do-forward-port'
+        $SCRIPT_NAME ci auto-migrate-modules [--help] - automatically try to migrate modules to current version
+        $SCRIPT_NAME ci -h|--help|help                - show this help message
     ";
 
     if [[ $# -lt 1 ]]; then
@@ -955,6 +1011,11 @@ function ci_command {
             do-forward-port|do-fp|do-fw|do-fwp)
                 shift;
                 ci_do_forwardport "$@";
+                return;
+            ;;
+            auto-migrate-modules)
+                shift;
+                ci_auto_migrate_modules "$@";
                 return;
             ;;
             -h|--help|help)

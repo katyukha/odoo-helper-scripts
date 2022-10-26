@@ -1352,6 +1352,10 @@ function install_reinstall_odoo {
 
     Options:
         --no-backup     - do not backup old version of odoo
+        --single-branch - in case of reinstallting from git,
+                          clone only single branch of odoo.
+                          This could increase speed of clonning and
+                          reduce disk size needed to store odoo code
         -h|--help|help  - show this help message
     ";
 
@@ -1369,6 +1373,9 @@ function install_reinstall_odoo {
             ;;
             --no-backup)
                 do_not_backup_old_odoo=1;
+            ;;
+            --single-branch)
+                CLONE_SINGLE_BRANCH=on;
             ;;
             -h|--help|help)
                 echo "$usage";
