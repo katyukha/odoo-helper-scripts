@@ -295,12 +295,8 @@ class LocalDBService(object):
     @property
     def dispatch(self):
         if self._dispatch is None:
-            if odoo.release.version_info < (16,):
-                self._dispatch = functools.partial(
-                    self.odoo.http.dispatch_rpc, 'db')
-            else:
-                self._dispatch = functools.partial(
-                    self.odoo.service.dispatch_rpc, 'db')
+            self._dispatch = functools.partial(
+                self.odoo.http.dispatch_rpc, 'db')
         return self._dispatch
 
     def create_database(self, *args, **kwargs):

@@ -75,6 +75,26 @@ CHECKS['14.0'] = {
     ],
 }
 
+# Auto checks for 15.0
+CHECKS['15.0'] = {
+    '.xml': [
+        ("replace",
+            r"t-raw=(?P<q>['\"])",
+            "t-out=\g<q>",
+            "Replace '@t-raw=...' with '@t-out=...' attribute in xml."),
+    ],
+}
+
+# Auto checks for 16.0
+CHECKS['16.0'] = {
+    '.xml': [
+        ("replace",
+            r"t-raw=(?P<q>['\"])",
+            "t-out=\g<q>",
+            "Replace '@t-raw=...' with '@t-out=...' attribute in xml."),
+    ],
+}
+
 
 def run_command_replace(fpath, fcontent, expr, subst, msg):
     """ Replace all occurences of <expr> in <fcontent> by <subst>

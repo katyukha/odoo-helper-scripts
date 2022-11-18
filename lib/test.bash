@@ -40,29 +40,6 @@ function test_run_server {
     fi
 }
 
-# test_module_impl <with_coverage 0|1> <modules> [extra_options]
-# example: test_module_impl base,mail -d test1
-#
-# param modules - is coma-separated list of addons to be tested
-#
-# extra_options will be directly passed to Odoo server
-function test_module_impl {
-    local with_coverage=$1
-    local modules=$2
-    shift; shift;  # all next arguments will be passed to server
-
-    # Install module
-    if ! test_run_server "$with_coverage" --init="$modules" --log-level=warn "$@"; then
-        return $?;
-    fi
-
-    # Test module
-    if ! test_run_server "$with_coverage" --update="$modules" \
-        --log-level=info --test-enable "$@"; then
-        return $?;
-    fi
-}
-
 # Get database name or create new one. Prints database name
 # test_get_or_create_db [--recreate-db] [--create-test-db] [--test-db-name <dbname>]
 function test_get_or_create_db {
@@ -106,33 +83,6 @@ function test_get_or_create_db {
         fi
     fi
     echo "$test_db_name";
-}
-
-
-# Run tests for set of addons
-# test_run_tests_for_modules <with_coverage 0|1> <test_db_name> <log_file> <module_1> [module2] ...
-function test_run_tests_for_modules {
-    local with_coverage=$1
-    local test_db_name=$2;
-    local test_log_file=$3;
-    shift; shift; shift;
-
-    local modules;
-    modules=$(join_by , "$@");
-
-    if [ -z "$modules" ]; then
-        echo -e "${REDC}ERROR:${NC} No modules supplied";
-        return 1;
-    fi
-
-    if [ -z "$test_db_name" ]; then
-        echo -e "${REDC}ERROR:${NC} No database name supplierd!";
-        return 1;
-    fi
-
-    echo -e "${BLUEC}Testing modules $modules...${NC}";
-    test_module_impl "$with_coverage" "$modules" --database "$test_db_name" \
-        2>&1 | tee -a "$test_log_file";
 }
 
 
@@ -197,12 +147,15 @@ function test_run_tests_handle_sigint {
 
 
 # Run tests
-# test_run_tests [--recreate-db] [--create-test-db] [--fail-on-warn] [--with-coverage] <modules>
+# test_run_tests [--recreate-db] [--create-test-db] [--fail-on-warn] [--with-coverage] [--migration] [--migration-repo <repo>] <modules>
 function test_run_tests {
     local db_name_options=();
     local create_test_db=0;
     local fail_on_warn=0;
     local with_coverage=0;
+    local test_migration=0;
+    local test_migration_repo;
+    local test_migration_branch;
     while [[ $# -gt 0 ]]
     do
         key="$1";
@@ -224,6 +177,14 @@ function test_run_tests {
             --with-coverage)
                 with_coverage=1;
             ;;
+            --migration)
+                test_migration=1;
+            ;;
+            --migration-repo)
+                test_migration=1;
+                test_migration_repo="$2";
+                shift;
+            ;;
             *)
                 break;
             ;;
@@ -234,6 +195,31 @@ function test_run_tests {
     local res=0;
     local test_db_name;
     local test_log_file;
+
+
+    if [ "$test_migration" -eq 1 ] && [ -z "$test_migration_repo" ]; then
+        # If migration repo is not specified, then let's try to use current dir.
+        test_migration_repo=$(pwd);
+    fi
+
+    if [ "$test_migration" -eq 1 ] && ! git_is_git_repo "$test_migration_repo"; then
+        # Migration tests are applicable only if migration-repo is sepcified
+        # and is git repository.
+        echoe -e "${REDC}ERROR${NC}: Cannot run migration tests. ${YELLOWC}${test_migration_repo}${NC} is not git repo.";
+        return 1
+    fi
+
+    if [ "$test_migration" -eq 1 ]; then
+        # Same current repo branch before switching to series branch
+        test_migration_branch=$(git_get_branch_name);
+
+        # Switch to serie branch
+        echoe -e "${BLUEC}Switching to serie branch ${YELLOWC}${ODOO_VERSION}${BLUEC} before running migration tests.${NC}";
+        (cd "$test_migration_repo" && \
+            git fetch origin "$ODOO_VERSION" && \
+            git checkout origin/"$ODOO_VERSION");
+    fi
+
 
     # Create new test database if required
     test_db_name=$(test_get_or_create_db "${db_name_options[@]}");
@@ -256,8 +242,43 @@ function test_run_tests {
     # shellcheck disable=SC2064
     trap "test_run_tests_handle_sigint $create_test_db $test_db_name" SIGINT;
 
-    if ! test_run_tests_for_modules "$with_coverage" "$test_db_name" "$test_log_file" "$@"; then
-        res=2
+
+    # Prepare module list separated by ,
+    local modules;
+    modules=$(join_by , "$@");
+
+    if [ -z "$modules" ]; then
+        echoe -e "${REDC}ERROR:${NC} No modules supplied";
+        res=1;
+    fi
+
+    echoe -e "${BLUEC}Installing modules before running tests...${NC}";
+    if ! test_run_server "$with_coverage" --init="$modules" \
+            --log-level=warn --database "$test_db_name" 2>&1 | tee -a "$test_log_file"; then
+        res=10;
+    fi
+
+    if [ "$test_migration" -eq 1 ]; then
+        echoe -e "${BLUEC}Switching back to ${YELLOWC}${test_migration_branch}${BLUEC}...${NC}";
+        (cd "$test_migration_repo" && \
+            git checkout "$test_migration_branch");
+
+        link_module "$test_migration_repo";
+        addons_update_module_list "$test_db_name";
+
+        # TODO: git clean -fdx?
+
+        echoe -e "${BLUEC}Updating modules to run migrations before running tests...${NC}";
+        if ! test_run_server "$with_coverage" --update="$modules" \
+                --log-level=info --database "$test_db_name" 2>&1 | tee -a "$test_log_file"; then
+            res=15;
+        fi
+    fi
+
+    echoe -e "${BLUEC}Running tests...${NC}";
+    if ! test_run_server "$with_coverage" --update="$modules" \
+            --log-level=info --database "$test_db_name" --test-enable 2>&1 | tee -a "$test_log_file"; then
+        return 20;
     fi
 
     # Combine test coverage results
@@ -343,6 +364,8 @@ function test_module {
         --test-db-name <dbname>        - Use specific name for test database
         --tdb <dbname>                 - Shortcut for --test-db-name
         --fail-on-warn                 - if this option passed, then tests will fail even on warnings
+        --migration                    - run migration tests
+        --migration-repo <repo path>   - run migration tests for repo specified by path
         --coverage                     - calculate code coverage (use python's *coverage* util)
         --coverage-html                - automaticaly generate coverage html report
         --coverage-html-dir <dir>      - Directory to save coverage report to. Default: ./htmlcov
@@ -375,6 +398,21 @@ function test_module {
         - value of 'db_name' param in test config file (confs/odoo.test.conf)
         - '{db_user}-odoo-test'
 
+        In case of testing migration, the command have to be ran within
+        git repository that contains addons to be tested for migration,
+        or git repository have to be specified by --migration-repo option.
+        Also, in this case repo must follow standard odoo branching scheme,
+        when stable branch named by odoo serie (16.0) and development branch
+        is prefixed within odoo serie (16.0-my-dev).
+        If migration testing enabled, then odoo-helper will do following steps:
+        0. Assume that current branch on repo have to be tested against update from stable branch.
+           So keep reference to this branch before switching to stable one.
+        1. Switch repo to the stable version/branch (16.0),
+        2. Install addons to be tested on test database
+        3. Switch to branch to be tested.
+        4. Update list of addons
+        5. Update addons to be tested. This will run migrations.
+        6. Run tests on migrated database.
     ";
 
     # Parse command line options and run commands
@@ -404,6 +442,13 @@ function test_module {
             ;;
             --fail-on-warn)
                 run_tests_options+=( --fail-on-warn );
+            ;;
+            --migration)
+                run_tests_options+=( --migration );
+            ;;
+            --migration-repo)
+                run_tests_options+=( --migration-repo "$2" );
+                shift;
             ;;
             --coverage)
                 with_coverage=1;
