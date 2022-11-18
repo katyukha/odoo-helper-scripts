@@ -6,7 +6,7 @@
 
 - Automatic replace of `@t-raw` to `@t-out` in `.xml` files during forwardport
 - Added separate command for automatic module migrate `odoo-helper ci auto-migrate-modules`
-  that will try to automarically migrate module code to current odoo version.
+  that will try to automatically migrate module code to current odoo version.
   Currently it can do only simple *find-and-replace* via regex.
 - Added ability to run migration tests with single command, by adding new
   options to `odoo-helper test` command:

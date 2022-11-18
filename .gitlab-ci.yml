@@ -90,6 +90,8 @@ flake8:
 
 tests:ubuntu:18.04:
     image: ubuntu:18.04
+    variables:
+      ODOO_INSTALL_NODE_VERSION: "16.15.1"
     <<: *tests-definition
 
 tests:ubuntu:20.04:
