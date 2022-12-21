@@ -1,5 +1,13 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Added new option `--no-drop-db` to `odoo-helper test` command.
+  This option could be used to tell odoo-helper to not drop temporary test database.
+  Especially, this is useful for migration testing to check the state of database after migration.
+
 ## Release 0.16.0 (2022-11-18)
 
 ### Added
