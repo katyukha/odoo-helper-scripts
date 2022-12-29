@@ -257,7 +257,7 @@ function install_sys_deps_internal {
     if [ -n "$ALWAYS_ANSWER_YES" ]; then
         local opt_apt_always_yes="-yq";
     fi
-    with_sudo apt-get install $opt_apt_always_yes --no-install-recommends "$@";
+    with_sudo apt-get install "$opt_apt_always_yes" --no-install-recommends "$@";
 }
 
 # install_parse_debian_control_file <control file>
@@ -1095,7 +1095,6 @@ function install_unoconv {
                 return 1;
             ;;
         esac
-        shift
     done
     ALWAYS_ANSWER_YES=1 install_sys_deps_internal unoconv;
     local system_python;
@@ -1130,7 +1129,6 @@ function install_openupgradelib {
                 return 1;
             ;;
         esac
-        shift
     done
     exec_pip install --upgrade openupgradelib
 }
@@ -1552,6 +1550,5 @@ function install_entry_point {
                 fi
             ;;
         esac
-        shift
     done
 }

@@ -927,6 +927,5 @@ function odoo_db_command {
                 return 1;
             ;;
         esac;
-        shift;
     done
 }

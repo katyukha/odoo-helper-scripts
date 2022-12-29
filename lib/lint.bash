@@ -64,7 +64,6 @@ function lint_run_flake8 {
                 return 1;
             ;;
         esac
-        shift
     done
 
     local res=0;
@@ -223,7 +222,6 @@ function lint_run_stylelint {
                 return 1;
             ;;
         esac
-        shift
     done
 
     #-----
@@ -288,6 +286,5 @@ function lint_command {
                 return 1;
             ;;
         esac
-        shift
     done
 }

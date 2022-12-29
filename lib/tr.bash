@@ -759,6 +759,5 @@ function tr_main {
                 return 1;
             ;;
         esac
-        shift
     done
 }

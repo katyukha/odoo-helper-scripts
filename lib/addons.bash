@@ -484,7 +484,6 @@ function addons_generate_requirements {
                 return 1;
             ;;
         esac
-        shift
     done
 
     local repo;
@@ -998,7 +997,6 @@ function addons_test_installed {
                 return 1;
             ;;
         esac
-        shift
     done
     local addon_name="$1";
 
@@ -1048,7 +1046,6 @@ function addons_update_py_deps {
                 return 1;
             ;;
         esac
-        shift
     done
 
     local repositories_list;
@@ -1194,7 +1191,7 @@ function addons_command {
         $SCRIPT_NAME addons find-installed --help       - print list of addons installed in at least one db
         $SCRIPT_NAME addons update-py-deps              - update python dependencies of addons
         $SCRIPT_NAME addons generate-requirements       - generate odoo_requirements.txt for this instance
-        $SCRIPT_NAME addons --help                      - show this help message
+        $SCRIPT_NAME addons -h|--help|help              - show this help message
 
     Shortcuts:
 
@@ -1307,6 +1304,5 @@ function addons_command {
                 return 1;
             ;;
         esac
-        shift
     done
 }
