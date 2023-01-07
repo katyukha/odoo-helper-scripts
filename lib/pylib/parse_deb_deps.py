@@ -9,7 +9,7 @@ def parse_deb_dependencies(path):
     m = RE_DEPS.match(open(path).read())
     deps = m and m.groupdict().get('deps', '')
     deps = deps.replace(',', '').replace(' ', '').split('\n')
-    return filter(lambda l: l and not l.startswith('${'), deps)
+    return filter(lambda line: line and not line.startswith('${'), deps)
 
 
 if __name__ == '__main__':
