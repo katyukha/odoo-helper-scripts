@@ -47,7 +47,7 @@ flake8:
     before_script:
         - pip install flake8
     script:
-        - flake8 ./lib/pylib/lodoo.py
+        - flake8 ./lib/pylib/
     rules:
         - if: $CI_PIPELINE_SOURCE == "merge_request_event"
         - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS

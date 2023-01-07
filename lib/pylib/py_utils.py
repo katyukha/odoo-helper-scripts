@@ -1,7 +1,6 @@
 """ Various utility functions implemented in python to simplify code
 """
 import os
-import re
 import click
 
 
@@ -19,10 +18,12 @@ def cli(ctx):
     pass
 
 
-@cli.command('addon-py-deps',
+@cli.command(
+    'addon-py-deps',
     help="Print space-separated list of python dependencies from addon's "
          "manifest file.")
-@click.option('--addon-path',
+@click.option(
+    '--addon-path',
     type=click.Path(
         exists=True, dir_okay=True, file_okay=False, resolve_path=True),
     help='Path to addon folder.')
@@ -35,9 +36,11 @@ def addon_py_deps(ctx, addon_path):
     click.echo(' '.join(python_deps), nl=False)
 
 
-@cli.command('addon-is-installable',
+@cli.command(
+    'addon-is-installable',
     help="Check if addon is installable")
-@click.option('--addon-path',
+@click.option(
+    '--addon-path',
     type=click.Path(
         exists=True, dir_okay=True, file_okay=False, resolve_path=True),
     help='Path to addon folder.')
