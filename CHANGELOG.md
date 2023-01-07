@@ -12,6 +12,13 @@
 
 - Removed overwrites for dependencies for pyopenssl and cryptography,
   because they are fixed on odoo side now.
+- Use [LOdoo](https://pypi.org/project/lodoo/) as separate python package.
+  **Note**: This change may be backward incompatible. So,
+  it is possible, that after update you will need to run command
+  `odoo-helper install py-prerequirements`
+
+
+---
 
 ## Release 0.16.0 (2022-11-18)
 

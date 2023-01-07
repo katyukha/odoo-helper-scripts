@@ -244,10 +244,18 @@ function exec_py_u {
 
 # Shortcut to exec lodoo command
 function exec_lodoo {
-    exec_py "${ODOO_HELPER_LIB}/pylib/lodoo.py" "$@";
+    execv lodoo "$@";
 }
+
 function exec_lodoo_u {
-    exec_py_u "${ODOO_HELPER_LIB}/pylib/lodoo.py" "$@";
+    execv lodoo "$@";
+    local current_user;
+    current_user=$(whoami);
+    if [ -n "$SERVER_RUN_USER" ] && [ "$SERVER_RUN_USER" != "$current_user" ]; then
+        execv sudo -u "$SERVER_RUN_USER" -H -E lodoo "$@";
+    else
+        execv lodoo "$@";
+    fi
 }
 
 # Shortcut for exec py_utils
