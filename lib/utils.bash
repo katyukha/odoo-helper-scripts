@@ -248,7 +248,6 @@ function exec_lodoo {
 }
 
 function exec_lodoo_u {
-    execv lodoo "$@";
     local current_user;
     current_user=$(whoami);
     if [ -n "$SERVER_RUN_USER" ] && [ "$SERVER_RUN_USER" != "$current_user" ]; then
