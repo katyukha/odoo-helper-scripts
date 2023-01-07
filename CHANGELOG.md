@@ -8,6 +8,11 @@
   This option could be used to tell odoo-helper to not drop temporary test database.
   Especially, this is useful for migration testing to check the state of database after migration.
 
+### Changed
+
+- Removed overwrites for dependencies for pyopenssl and cryptography,
+  because they are fixed on odoo side now.
+
 ## Release 0.16.0 (2022-11-18)
 
 ### Added

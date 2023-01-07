@@ -553,15 +553,6 @@ function install_odoo_py_requirements_for_version {
                 # Recent versions of setup tools do not support `use_2to3` flag,so,
                 # we have to use another fork of suds to avoid errors during install
                 echo "suds-py3";
-            elif [[ "$dependency_stripped" =~ pyopenssl* ]]; then
-                # We have to use recent version of pyopenssl, because default version (19.0.0)
-                # is not compatible with openssl in recent versions of ubuntu.
-                echo "pyopenssl>=21.0.0";
-            elif [[ "$dependency_stripped" =~ cryptography* ]]; then
-                # Version of cryptography have to be chooses by pyopenssl,
-                # thus we have to remove version specification for this module.
-                # Actual for Odoo 16.0
-                echo "cryptography"
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
