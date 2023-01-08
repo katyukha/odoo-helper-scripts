@@ -621,7 +621,7 @@ function install_and_configure_postgresql {
 
 function install_python2_support {
     echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
-    if ! install_sys_deps_internal python2-dev python2-pip-whl; then
+    if ! install_sys_deps_internal python2-dev python2-pip-whl python2-setuptools-whl; then
         echo -e "${YELLOWC}WARNING${NC}: It seems that it is too old version of OS, trying old version of python2 support...";
         if ! install_sys_deps_internal python-dev; then
             echo -e "${YELLOWC}WARNING${NC}: Cannot install python2 support... skipping...";

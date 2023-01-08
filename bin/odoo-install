@@ -116,6 +116,7 @@ function print_usage {
          --enable-unbuffer             - use this optiona to enable usage of unbuffer for this installation.
                                          this option will use unbuffer to make output of tests colored,
                                          thus more readable.
+         --sys-deps                    - [sudo] Install system dependencies automatically.
          --ikwid                       - [I Know What I Do], set this option to disable all safeguards.
                                          For example, you can use this opt to run odoo installation as root.
          --verbose|--vv                - show extra output
@@ -245,6 +246,9 @@ function parse_options {
             ;;
             --enable-unbuffer)
                 USE_UNBUFFER=1;
+            ;;
+            --sys-deps)
+                ODOO_INSTALL_SYS_DEPS_AUTO=1;
             ;;
             --ikwid)
                 ODOO_HELPER_IKWID=1;
@@ -384,6 +388,11 @@ PROJECT_CONFIG_VERSION=$ODOO_HELPER_CONFIG_VERSION;
 config_set_defaults;  # imported from common module
 
 install_create_project_dir_tree;  # imported from 'install' module
+
+if [ "$ODOO_INSTALL_SYS_DEPS_AUTO" -eq 1 ]; then
+    echo -e "${BLUEC}Installing system dependencies for Odoo ${YELLOWC}${ODOO_VERSION}${BLUEC}...${NC}";
+    install_sys_deps_for_odoo_version "${ODOO_VERSION}";
+fi
 
 # install odoo
 install_odoo; 

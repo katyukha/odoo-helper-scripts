@@ -7,6 +7,8 @@
 - Added new option `--no-drop-db` to `odoo-helper test` command.
   This option could be used to tell odoo-helper to not drop temporary test database.
   Especially, this is useful for migration testing to check the state of database after migration.
+- Added new option `--sys--deps` to `odoo-install` command.
+  This opt allows to automatically install system dependencies whe installing odoo, but requires sudo.
 
 ### Changed
 
@@ -23,6 +25,7 @@
   For production-ready installation
   [CR&D Deploy](https://github.com/crnd-inc/crnd-deploy) script have to be used.
   It will automatically install odoo-helper and configure everything in right way.
+- Automatically install `python2-setuptools-whl` package, when installing python2 support.
 
 
 ---
