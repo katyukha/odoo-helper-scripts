@@ -46,7 +46,7 @@ CHECKS['13.0'] = {
             "Replace calls to 'phantom_js' with 'browser_js'."),
         ("replace",
             r"related_sudo=(?P<value>(True|False))",
-            "compute_sudo=\g<value>",
+            "compute_sudo=\g<value>",  # noqa
             "Replace related_sudo to compute_sudo"),
     ],
     '.xml': [
@@ -70,7 +70,7 @@ CHECKS['14.0'] = {
             "Replace calls to 'phantom_js' with 'browser_js'."),
         ("replace",
             r"related_sudo=(?P<value>(True|False))",
-            "compute_sudo=\g<value>",
+            "compute_sudo=\g<value>",  # noqa
             "Replace related_sudo to compute_sudo"),
     ],
 }
@@ -80,7 +80,7 @@ CHECKS['15.0'] = {
     '.xml': [
         ("replace",
             r"t-raw=(?P<q>['\"])",
-            "t-out=\g<q>",
+            "t-out=\g<q>",  # noqa
             "Replace '@t-raw=...' with '@t-out=...' attribute in xml."),
     ],
 }
@@ -90,7 +90,7 @@ CHECKS['16.0'] = {
     '.xml': [
         ("replace",
             r"t-raw=(?P<q>['\"])",
-            "t-out=\g<q>",
+            "t-out=\g<q>",  # noqa
             "Replace '@t-raw=...' with '@t-out=...' attribute in xml."),
     ],
 }

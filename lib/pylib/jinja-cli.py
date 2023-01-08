@@ -1,12 +1,13 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# Based on: https://github.com/mattrobenolt/jinja2-cli/blob/master/jinja2cli/cli.py
+# Based on:
+# https://github.com/mattrobenolt/jinja2-cli/blob/master/jinja2cli/cli.py
 
 import os
 import os.path
 import sys
-from optparse import OptionParser, Option
+from optparse import OptionParser
 
 import six
 
@@ -53,7 +54,7 @@ class UConverter(object):
                 # to binary, and that try diferent encoding to it
                 try:
                     value = six.binary_type(value)
-                except:
+                except:  # noqa
                     raise UnicodeError('unable to convert to unicode %r'
                                        '' % (value,))
             else:
@@ -126,7 +127,9 @@ def cli(opts, args):
 
     sys.stdout.write(output.encode('utf-8'))
     return 0
-#------------
+
+# ------------
+
 
 def main():
     parser = OptionParser(

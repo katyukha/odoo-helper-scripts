@@ -156,6 +156,7 @@ function test_run_tests {
     local test_migration=0;
     local test_migration_repo;
     local test_migration_branch;
+    local test_no_drop_db=0;
     while [[ $# -gt 0 ]]
     do
         key="$1";
@@ -184,6 +185,9 @@ function test_run_tests {
                 test_migration=1;
                 test_migration_repo="$2";
                 shift;
+            ;;
+            --no-drop-db)
+                test_no_drop_db=1;
             ;;
             *)
                 break;
@@ -287,7 +291,7 @@ function test_run_tests {
     fi
 
     # Drop created test db
-    if [ "$create_test_db" -eq 1 ]; then
+    if [ "$create_test_db" -eq 1 ] && [ "$test_no_drop_db" -eq 0 ]; then
         echo  -e "${BLUEC}Droping test database: ${YELLOWC}${test_db_name}${NC}";
         odoo_db_drop --conf "$ODOO_TEST_CONF_FILE" "$test_db_name";
     fi
@@ -382,6 +386,7 @@ function test_module {
         --skip-re <regex>              - skip addons that match specified regex.
                                          could be specified multiple times.
         --time                         - measure test execution time
+        --no-drop-db                   - Do not drop test db (if temporary db was created)
 
     Examples:
         $SCRIPT_NAME test -m my_cool_module        # test single addon
@@ -449,6 +454,9 @@ function test_module {
             --migration-repo)
                 run_tests_options+=( --migration-repo "$2" );
                 shift;
+            ;;
+            --no-drop-db)
+                run_tests_options+=( --no-drop-db );
             ;;
             --coverage)
                 with_coverage=1;

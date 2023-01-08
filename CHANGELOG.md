@@ -1,5 +1,35 @@
 # Release Notes
 
+## Release 1.0.0 (2023-01-08)
+
+### Added
+
+- Added new option `--no-drop-db` to `odoo-helper test` command.
+  This option could be used to tell odoo-helper to not drop temporary test database.
+  Especially, this is useful for migration testing to check the state of database after migration.
+- Added new option `--sys--deps` to `odoo-install` command.
+  This opt allows to automatically install system dependencies whe installing odoo, but requires sudo.
+
+### Changed
+
+- Removed overwrites for dependencies for pyopenssl and cryptography,
+  because they are fixed on odoo side now.
+- Use [LOdoo](https://pypi.org/project/lodoo/) as separate python package.
+  **Note**: This change may be backward incompatible. So,
+  it is possible, that after update you will need to run command
+  `odoo-helper install py-prerequirements`
+- Added safeguard preventing running installation of odoo as root user.
+  This is needed to warn users, that this script is not designed to
+  install production-ready instances, and it is focused on developers to help
+  them to manage multiple local installations of Odoo.
+  For production-ready installation
+  [CR&D Deploy](https://github.com/crnd-inc/crnd-deploy) script have to be used.
+  It will automatically install odoo-helper and configure everything in right way.
+- Automatically install `python2-setuptools-whl` package, when installing python2 support.
+
+
+---
+
 ## Release 0.16.0 (2022-11-18)
 
 ### Added

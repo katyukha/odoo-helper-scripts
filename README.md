@@ -17,7 +17,11 @@ odoo-helper-scripts will do all routine operations for you:
 - run tests
 - and a lot more
 
-If you have any routine operation that you would like to automate with odoo-helper-scripts, just fill an issue or do pull request, and may be that feature will be available in one of next releases.
+If you have any routine operation that you would like to automate with odoo-helper-scripts,
+just fill an issue or do pull request, and may be that feature will be available in one of next releases.
+
+***WARNING***: If you want to deploy production-ready odoo server,
+please, read carefully [Usage notes](#usage-note) section.
 
 ## The War in Ukraine
 
@@ -109,7 +113,7 @@ So use ``--help`` option, which is available for most of commands.
 ## Usage note
 
 This script collection is designed to simplify life of addons developer.
-This project ***is not*** designed, to install and configure production ready Odoo instances, unless you know what you do!
+This project ***is not designed, to install and configure production ready Odoo instances***, unless you know what you do!
 
 For **production-ready** installations take a look at [crnd-deploy](http://github.com/crnd-inc/crnd-deploy) project - just a single command allows you to get production-ready odoo instance with configured [PostgreSQL](https://www.postgresql.org/) and [Nginx](https://nginx.org/).
 

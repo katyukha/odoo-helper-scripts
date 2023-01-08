@@ -389,6 +389,5 @@ function postgres_command {
                 return 1;
             ;;
         esac
-        shift
     done
 }

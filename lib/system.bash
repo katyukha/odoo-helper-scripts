@@ -196,6 +196,5 @@ function system_entry_point {
                 return 1;
             ;;
         esac
-        shift
     done
 }

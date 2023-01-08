@@ -373,6 +373,5 @@ function doc_utils_command {
                 return 1;
             ;;
         esac
-        shift
     done
 }

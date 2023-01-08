@@ -257,7 +257,7 @@ function install_sys_deps_internal {
     if [ -n "$ALWAYS_ANSWER_YES" ]; then
         local opt_apt_always_yes="-yq";
     fi
-    with_sudo apt-get install $opt_apt_always_yes --no-install-recommends "$@";
+    with_sudo apt-get install "$opt_apt_always_yes" --no-install-recommends "$@";
 }
 
 # install_parse_debian_control_file <control file>
@@ -553,15 +553,6 @@ function install_odoo_py_requirements_for_version {
                 # Recent versions of setup tools do not support `use_2to3` flag,so,
                 # we have to use another fork of suds to avoid errors during install
                 echo "suds-py3";
-            elif [[ "$dependency_stripped" =~ pyopenssl* ]]; then
-                # We have to use recent version of pyopenssl, because default version (19.0.0)
-                # is not compatible with openssl in recent versions of ubuntu.
-                echo "pyopenssl>=21.0.0";
-            elif [[ "$dependency_stripped" =~ cryptography* ]]; then
-                # Version of cryptography have to be chooses by pyopenssl,
-                # thus we have to remove version specification for this module.
-                # Actual for Odoo 16.0
-                echo "cryptography"
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
@@ -630,7 +621,7 @@ function install_and_configure_postgresql {
 
 function install_python2_support {
     echo -e "${BLUEC}Installing python2 dependencies (to support odoo 10 and below)...${NC}";
-    if ! install_sys_deps_internal python2-dev python2-pip-whl; then
+    if ! install_sys_deps_internal python2-dev python2-pip-whl python2-setuptools-whl; then
         echo -e "${YELLOWC}WARNING${NC}: It seems that it is too old version of OS, trying old version of python2 support...";
         if ! install_sys_deps_internal python-dev; then
             echo -e "${YELLOWC}WARNING${NC}: Cannot install python2 support... skipping...";
@@ -1095,7 +1086,6 @@ function install_unoconv {
                 return 1;
             ;;
         esac
-        shift
     done
     ALWAYS_ANSWER_YES=1 install_sys_deps_internal unoconv;
     local system_python;
@@ -1130,7 +1120,6 @@ function install_openupgradelib {
                 return 1;
             ;;
         esac
-        shift
     done
     exec_pip install --upgrade openupgradelib
 }
@@ -1140,7 +1129,7 @@ function install_python_prerequirements {
     # virtualenv >= 15.1.0 automaticaly installs last versions of pip and
     # setuptools, so we do not need to upgrade them
     exec_pip -q install phonenumbers python-slugify setuptools-odoo cffi \
-        jinja2 click python-magic;
+        jinja2 lodoo python-magic;
 
     if ! exec_py -c "import pychart" >/dev/null 2>&1 ; then
         exec_pip -q install Python-Chart;
@@ -1552,6 +1541,5 @@ function install_entry_point {
                 fi
             ;;
         esac
-        shift
     done
 }
