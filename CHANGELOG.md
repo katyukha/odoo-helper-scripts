@@ -16,6 +16,13 @@
   **Note**: This change may be backward incompatible. So,
   it is possible, that after update you will need to run command
   `odoo-helper install py-prerequirements`
+- Added safeguard preventing running installation of odoo as root user.
+  This is needed to warn users, that this script is not designed to
+  install production-ready instances, and it is focused on developers to help
+  them to manage multiple local installations of Odoo.
+  For production-ready installation
+  [CR&D Deploy](https://github.com/crnd-inc/crnd-deploy) script have to be used.
+  It will automatically install odoo-helper and configure everything in right way.
 
 
 ---

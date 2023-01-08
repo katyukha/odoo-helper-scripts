@@ -116,6 +116,8 @@ function print_usage {
          --enable-unbuffer             - use this optiona to enable usage of unbuffer for this installation.
                                          this option will use unbuffer to make output of tests colored,
                                          thus more readable.
+         --ikwid                       - [I Know What I Do], set this option to disable all safeguards.
+                                         For example, you can use this opt to run odoo installation as root.
          --verbose|--vv                - show extra output
          --help|-h|help                - show this help message
 
@@ -244,6 +246,9 @@ function parse_options {
             --enable-unbuffer)
                 USE_UNBUFFER=1;
             ;;
+            --ikwid)
+                ODOO_HELPER_IKWID=1;
+            ;;
             --verbose|-vv)
                 VERBOSE=1;
             ;;
@@ -357,6 +362,18 @@ function generate_test_conf {
 
 # Install process
 parse_options "$@";
+
+# Show warning if the system is running under the root and exit
+if [ "$UID" -eq 0 ] && [ -z "$CI_RUN" ]; then
+    echo -e "${YELLOWC}WARNING${NC}: This script is not intended for installation of production-ready odoo servers." \
+        "If you want to install production-ready odoo, that you have to use" \
+        "[${BLUEC}CR&D Deploy${NC}](${LBLUEC}https://github.com/crnd-inc/crnd-deploy${NC}) script," \
+        "that will do it in right way (create separate user for Odoo, install postgres and nginx if requested, etc).";
+    if [ -z "$ODOO_HELPER_IKWID" ]; then
+        echo -e "If You Know What You Do, then use option ${BLUEC}--ikwid${NC} (that means ${LBLUEC}I Know What I Do${NC}) for this script.";
+        exit 3;
+    fi
+fi
 
 # Check environment to get values not provided via command line args
 install_preconfigure_env;

@@ -1,6 +1,9 @@
 # Quick Start Guide
 
-This is quick start guide for *odoo-helper-scripts*.
+This is quick start guide for *odoo-helper-scripts* for development odoo installations.
+
+If you want to install Odoo on ***production*** server, then take a look at [crnd-deploy](http://github.com/crnd-inc/crnd-deploy) project - just a single command allows you to get production-ready odoo instance with configured [PostgreSQL](https://www.postgresql.org/) and [Nginx](https://nginx.org/).
+
 
 ## Install odoo-helper scripts
 
@@ -146,6 +149,12 @@ Or alternatively
 
 ```bash
 odoo-helper fetch --github OCA/contract --branch 11.0
+```
+
+Or alternatively
+
+```bash
+odoo-helper fetch --repo https://github.com/OCA/contract --branch 11.0
 ```
 
 If repository have standard branch structure branches have same names as Odoo versions (series)
