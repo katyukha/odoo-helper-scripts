@@ -9,5 +9,5 @@
 # Odoo Helper Scripts: Version
 
 # Define version number
-ODOO_HELPER_VERSION="1.0.0";
+ODOO_HELPER_VERSION="1.0.1";
 ODOO_HELPER_CONFIG_VERSION="1";

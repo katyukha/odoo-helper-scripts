@@ -581,6 +581,7 @@ function ci_push_changes {
         return 4;
     fi
 
+    # Compute remote url to push changes to
     local git_remote_url="git@${CI_JOB_TOKEN_GIT_HOST}:${CI_PROJECT_PATH}";
 
     echoe -e "${LBLUEC}INFO${NC}: committing as user (name=${GITLAB_USER_NAME}, email=${GITLAB_USER_EMAIL})";
@@ -591,8 +592,8 @@ function ci_push_changes {
     chmod 600 /tmp/push_key;
     chmod 600 /tmp/push_key.pub;
     chmod 600 /tmp/pushsshconfig;
-    echoe -e "${LBLUEC}INFO${NC}: setting remote url to ${git_remote_name}";
-    git remote set-url --push origin "${git_remote_name}";
+    echoe -e "${LBLUEC}INFO${NC}: setting remote url to ${git_remote_url}";
+    git remote set-url --push origin "${git_remote_url}";
     echoe -e "${LBLUEC}INFO${NC}: pushing changes to ${CI_COMMIT_BRANCH}";
     git -c core.sshCommand='ssh -T -o PasswordAuthentication=no -o StrictHostKeyChecking=no -F /tmp/pushsshconfig -i /tmp/push_key' \
         push origin "HEAD:${CI_COMMIT_BRANCH}";

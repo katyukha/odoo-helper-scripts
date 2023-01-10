@@ -1,5 +1,15 @@
 # Release Notes
 
+## Release 1.0.1 (2023-01-10)
+
+### Fixed
+
+- Command `ci push-changes` now will set correct push URL.
+  This was breaked 0.13.0 release.
+
+
+---
+
 ## Release 1.0.0 (2023-01-08)
 
 ### Added
