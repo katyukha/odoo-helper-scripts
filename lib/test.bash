@@ -154,6 +154,7 @@ function test_run_tests {
     local fail_on_warn=0;
     local with_coverage=0;
     local test_migration=0;
+    local test_migration_start_ref;
     local test_migration_repo;
     local test_migration_branch;
     local test_no_drop_db=0;
@@ -180,6 +181,10 @@ function test_run_tests {
             ;;
             --migration)
                 test_migration=1;
+            ;;
+            --migration-start-ref)
+                test_migration_start_ref="$2";
+                shift;
             ;;
             --migration-repo)
                 test_migration=1;
@@ -217,11 +222,19 @@ function test_run_tests {
         # Same current repo branch before switching to series branch
         test_migration_branch=$(git_get_branch_name);
 
-        # Switch to serie branch
-        echoe -e "${BLUEC}Switching to serie branch ${YELLOWC}${ODOO_VERSION}${BLUEC} before running migration tests.${NC}";
-        (cd "$test_migration_repo" && \
-            git fetch origin "$ODOO_VERSION" && \
-            git checkout origin/"$ODOO_VERSION");
+        if [ -n "$test_migration_start_ref" ]; then
+            # Switch to start ref
+            echoe -e "${BLUEC}Switching to ${YELLOWC}${test_migration_start_ref}${BLUEC} before running migration tests.${NC}";
+            (cd "$test_migration_repo" && \
+                git fetch origin && \
+                git checkout "$test_migration_start_ref");
+        else
+            # Switch to serie branch
+            echoe -e "${BLUEC}Switching to serie branch ${YELLOWC}${ODOO_VERSION}${BLUEC} before running migration tests.${NC}";
+            (cd "$test_migration_repo" && \
+                git fetch origin "$ODOO_VERSION" && \
+                git checkout origin/"$ODOO_VERSION");
+        fi
     fi
 
 
@@ -370,6 +383,8 @@ function test_module {
         --fail-on-warn                 - if this option passed, then tests will fail even on warnings
         --migration                    - run migration tests
         --migration-repo <repo path>   - run migration tests for repo specified by path
+        --migration-start-ref <ref>    - git reference (branch/commit/tag) to start migration from
+                                         the system will use this ref as starting point to test migration
         --coverage                     - calculate code coverage (use python's *coverage* util)
         --coverage-html                - automaticaly generate coverage html report
         --coverage-html-dir <dir>      - Directory to save coverage report to. Default: ./htmlcov
@@ -453,6 +468,10 @@ function test_module {
             ;;
             --migration-repo)
                 run_tests_options+=( --migration-repo "$2" );
+                shift;
+            ;;
+            --migration-start-ref)
+                run_tests_options+=( --migration-start-ref "$2" );
                 shift;
             ;;
             --no-drop-db)
