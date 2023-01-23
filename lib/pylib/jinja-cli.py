@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Based on:
@@ -125,7 +125,7 @@ def cli(opts, args):
 
     output = ustr(output)
 
-    sys.stdout.write(output.encode('utf-8'))
+    sys.stdout.write(output)
     return 0
 
 # ------------
