@@ -251,7 +251,7 @@ function exec_lodoo_u {
     local current_user;
     current_user=$(whoami);
     if [ -n "$SERVER_RUN_USER" ] && [ "$SERVER_RUN_USER" != "$current_user" ]; then
-        execv sudo -u "$SERVER_RUN_USER" -H -E lodoo "$@";
+        sudo -u "$SERVER_RUN_USER" -H -E odoo-helper exec lodoo "$@";
     else
         execv lodoo "$@";
     fi

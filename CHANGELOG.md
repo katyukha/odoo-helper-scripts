@@ -1,11 +1,16 @@
 # Release Notes
 
-## Unreleased
+## Release 1.1.0 (2023-01-23)
 
 ### Added
 
 - `--migration-start-ref` option to `odoo-helper test` command, that allows
   to specify the starting point for migration test.
+
+### Fixed
+
+- Incorrect handling of running lodoo with different user.
+  Now this have to be fixed.
 
 ---
 
