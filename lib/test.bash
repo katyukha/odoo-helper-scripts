@@ -376,7 +376,7 @@ function test_module {
         $SCRIPT_NAME test pylint [--disable=E111,E222,...] <addon path> [addon path]
 
     Options:
-        --create-test-db               - Creates temporary database to run tests in
+        -t|--create-test-db            - Creates temporary database to run tests in
         --recreate-db                  - Recreate test database if it already exists
         --test-db-name <dbname>        - Use specific name for test database
         --tdb <dbname>                 - Shortcut for --test-db-name
@@ -450,7 +450,7 @@ function test_module {
                 echo "$usage";
                 return 0;
             ;;
-            --create-test-db)
+            -t|--create-test-db)
                 run_tests_options+=( --create-test-db );
             ;;
             --recreate-db)
