@@ -843,9 +843,6 @@ function install_virtual_env {
 
         execv nodeenv "${nodeenv_opts[@]}";  # Install node environment
 
-        exec_npm set user 0;
-        exec_npm set unsafe-perm true;
-
         echoe -e "${BLUEC}Virtualeenv initialization completed!${NC}"
     fi
 }
