@@ -1,5 +1,13 @@
 # Release Notes
 
+## Release 1.2.0 (2023-02-11)
+
+### Added
+
+Added `-t` shortcut for `--create-test-db` option of `odoo-helper test` command
+
+---
+
 ## Release 1.1.0 (2023-01-23)
 
 ### Added
