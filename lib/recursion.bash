@@ -76,7 +76,8 @@ function recursion_protection_check {
 }
 
 
-# Close recursion protection for a key
+# Close recursion protection for a key.
+# Clear recursion cache for specified key
 #
 # recursion_protection_close <key>
 function recursion_protection_close {
