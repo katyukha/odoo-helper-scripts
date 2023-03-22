@@ -1,10 +1,23 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Added new option `--no-fetch` to cmd `odoo-helper link` that allows to disable
+  fetching repositories (from `odoo_requirements.txt` and `oca_dependencies.txt`)
+
+### Fixed
+
+- Force link modules during migration tests
+
+---
+
 ## Release 1.2.0 (2023-02-11)
 
 ### Added
 
-Added `-t` shortcut for `--create-test-db` option of `odoo-helper test` command
+- Added `-t` shortcut for `--create-test-db` option of `odoo-helper test` command
 
 ---
 
