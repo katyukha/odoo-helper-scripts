@@ -1,10 +1,30 @@
 # Release Notes
 
+## Release 1.3.0 (2023-03-28)
+
+### Added
+
+- Added new option `--no-fetch` to cmd `odoo-helper link` that allows to disable
+  fetching repositories (from `odoo_requirements.txt` and `oca_dependencies.txt`)
+
+### Changed
+
+- Automatically apply patch to run tours on Chrome 111 for Odoo 12.
+  See details:
+    - https://github.com/odoo/odoo/pull/114930
+    - https://github.com/odoo/odoo/pull/115782
+
+### Fixed
+
+- Force link modules during migration tests
+
+---
+
 ## Release 1.2.0 (2023-02-11)
 
 ### Added
 
-Added `-t` shortcut for `--create-test-db` option of `odoo-helper test` command
+- Added `-t` shortcut for `--create-test-db` option of `odoo-helper test` command
 
 ---
 

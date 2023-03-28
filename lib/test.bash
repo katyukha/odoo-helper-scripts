@@ -235,6 +235,11 @@ function test_run_tests {
                 git fetch origin "$ODOO_VERSION" && \
                 git checkout origin/"$ODOO_VERSION");
         fi
+
+        link_module --force "$test_migration_repo";
+
+        # Clear recursion protection, to able to link same repo later
+        recursion_protection_close "link_module";
     fi
 
 
@@ -280,7 +285,7 @@ function test_run_tests {
         (cd "$test_migration_repo" && \
             git checkout "$test_migration_branch");
 
-        link_module "$test_migration_repo";
+        link_module --force "$test_migration_repo";
         addons_update_module_list "$test_db_name";
 
         # TODO: git clean -fdx?

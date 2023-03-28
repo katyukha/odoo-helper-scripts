@@ -666,7 +666,7 @@ function ci_do_forwardport {
             --fm|--forward-migrations)
                 forward_migrations=1;
             ;;
-            --no|--no-forward-migrations)
+            --no-fm|--no-forward-migrations)
                 forward_migrations=0;
             ;;
             --mm|--migrate-modules)
@@ -759,8 +759,10 @@ function ci_do_forwardport {
                 local migration_dst=${migration_dst_prefix}${migration_name};
                 if [ -d "$migration_src" ] && [ ! -d "${migration_dst}" ]; then
                     if [ "$forward_migrations" -eq 1 ]; then
-                        echoe -e "${LBLUEC}INFO${NC}: forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
-                        git mv "$migration_src" "${migration_dst_prefix}${migration_name}";
+                        echoe -e "${LBLUEC}INFO${NC}: Forwarding migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
+                        if ! git mv "$migration_src" "${migration_dst_prefix}${migration_name}"; then
+                            echoe -e "${REDC}ERROR${NC}: Cannot forward migration ${YELLOWC}${addon_name}${NC} (${BLUEC}${migration_name}${NC}) from ${YELLOWC}${src_branch}${NC}.${BLUEC}${migration_name}${NC} to ${YELLOWC}${dst_branch}${NC}.${BLUEC}${migration_name}${NC}!";
+                        fi
                     else
                         echoe -e "${YELLOWC}WARNING${NC}: There is chaged migrations for add ${BLUEC}${addon_name}${NC} in this forwardport, but automitic forwardport of migrations disables.";
                     fi

@@ -54,12 +54,13 @@ function link_is_addon_linked {
 }
 
 
-# link_module_impl <source_path> <dest_path> <force: on|off> <py-deps-manifest: on|off>
+# link_module_impl <source_path> <dest_path> <force: on|off> <py-deps-manifest: on|off> <fetch-recursive: on|off>
 function link_module_impl {
     local src; src=$(readlink -f "$1");
     local dest=$2;
     local force=$3;
-    local py_deps_manifest="${4:-off}";
+    local py_deps_manifest="$4";
+    local fetch_recursive="$5";
 
     if [ "$force" == "on" ] && { [ -e "$dest" ] || [ -L "$dest" ]; }; then
         echov "Rewriting module $dest...";
@@ -79,9 +80,12 @@ function link_module_impl {
     else
         echov "Module $src already linked to $dest";
     fi
-    fetch_requirements "$dest";
     fetch_pip_requirements "$dest";
-    fetch_oca_requirements "$dest";
+
+    if [ "$fetch_recursive" == "on" ]; then
+        fetch_requirements "$dest";
+        fetch_oca_requirements "$dest";
+    fi
 
     if [ "$py_deps_manifest" == "on" ] && [ -f "$dest/__manifest__.py" ]; then
         local py_deps;
@@ -98,10 +102,12 @@ function link_module_impl {
 #     --force
 #     --module-name <module name>
 #     --fetch-manifest-py-deps
+#     --fetch-recursive <on|off>
 function link_module {
     local force=off;
     local fetch_manifest_py_deps=off;
     local module_name;
+    local fetch_recursive=on;
 
     # Parse command line options and run commands
     if [[ $# -lt 1 ]]; then
@@ -122,6 +128,10 @@ function link_module {
             ;;
             --module-name)
                 module_name="$2";
+                shift;
+            ;;
+            --fetch-recursive)
+                fetch_recursive="$2";
                 shift;
             ;;
             *)
@@ -153,14 +163,16 @@ function link_module {
         # single module repo
         local basename_repo;
         basename_repo=$(basename "$repo_path");
-        link_module_impl "$repo_path" "$ADDONS_DIR/${module_name:-$basename_repo}" "$force" "$fetch_manifest_py_deps";
+        link_module_impl "$repo_path" "$ADDONS_DIR/${module_name:-$basename_repo}" "$force" "$fetch_manifest_py_deps" "$fetch_recursive";
     else
         # multi module repo
         if [ -z "$module_name" ]; then
             # Check for requirements files in repository root dir
-            fetch_requirements "$repo_path";
             fetch_pip_requirements "$repo_path";
-            fetch_oca_requirements "$repo_path";
+            if [ "$fetch_recursive" == "on" ]; then
+                fetch_requirements "$repo_path";
+                fetch_oca_requirements "$repo_path";
+            fi
 
             # No module name specified, then all modules in repository should be linked
             for file in "$repo_path"/*; do
@@ -168,11 +180,11 @@ function link_module {
                 base_filename=$(basename "$file");
                 if is_odoo_module "$file" && addons_is_installable "$file"; then
                     # link module
-                    link_module_impl "$file" "$ADDONS_DIR/$base_filename" "$force" "$fetch_manifest_py_deps";
+                    link_module_impl "$file" "$ADDONS_DIR/$base_filename" "$force" "$fetch_manifest_py_deps" "$fetch_recursive";
                 elif [ -d "$file" ] && ! is_odoo_module "$file" && [ "$base_filename" != 'setup' ]; then
                     # if it is directory but not odoo module,
                     # and not 'setup' dir, then recursively look for addons there
-                    local link_module_opts=( );
+                    local link_module_opts=( --fetch-recursive "$fetch_recursive" );
                     if [ "$force" == on ]; then
                         link_module_opts+=( --force )
                     fi
@@ -184,7 +196,7 @@ function link_module {
             done
         else
             # Module name specified, then only single module should be linked
-            link_module_impl "$repo_path/$module_name" "$ADDONS_DIR/$module_name" "$force" "$fetch_manifest_py_deps";
+            link_module_impl "$repo_path/$module_name" "$ADDONS_DIR/$module_name" "$force" "$fetch_manifest_py_deps" "$fetch_recursive";
         fi
     fi
 }
@@ -200,6 +212,7 @@ function link_command {
         -f|--force                - rewrite links if already exists
         --fetch-manifest-py-deps  - fetch python dependencies from addon's manifest
         --module-name <name>      - name of module to link from repo
+        --no-fetch                - Do not fetch repositories recursively
         --ual                     - update addons list after link
     ";
 
@@ -230,6 +243,9 @@ function link_command {
             --module-name)
                 link_module_opts+=( --module-name "$2" );
                 shift;
+            ;;
+            --no-fetch)
+                link_module_opts+=( --fetch-recursive off );
             ;;
             --ual)
                 ual=1;
