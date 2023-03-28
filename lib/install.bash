@@ -1189,6 +1189,12 @@ function odoo_run_setup_py {
 
     # Install odoo
     (cd "$ODOO_PATH" && exec_py setup.py -q develop);
+
+    # Apply patch to run tours in Chrome 111 for Odoo 12.0
+    if [ "$(odoo_get_major_version)" -eq 12 ]; then
+        sed -i -E 's@([\t ]+)(self\.ws = websocket\.create_connection\(self\.ws_url\))@\1# Automatic odoo-helper fix for ability to run tours in Chrome 111\n\1# See: https://github.com/odoo/odoo/pull/114930\n\1# See: https://github.com/odoo/odoo/pull/115782\n\1# \2\n\1self.ws = websocket.create_connection(self.ws_url, suppress_origin=True)@gm' "$ODOO_PATH/odoo/tests/common.py";
+    fi
+
 }
 
 
