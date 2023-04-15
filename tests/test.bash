@@ -683,6 +683,10 @@ odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 # List addons in generic_addons
 odoo-helper lsa ./repositories/crnd-inc/generic-addons;
 
+# Install poppler utils package, that is required by bureaucrat knowledge base
+# that is part of bureaucrat helpdesk lite
+apt-get install -qqy poppler-utils
+
 # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
 odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
 odoo-helper addons install --ual --show-log-on-error bureaucrat_helpdesk_lite;
