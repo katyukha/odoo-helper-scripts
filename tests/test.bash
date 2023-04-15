@@ -685,7 +685,7 @@ odoo-helper lsa ./repositories/crnd-inc/generic-addons;
 
 # Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
 odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
-odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+odoo-helper addons install --ual --show-log-on-error bureaucrat_helpdesk_lite;
 
 # Fetch helpdesk second time testing bechavior
 # when same addons already present in system
