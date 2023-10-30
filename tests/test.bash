@@ -982,6 +982,62 @@ odoo-helper db drop odoo16-odoo-test;
 
 
 echo -e "${YELLOWC}
+=================================
+Install and check Odoo 17.0 (Py3)
+=================================
+${NC}"
+
+cd ../;
+
+# Remove odoo 17
+# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+rm -rf ./odoo-16.0
+
+# Install odoo 16
+odoo-helper install sys-deps -y 17.0;
+
+odoo-install --install-dir odoo-17.0 --odoo-version 17.0 \
+    --http-port 8569 --http-host local-odoo-16 \
+    --db-user odoo16 --db-pass odoo --create-db-user \
+    --build-python-if-needed
+
+cd odoo-17.0;
+
+# Install py-tools and js-tools
+odoo-helper install py-tools;
+odoo-helper install js-tools;
+
+odoo-helper server run --stop-after-init;  # test that it runs
+
+# Show project status
+odoo-helper status;
+odoo-helper server status;
+odoo-helper start;
+odoo-helper ps;
+odoo-helper status;
+odoo-helper server status;
+odoo-helper stop;
+
+# Show complete odoo-helper status
+odoo-helper status  --tools-versions --ci-tools-versions;
+
+# Database management
+odoo-helper db create --tdb --lang en_US;
+
+odoo-helper addons update-list --tdb;
+odoo-helper addons install --tdb --module crm;
+odoo-helper addons test-installed crm;
+
+odoo-helper lsd;  # List databases
+
+## Install addon website via 'odoo-helper install'
+odoo-helper install website;
+
+# Drop created databases
+odoo-helper db drop odoo17-odoo-test;
+
+
+echo -e "${YELLOWC}
 =============================================================
 Run 'prepare-docs' script to test generation of help messages
 =============================================================
