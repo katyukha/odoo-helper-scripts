@@ -1,5 +1,11 @@
 # Release Notes
 
+## Release (Unreleased)
+
+### Added
+
+- New option `--enforce-bump` to `odoo-helper ci fix-versions` and `odoo-helper ci check-versions` commands.
+
 ## Release 1.3.0 (2023-03-28)
 
 ### Added

@@ -198,6 +198,7 @@ function ci_check_versions_git {
                               addons. Increases major part of version number
         --fix-version-fp    - [experimental] Fix version conflicts during
                               forwardport
+        --enforce-bump      - [experimental] Enforce version bump for current module.
         -h|--help|help      - print this help message end exit
 
     Parametrs:
@@ -216,6 +217,7 @@ function ci_check_versions_git {
     local opt_fix_version_minor=0;
     local opt_fix_version_major=0;
     local opt_fix_version_fp=0;
+    local opt_enforce_version_bump=0
     local cdir;
     while [[ $# -gt 0 ]]
     do
@@ -259,6 +261,10 @@ function ci_check_versions_git {
                 opt_fix_serie=1;
                 opt_fix_version=1;
                 opt_fix_version_fp=1;
+                shift;
+            ;;
+            --enforce-bump)
+                opt_enforce_version_bump=1;
                 shift;
             ;;
             *)
@@ -337,7 +343,7 @@ function ci_check_versions_git {
         fi
 
         # Compare version
-        if ci_ensure_versions_ok "$version_before" "$version_after"; then
+        if [ "$opt_enforce_version_bump" -eq 0 ] && ci_ensure_versions_ok "$version_before" "$version_after"; then
             # version before is less that version_after
             echoe -e "${GREENC}OK${NC}";
         else
@@ -412,6 +418,9 @@ function ci_cmd_git_fix_versions {
                              addons. Increases minor part of version number
         -M|--major         - Attempt to fix versions in changed
                              addons. Increases major part of version number
+        --ignore-trans     - ignore translations
+                             Note: this option may not work on old git versions
+        --enforce-bump     - [experimental] Enforce version bump for current module.
         -h|--help|help     - print this help message end exit
 
     Parametrs:
@@ -444,6 +453,12 @@ function ci_cmd_git_fix_versions {
             -M|--major)
                 git_check_versions_opts+=( --fix-version-major );
                 shift;
+            ;;
+            --enforce-bump)
+                git_check_versions_opts+=( --enforce-bump );
+            ;;
+            --ignore-trans)
+                git_check_versions_opts+=( --ingore-trans );
             ;;
             *)
                 break;
