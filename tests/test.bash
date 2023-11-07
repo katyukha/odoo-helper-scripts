@@ -684,16 +684,15 @@ odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 odoo-helper lsa ./repositories/crnd-inc/generic-addons;
 
 # Install poppler utils package, that is required by bureaucrat knowledge base
-# that is part of bureaucrat helpdesk lite
 sudo apt-get install -qqy poppler-utils
 
-# Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
-odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
-odoo-helper addons install --ual --show-log-on-error bureaucrat_helpdesk_lite;
+# Fetch bureaucrat_knowledge from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_knowledge;
+odoo-helper addons install --ual --show-log-on-error bureaucrat_knowledge;
 
-# Fetch helpdesk second time testing bechavior
+# Fetch knowledge base second time testing bechavior
 # when same addons already present in system
-odoo-helper-fetch --odoo-app bureaucrat_helpdesk_lite;
+odoo-helper-fetch --odoo-app bureaucrat_knowledge;
 
 # Prepare to test pull updates with --do-update option
 (cd ./repositories/crnd-inc/generic-addons && git reset --hard HEAD^^^1);
@@ -766,9 +765,9 @@ odoo-helper fetch --github crnd-inc/generic-addons
 # Install addons from OCA contract
 odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 
-# Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
-odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
-odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+# Fetch bureaucrat_knowledge from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_knowledge;
+odoo-helper addons install --ual bureaucrat_knowledge;
 
 # Print list of installed addons
 odoo-helper addons find-installed --packager-format;
@@ -823,9 +822,9 @@ odoo-helper fetch --github crnd-inc/generic-addons
 # Install addons from OCA contract
 odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 
-# Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
-odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
-odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+# Fetch bureaucrat_knowledge from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_knowledge;
+odoo-helper addons install --ual bureaucrat_knowledge;
 
 # Print list of installed addons
 odoo-helper addons find-installed;
@@ -896,15 +895,15 @@ odoo-helper fetch --github crnd-inc/generic-addons
 ## Install addons from OCA contract
 odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
 
-## Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
-odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
-odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+## Fetch bureaucrat_knowledge from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_knowledge;
+odoo-helper addons install --ual bureaucrat_knowledge;
 
 ## Print list of installed addons
 odoo-helper addons find-installed;
 
-## Run tests for helpdesk lite
-odoo-helper test generic_request crnd_wsd
+## Run tests for knowledge
+odoo-helper test bureaucrat_knowledge
 
 # Drop created databases
 odoo-helper db drop odoo15-odoo-test;
@@ -962,20 +961,17 @@ odoo-helper lsd;  # List databases
 odoo-helper install website;
 
 ## Fetch oca/contract
-#odoo-helper fetch --github crnd-inc/generic-addons
+odoo-helper fetch --github crnd-inc/generic-addons
 
-## Install addons from OCA contract
-#odoo-helper addons install --ual --dir ./repositories/crnd-inc/generic-addons;
-
-## Fetch bureaucrat_helpdesk_lite from Odoo market and try to install it
-#odoo-helper fetch --odoo-app bureaucrat_helpdesk_lite;
-#odoo-helper addons install --ual bureaucrat_helpdesk_lite;
+## Fetch bureaucrat_knowledge from Odoo market and try to install it
+odoo-helper fetch --odoo-app bureaucrat_knowledge;
+odoo-helper addons install --ual bureaucrat_knowledge;
 
 ## Print list of installed addons
-#odoo-helper addons find-installed;
+odoo-helper addons find-installed;
 
 ## Run tests for helpdesk lite
-#odoo-helper test generic_request crnd_wsd
+odoo-helper test bureaucrat_knowledge
 
 # Drop created databases
 odoo-helper db drop odoo16-odoo-test;
