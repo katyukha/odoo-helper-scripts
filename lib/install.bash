@@ -532,7 +532,7 @@ function install_odoo_py_requirements_for_version {
                 fi
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.8.6";
-            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "import sys; assert sys.version_info <= (3, 5);" > /dev/null 2>&1; then
+            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "import sys; assert sys.version_info <= (3, 6);" > /dev/null 2>&1; then
                 echo "psycopg2-binary==2.8.6";
             elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2-binary";
