@@ -389,7 +389,7 @@ config_set_defaults;  # imported from common module
 
 install_create_project_dir_tree;  # imported from 'install' module
 
-if [ "$ODOO_INSTALL_SYS_DEPS_AUTO" -eq 1 ]; then
+if [ -n "$ODOO_INSTALL_SYS_DEPS_AUTO" ] && [ "$ODOO_INSTALL_SYS_DEPS_AUTO" -eq 1 ]; then
     echo -e "${BLUEC}Installing system dependencies for Odoo ${YELLOWC}${ODOO_VERSION}${BLUEC}...${NC}";
     install_sys_deps_for_odoo_version "${ODOO_VERSION}";
 fi

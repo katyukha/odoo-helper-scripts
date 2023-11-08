@@ -1,5 +1,17 @@
 # Release Notes
 
+## Release 1.4.0 (2023-11-08)
+
+### Added
+
+- New option `--enforce-bump` to `odoo-helper ci fix-versions` and `odoo-helper ci check-versions` commands.
+
+### Changed
+
+- Changed default installed version of [wkhtmltopdf](https://wkhtmltopdf.org/) to [0.12.6.1 r3](https://github.com/wkhtmltopdf/packaging/releases/tag/0.12.6.1-3). Thus it have to be working on Ubuntu 22.04+
+
+---
+
 ## Release 1.3.0 (2023-03-28)
 
 ### Added

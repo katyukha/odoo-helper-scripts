@@ -130,11 +130,11 @@ function install_fetch_odoo {
 # install_wkhtmltopdf_get_dw_link <os_release_name> [wkhtmltopdf version]
 function install_wkhtmltopdf_get_dw_link {
     local os_release_name=$1;
-    local version=${2:-0.12.5};
+    local version=${2:-0.12.6.1-3};
     local system_arch;
     system_arch=$(dpkg --print-architecture);
 
-    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/$version/wkhtmltox_${version}-1.${os_release_name}_${system_arch}.deb"
+    echo "https://github.com/wkhtmltopdf/packaging/releases/download/$version/wkhtmltox_${version}.${os_release_name}_${system_arch}.deb"
 }
 
 
@@ -153,10 +153,11 @@ function install_wkhtmltopdf_download {
         local old_release=$release;
 
         if [ -n "$wkhtmltox_fallback" ] && [ "$(lsb_release -si)" == "Ubuntu" ]; then
-            # fallback to trusty release for ubuntu systems
-            release=focal;
+            # fallback to latest releases for ubuntu systems
+            release=jammy;
         elif [ -n "$wkhtmltox_fallback" ] && [ "$(lsb_release -si)" == "Debian" ]; then
-            release=stretch;
+            # fallback to latest releases for debian systems
+            release=bookworm;
         elif [ -z "$wkhtmltox_fallback" ]; then
             echoe -e "${REDC}ERROR:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}! Try to use --fallback option to install wkthmltopdf for other supported release, or install system's wkhtmltopdf.";
             if [ -e "$wkhtmltox_path" ]; then rm "$wkhtmltox_path"; fi
@@ -531,7 +532,7 @@ function install_odoo_py_requirements_for_version {
                 fi
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2==2.8.6";
-            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "import sys; assert sys.version_info <= (3, 5);" > /dev/null 2>&1; then
+            elif [[ "$dependency_stripped" =~ psycopg2* ]] && exec_py -c "import sys; assert sys.version_info <= (3, 6);" > /dev/null 2>&1; then
                 echo "psycopg2-binary==2.8.6";
             elif [[ "$dependency_stripped" =~ psycopg2* ]]; then
                 echo "psycopg2-binary";

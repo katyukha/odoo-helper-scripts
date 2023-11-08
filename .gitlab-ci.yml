@@ -65,7 +65,8 @@ flake8:
         # Install deps
         - apt-get update -qq && apt-get install -yqq adduser sudo locales ruby git
         - update-locale LANG=C.UTF-8 && update-locale LC_ALL=C.UTF-8 && update-locale LANGUAGE=C.UTF-8
-        - gem install bashcov codecov simplecov-console
+        - gem install bashcov -v 1.8.2
+        - gem install codecov simplecov-console
 
         # Configure Odoo user
         - adduser -q odoo
@@ -87,12 +88,6 @@ flake8:
           when: never
         - if: $CI_COMMIT_BRANCH
 
-
-tests:ubuntu:18.04:
-    image: ubuntu:18.04
-    variables:
-      ODOO_INSTALL_NODE_VERSION: "16.15.1"
-    <<: *tests-definition
 
 tests:ubuntu:20.04:
     image: ubuntu:20.04
