@@ -438,7 +438,12 @@ function install_sys_deps_for_odoo_version {
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
     local tmp_control;
     tmp_control=$(mktemp);
-    wget -q -T 15 "$control_url" -O "$tmp_control";
+
+    if ! wget -q -T 15 "$control_url" -O "$tmp_control"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot download debian control file from '$control_url'!";
+        return 2;
+    fi
+
     local sys_deps;
     mapfile -t sys_deps < <(ODOO_VERSION="$odoo_version" install_parse_debian_control_file "$tmp_control");
     install_sys_deps_internal "${sys_deps[@]}";
