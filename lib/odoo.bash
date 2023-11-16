@@ -289,6 +289,8 @@ function odoo_ensure_python_version {
         ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
         ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 17 ]; then
+        ${python_interpreter} -c "import sys; assert sys.version_info > (3, 10);";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
         return 1;

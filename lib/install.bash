@@ -703,6 +703,8 @@ function install_build_python_guess_version {
         echo "3.8.13";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
         echo "3.8.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 17 ]; then
+        echo "3.10.13";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
         return 1;
