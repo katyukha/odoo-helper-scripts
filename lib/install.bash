@@ -438,7 +438,12 @@ function install_sys_deps_for_odoo_version {
     local control_url="https://raw.githubusercontent.com/odoo/odoo/$odoo_branch/debian/control";
     local tmp_control;
     tmp_control=$(mktemp);
-    wget -q -T 15 "$control_url" -O "$tmp_control";
+
+    if ! wget -q -T 15 "$control_url" -O "$tmp_control"; then
+        echoe -e "${REDC}ERROR${NC}: Cannot download debian control file from '$control_url'!";
+        return 2;
+    fi
+
     local sys_deps;
     mapfile -t sys_deps < <(ODOO_VERSION="$odoo_version" install_parse_debian_control_file "$tmp_control");
     install_sys_deps_internal "${sys_deps[@]}";
@@ -698,6 +703,8 @@ function install_build_python_guess_version {
         echo "3.8.13";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
         echo "3.8.13";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 17 ]; then
+        echo "3.10.13";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
         return 1;

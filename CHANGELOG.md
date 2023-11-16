@@ -1,5 +1,13 @@
 # Release Notes
 
+## Release 1.5.0 (2023-11-16)
+
+### Added
+
+- Experimental support of Odoo 17.0
+
+---
+
 ## Release 1.4.0 (2023-11-08)
 
 ### Added
