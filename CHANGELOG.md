@@ -1,5 +1,13 @@
 # Release Notes
 
+## Release 1.5.1 (2024-04-01)
+
+### Fixed
+
+- Install lxml less then 5.0.0, that is supported by Odoo.
+
+---
+
 ## Release 1.5.0 (2023-11-16)
 
 ### Added
