@@ -98,7 +98,7 @@ tests:ubuntu:22.04:
     <<: *tests-definition
 
 .build:package:base:definition: &build-package-base-def
-    image: ubuntu:20.04
+    image: ubuntu:22.04
     stage: build
     variables:
         ODOO_HELPER_ROOT: $CI_PROJECT_DIR
