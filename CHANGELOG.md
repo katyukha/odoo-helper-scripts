@@ -1,5 +1,13 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Experimental support for Odoo 18
+
+---
+
 ## Release 1.5.1 (2024-04-01)
 
 ### Fixed
