@@ -1195,6 +1195,9 @@ function odoo_run_setup_py {
         # Note, that we do it here, because it is mentioned in setup.py,
         # thus it cannot be updated in standard way.
         sed -i 's/suds-jurko/suds-py3/g' "$ODOO_PATH/setup.py";
+
+        # We have to replace psycopg2 by psycopg-binary to be consistent with requirements.txt
+        sed -i 's/psycopg2/psycopg2-binary/g' "$ODOO_PATH/setup.py";
     fi
 
     # Install odoo
