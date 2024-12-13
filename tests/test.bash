@@ -993,7 +993,7 @@ rm -rf ./odoo-16.0
 odoo-helper install sys-deps -y 17.0;
 
 odoo-install --install-dir odoo-17.0 --odoo-version 17.0 \
-    --http-port 8569 --http-host local-odoo-17 \
+    --http-port 17569 \
     --db-user odoo17 --db-pass odoo --create-db-user \
     --build-python-if-needed
 
@@ -1049,7 +1049,7 @@ rm -rf ./odoo-17.0
 odoo-helper install sys-deps -y 18.0;
 
 odoo-install --install-dir odoo-18.0 --odoo-version 18.0 \
-    --http-port 8569 --http-host local-odoo-18 \
+    --http-port 18069 \
     --db-user odoo18 --db-pass odoo --create-db-user \
     --build-python-if-needed
 
