@@ -696,15 +696,17 @@ function install_build_python_guess_version {
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 12 ]; then
         echo "3.7.13";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 13 ]; then
-        echo "3.8.13";
+        echo "3.8.20";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
-        echo "3.8.13";
+        echo "3.8.20";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
-        echo "3.8.13";
+        echo "3.8.20";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
-        echo "3.8.13";
+        echo "3.8.20";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 17 ]; then
-        echo "3.10.13";
+        echo "3.10.15";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 18 ]; then
+        echo "3.10.15";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
         return 1;
@@ -1193,6 +1195,9 @@ function odoo_run_setup_py {
         # Note, that we do it here, because it is mentioned in setup.py,
         # thus it cannot be updated in standard way.
         sed -i 's/suds-jurko/suds-py3/g' "$ODOO_PATH/setup.py";
+
+        # We have to replace psycopg2 by psycopg-binary to be consistent with requirements.txt
+        sed -i 's/psycopg2/psycopg2-binary/g' "$ODOO_PATH/setup.py";
     fi
 
     # Install odoo
