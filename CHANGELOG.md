@@ -1,6 +1,14 @@
 # Release Notes
 
-## Release (1.6.0) (2024-12-15)
+## Release 1.6.1 (2024-12-16)
+
+### Fixed
+
+- Fix rewrite of "psycopg2 -> psycopg2-binary" in setup.py
+
+---
+
+## Release 1.6.0 (2024-12-15)
 
 ### Added
 
