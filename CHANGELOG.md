@@ -1,5 +1,13 @@
 # Release Notes
 
+ ## Release 1.6.2 (2025-12-29)
+ 
+ ### Fixed
+ 
+ - Add --no-xmlrpc only for Odoo < 19 to avoid failures on newer Odoo versions
+ 
+ ---
+ 
 ## Release 1.6.1 (2024-12-16)
 
 ### Fixed
