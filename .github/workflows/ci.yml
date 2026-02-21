@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ubuntu: ['20.04', '22.04', '24.04']
+        ubuntu: ['22.04', '24.04']
     env:
       CI_RUN: '1'
       ODOO_HELPER_INSTALL_PATH: ${{ github.workspace }}
@@ -50,11 +50,9 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -yqq adduser sudo locales git
           sudo update-locale LANG=C.UTF-8 LC_ALL=C.UTF-8 LANGUAGE=C.UTF-8
-          sudo adduser -q --disabled-password --gecos '' odoo
-          echo ' odoo ALL=(ALL) NOPASSWD:ALL' | sudo tee -a /etc/sudoers
-          sudo -u odoo -HE git config --global user.email "test-oh@test.test"
-          sudo -u odoo -HE git config --global user.name "test-oh"
+          git config --global user.email "test-oh@test.test"
+          git config --global user.name "test-oh"
       - name: Install odoo-helper-scripts
         run: sudo -E bash install-system.bash
       - name: Run tests
-        run: sudo -u odoo -HE bash tests/test.bash
+        run: bash tests/test.bash
