@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:24.04
                                                                                 
 # Set corect locale-related environment variables                               
 ENV LANG="en_US.UTF-8" LANGUAGE="en_US:en" LC_ALL="en_US.UTF-8"                 

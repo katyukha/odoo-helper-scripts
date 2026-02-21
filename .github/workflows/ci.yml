@@ -6,7 +6,6 @@ on:
       - '**'
     tags-ignore:
       - '**'
-  pull_request:
 
 jobs:
   shellcheck:
@@ -27,7 +26,33 @@ jobs:
       - name: Run flake8
         run: flake8 ./lib/pylib/
 
-  test:
+  test-py2:
+    runs-on: ubuntu-22.04
+    env:
+      CI_RUN: '1'
+      ODOO_HELPER_INSTALL_PATH: ${{ github.workspace }}
+      TEST_TMP_DIR: /tmp/odoo-helper-tests
+      DEBIAN_FRONTEND: noninteractive
+      ALWAYS_ANSWER_YES: '1'
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      LANGUAGE: C.UTF-8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Setup locale and git
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -yqq locales git
+          sudo update-locale LANG=C.UTF-8 LC_ALL=C.UTF-8 LANGUAGE=C.UTF-8
+          git config --global user.email "test-oh@test.test"
+          git config --global user.name "test-oh"
+      - name: Install odoo-helper-scripts
+        run: sudo -E bash install-system.bash
+      - name: Run py2 tests (Odoo 8/9/10)
+        run: bash tests/test_py2.bash
+
+  test-py3:
     runs-on: ubuntu-${{ matrix.ubuntu }}
     strategy:
       fail-fast: false
@@ -46,13 +71,13 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
-      - name: Setup test user and locale
+      - name: Setup locale and git
         run: |
-          sudo apt-get update -qq && sudo apt-get install -yqq adduser sudo locales git
+          sudo apt-get update -qq && sudo apt-get install -yqq locales git
           sudo update-locale LANG=C.UTF-8 LC_ALL=C.UTF-8 LANGUAGE=C.UTF-8
           git config --global user.email "test-oh@test.test"
           git config --global user.name "test-oh"
       - name: Install odoo-helper-scripts
         run: sudo -E bash install-system.bash
-      - name: Run tests
-        run: bash tests/test.bash
+      - name: Run py3 tests (Odoo 11–18)
+        run: bash tests/test_py3.bash

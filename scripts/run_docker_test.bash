@@ -45,7 +45,7 @@ CMD_CLEANUP="sudo rm -rf rm -rf $E_TEST_TMP_DIR";
 #------------------------------------------------------
 # Set up default values
 #------------------------------------------------------
-TEST_FILE=/opt/odoo-helper-scripts/tests/test.bash;
+TEST_FILE=;  # empty means run both py2 and py3 suites
 DOCKER_FILE=$PROJECT_DIR/tests/docker/;
 DOCKER_TEST_IMAGE=odoo-helper-test
 DOCKER_IMAGE="ubuntu:18.04"
@@ -61,7 +61,7 @@ usage="Usage:
                                               Default: $DOCKER_IMAGE
     $SCRIPT_NAME --docker-ti                - add '-ti' options to 'docker run' cmd
     $SCRIPT_NAME --with-coverage            - run with code coverage
-    $SCRIPT_NAME --test-file <path>         - run test file. default: $TEST_FILE
+    $SCRIPT_NAME --test-file <path>         - run specific test file (default: run both test_py2.bash and test_py3.bash)
     $SCRIPT_NAME --help                     - show this help message
 
 ";
@@ -108,7 +108,13 @@ do
 done
 #------------------------------------------------------
 
-D_CMD_TEST="cd /home/odoo && sudo -E -u odoo -H bash $TEST_FILE";
+if [ -z "$TEST_FILE" ]; then
+    D_CMD_TEST="cd /home/odoo && \
+        sudo -E -u odoo -H bash /opt/odoo-helper-scripts/tests/test_py2.bash && \
+        sudo -E -u odoo -H bash /opt/odoo-helper-scripts/tests/test_py3.bash"
+else
+    D_CMD_TEST="cd /home/odoo && sudo -E -u odoo -H bash $TEST_FILE"
+fi
 
 set -e; # fail on errors
 
