@@ -715,7 +715,14 @@ function addons_install_update_internal {
     local todo_addons;
     todo_addons=$(join_by , "$@");
 
-    local odoo_options=( "-d" "$db"  "--max-cron-threads=0" "--stop-after-init" "--no-xmlrpc" "--pidfile=/dev/null" );
+    local odoo_options=( "-d" "$db"  "--max-cron-threads=0" "--stop-after-init" "--pidfile=/dev/null" );
+
+    if [ "$(odoo_get_major_version)" -lt 11 ]; then
+        odoo_options+=( "--no-xmlrpc" );
+    else
+        odoo_options+=( "--no-http" );
+    fi
+
     if ! odoo_db_is_demo_enabled -q "$db"; then
         odoo_options+=( "--without-demo=all" );
     fi
