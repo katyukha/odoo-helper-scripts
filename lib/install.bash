@@ -520,7 +520,9 @@ function install_odoo_py_requirements_for_version {
                 elif exec_py -c "import sys; assert (3, 7) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
                 elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
-                    echo "gevent>=20.6.0";
+                    # Use recent gevent that has prebuilt wheels and supports Python 3.9+
+                    # See: https://github.com/odoo/odoo/issues/187021
+                    echo "gevent>=24.11";
                 else
                     echo "$dependency";
                 fi
@@ -531,7 +533,9 @@ function install_odoo_py_requirements_for_version {
                 if exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
                 elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
-                    echo "greenlet>=0.4.16";
+                    # Use recent greenlet compatible with gevent~=24.11
+                    # See: https://github.com/odoo/odoo/issues/187021
+                    echo "greenlet>=3.1";
                 else
                     echo "$dependency";
                 fi
@@ -559,6 +563,10 @@ function install_odoo_py_requirements_for_version {
                 # Recent versions of setup tools do not support `use_2to3` flag,so,
                 # we have to use another fork of suds to avoid errors during install
                 echo "suds-py3";
+            elif [[ "$dependency_stripped" == "cbor2==5.4.2" ]] && exec_py -c "import sys; assert sys.version_info >= (3, 10);" > /dev/null 2>&1; then
+                # cbor2==5.4.2 depends on pkg_resources that was removed from newer setuptools.
+                # See: https://github.com/odoo/odoo/issues/248315
+                echo "cbor2==5.4.6";
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
@@ -828,9 +836,18 @@ function install_virtual_env {
             VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" python3 -m virtualenv "$VENV_DIR";
         fi
 
-        if [ "$(odoo_get_major_version)" -gt 10 ]; then
-            # Ensure correct version of setup tools installed.
+        local odoo_major_ver;
+        odoo_major_ver=$(odoo_get_major_version);
+        if [ "$odoo_major_ver" -gt 10 ] && [ "$odoo_major_ver" -lt 16 ]; then
+            # Enforce setuptools between 45 and 58: some modules in older Odoo versions
+            # require python's 2to3 tool that is removed in later setuptools versions.
             exec_pip -q install "setuptools>=45,<58";
+        elif [ "$odoo_major_ver" -ge 16 ] && [ "$odoo_major_ver" -lt 19 ]; then
+            # Fix for zope.index 5.1+ that breaks Odoo startup with recent setuptools.
+            # pkg_resources is deprecated but still used in this range.
+            exec_pip -q install "setuptools>=76,<81";
+        elif [ "$odoo_major_ver" -ge 19 ]; then
+            exec_pip -q install "setuptools>=76";
         fi
 
         echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
