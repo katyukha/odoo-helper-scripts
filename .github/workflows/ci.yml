@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+  pull_request:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: Run shellcheck
+        run: shellcheck -s bash -x -a --color -e "SC1090,SC1091,SC2034" ./bin/* ./lib/*.bash
+
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install flake8
+        run: pip install flake8
+      - name: Run flake8
+        run: flake8 ./lib/pylib/
+
+  test:
+    runs-on: ubuntu-${{ matrix.ubuntu }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: ['20.04', '22.04', '24.04']
+    env:
+      CI_RUN: '1'
+      ODOO_HELPER_INSTALL_PATH: ${{ github.workspace }}
+      TEST_TMP_DIR: /tmp/odoo-helper-tests
+      DEBIAN_FRONTEND: noninteractive
+      ALWAYS_ANSWER_YES: '1'
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      LANGUAGE: C.UTF-8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Setup test user and locale
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -yqq adduser sudo locales git
+          sudo update-locale LANG=C.UTF-8 LC_ALL=C.UTF-8 LANGUAGE=C.UTF-8
+          sudo adduser -q --disabled-password --gecos '' odoo
+          echo ' odoo ALL=(ALL) NOPASSWD:ALL' | sudo tee -a /etc/sudoers
+          sudo -u odoo -HE git config --global user.email "test-oh@test.test"
+          sudo -u odoo -HE git config --global user.name "test-oh"
+      - name: Install odoo-helper-scripts
+        run: sudo -E bash install-system.bash
+      - name: Run tests
+        run: sudo -u odoo -HE bash tests/test.bash
