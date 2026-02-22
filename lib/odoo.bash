@@ -277,22 +277,26 @@ function odoo_ensure_python_version {
         return 2;  # Python interpreter is not available
     fi
 
-    if [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 11 ]; then
+    local odoo_major_ver;
+    odoo_major_ver=$(odoo_get_major_version);
+    if [ "$odoo_major_ver" -le 10 ]; then
+        # Odoo 8-10: Python 2.7 only
+        ${python_interpreter} -c "import sys; assert (2, 7) <= sys.version_info < (3,);" > /dev/null 2>&1;
+    elif [ "$odoo_major_ver" -le 13 ]; then
+        # Odoo 11-13: Python 3.6–3.8
         ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 9);" > /dev/null 2>&1;
-    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 12 ]; then
-        ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 9);" > /dev/null 2>&1;
-    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 13 ]; then
+    elif [ "$odoo_major_ver" -eq 14 ]; then
+        # Odoo 14: Python 3.6–3.9
         ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 10);" > /dev/null 2>&1;
-    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
-        ${python_interpreter} -c "import sys; assert (3, 6) <= sys.version_info < (3, 10);" > /dev/null 2>&1;
-    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
-        ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);";
-    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
-        ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);";
-    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 17 ]; then
-        ${python_interpreter} -c "import sys; assert sys.version_info > (3, 10);";
-    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 18 ]; then
-        ${python_interpreter} -c "import sys; assert sys.version_info > (3, 10);";
+    elif [ "$odoo_major_ver" -le 16 ]; then
+        # Odoo 15-16: Python 3.7–3.10
+        ${python_interpreter} -c "import sys; assert (3, 7) <= sys.version_info < (3, 11);" > /dev/null 2>&1;
+    elif [ "$odoo_major_ver" -eq 17 ]; then
+        # Odoo 17: Python 3.10–3.11
+        ${python_interpreter} -c "import sys; assert (3, 10) <= sys.version_info < (3, 12);" > /dev/null 2>&1;
+    elif [ "$odoo_major_ver" -le 19 ]; then
+        # Odoo 18-19: Python 3.10–3.12
+        ${python_interpreter} -c "import sys; assert (3, 10) <= sys.version_info < (3, 13);" > /dev/null 2>&1;
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
         return 1;
