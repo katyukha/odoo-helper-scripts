@@ -563,8 +563,10 @@ function install_odoo_py_requirements_for_version {
                 # Recent versions of setup tools do not support `use_2to3` flag,so,
                 # we have to use another fork of suds to avoid errors during install
                 echo "suds-py3";
-            elif [[ "$dependency_stripped" == "cbor2==5.4.2" ]] && exec_py -c "import sys; assert sys.version_info >= (3, 10);" > /dev/null 2>&1; then
+            elif [[ "$dependency_stripped" =~ ^cbor2==5\.4\.2 ]] && exec_py -c "import sys; assert sys.version_info >= (3, 10);" > /dev/null 2>&1; then
                 # cbor2==5.4.2 depends on pkg_resources that was removed from newer setuptools.
+                # Odoo 18 specifies it as "cbor2==5.4.2 ; python_version < '3.12'" (with env marker),
+                # so we must use regex match, not exact equality.
                 # See: https://github.com/odoo/odoo/issues/248315
                 echo "cbor2==5.4.6";
             else
