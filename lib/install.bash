@@ -1227,6 +1227,23 @@ function odoo_run_setup_py {
         sed -i -E 's@([\t ]+)(self\.ws = websocket\.create_connection\(self\.ws_url\))@\1# Automatic odoo-helper fix for ability to run tours in Chrome 111\n\1# See: https://github.com/odoo/odoo/pull/114930\n\1# See: https://github.com/odoo/odoo/pull/115782\n\1# \2\n\1self.ws = websocket.create_connection(self.ws_url, suppress_origin=True)@gm' "$ODOO_PATH/odoo/tests/common.py";
     fi
 
+    # Fix exec_pg_command in odoo/tools/misc.py for Odoo 10.0-14.0.
+    # The function uses open(os.devnull) which opens /dev/null read-only (O_RDONLY).
+    # On Linux, vfs_write() checks FMODE_WRITE and returns EBADF for read-only fds,
+    # so any write() by pg_dump to stdout/stderr (e.g. PostgreSQL NOTICE messages
+    # via libpq's notice processor) fails, causing pg_dump to exit with code 1.
+    # Fixed upstream in Odoo 15.0 by switching to subprocess.DEVNULL.
+    local misc_py="$ODOO_PATH/odoo/tools/misc.py";
+    if [ "$(odoo_get_major_version)" -ge 10 ] \
+            && [ "$(odoo_get_major_version)" -le 14 ] \
+            && [ -f "$misc_py" ]; then
+        sed -i \
+            "s/with open(os.devnull) as dn:/with open(os.devnull, 'w') as dn:/g" \
+            "$misc_py";
+        echoe -e "Applied fix for ${BLUEC}exec_pg_command${NC} in misc.py" \
+            "(open(os.devnull, 'w') to avoid EBADF on pg_dump stderr writes)";
+    fi
+
 }
 
 
