@@ -1,0 +1,37 @@
+name: Deploy Docs to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-20.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      ODOO_HELPER_INSTALL_PATH: ${{ github.workspace }}
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Install system dependencies
+        run: sudo apt-get install -y python3-pip && sudo -E bash install-system.bash
+      - name: Install MkDocs
+        run: python3 -m pip install mkdocs mkdocs-cinder==0.14.0
+      - name: Build docs
+        run: bash scripts/build_docs.bash
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

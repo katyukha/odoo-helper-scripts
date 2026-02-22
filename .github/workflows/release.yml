@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-package:
+    runs-on: ubuntu-22.04
+    env:
+      ODOO_HELPER_ROOT: ${{ github.workspace }}
+      ODOO_HELPER_BIN: ${{ github.workspace }}/bin
+      ODOO_HELPER_LIB: ${{ github.workspace }}/lib
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: sudo apt-get install -qqy ruby ruby-dev make gcc curl
+      - name: Install fpm
+        run: sudo gem install fpm
+      - name: Build .deb package
+        run: bash scripts/build_packages.bash
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: build/odoo-helper-scripts.deb
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: build-package
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download .deb artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deb-package
+          path: build/
+      - name: Extract release notes from CHANGELOG
+        run: |
+          sudo apt-get install -y coreutils
+          csplit --prefix=CHANGELOG. --suffix=%02d.md CHANGELOG.md '/---/'
+      - name: Create GitHub Release
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file CHANGELOG.00.md \
+            build/odoo-helper-scripts.deb

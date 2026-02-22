@@ -135,7 +135,7 @@ function is_process_running {
 # random_string [length]
 # default length = 8
 function random_string {
-    < /dev/urandom tr -dc A-Za-z0-9 | head -c"${1:-8}";
+    < /dev/urandom tr -dc A-Za-z0-9 2>/dev/null | head -c"${1:-8}";
 }
 
 # search_file_up <start path> <file name>

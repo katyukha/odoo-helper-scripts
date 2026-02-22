@@ -520,7 +520,9 @@ function install_odoo_py_requirements_for_version {
                 elif exec_py -c "import sys; assert (3, 7) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "gevent==1.5.0";
                 elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
-                    echo "gevent>=20.6.0";
+                    # Use recent gevent that has prebuilt wheels and supports Python 3.9+
+                    # See: https://github.com/odoo/odoo/issues/187021
+                    echo "gevent>=24.11";
                 else
                     echo "$dependency";
                 fi
@@ -531,7 +533,9 @@ function install_odoo_py_requirements_for_version {
                 if exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
                 elif exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
-                    echo "greenlet>=0.4.16";
+                    # Use recent greenlet compatible with gevent~=24.11
+                    # See: https://github.com/odoo/odoo/issues/187021
+                    echo "greenlet>=3.1";
                 else
                     echo "$dependency";
                 fi
@@ -559,6 +563,16 @@ function install_odoo_py_requirements_for_version {
                 # Recent versions of setup tools do not support `use_2to3` flag,so,
                 # we have to use another fork of suds to avoid errors during install
                 echo "suds-py3";
+            elif [[ "$dependency_stripped" =~ ^cbor2==5\.4\.2 ]] && exec_py -c "import sys; assert (3, 10) <= sys.version_info < (3, 12);" > /dev/null 2>&1; then
+                # cbor2==5.4.2 depends on pkg_resources that was removed from newer setuptools,
+                # breaking installation on Python 3.10–3.11.
+                # Odoo 18 specifies it as "cbor2==5.4.2 ; python_version < '3.12'" (with env
+                # marker), so we use regex match. We only apply this on Python 3.10–3.11:
+                # on Python 3.12+ the '< 3.12' marker already excludes this line, and the
+                # separate "cbor2==5.6.2 ; python_version >= '3.12'" line handles that range.
+                # Replacing without a marker on 3.12+ would conflict with that second line.
+                # See: https://github.com/odoo/odoo/issues/248315
+                echo "cbor2==5.4.6";
             else
                 # Echo dependency line unchanged to rmp file
                 echo "$dependency";
@@ -692,21 +706,23 @@ function install_build_python_guess_version {
     if [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -lt 11 ]; then
         echo "2.7.18";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 11 ]; then
-        echo "3.7.13";
+        echo "3.7.17";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 12 ]; then
-        echo "3.7.13";
+        echo "3.7.17";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 13 ]; then
         echo "3.8.20";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 14 ]; then
         echo "3.8.20";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 15 ]; then
-        echo "3.8.20";
+        echo "3.10.19";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 16 ]; then
-        echo "3.8.20";
+        echo "3.10.19";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 17 ]; then
-        echo "3.10.15";
+        echo "3.11.14";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 18 ]; then
-        echo "3.10.15";
+        echo "3.12.12";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 19 ]; then
+        echo "3.12.12";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
         return 1;
@@ -828,9 +844,18 @@ function install_virtual_env {
             VIRTUALENV_PYTHON="$VIRTUALENV_PYTHON" python3 -m virtualenv "$VENV_DIR";
         fi
 
-        if [ "$(odoo_get_major_version)" -gt 10 ]; then
-            # Ensure correct version of setup tools installed.
+        local odoo_major_ver;
+        odoo_major_ver=$(odoo_get_major_version);
+        if [ "$odoo_major_ver" -gt 10 ] && [ "$odoo_major_ver" -lt 16 ]; then
+            # Enforce setuptools between 45 and 58: some modules in older Odoo versions
+            # require python's 2to3 tool that is removed in later setuptools versions.
             exec_pip -q install "setuptools>=45,<58";
+        elif [ "$odoo_major_ver" -ge 16 ] && [ "$odoo_major_ver" -lt 19 ]; then
+            # Fix for zope.index 5.1+ that breaks Odoo startup with recent setuptools.
+            # pkg_resources is deprecated but still used in this range.
+            exec_pip -q install "setuptools>=76,<81";
+        elif [ "$odoo_major_ver" -ge 19 ]; then
+            exec_pip -q install "setuptools>=76";
         fi
 
         echoe -e "${BLUEC}Enabling nodeenv to be able to run js utils...${NC}";
@@ -1206,6 +1231,23 @@ function odoo_run_setup_py {
     # Apply patch to run tours in Chrome 111 for Odoo 12.0
     if [ "$(odoo_get_major_version)" -eq 12 ]; then
         sed -i -E 's@([\t ]+)(self\.ws = websocket\.create_connection\(self\.ws_url\))@\1# Automatic odoo-helper fix for ability to run tours in Chrome 111\n\1# See: https://github.com/odoo/odoo/pull/114930\n\1# See: https://github.com/odoo/odoo/pull/115782\n\1# \2\n\1self.ws = websocket.create_connection(self.ws_url, suppress_origin=True)@gm' "$ODOO_PATH/odoo/tests/common.py";
+    fi
+
+    # Fix exec_pg_command in odoo/tools/misc.py for Odoo 10.0-14.0.
+    # The function uses open(os.devnull) which opens /dev/null read-only (O_RDONLY).
+    # On Linux, vfs_write() checks FMODE_WRITE and returns EBADF for read-only fds,
+    # so any write() by pg_dump to stdout/stderr (e.g. PostgreSQL NOTICE messages
+    # via libpq's notice processor) fails, causing pg_dump to exit with code 1.
+    # Fixed upstream in Odoo 15.0 by switching to subprocess.DEVNULL.
+    local misc_py="$ODOO_PATH/odoo/tools/misc.py";
+    if [ "$(odoo_get_major_version)" -ge 10 ] \
+            && [ "$(odoo_get_major_version)" -le 14 ] \
+            && [ -f "$misc_py" ]; then
+        sed -i \
+            "s/with open(os.devnull) as dn:/with open(os.devnull, 'w') as dn:/g" \
+            "$misc_py";
+        echoe -e "Applied fix for ${BLUEC}exec_pg_command${NC} in misc.py" \
+            "(open(os.devnull, 'w') to avoid EBADF on pg_dump stderr writes)";
     fi
 
 }
