@@ -9,9 +9,13 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   deploy-docs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -25,11 +29,11 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install -y python3-pip && sudo -E bash install-system.bash
       - name: Install MkDocs
-        run: python3 -m pip install mkdocs mkdocs-cinder==0.14.0
+        run: python3 -m pip install mkdocs mkdocs-cinder==1.2.0
       - name: Build docs
         run: bash scripts/build_docs.bash
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: public
       - name: Deploy to GitHub Pages
