@@ -38,7 +38,7 @@ fpm -s dir -t deb \
     --config-files /etc/odoo-helper.conf \
     --vendor "Dmytro Katyukha" \
     --maintainer "Dmytro Katyukha" \
-    --url "https://katyukha.gitlab.io/odoo-helper-scripts/" \
+    --url "https://katyukha.github.io/odoo-helper-scripts/" \
     --category "utils" \
     --iteration ubuntu\
     --architecture all \

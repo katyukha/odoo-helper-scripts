@@ -332,7 +332,7 @@ odoo-install --install-dir odoo-10.0 --odoo-version 10.0 \
     --db-user odoo10 --db-pass odoo
 
 # Remove odoo 8 and odoo 9,
-# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+# this is needed to bypass GitHub Actions disk space limitation for CI jobs
 rm -rf ./odoo-8.0
 rm -rf ./odoo-9.0
 

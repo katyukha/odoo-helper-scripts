@@ -36,7 +36,7 @@ Thanks.
 
 ## Canonical source
 
-The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab.com/katyukha/odoo-helper-scripts).
+The canonical source of odoo-helper-scripts is hosted on [GitHub](https://github.com/katyukha/odoo-helper-scripts).
 
 ## Features
 
@@ -56,7 +56,7 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
         - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
-    - Own file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
+    - Own file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.github.io/odoo-helper-scripts/odoo-requirements-txt/)
     - installation directly from [Odoo Market](https://apps.odoo.com/apps) (**experimental**)
         - Only free addons
         - Including dependencies
@@ -95,11 +95,12 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
     - *16.0*
     - *17.0*
     - *18.0* (**Experimental**)
+    - *19.0* (**Experimental**)
 - OS support:
-    - On *Ubuntu* should work nice (auto tested on *Ubuntu 20.04, 22.04*)
+    - On *Ubuntu* should work nice (auto tested on *Ubuntu 22.04, 24.04*)
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
-- Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
+- Missed feature? [Fill an issue](https://github.com/katyukha/odoo-helper-scripts/issues/new)
 
 
 ## Documentation
@@ -107,10 +108,10 @@ The canonical source of odoo-helper-scripts is hosted on [GitLab](https://gitlab
 ***Note*** Documentaion in this readme, or in other sources, may not be up to date!!!
 So use ``--help`` option, which is available for most of commands.
 
-- [Documentation](https://katyukha.gitlab.io/odoo-helper-scripts/)
-- [Installation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
-- [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/)
-- [Command Reference](https://katyukha.gitlab.io/odoo-helper-scripts/command-reference/)
+- [Documentation](https://katyukha.github.io/odoo-helper-scripts/)
+- [Installation](https://katyukha.github.io/odoo-helper-scripts/installation/)
+- [Frequently used commands](https://katyukha.github.io/odoo-helper-scripts/frequently-used-commands/)
+- [Command Reference](https://katyukha.github.io/odoo-helper-scripts/command-reference/)
 
 
 ## Usage note
@@ -142,7 +143,7 @@ Test all available features of [Bureaucrat ITSM](https://crnd.pro/itsm) with [th
 
 ## Installation
 
-For full list of installation options look at [installation documentation](https://katyukha.gitlab.io/odoo-helper-scripts/installation/)
+For full list of installation options look at [installation documentation](https://katyukha.github.io/odoo-helper-scripts/installation/)
 
 Basically, odoo-helper could be installed in two way:
 - Traditional installation via shell script
@@ -154,7 +155,7 @@ To install *odoo-helper-scripts* system-wide (the recommended way) do folowing:
 
 ```bash
 # Install odoo-helper-scripts
-wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash | sudo bash -s
+wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
 
 # Install system dependencies required for odoo-helper-scripts
 # NOTE: Works only on debian-based systems
@@ -165,7 +166,7 @@ or more explicit way:
 
 ```bash
 # Download installation script
-wget -O /tmp/odoo-helper-install.bash https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash;
+wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
 
 # Install odoo-helper-scripts
 sudo bash /tmp/odoo-helper-install.bash;
@@ -177,8 +178,8 @@ odoo-helper install pre-requirements
 
 ### Installation as deb package
 
-Also, you can install *odoo-helper-scripts* as debian package. See [releases](https://gitlab.com/katyukha/odoo-helper-scripts/-/releases) page.
-To install the latest **stable** version just download and install following deb package: [odoo-helper-scripts_master.deb](https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb)
+Also, you can install *odoo-helper-scripts* as debian package. See [releases](https://github.com/katyukha/odoo-helper-scripts/releases) page.
+To install the latest **stable** version, download the deb package from the [latest release](https://github.com/katyukha/odoo-helper-scripts/releases/latest).
 
 
 ## Test your OS support
@@ -217,11 +218,11 @@ Also there are some aliases for common commands:
 - odoo-helper-server
 - odoo-helper-test
 
-For more info look at [documentation](https://katyukha.gitlab.io/odoo-helper-scripts/). (currently documentation status is *work-in-progress*).
-Also look at [Frequently used commands](https://katyukha.gitlab.io/odoo-helper-scripts/frequently-used-commands/) and [Command reference](https://katyukha.gitlab.io/odoo-helper-scripts/command-reference/)
+For more info look at [documentation](https://katyukha.github.io/odoo-helper-scripts/). (currently documentation status is *work-in-progress*).
+Also look at [Frequently used commands](https://katyukha.github.io/odoo-helper-scripts/frequently-used-commands/) and [Command reference](https://katyukha.github.io/odoo-helper-scripts/command-reference/)
 
-Also look at [odoo-helper-scripts tests](./tests/test.bash) to get complete usage example (look for *Start test* comment).
+Also look at [odoo-helper-scripts tests](./tests/test_py3.bash) (or [test_py2.bash](./tests/test_py2.bash)) to get complete usage example (look for *Start test* comment).
 
 ## Support
 
-Have you any quetions? Just [fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new) or [send email](mailto:incoming+katyukha/odoo-helper-scripts@incoming.gitlab.com)
+Have you any quetions? Just [fill an issue](https://github.com/katyukha/odoo-helper-scripts/issues/new)

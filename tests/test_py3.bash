@@ -379,7 +379,7 @@ cd ../;
 
 
 # Remove odoo 10, 11, 12,
-# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+# this is needed to bypass GitHub Actions disk space limitation for CI jobs
 rm -rf ./odoo-10.0
 rm -rf ./odoo-11.0
 rm -rf ./odoo-12.0
@@ -506,7 +506,7 @@ ${NC}"
 cd ../;
 
 # Remove odoo 13, 14,
-# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+# this is needed to bypass GitHub Actions disk space limitation for CI jobs
 rm -rf ./odoo-13.0
 rm -rf ./odoo-14.0
 
@@ -581,7 +581,7 @@ ${NC}"
 cd ../;
 
 # Remove odoo 15
-# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+# this is needed to bypass GitHub Actions disk space limitation for CI jobs
 rm -rf ./odoo-15.0
 
 # Install odoo 16
@@ -650,7 +650,7 @@ ${NC}"
 cd ../;
 
 # Remove odoo 16
-# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+# this is needed to bypass GitHub Actions disk space limitation for CI jobs
 rm -rf ./odoo-16.0
 
 # Install odoo 17
@@ -706,7 +706,7 @@ ${NC}"
 cd ../;
 
 # Remove odoo 17
-# this is needed to bypass gitlab.com limitation of disk space for CI jobs
+# this is needed to bypass GitHub Actions disk space limitation for CI jobs
 rm -rf ./odoo-17.0
 
 # Install odoo 18

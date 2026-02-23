@@ -5,7 +5,7 @@
 Quick links:
 
 - [Quick Start Guide](./quick-start-guide.md) 
-- [Installation](.installation.md)
+- [Installation](./installation.md)
 - [Frequently used commands](./frequently-used-commands.md)
 - [Command reference](./command-reference.md)
 
@@ -57,7 +57,7 @@ please, read carefully [Usage notes](#usage-note) section.
     - Automatiacly resolve and fetch dependencies
         - oca\_dependencies.txt ([sample](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt), [mqt tool code](https://github.com/OCA/maintainer-quality-tools/blob/master/sample_files/oca_dependencies.txt))
         - [requirements.txt](https://pip.readthedocs.io/en/stable/user_guide/#requirements-files)
-    - Own file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.gitlab.io/odoo-helper-scripts/odoo-requirements-txt/)
+    - Own file format to track addon dependencies: [odoo\_requirements.txt](https://katyukha.github.io/odoo-helper-scripts/odoo-requirements-txt/)
     - installation directly from [Odoo Market](https://apps.odoo.com/apps) (**experimental**)
         - Only free addons
         - Including dependencies
@@ -96,11 +96,12 @@ please, read carefully [Usage notes](#usage-note) section.
     - *16.0*
     - *17.0*
     - *18.0* (**Experimental**)
+    - *19.0* (**Experimental**)
 - OS support:
-    - On *Ubuntu* should work nice
+    - On *Ubuntu* should work nice (auto tested on *Ubuntu 22.04, 24.04*)
     - Also should work on *Debian* based systems, but some troubles may happen with installation of system dependencies.
     - Other linux systems - in most cases should work, but system dependecies must be installed manualy.
-- Missed feature? [Fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new)
+- Missed feature? [Fill an issue](https://github.com/katyukha/odoo-helper-scripts/issues/new)
 
 
 ## Usage note
@@ -135,14 +136,14 @@ Test all available features of [Bureaucrat ITSM](https://crnd.pro/itsm) with [th
 For full list of installation options look at [installation documentation](./installation.md)
 or [Quick Start Guide](./quick-start-guide.md)
 
-odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.gitlab.io/odoo-helper-scripts/installation#install-as-deb-package)*,
-but this feature is still in alpha. See* [releases](https://gitlab.com/katyukha/odoo-helper-scripts/releases) *page.*
+odoo-helper-scripts could be installed as* [.deb packages](https://katyukha.github.io/odoo-helper-scripts/installation#install-as-deb-package)*,
+but this feature is still in alpha. See* [releases](https://github.com/katyukha/odoo-helper-scripts/releases) *page.*
 
 To install *odoo-helper-scripts* system-wide do folowing:
 
 ```bash
 # Install odoo-helper-scripts
-wget -O - https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash | sudo bash -s
+wget -O - https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash | sudo bash -s
 
 # Install system dependencies required for odoo-helper-scripts
 # NOTE: Works only on debian-based systems
@@ -153,7 +154,7 @@ or more explicit way:
 
 ```bash
 # Download installation script
-wget -O /tmp/odoo-helper-install.bash https://gitlab.com/katyukha/odoo-helper-scripts/raw/master/install-system.bash;
+wget -O /tmp/odoo-helper-install.bash https://raw.githubusercontent.com/katyukha/odoo-helper-scripts/master/install-system.bash;
 
 # Install odoo-helper-scripts
 sudo bash /tmp/odoo-helper-install.bash;
@@ -217,4 +218,4 @@ or just run `odoo-helper --help`
 
 ## Support
 
-Have you any quetions? Just [fill an issue](https://gitlab.com/katyukha/odoo-helper-scripts/issues/new) or [send email](mailto:incoming+katyukha/odoo-helper-scripts@incoming.gitlab.com)
+Have you any quetions? Just [fill an issue](https://github.com/katyukha/odoo-helper-scripts/issues/new)

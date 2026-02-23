@@ -8,7 +8,7 @@
 
 if [ -z "$ODOO_HELPER_BIN" ] || [ -z "$ODOO_HELPER_LIB" ]; then
     echo "Odoo-helper-scripts seems not been installed correctly.";
-    echo "Reinstall it (see Readme on https://gitlab.com/katyukha/odoo-helper-scripts/)";
+    echo "Reinstall it (see Readme on https://github.com/katyukha/odoo-helper-scripts/)";
     exit 1;
 fi
 
@@ -52,7 +52,7 @@ function system_update_odoo_helper_scripts {
     local scripts_branch=$1;
 
     # TODO: Add optional ability to get latest release (including RC)
-    local oh_release_url="https://gitlab.com/api/v4/projects/6823247/packages/generic/odoo-helper-scripts/master/odoo-helper-scripts_master.deb";
+    local oh_release_url="https://github.com/katyukha/odoo-helper-scripts/releases/latest/download/odoo-helper-scripts.deb";
 
     if ! git_is_git_repo "$ODOO_HELPER_ROOT"; then
         if [ "$(dpkg-query -W -f='${Status}' odoo-helper-scripts 2>/dev/null | grep -c 'ok installed')" -eq 0 ]; then
