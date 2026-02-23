@@ -2,7 +2,7 @@ pages:
   stage: deploy
   script:
     - mkdir -p public
-    - echo "/* https://katyukha.github.io/odoo-helper-scripts/:splat 301" > public/_redirects
+    - echo "/* https://katyukha.github.io/odoo-helper-scripts/ 301" > public/_redirects
   artifacts:
     paths:
       - public
