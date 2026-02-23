@@ -1,5 +1,14 @@
 # Release Notes
 
+## Release 1.6.2
+
+### Added
+
+- Project moved to [GitHub](https://github.com/katyukha/odoo-helper-scripts)
+- Port back some fixed from [Odood](https://katyukha.github.io/Odood/)
+
+---
+
 ## Release 1.6.1 (2024-12-16)
 
 ### Fixed
