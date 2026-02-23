@@ -5,6 +5,14 @@
 | master | [![CI](https://github.com/katyukha/odoo-helper-scripts/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/katyukha/odoo-helper-scripts/actions/workflows/ci.yml?query=branch%3Amaster) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-master-brightgreen.svg)](https://github.com/katyukha/odoo-helper-scripts/blob/master/CHANGELOG.md) |
 | dev    | [![CI](https://github.com/katyukha/odoo-helper-scripts/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/katyukha/odoo-helper-scripts/actions/workflows/ci.yml?query=branch%3Adev) | [![CHANGELOG](https://img.shields.io/badge/CHANGELOG-dev-yellow.svg)](https://github.com/katyukha/odoo-helper-scripts/blob/dev/CHANGELOG.md) |
 
+## Successor Project
+
+> **Note:** [Odood](https://katyukha.github.io/Odood/) is the successor of odoo-helper-scripts —
+> a complete rewrite in [DLang](https://dlang.org/) with extended capabilities,
+> including out-of-the-box production deployment support,
+> better Docker integration, MacOS support and a lot more.
+> If you are starting a new project, consider using [Odood](https://katyukha.github.io/Odood/).
+
 ## Overview
 
 This project aims to simplify development process of Odoo addons as much as possible.

@@ -19,6 +19,13 @@ and find the best way to do it.
 
 Thanks.
 
+## Successor Project
+
+> **Note:** [Odood](https://katyukha.github.io/Odood/) is the successor of odoo-helper-scripts —
+> a complete rewrite in [DLang](https://dlang.org/) with extended capabilities,
+> including out-of-the-box production deployment support,
+> better Docker integration, MacOS support and a lot more.
+> If you are starting a new project, consider using [Odood](https://katyukha.github.io/Odood/).
 
 ## Overview
 
