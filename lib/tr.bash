@@ -155,7 +155,21 @@ function tr_import_export_internal {
         fi
 
         # do the work
-        server_run -- -d "$db" -l "$lang" "${extra_opts[@]}" "--i18n-$cmd=$i18n_file" "--modules=$addon" --stop-after-init --pidfile=/dev/null;
+        if [ "$(odoo_get_major_version)" -ge 19 ]; then
+            # Odoo 19+ dropped --i18n-export/--i18n-import/--modules/-l server
+            # options; use the 'i18n export|import' odoo-bin subcommand instead.
+            if [ "$cmd" == "export" ]; then
+                server_run -- i18n export -d "$db" -l "$lang" -o "$i18n_file" "$addon";
+            else
+                local i18n_import_opts=( );
+                if [[ " ${extra_opts[*]-} " == *" --i18n-overwrite "* ]]; then
+                    i18n_import_opts+=( -w );
+                fi
+                server_run -- i18n import -d "$db" -l "$lang" "${i18n_import_opts[@]}" "$i18n_file";
+            fi
+        else
+            server_run -- -d "$db" -l "$lang" "${extra_opts[@]}" "--i18n-$cmd=$i18n_file" "--modules=$addon" --stop-after-init --pidfile=/dev/null;
+        fi
     done
 }
 
