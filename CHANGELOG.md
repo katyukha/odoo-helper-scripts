@@ -6,6 +6,15 @@
 
 - Project moved to [GitHub](https://github.com/katyukha/odoo-helper-scripts)
 - Port back some fixed from [Odood](https://katyukha.github.io/Odood/)
+- Support for Odoo 20.0: python version check (3.12-3.14) and build-python guess for 20.0
+
+### Fixed
+
+- Odoo 19.0+: translation export/import use the `odoo-bin i18n` subcommand (server options `--i18n-export`, `--i18n-import`, `--modules`, `-l` were removed in 19.0)
+- Odoo 19.0+: do not pass `--without-demo=all` (19.0 treats it as an invalid boolean)
+- Odoo 19.0+: install Odoo's requirements as published (only psycopg2 -> psycopg2-binary); the old rewrite forced `lxml<5` and dropped `lxml-html-clean`
+- Python version check for Odoo 19.0 accepts 3.10-3.13
+- `make` added to system pre-requirements (needed to build gevent from source, e.g. Odoo 20.0 on python 3.14)
 
 ---
 

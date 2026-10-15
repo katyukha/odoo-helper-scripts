@@ -496,7 +496,17 @@ function install_odoo_py_requirements_for_version {
         # Preprocess requirements to avoid known bugs
         while read -r dependency || [[ -n "$dependency" ]]; do
             dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-            if [[ "$dependency_stripped" =~ pyparsing* ]]; then
+            if [ "$odoo_major_version" -ge 19 ]; then
+                # Odoo 19+ requirements.txt is correct for the python
+                # versions odoo-helper targets on these series, so lines
+                # pass through unchanged. The one rewrite kept is psycopg2,
+                # still swapped for the binary wheel to avoid a source build.
+                if [[ "$dependency_stripped" =~ psycopg2* ]]; then
+                    echo "psycopg2-binary";
+                else
+                    echo "$dependency";
+                fi
+            elif [[ "$dependency_stripped" =~ pyparsing* ]]; then
                 # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
                 # especialy to versions lower than that used by setuptools
                 continue
@@ -694,7 +704,7 @@ function install_system_prerequirements {
         python3-dev python3-virtualenv libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
-        libmagic1;
+        libmagic1 make;
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
@@ -722,6 +732,8 @@ function install_build_python_guess_version {
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 18 ]; then
         echo "3.12.12";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 19 ]; then
+        echo "3.12.12";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 20 ]; then
         echo "3.12.12";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
