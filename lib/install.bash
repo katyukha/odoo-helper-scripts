@@ -510,7 +510,10 @@ function install_odoo_py_requirements_for_version {
                 # Note that gevent (1.3.1) may break odoo 10.0, 11.0
                 # and in Odoo 10.0, 11.0 working version of gevent is placed in requirements
                 echo "gevent==1.1.0";
-            elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
+            elif [ "$odoo_major_version" -ge 10 ] && [ "$odoo_major_version" -lt 19 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Odoo 19+ is excluded: its requirements.txt pins gevent per
+                # python version, and gevent 25+ breaks the bus websocket
+                # (patched queue.PriorityQueue has no mutex).
                 # Starting from Odoo 11 python 3 is used. choose correct gevent  version
                 # for python installed in system
                 if exec_py -c "import sys; assert (3, 4) <= sys.version_info < (3, 6);" > /dev/null 2>&1; then
@@ -528,7 +531,9 @@ function install_odoo_py_requirements_for_version {
                 fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 echo "greenlet==0.4.9";
-            elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+            elif [ "$odoo_major_version" -ge 10 ] && [ "$odoo_major_version" -lt 19 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+                # Odoo 19+ is excluded: its requirements.txt pins greenlet
+                # to match its gevent pins.
                 # Set correct version of greenlet for gevent 1.5.0
                 if exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
@@ -547,7 +552,10 @@ function install_odoo_py_requirements_for_version {
                 echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
                 echo "lxml==3.7.1";
-            elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
+            elif [ "$odoo_major_version" -ge 11 ] && [ "$odoo_major_version" -lt 19 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
+                # Odoo 19+ is excluded: its requirements.txt pins lxml per
+                # python version (lxml 4.x does not build on python 3.14),
+                # and this pattern also matches lxml-html-clean.
                 echo "lxml<5";
             elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 # Download latst version for python 3.9 and odoo 11.0
@@ -694,7 +702,7 @@ function install_system_prerequirements {
         python3-dev python3-virtualenv libjpeg-dev libyaml-dev \
         libfreetype6-dev zlib1g-dev libxml2-dev libxslt-dev bzip2 \
         libsasl2-dev libldap2-dev libssl-dev libffi-dev fontconfig \
-        libmagic1;
+        libmagic1 make;
 
     if ! install_wkhtmltopdf; then
         echoe -e "${YELLOWC}WARNING:${NC} Cannot install ${BLUEC}wkhtmltopdf${NC}!!! Skipping...";
@@ -722,6 +730,8 @@ function install_build_python_guess_version {
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 18 ]; then
         echo "3.12.12";
     elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 19 ]; then
+        echo "3.12.12";
+    elif [ -n "$ODOO_VERSION" ] && [ "$(odoo_get_major_version)" -eq 20 ]; then
         echo "3.12.12";
     else
         echoe -e "${REDC}ERROR${NC}: Automatic detection of python version for odoo ${ODOO_VERSION} is not supported!";
