@@ -496,17 +496,7 @@ function install_odoo_py_requirements_for_version {
         # Preprocess requirements to avoid known bugs
         while read -r dependency || [[ -n "$dependency" ]]; do
             dependency_stripped="$(echo "${dependency}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-            if [ "$odoo_major_version" -ge 19 ]; then
-                # Odoo 19+ requirements.txt is correct for the python
-                # versions odoo-helper targets on these series, so lines
-                # pass through unchanged. The one rewrite kept is psycopg2,
-                # still swapped for the binary wheel to avoid a source build.
-                if [[ "$dependency_stripped" =~ psycopg2* ]]; then
-                    echo "psycopg2-binary";
-                else
-                    echo "$dependency";
-                fi
-            elif [[ "$dependency_stripped" =~ pyparsing* ]]; then
+            if [[ "$dependency_stripped" =~ pyparsing* ]]; then
                 # Pyparsing is used by new versions of setuptools, so it is bad idea to update it,
                 # especialy to versions lower than that used by setuptools
                 continue
@@ -520,7 +510,10 @@ function install_odoo_py_requirements_for_version {
                 # Note that gevent (1.3.1) may break odoo 10.0, 11.0
                 # and in Odoo 10.0, 11.0 working version of gevent is placed in requirements
                 echo "gevent==1.1.0";
-            elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
+            elif [ "$odoo_major_version" -ge 10 ] && [ "$odoo_major_version" -lt 19 ] && [[ "$dependency_stripped" =~ gevent* ]]; then
+                # Odoo 19+ is excluded: its requirements.txt pins gevent per
+                # python version, and gevent 25+ breaks the bus websocket
+                # (patched queue.PriorityQueue has no mutex).
                 # Starting from Odoo 11 python 3 is used. choose correct gevent  version
                 # for python installed in system
                 if exec_py -c "import sys; assert (3, 4) <= sys.version_info < (3, 6);" > /dev/null 2>&1; then
@@ -538,7 +531,9 @@ function install_odoo_py_requirements_for_version {
                 fi
             elif [ "$odoo_major_version" -lt 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
                 echo "greenlet==0.4.9";
-            elif [ "$odoo_major_version" -ge 10 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+            elif [ "$odoo_major_version" -ge 10 ] && [ "$odoo_major_version" -lt 19 ] && [[ "$dependency_stripped" =~ greenlet* ]]; then
+                # Odoo 19+ is excluded: its requirements.txt pins greenlet
+                # to match its gevent pins.
                 # Set correct version of greenlet for gevent 1.5.0
                 if exec_py -c "import sys; assert (3, 5) <= sys.version_info < (3, 9);" > /dev/null 2>&1; then
                     echo "greenlet==0.4.14";
@@ -557,7 +552,10 @@ function install_odoo_py_requirements_for_version {
                 echo "psycopg2-binary";
             elif [ "$odoo_major_version" -lt 11 ] && [[ "$dependency_stripped" =~ lxml ]]; then
                 echo "lxml==3.7.1";
-            elif [ "$odoo_major_version" -ge 11 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
+            elif [ "$odoo_major_version" -ge 11 ] && [ "$odoo_major_version" -lt 19 ] && [[ "$dependency_stripped" =~ lxml ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
+                # Odoo 19+ is excluded: its requirements.txt pins lxml per
+                # python version (lxml 4.x does not build on python 3.14),
+                # and this pattern also matches lxml-html-clean.
                 echo "lxml<5";
             elif [ "$odoo_major_version" -eq 11 ] && [[ "$dependency_stripped" =~ PyYAML ]] && exec_py -c "import sys; assert sys.version_info >= (3, 9);" > /dev/null 2>&1; then
                 # Download latst version for python 3.9 and odoo 11.0
