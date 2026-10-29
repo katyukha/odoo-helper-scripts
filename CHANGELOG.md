@@ -1,5 +1,22 @@
 # Release Notes
 
+## Unreleased
+
+### Added
+
+- Support for Odoo 20.0: python version check (3.12-3.14) and build-python guess for 20.0
+
+### Fixed
+
+- Odoo 19.0+: translation export/import use the `odoo-bin i18n` subcommand (server options `--i18n-export`, `--i18n-import`, `--modules`, `-l` were removed in 19.0)
+- Odoo 19.0+: do not pass `--without-demo=all` (19.0 treats it as an invalid boolean)
+- Odoo 19.0+: do not force `lxml<5` when installing python requirements (lxml 4.x fails to build on python 3.14, and the rewrite also replaced `lxml-html-clean`)
+- Odoo 19.0+: keep Odoo's gevent and greenlet pins (the `gevent>=24.11` rewrite installed gevent 25+, which breaks the bus websocket)
+- Python version check for Odoo 19.0 accepts 3.10-3.13
+- `make` added to system pre-requirements (needed to build gevent from source, e.g. Odoo 20.0 on python 3.14)
+
+---
+
 ## Release 1.6.2
 
 ### Added

@@ -723,7 +723,8 @@ function addons_install_update_internal {
         odoo_options+=( "--no-http" );
     fi
 
-    if ! odoo_db_is_demo_enabled -q "$db"; then
+    if ! odoo_db_is_demo_enabled -q "$db" && [ "$(odoo_get_major_version)" -lt 19 ]; then
+        # Odoo 19+ rejects --without-demo=all: "invalid boolean" warning.
         odoo_options+=( "--without-demo=all" );
     fi
 
