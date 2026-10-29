@@ -1,11 +1,9 @@
 # Release Notes
 
-## Release 1.6.2
+## Unreleased
 
 ### Added
 
-- Project moved to [GitHub](https://github.com/katyukha/odoo-helper-scripts)
-- Port back some fixed from [Odood](https://katyukha.github.io/Odood/)
 - Support for Odoo 20.0: python version check (3.12-3.14) and build-python guess for 20.0
 
 ### Fixed
@@ -16,6 +14,15 @@
 - Odoo 19.0+: keep Odoo's gevent and greenlet pins (the `gevent>=24.11` rewrite installed gevent 25+, which breaks the bus websocket)
 - Python version check for Odoo 19.0 accepts 3.10-3.13
 - `make` added to system pre-requirements (needed to build gevent from source, e.g. Odoo 20.0 on python 3.14)
+
+---
+
+## Release 1.6.2
+
+### Added
+
+- Project moved to [GitHub](https://github.com/katyukha/odoo-helper-scripts)
+- Port back some fixed from [Odood](https://katyukha.github.io/Odood/)
 
 ---
 
